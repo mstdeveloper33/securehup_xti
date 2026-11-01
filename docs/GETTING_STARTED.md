@@ -7,7 +7,7 @@ Python bağımlılığı yoktur.
 ## 1. Klonla ve hazırla
 
 ```sh
-git clone https://github.com/mstdeveloper33/xti.git
+git clone https://github.com/mstdeveloper33/securehup_xti.git
 cd xti
 ./setup
 ```

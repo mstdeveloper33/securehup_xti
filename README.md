@@ -12,7 +12,7 @@ Python 3.11 veya daha yeni bir sürüm yeterlidir. Temel kullanım global Python
 ortamına paket kurmaz:
 
 ```sh
-git clone https://github.com/mstdeveloper33/xti.git
+git clone https://github.com/mstdeveloper33/securehup_xti.git
 cd xti
 ./setup
 ./xti assets add example.com
