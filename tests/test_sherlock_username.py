@@ -18,7 +18,10 @@ from xti.adapters.sherlock_username import (
     _write_scoped_database,
     parse_sherlock_ndjson,
 )
-from xti.application.brand_username import SherlockUsernamePreviewService
+from xti.application.brand_username import (
+    SHERLOCK_EXTENDED_PLATFORMS,
+    SherlockUsernamePreviewService,
+)
 from xti.domain.assets import ValidationError
 from xti.domain.brand_username import BrandProfileMatch, BrandUsernamePreview
 from xti.interfaces.cli import main
@@ -78,22 +81,33 @@ class SherlockUsernameTests(unittest.TestCase):
 
             def preview(self, username, *, platforms, request_timeout):
                 self.calls.append((username, platforms, request_timeout))
-                return "ok"
+                return BrandUsernamePreview(
+                    username=username,
+                    source="Sherlock",
+                    source_version="0.16.2",
+                    integration_profile=INTEGRATION_PROFILE,
+                    checked_at=NOW.isoformat(),
+                    requested_platforms=platforms,
+                    matches=(),
+                    unreported_platforms=platforms,
+                    notes=(),
+                )
 
         source = Source()
         service = SherlockUsernamePreviewService(source)
-        self.assertEqual(
-            service.preview(
-                " Sample.Brand ",
-                platforms=("Carrd", "Rumble"),
-                request_timeout=5,
-            ),
-            "ok",
+        report = service.preview(
+            " Sample.Brand ",
+            platforms=("Carrd", "Rumble"),
+            request_timeout=5,
         )
+        self.assertEqual(report.selection_profile, "custom")
         self.assertEqual(
             source.calls,
             [("Sample.Brand", ("Carrd", "Rumble"), 5)],
         )
+        extended = service.preview("samplebrand", profile="extended")
+        self.assertEqual(extended.selection_profile, "extended")
+        self.assertEqual(source.calls[-1][1], SHERLOCK_EXTENDED_PLATFORMS)
         invalid = (
             ("-danger", ("Carrd",), 10),
             ("a", ("Carrd",), 10),
@@ -110,7 +124,7 @@ class SherlockUsernameTests(unittest.TestCase):
                         platforms=platforms,
                         request_timeout=timeout,
                     )
-        self.assertEqual(len(source.calls), 1)
+        self.assertEqual(len(source.calls), 2)
 
     def test_parser_keeps_only_claimed_minimal_results_in_requested_order(self):
         matches = parse_sherlock_ndjson(

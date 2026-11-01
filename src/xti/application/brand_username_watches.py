@@ -22,9 +22,12 @@ from xti.ports.brand_username_watches import BrandUsernameWatchRepository
 from xti.ports.discovery import SourceError
 from xti.application.brand_username import (
     DEFAULT_PLATFORMS,
+    EXTENDED_PLATFORMS,
     SHERLOCK_DEFAULT_PLATFORMS,
+    SHERLOCK_EXTENDED_PLATFORMS,
     SHERLOCK_SUPPORTED_PLATFORMS,
     SUPPORTED_PLATFORMS,
+    resolve_username_selection,
     validate_brand_platforms,
     validate_brand_request_timeout,
     validate_sherlock_platforms,
@@ -87,19 +90,28 @@ class BrandUsernameWatchService:
         username: str,
         *,
         platforms: tuple[str, ...] | None = None,
+        profile: str | None = None,
         source_key: str = "maigret",
     ) -> BrandUsernameWatchMutation:
         display_name = normalize_brand_watch_name(name)
         username = normalize_brand_username(username)
         if source_key == "maigret":
-            selected = validate_brand_platforms(
-                DEFAULT_PLATFORMS if platforms is None else platforms,
+            selected, _ = resolve_username_selection(
+                platforms,
+                profile,
+                safe=DEFAULT_PLATFORMS,
+                extended=EXTENDED_PLATFORMS,
             )
+            selected = validate_brand_platforms(selected)
             supported = SUPPORTED_PLATFORMS
         elif source_key == "sherlock":
-            selected = validate_sherlock_platforms(
-                SHERLOCK_DEFAULT_PLATFORMS if platforms is None else platforms,
+            selected, _ = resolve_username_selection(
+                platforms,
+                profile,
+                safe=SHERLOCK_DEFAULT_PLATFORMS,
+                extended=SHERLOCK_EXTENDED_PLATFORMS,
             )
+            selected = validate_sherlock_platforms(selected)
             supported = SHERLOCK_SUPPORTED_PLATFORMS
         else:
             raise ValidationError("Kaynak maigret veya sherlock olmalı.")

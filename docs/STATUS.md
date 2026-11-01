@@ -1,17 +1,39 @@
 # XTI — Güncel Uygulama Durumu
 
-**1 Kasım 2026 · 0.124.1 sürümü kişisel terminal çekirdeğini klonla-çalıştır kullanımına hazırladı**
+**2 Kasım 2026 · 0.125.0 sürümü doğrulanmış sosyal araç kurulumunu ve geniş profil seçimini ekledi**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
 
+- `./setup` ile Maigret 0.6.6 ve Sherlock 0.16.2'yi kullanıcı global Python
+  ortamını değiştirmeden sabit resmî Git commit'lerinden `.venv` alanına
+  kurma; eski ortamı doğrulama bitene kadar geri dönüş kopyası olarak koruma ve
+  hata/sinyal/yetim kurulumda geri getirme.
+- Kurulumda paket sürümü, resmî depo adresi, tam istenen/çözülen commit,
+  katalog dosyası türü/boyutu/SHA-256 özeti, geniş profil URL izinleri,
+  incelenmiş tam geçişli bağımlılık sürümleri, bağımlılık tutarlılığı ve
+  Maigret çalıştırıcısını kapalı biçimde doğrulama. Kullanıcı pip ayarlarından
+  yalıtılmış resmî PyPI/GitHub kaynakları kullanma.
+  Geçerli kurulumda yeniden indirmeme; `--check`, `--force` ve
+  `./setup --core-only` yollarını açık tutma.
+- Kullanıcı adı önizlemesi ve kalıcı izlemede birbirini dışlayan `safe`,
+  `extended` ve tekrarlı `--site` özel kapsamı. Maigret için 6/30, Sherlock
+  için 5/26 platform; upstream tam kataloğunu, HTTP, NSFW ve incelenmemiş
+  hedefleri çalıştırmama.
+- Önizlemede seçim profilini terminal/JSON sonucunda gösterme. Kalıcı izleme
+  oluşturulurken profil adını değil çözülen tam platform listesini saklama;
+  gelecekteki profil değişikliğinin mevcut izleme kapsamını sessizce
+  değiştirmemesi. Şema 54'ü değiştirmeme.
+- CI'da ağsız tam testten ayrı olarak temiz Python 3.11 ortamında varsayılan
+  kurulumu ve ikinci ağsız bütünlük denetimini çalıştırma.
+
 - `./setup` ile temiz bir Git klonunda global Python ortamını değiştirmeden
-  yerel kayıt alanını başlatma. Temel çekirdekte harici Python bağımlılığı
-  istememe; eski şemayı otomatik taşımama ve kullanıcıyı açık `migrate`
-  işlemine yönlendirme.
+  yerel kayıt alanını başlatma. Çekirdekte harici Python bağımlılığı istememe;
+  eski şemayı otomatik taşımama ve kullanıcıyı açık `migrate` işlemine
+  yönlendirme.
 - README başında kısa klonlama, ilk domain ve tarama akışı; ayrı hızlı başlangıç
-  belgesinde veri konumu, yedek, güncelleme ve isteğe bağlı sosyal araç kurulumu.
+  belgesinde veri konumu, yedek, güncelleme ve doğrulanmış sosyal araç kurulumu.
 - GitHub'da her `main` gönderimi ve pull request için Python 3.11 üzerinde tam
   ağsız kontrol paketini çalıştıran, salt-okunur izinli ve eşzamanlı eski koşuyu
   iptal eden sınırlı CI iş akışı.
@@ -63,13 +85,13 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - `brand watch-add AD KULLANICI --source maigret|sherlock` ile kalıcı izlemeyi tek ve değiştirilemez kaynağa bağlama; kaynak verilmezse Maigret kullanma.
 - Aynı kullanıcı adını farklı yerel adlarla Maigret ve Sherlock üzerinde ayrı izleme; her kaynak için bağımsız sessiz başlangıç, başarılı/başarısız çalışma ve fark zinciri.
 - `watch-run`, `watch-run-all` ve `watch-monitor` içinde kayıtlı kaynağa otomatik yönlendirme; karma toplu çalışmada her öğeyi doğru adaptörle yürütme ve kaynak kimliğini terminal/JSON çıktısında gösterme.
-- Sherlock'un sekiz platformluk kısa listesindeki bulunan tam profile mevcut gerekçeli insan kararını ve yalnız olası taklit kararının yerel bildirim kuralını uygulama.
+- Sherlock'un incelenmiş 26 platformundan seçilen tam profile mevcut gerekçeli insan kararını ve yalnız olası taklit kararının yerel bildirim kuralını uygulama.
 - Kaynak değişimini, kaynağa ait olmayan platformu, yanlış kaynak üst bilgisini ve platformla uyuşmayan profil hostunu kapalı biçimde reddetme.
 - Şema 49→50 geçişinde mevcut izlemeleri geçmiş çalışma, profil kararı ve bildirim kanıtını değiştirmeden Maigret'e bağlama; önce doğrulanmış şema 49 yedeği alma ve hata halinde rollback.
 
-- `brand username-preview KULLANICI_ADI --source sherlock` ile yalnız Carrd, CashApp, CodeSandbox, GitBook, ResearchGate, Rumble, Strava ve Weebly arasından en fazla sekiz seçili herkese açık platformda canlı ve yazmasız önizleme.
-- Varsayılan Sherlock kapsamını Carrd, CodeSandbox, GitBook, Rumble ve Weebly ile sınırlama; Maigret ve Sherlock platform listelerini ağ erişiminden önce birbirinden ayırma.
-- Sherlock 0.16.2'yi resmî tam commit'ten isteğe bağlı kurma; kurulu sürümü ve 104.039 baytlık upstream katalog dosyasının tam SHA-256 özetini her çalışmada doğrulama.
+- `brand username-preview KULLANICI_ADI --source sherlock` ile 5 platformluk güvenli varsayılan veya 26 platformluk incelenmiş geniş kapsamda canlı ve yazmasız önizleme.
+- Maigret ve Sherlock `safe`, `extended` ve özel platform listelerini ağ erişiminden önce birbirinden ayırma.
+- Sherlock 0.16.2'yi resmî tam commit'ten varsayılan kurulumda alma; kurulu sürümü ve 104.039 baytlık upstream katalog dosyasının tam SHA-256 özetini doğrulama.
 - Yalnız seçilen site tanımlarını geçici kataloğa alma; URL alanlarını incelenmiş HTTPS/443 host listesiyle doğrulama. Geniş katalog, canlı katalog/exclusion ve seçilmeyen platformları çalıştırmama.
 - Ek GitHub sürüm isteği yapan Sherlock CLI yerine sabit `sherlock()` kütüphane işlevini yalıtılmış işçide çağırma. İşçinin yalnız kullanıcı adı, platform, profil adresi ve durum taşıyan kendi NDJSON raporunu üretmesi; ana sürecin bunu tekrar katı biçimde doğrulaması.
 - Ham HTTP yanıtını, profil ayrıntısını ve üçüncü taraf kimliklerini almama. Proxy/Tor/I2P, toplu kullanıcı adı, türetme ve profil çıkarımını kapalı tutma; 5–30 saniye istek ve sınırlı süreç/çıktı boyutu uygulama.
@@ -79,7 +101,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - Sherlock v0.16.2'yi tam upstream commit ve katalog SHA-256 özetiyle; Maigret'i mevcut incelenmiş commit/katalog özetiyle; kayıt kökü karşılaştırmasını paketli Public Suffix List sürümüyle bağlama.
 - Etkin, HTTPS ve doğrudan kullanıcı adı tanımlarını seçme; devre dışı, benzer-ad, ayna/kaynak bağlı, kullanıcı adı dışı, NSFW ve HTTPS dışı tanımları kaynak özelliğine göre eleme.
 - Maigret 6.628 ve Sherlock 455 uygun tanımı; Sherlock tarafında 352 ortak, 103 eşleşmeyen tanımı, 102 hostu ve 101 kayıt kökünü açıkça gösterme. Bu sayaçları canlı doğruluk veya bulunan hesap sayısı gibi sunmama.
-- Mevcut 10 güvenli platformda 9 ortak, yalnız Maigret'te Facebook ve yalnız Sherlock'ta sıfır platform ayrımını gösterme. Sherlock'u bütün katalog yerine sekiz platformluk elle incelenmiş kısa liste için sınırlı adaptöre kabul etme.
+- İlk 10 güvenli platformda 9 ortak, yalnız Maigret'te Facebook ve yalnız Sherlock'ta sıfır platform ayrımını tarihsel kapsam kanıtında gösterme. Çalışan adaptörlerde yalnız elle incelenmiş 30/26 listeleri kullanma.
 - Paketli kanıtı boyut, tam SHA-256, tekrar JSON alanı, tam alan kümeleri, HTTPS başvuruları, kaynak rolleri, sayaç bağları, zorunlu ölçütler ve tekil kısa listeyle güvenli doğrulama. Şema 49'u değiştirmeme.
 
 - `brand watch-monitor IZLEME_KIMLIGI` ile tek etkin sosyal kullanıcı adı izlemesini terminal açıkken sınırlı tur, en az beş dakika aralık ve toplam yeni-tur başlatma bütçesiyle tekrarlama.
@@ -115,8 +137,8 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - Tanım, yaşam döngüsü, çalışma ve öğe bütünlüğünü SQLite içinde doğrulama; bozuk geçmişte kısmi görünüm veya sessiz onarım üretmeme.
 - Şema 46→47 geçişini açık `migrate`, doğrulanmış yedek, boş dört yeni tablo ve hata halinde tam rollback ile yapma. `doctor` içinde sosyal izleme ve kaynak hatası sayılarını gösterme.
 
-- `./scripts/setup-brand` ile Maigret 0.6.6 ve Sherlock 0.16.2'yi resmî depolarının tam incelenmiş commit'lerinden proje içindeki ayrı `.venv` ortamına kurma; çekirdeği bu isteğe bağlı bağımlılıklardan ayırma.
-- `brand username-preview KULLANICI_ADI` ile GitHub, GitLab, Reddit, Instagram, TikTok, YouTube ve açıkça seçilebilen Facebook, Keybase, LinkedIn, Twitter platformlarında en fazla on seçimli canlı/yazmasız önizleme yapma.
+- `./scripts/setup-brand` ile Maigret 0.6.6 ve Sherlock 0.16.2'yi resmî depolarının tam incelenmiş commit'lerinden proje içindeki ayrı `.venv` ortamına kurma; çekirdeği bu bağımlılıklardan ayırmaya devam etme.
+- `brand username-preview KULLANICI_ADI` ile Maigret'in 6 platformluk güvenli varsayılanı, 30 platformluk incelenmiş geniş profili veya özel seçimi üzerinde canlı/yazmasız önizleme yapma.
 - Upstream site veritabanını sabit SHA-256 ile doğrulayıp her çalışmada yalnız tam seçilen platformları içeren geçici veritabanına daraltma; platform HTTPS hostlarını ayrıca doğrulama ve seçilmeyen upstream ayna/yan sitelerini çalıştırmama.
 - Maigret'i kabuksuz ayrı süreç, sabit sürüm, süre/çıktı sınırı ve geçici güvenli ayarlarla çalıştırma. Tor/I2P, proxy, otomatik güncelleme, Cloudflare aşma, yapay zekâ, permütasyon, domain arama, özyineleme ve profil çıkarımını kapalı tutma.
 - NDJSON'dan yalnız platform, profil HTTPS adresi ve `found_unverified` durumunu alma; ham yanıtı, çıkarılmış profil alanlarını ve üçüncü taraf kimliklerini atma. Sonucu veritabanına yazmama ve profil varlığını sahiplik/taklit hükmüne çevirmeme.
@@ -944,6 +966,17 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu, kaynak dışlama kuralları ve GitHub Actions kontrol tanımı hazırdır; uzak GitHub deposuna yayın henüz yapılmadı.
 
 ## Son doğrulama
+
+0.125.0 testleri `safe`/`extended`/özel platform çözümünü, iki kaynağın
+30/26 öğelik izinli kapsamını, profil-site çakışmasını, terminal/JSON profil
+görünümünü, kalıcı izlemede çözülmüş listenin korunmasını, kaynak ve HTTPS host
+ayrımını; varsayılan/çekirdek-only kurulum sırasını ve başarısız yeniden
+kurulumda önceki `.venv` ortamının geri getirilmesini doğruladı. Tam kontrolde
+1.345 otomatik test 263,486 saniyede geçti. Ayrı gerçek temiz kurulumda önce ağ
+kısıtı nedeniyle başarısız indirme eski ortamı geri getirdi; resmî PyPI/GitHub
+erişimiyle ikinci deneme tam sabit bağımlılıkları kurdu, `pip check`, sürüm,
+commit, katalog özeti ve iki geniş geçici katalog denetimlerini geçti. Canlı
+kullanıcı adı sorgusu veya veritabanı şema değişikliği yapılmadı; şema 54 kaldı.
 
 0.124.1 testleri temiz klonda bağımlılıksız `./setup` başlangıcını, tekrar
 çalıştırmayı, özel veri klasörünü ve sonrasındaki `doctor` bütünlük kontrolünü

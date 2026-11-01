@@ -197,6 +197,10 @@ from xti.application.vendor_source_evaluation import VendorSourceEvaluationServi
 from xti.application.brand_source_evaluation import BrandSourceEvaluationService
 from xti.application.brand_source_coverage import BrandSourceCoverageService
 from xti.application.brand_username import (
+    DEFAULT_PLATFORMS,
+    EXTENDED_PLATFORMS,
+    SHERLOCK_DEFAULT_PLATFORMS,
+    SHERLOCK_EXTENDED_PLATFORMS,
     SHERLOCK_SUPPORTED_PLATFORMS,
     SUPPORTED_PLATFORMS,
     BrandUsernamePreviewService,
@@ -580,7 +584,10 @@ from xti.interfaces.brand_source_evaluation import (
 from xti.interfaces.brand_source_coverage import (
     report_lines as brand_source_coverage_lines,
 )
-from xti.interfaces.brand_username import preview_lines as brand_username_preview_lines
+from xti.interfaces.brand_username import (
+    preview_lines as brand_username_preview_lines,
+    profile_lines as brand_username_profile_lines,
+)
 from xti.interfaces.ubuntu_osv import ubuntu_preview_lines
 from xti.interfaces.ubuntu_package_match import report_lines as ubuntu_package_match_lines
 from xti.interfaces.ubuntu_packages import (
@@ -690,6 +697,15 @@ def build_parser() -> Parser:
             "kanıtla karşılaştır."
         ),
     )
+    brand_profile_list = brand_actions.add_parser(
+        "profile-list",
+        help="Maigret ve Sherlock safe/extended platform listelerini ağsız göster.",
+    )
+    brand_profile_list.add_argument(
+        "--source",
+        choices=("maigret", "sherlock", "all"),
+        default="all",
+    )
     brand_username_preview = brand_actions.add_parser(
         "username-preview",
         help=(
@@ -706,11 +722,20 @@ def build_parser() -> Parser:
         default="maigret",
         help="Kullanılacak ücretsiz kaynak (varsayılan maigret).",
     )
-    brand_username_preview.add_argument(
+    brand_username_scope = brand_username_preview.add_mutually_exclusive_group()
+    brand_username_scope.add_argument(
+        "--profile",
+        choices=("safe", "extended"),
+        help=(
+            "Platform kapsamı: safe dar varsayılan, extended incelenmiş geniş "
+            "liste. Verilmezse safe kullanılır."
+        ),
+    )
+    brand_username_scope.add_argument(
         "--site",
         action="append",
-        choices=SUPPORTED_PLATFORMS + SHERLOCK_SUPPORTED_PLATFORMS,
         dest="platforms",
+        metavar="PLATFORM",
         help="Seçilen kaynağın kontrol edeceği platform.",
     )
     brand_username_preview.add_argument(
@@ -731,10 +756,19 @@ def build_parser() -> Parser:
         default="maigret",
         help="Kalıcı izleme kaynağı (varsayılan maigret; sonradan değiştirilemez).",
     )
-    brand_watch_add.add_argument(
+    brand_watch_scope = brand_watch_add.add_mutually_exclusive_group()
+    brand_watch_scope.add_argument(
+        "--profile",
+        choices=("safe", "extended"),
+        help=(
+            "İzlenecek platform kapsamı. Verilmezse safe; --site kullanılırsa "
+            "özel liste oluşturulur."
+        ),
+    )
+    brand_watch_scope.add_argument(
         "--site", action="append",
-        choices=SUPPORTED_PLATFORMS + SHERLOCK_SUPPORTED_PLATFORMS,
         dest="platforms",
+        metavar="PLATFORM",
         help="Seçilen kaynağın izleyeceği platform.",
     )
     brand_watch_list = brand_actions.add_parser(
@@ -3199,6 +3233,31 @@ def run(args: argparse.Namespace) -> int | None:
                 asdict(report), brand_source_coverage_lines(report),
                 as_json=args.json,
             )
+        elif args.brand_action == "profile-list":
+            profiles = (
+                {
+                    "source": "maigret",
+                    "display_name": "Maigret",
+                    "safe": DEFAULT_PLATFORMS,
+                    "extended": EXTENDED_PLATFORMS,
+                },
+                {
+                    "source": "sherlock",
+                    "display_name": "Sherlock",
+                    "safe": SHERLOCK_DEFAULT_PLATFORMS,
+                    "extended": SHERLOCK_EXTENDED_PLATFORMS,
+                },
+            )
+            if args.source != "all":
+                profiles = tuple(
+                    profile for profile in profiles
+                    if profile["source"] == args.source
+                )
+            emit(
+                {"profiles": profiles},
+                brand_username_profile_lines(profiles),
+                as_json=args.json,
+            )
         elif args.brand_action == "username-preview":
             preview_service = (
                 BrandUsernamePreviewService(MaigretUsernameSource())
@@ -3208,6 +3267,7 @@ def run(args: argparse.Namespace) -> int | None:
             report = preview_service.preview(
                 args.username,
                 platforms=None if args.platforms is None else tuple(args.platforms),
+                profile=args.profile,
                 request_timeout=args.timeout,
             )
             emit(
@@ -3233,6 +3293,7 @@ def run(args: argparse.Namespace) -> int | None:
                         platforms=(
                             None if args.platforms is None else tuple(args.platforms)
                         ),
+                        profile=args.profile,
                         source_key=args.source,
                     )
                 emit(

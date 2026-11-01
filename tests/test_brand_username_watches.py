@@ -19,6 +19,10 @@ from xti.adapters.sqlite_brand_username_watches import (
     SQLiteBrandUsernameWatchRepository,
 )
 from xti.application.brand_username_watches import BrandUsernameWatchService
+from xti.application.brand_username import (
+    EXTENDED_PLATFORMS,
+    SHERLOCK_EXTENDED_PLATFORMS,
+)
 from xti.domain.assets import ValidationError
 from xti.domain.brand_username import BrandProfileMatch, BrandUsernamePreview
 from xti.interfaces.cli import main
@@ -151,6 +155,32 @@ class BrandUsernameWatchTests(unittest.TestCase):
             service.add(
                 "Geçersiz kaynak", "samplebrand", platforms=("GitHub",),
                 source_key="sherlock",
+            )
+
+    def test_extended_profiles_are_resolved_and_stored_as_fixed_platform_lists(self):
+        service = BrandUsernameWatchService(
+            self.repository,
+            {
+                "maigret": FakeSource({}),
+                "sherlock": FakeSherlockSource({}),
+            },
+            clock=lambda: NOW + timedelta(minutes=10),
+        )
+        maigret = service.add(
+            "Geniş Maigret", "samplebrand", profile="extended",
+            source_key="maigret",
+        ).watch
+        sherlock = service.add(
+            "Geniş Sherlock", "samplebrand", profile="extended",
+            source_key="sherlock",
+        ).watch
+        self.assertEqual(maigret.platforms, EXTENDED_PLATFORMS)
+        self.assertEqual(sherlock.platforms, SHERLOCK_EXTENDED_PLATFORMS)
+
+        with self.assertRaisesRegex(ValidationError, "birlikte kullanılamaz"):
+            service.add(
+                "Karışık kapsam", "samplebrand", profile="extended",
+                platforms=("GitHub",), source_key="maigret",
             )
 
     def test_failure_is_not_absence_and_next_success_uses_last_complete_run(self):

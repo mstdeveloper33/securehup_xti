@@ -335,8 +335,8 @@ class MaigretUsernameSource:
             for platform in platforms:
                 command.extend(("--site", platform))
             process_timeout = min(
-                120,
-                request_timeout * math.ceil(len(platforms) / 4) + 20,
+                300,
+                request_timeout * math.ceil(len(platforms) / 4) + 30,
             )
             result = self._run(
                 command, cwd=temporary, timeout=process_timeout,

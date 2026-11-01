@@ -126,7 +126,6 @@ def _platforms(value: object) -> tuple[str, ...]:
     if (
         len(set(platforms)) != len(platforms)
         or any(item not in ALL_PLATFORM_HOSTS for item in platforms)
-        or platforms != tuple(item for item in ALL_PLATFORM_HOSTS if item in platforms)
     ):
         raise ValueError("Non-canonical platforms")
     return platforms

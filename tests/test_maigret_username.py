@@ -18,7 +18,10 @@ from xti.adapters.maigret_username import (
     _write_scoped_database,
     parse_maigret_ndjson,
 )
-from xti.application.brand_username import BrandUsernamePreviewService
+from xti.application.brand_username import (
+    EXTENDED_PLATFORMS,
+    BrandUsernamePreviewService,
+)
 from xti.domain.assets import ValidationError
 from xti.domain.brand_username import BrandProfileMatch, BrandUsernamePreview
 from xti.interfaces.cli import main
@@ -101,15 +104,28 @@ class MaigretUsernameTests(unittest.TestCase):
 
             def preview(self, username, *, platforms, request_timeout):
                 self.calls.append((username, platforms, request_timeout))
-                return "ok"
+                return BrandUsernamePreview(
+                    username=username,
+                    source="Maigret",
+                    source_version="0.6.6",
+                    integration_profile=INTEGRATION_PROFILE,
+                    checked_at=NOW.isoformat(),
+                    requested_platforms=platforms,
+                    matches=(),
+                    unreported_platforms=platforms,
+                    notes=(),
+                )
 
         source = Source()
         service = BrandUsernamePreviewService(source)
-        self.assertEqual(
-            service.preview(" Sample.Brand ", platforms=("GitHub",), request_timeout=5),
-            "ok",
+        report = service.preview(
+            " Sample.Brand ", platforms=("GitHub",), request_timeout=5,
         )
+        self.assertEqual(report.selection_profile, "custom")
         self.assertEqual(source.calls, [("Sample.Brand", ("GitHub",), 5)])
+        extended = service.preview("samplebrand", profile="extended")
+        self.assertEqual(extended.selection_profile, "extended")
+        self.assertEqual(source.calls[-1][1], EXTENDED_PLATFORMS)
         invalid = (
             ("-danger", ("GitHub",), 10),
             ("a", ("GitHub",), 10),
@@ -126,7 +142,7 @@ class MaigretUsernameTests(unittest.TestCase):
                         platforms=platforms,
                         request_timeout=timeout,
                     )
-        self.assertEqual(len(source.calls), 1)
+        self.assertEqual(len(source.calls), 2)
 
     def test_parser_keeps_only_minimal_claims_in_requested_order(self):
         youtube = result(
@@ -340,7 +356,60 @@ class MaigretUsernameTests(unittest.TestCase):
                     self.assertEqual(payload["data"]["matches"][0]["platform"], "GitHub")
                 else:
                     self.assertIn("bulundu, doğrulanmadı", stdout.getvalue())
+                    self.assertIn("Seçim profili: custom", stdout.getvalue())
                     self.assertIn("Raporlanmayan platform: 1", stdout.getvalue())
+            self.assertFalse(data.exists())
+
+    def test_cli_extended_profile_and_site_are_mutually_exclusive(self):
+        preview = BrandUsernamePreview(
+            username="samplebrand",
+            source="Maigret",
+            source_version="0.6.6",
+            integration_profile=INTEGRATION_PROFILE,
+            checked_at=NOW.isoformat(),
+            requested_platforms=EXTENDED_PLATFORMS,
+            matches=(),
+            unreported_platforms=EXTENDED_PLATFORMS,
+            notes=(),
+        )
+        with (
+            patch(
+                "xti.interfaces.cli.MaigretUsernameSource.preview",
+                return_value=preview,
+            ) as source,
+            redirect_stdout(StringIO()),
+            redirect_stderr(StringIO()),
+        ):
+            code = main([
+                "brand", "username-preview", "samplebrand",
+                "--profile", "extended",
+            ])
+        self.assertEqual(code, 0)
+        source.assert_called_once_with(
+            "samplebrand",
+            platforms=EXTENDED_PLATFORMS,
+            request_timeout=10,
+        )
+
+        with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
+            code = main([
+                "brand", "username-preview", "samplebrand",
+                "--profile", "extended", "--site", "GitHub",
+            ])
+        self.assertEqual(code, 2)
+
+    def test_cli_profile_list_is_offline_and_explains_both_scopes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data = Path(directory) / "not-created"
+            with redirect_stdout(output := StringIO()):
+                code = main([
+                    "--data-dir", str(data), "brand", "profile-list",
+                    "--source", "maigret",
+                ])
+            self.assertEqual(code, 0)
+            self.assertIn("safe (6)", output.getvalue())
+            self.assertIn("extended (30)", output.getvalue())
+            self.assertNotIn("Sherlock", output.getvalue())
             self.assertFalse(data.exists())
 
 

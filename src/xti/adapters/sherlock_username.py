@@ -10,6 +10,7 @@ from importlib.resources import files
 import json
 import os
 from pathlib import Path
+import math
 import stat
 import subprocess
 import sys
@@ -311,7 +312,10 @@ class SherlockUsernameSource:
                 "--database", str(scoped_database),
                 "--report", str(report),
             ]
-            process_timeout = min(60, request_timeout + 20)
+            process_timeout = min(
+                100,
+                request_timeout * math.ceil(len(platforms) / 20) + 25,
+            )
             result = self._run(command, cwd=temporary, timeout=process_timeout)
             if result.returncode != 0:
                 raise SourceError("Sherlock taraması tamamlanamadı; sonuç üretilmedi.")

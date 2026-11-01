@@ -1,30 +1,152 @@
 #!/bin/sh
+# Install the reviewed brand toolchain transactionally into the project venv.
 set -eu
+
 XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 XTI_VENV="$XTI_PROJECT_DIR/.venv"
+XTI_BACKUP="$XTI_PROJECT_DIR/.venv-backup"
+XTI_LOCK="$XTI_PROJECT_DIR/.venv-install.lock"
+XTI_MODE=install
 
-if [ ! -x "$XTI_VENV/bin/python" ]; then
-    XTI_BOOTSTRAP_PYTHON=""
-    for XTI_INTERPRETER in python3.14 python3.13 python3.12 python3.11 python3; do
-        if command -v "$XTI_INTERPRETER" >/dev/null 2>&1 &&
-           "$XTI_INTERPRETER" -c \
-               'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
-            XTI_BOOTSTRAP_PYTHON="$XTI_INTERPRETER"
-            break
-        fi
-    done
-    if [ -z "$XTI_BOOTSTRAP_PYTHON" ]; then
-        echo "Python 3.11 veya daha yeni bir sürüm gerekiyor." >&2
+case "${1:-}" in
+    "") ;;
+    --check) XTI_MODE=check ;;
+    --force) XTI_MODE=force ;;
+    --help|-h)
+        echo "Kullanım: ./scripts/setup-brand [--check|--force]"
+        echo "  --check  Yalnız mevcut kurulumu doğrula."
+        echo "  --force  Doğrulanmış olsa da atomik olarak yeniden kur."
+        exit 0
+        ;;
+    *)
+        echo "Bilinmeyen seçenek: $1" >&2
+        exit 2
+        ;;
+esac
+if [ "$#" -gt 1 ]; then
+    echo "Tek bir seçenek kullanılabilir." >&2
+    exit 2
+fi
+
+verify_venv() {
+    XTI_VERIFY_VENV=$1
+    PYTHONPATH="$XTI_PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" \
+        "$XTI_VERIFY_VENV/bin/python" \
+        "$XTI_PROJECT_DIR/scripts/verify_brand_install.py" \
+        --prefix "$XTI_VERIFY_VENV"
+}
+
+if [ "$XTI_MODE" = check ]; then
+    if [ -e "$XTI_VENV/.xti-installing" ] || [ -d "$XTI_LOCK" ]; then
+        echo "Marka araç kurulumu tamamlanmamış veya başka süreçte çalışıyor." >&2
         exit 1
     fi
-    "$XTI_BOOTSTRAP_PYTHON" -m venv "$XTI_VENV"
-elif ! "$XTI_VENV/bin/python" -c \
-    'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
-    echo ".venv Python 3.11 veya daha yeni değil; klasörü kaldırıp yeniden çalıştır." >&2
+    if [ ! -x "$XTI_VENV/bin/python" ]; then
+        echo "Marka araç ortamı yok. Önce ./scripts/setup-brand çalıştır." >&2
+        exit 1
+    fi
+    verify_venv "$XTI_VENV"
+    exit 0
+fi
+
+if [ -d "$XTI_LOCK" ]; then
+    XTI_LOCK_PID=""
+    if [ -f "$XTI_LOCK/pid" ]; then
+        IFS= read -r XTI_LOCK_PID < "$XTI_LOCK/pid" || true
+    fi
+    case "$XTI_LOCK_PID" in
+        ""|*[!0-9]*) XTI_LOCK_PID="" ;;
+    esac
+    if [ -n "$XTI_LOCK_PID" ] && kill -0 "$XTI_LOCK_PID" 2>/dev/null; then
+        echo "Başka bir marka araç kurulumu çalışıyor (PID $XTI_LOCK_PID)." >&2
+        exit 1
+    fi
+    if [ -e "$XTI_VENV/.xti-installing" ]; then
+        rm -rf -- "$XTI_VENV"
+    fi
+    if [ ! -e "$XTI_VENV" ] && [ -e "$XTI_BACKUP" ]; then
+        mv "$XTI_BACKUP" "$XTI_VENV"
+    elif [ -e "$XTI_BACKUP" ]; then
+        echo "Yarım kurulum güvenle ayrılamadı; .venv-backup korundu." >&2
+        exit 1
+    fi
+    rm -rf -- "$XTI_LOCK"
+    echo "Yarım kalan marka araç kurulumu güvenli biçimde geri alındı."
+fi
+
+if [ "$XTI_MODE" != force ] && [ -x "$XTI_VENV/bin/python" ] && \
+   verify_venv "$XTI_VENV" >/dev/null 2>&1; then
+    verify_venv "$XTI_VENV"
+    echo "Marka araç kurulumu zaten güncel; indirme yapılmadı."
+    exit 0
+fi
+
+XTI_BOOTSTRAP_PYTHON=""
+for XTI_INTERPRETER in python3.14 python3.13 python3.12 python3.11 python3; do
+    if command -v "$XTI_INTERPRETER" >/dev/null 2>&1 &&
+       "$XTI_INTERPRETER" -c \
+           'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
+        XTI_BOOTSTRAP_PYTHON="$XTI_INTERPRETER"
+        break
+    fi
+done
+if [ -z "$XTI_BOOTSTRAP_PYTHON" ]; then
+    echo "Python 3.11 veya daha yeni bir sürüm gerekiyor." >&2
+    exit 1
+fi
+if ! command -v git >/dev/null 2>&1; then
+    echo "Sabit Git commit'lerinden kurulum için git gerekiyor." >&2
     exit 1
 fi
 
-"$XTI_VENV/bin/python" -m pip install "$XTI_PROJECT_DIR[brand]"
-"$XTI_VENV/bin/maigret" --version
-"$XTI_VENV/bin/python" -c \
-    'from importlib.metadata import version; print("Sherlock " + version("sherlock-project"))'
+if ! mkdir "$XTI_LOCK" 2>/dev/null; then
+    echo "Başka bir marka araç kurulumu başlatıldı; tekrar dene." >&2
+    exit 1
+fi
+printf '%s\n' "$$" > "$XTI_LOCK/pid"
+XTI_REPLACEMENT_STARTED=0
+XTI_INSTALL_SUCCESS=0
+XTI_CLEANED=0
+cleanup_brand_install() {
+    if [ "$XTI_CLEANED" = 1 ]; then
+        return
+    fi
+    XTI_CLEANED=1
+    if [ "$XTI_INSTALL_SUCCESS" != 1 ] && [ "$XTI_REPLACEMENT_STARTED" = 1 ]; then
+        rm -rf -- "$XTI_VENV"
+        if [ -e "$XTI_BACKUP" ]; then
+            mv "$XTI_BACKUP" "$XTI_VENV"
+        fi
+    fi
+    rm -rf -- "$XTI_LOCK"
+}
+trap cleanup_brand_install EXIT HUP INT TERM
+
+if [ -e "$XTI_BACKUP" ]; then
+    echo ".venv-backup zaten var; üzerine yazılmadı." >&2
+    exit 1
+fi
+if [ -e "$XTI_VENV" ]; then
+    mv "$XTI_VENV" "$XTI_BACKUP"
+fi
+XTI_REPLACEMENT_STARTED=1
+mkdir "$XTI_VENV"
+touch "$XTI_VENV/.xti-installing"
+
+echo "Maigret ve Sherlock incelenmiş commit'lerden proje ortamına kuruluyor..."
+"$XTI_BOOTSTRAP_PYTHON" -m venv "$XTI_VENV"
+GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null \
+PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_INPUT=1 \
+    "$XTI_VENV/bin/python" -m pip --isolated \
+    --disable-pip-version-check --no-input install \
+    --index-url https://pypi.org/simple \
+    --constraint "$XTI_PROJECT_DIR/constraints/brand.txt" \
+    "$XTI_PROJECT_DIR[brand]"
+"$XTI_VENV/bin/python" -m pip check
+rm "$XTI_VENV/.xti-installing"
+verify_venv "$XTI_VENV"
+XTI_INSTALL_SUCCESS=1
+if [ -e "$XTI_BACKUP" ]; then
+    rm -rf -- "$XTI_BACKUP"
+fi
+echo "Marka araçları atomik olarak kuruldu."

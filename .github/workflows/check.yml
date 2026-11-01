@@ -13,6 +13,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  brand-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install and verify the pinned brand toolchain
+        run: ./setup
+      - name: Recheck without downloading
+        run: ./scripts/setup-brand --check
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15

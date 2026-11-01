@@ -8,7 +8,7 @@ import sys
 
 
 MAX_DATABASE_BYTES = 64 * 1024
-MAX_SITES = 8
+MAX_SITES = 26
 
 
 def _load_database(path: Path) -> dict:

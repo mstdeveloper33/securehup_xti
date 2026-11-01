@@ -30,9 +30,10 @@ kanıtlamaz.
 `sherlock-project/sherlock` reposundaki
 `a38ba54fda799cd786a2ab67a50143e1a63169e6` commit'inde bulunan site
 kataloğunun yalnız türetilmiş kapsam sayaçlarını ve SHA-256 özetini taşır.
-İsteğe bağlı `./scripts/setup-brand`, aynı tam commit'teki Sherlock 0.16.2'yi
-proje içindeki `.venv` ortamına kurar. XTI kaynak deposuna Sherlock kodu veya
-site kataloğu kopyalanmaz.
+Normal `./setup` (ve doğrudan `./scripts/setup-brand`), aynı tam commit'teki
+Sherlock 0.16.2'yi proje içindeki `.venv` ortamına kurar. `./setup --core-only`
+bu üçüncü taraf kurulumu atlar. XTI kaynak deposuna Sherlock kodu veya site
+kataloğu kopyalanmaz.
 
 - Resmî depo: [sherlock-project/sherlock](https://github.com/sherlock-project/sherlock).
 - İncelenen sürüm: 0.16.2; yukarıdaki tam commit'e sabitlenmiştir.
@@ -43,11 +44,11 @@ site kataloğu kopyalanmaz.
 `brand username-preview ... --source sherlock`, upstream CLI'ı çağırmaz. CLI'ın
 seçili profillere ek olarak yaptığı GitHub sürüm isteğini önlemek için sabit
 kütüphane işlevi ayrı bir Python sürecinde çağrılır. Önce tam katalog özeti
-doğrulanır, sonra yalnız Carrd, CashApp, CodeSandbox, GitBook, ResearchGate,
-Rumble, Strava ve Weebly arasından açıkça seçilen tanımlar geçici dosyaya
-alınır. XTI kendi dört alanlı NDJSON raporunu yazar; ham yanıtı ve profil
-ayrıntılarını almaz. Geniş katalog, canlı katalog/exclusion güncellemesi, proxy,
-Tor, toplu kullanıcı adı ve kullanıcı adı türetme kullanılmaz.
+doğrulanır, sonra `safe` profilde 5 veya `extended` profilde 26 elle incelenmiş
+HTTPS tanım arasından seçilenler geçici dosyaya alınır. XTI kendi dört alanlı
+NDJSON raporunu yazar; ham yanıtı ve profil ayrıntılarını almaz. Upstream'in tam
+kataloğu, canlı katalog/exclusion güncellemesi, proxy, Tor, toplu kullanıcı adı
+ve kullanıcı adı türetme kullanılmaz.
 
 Canlı sorgular seçilen platformların herkese açık profil adreslerine gider. Bu
 platformların erişilebilirliği, yönlendirmeleri, oran sınırları ve kullanım
@@ -56,7 +57,7 @@ değildir.
 
 ## Maigret sosyal kullanıcı adı aracı
 
-İsteğe bağlı `./scripts/setup-brand`, Maigret 0.6.6'yı resmî
+Normal `./setup` (ve doğrudan `./scripts/setup-brand`), Maigret 0.6.6'yı resmî
 `soxoj/maigret` reposundaki incelenmiş
 `b8747b98820f4df9d1baf23235db7b2cb55d0198` commit'inden proje içindeki
 `.venv` ortamına kurar. XTI, kullanıcının açık `brand username-preview`
@@ -65,6 +66,7 @@ komutunda Maigret CLI'ın yalnız seçili herkese açık profil kontrolü ve NDJ
 
 - Resmî depo: [soxoj/maigret](https://github.com/soxoj/maigret).
 - Kullanılan sürüm: 0.6.6; yukarıdaki tam commit'e sabitlenmiştir.
+- Katalog SHA-256: `8dd404e6b3012f01fd467c154b5159386d1362587070c661c2565ec8fa649899`.
 - Lisans: [MIT](https://github.com/soxoj/maigret/blob/master/LICENSE).
 - Telif: Copyright © 2020–2026 Soxoj.
 
@@ -72,7 +74,8 @@ Maigret kaynak kodu ve site veritabanı XTI kaynak deposuna kopyalanmaz. Paket
 kurulurken resmî repodan alınır; lisans dosyası kurulu dağıtımla birlikte gelir.
 Adaptör site veritabanının incelenmiş SHA-256 özetini doğrular, seçilen platform
 tanımlarını yalnız geçici çalışma klasörüne ayırır ve klasörü işlem sonunda
-kaldırır. Canlı sorgular seçilen platformlara doğrudan gider; bu platformların
+kaldırır. `safe` profil 6, `extended` profil 30 elle incelenmiş HTTPS hedefi
+içerir; upstream'in bütün kataloğu çalıştırılmaz. Canlı sorgular seçilen platformlara doğrudan gider; bu platformların
 erişilebilirliği, oran sınırları ve kullanım koşulları XTI'nin kontrolünde
 değildir.
 

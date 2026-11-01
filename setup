@@ -5,9 +5,37 @@ set -eu
 XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd "$XTI_PROJECT_DIR"
 
+XTI_SETUP_MODE=full
+case "${1:-}" in
+    "") ;;
+    --core-only) XTI_SETUP_MODE=core ;;
+    --help|-h)
+        echo "Kullanım: ./setup [--core-only]"
+        echo "Varsayılan kurulum çekirdekle birlikte Maigret ve Sherlock'u kurar."
+        echo "--core-only üçüncü taraf marka araçlarını kurmadan çekirdeği hazırlar."
+        exit 0
+        ;;
+    *)
+        echo "Bilinmeyen seçenek: $1" >&2
+        exit 2
+        ;;
+esac
+if [ "$#" -gt 1 ]; then
+    echo "Tek bir seçenek kullanılabilir." >&2
+    exit 2
+fi
+
+if [ "$XTI_SETUP_MODE" = full ]; then
+    ./scripts/setup-brand
+fi
 ./xti init
 
 printf '\nXTI kullanıma hazır.\n'
+if [ "$XTI_SETUP_MODE" = full ]; then
+    printf 'Maigret ve Sherlock: doğrulandı.\n'
+else
+    printf 'Marka araçları: atlandı (--core-only).\n'
+fi
 printf 'İlk domainini ekle: ./xti assets add example.com\n'
 printf 'Aramayı başlat:      ./xti scan example.com --typos\n'
 printf 'Yardımı aç:          ./xti --help\n'

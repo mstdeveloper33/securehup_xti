@@ -10,7 +10,14 @@ if [ -n "${XTI_PYTHON:-}" ]; then
     export PYTHONPATH="$XTI_PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"
     exec "$XTI_PYTHON" "$@"
 fi
-for XTI_INTERPRETER in "$XTI_PROJECT_DIR/.venv/bin/python" python3.14 python3.13 python3.12 python3.11 python3; do
+if [ ! -e "$XTI_PROJECT_DIR/.venv/.xti-installing" ] && \
+   [ -x "$XTI_PROJECT_DIR/.venv/bin/python" ] && \
+   "$XTI_PROJECT_DIR/.venv/bin/python" -c \
+       'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
+    export PYTHONPATH="$XTI_PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"
+    exec "$XTI_PROJECT_DIR/.venv/bin/python" "$@"
+fi
+for XTI_INTERPRETER in python3.14 python3.13 python3.12 python3.11 python3; do
     if command -v "$XTI_INTERPRETER" >/dev/null 2>&1 &&
        "$XTI_INTERPRETER" -c 'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
         export PYTHONPATH="$XTI_PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"

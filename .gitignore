@@ -1,6 +1,10 @@
 __pycache__/
 *.py[cod]
 .venv/
+.venv-install.*/
+.venv-backup.*/
+.venv-backup/
+.venv-install.lock/
 .tools/
 .pytest_cache/
 .ruff_cache/

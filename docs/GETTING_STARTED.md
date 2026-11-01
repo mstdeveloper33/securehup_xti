@@ -1,8 +1,8 @@
 # XTI hızlı başlangıç
 
-XTI'nin temel kullanımı için yalnız Git ve Python 3.11 veya daha yeni bir
-sürüm gerekir. Global Python ortamına paket kurulmaz; temel çekirdeğin harici
-Python bağımlılığı yoktur.
+XTI için Git, Python 3.11 veya daha yeni bir sürüm ve ilk kurulumda internet
+bağlantısı gerekir. Global Python ortamına paket kurulmaz; üçüncü taraf araçlar
+yalnız proje içindeki `.venv` ortamında tutulur.
 
 ## 1. Klonla ve hazırla
 
@@ -12,9 +12,12 @@ cd securehup_xti
 ./setup
 ```
 
-`./setup`, Python sürümünü denetler ve yalnız proje içindeki `.xti-data`
-klasöründe yerel veritabanını oluşturur. Mevcut veriyi silmez veya eski bir
-veritabanını kendiliğinden taşımaz. Eski sürüm uyarısı görürsen önce:
+`./setup`, mevcut `.venv` ortamını geçici geri dönüş kopyası olarak koruyup
+sabitlenmiş Maigret ve Sherlock ortamını aynı kararlı yolda kurar. Bütün
+doğrulamalar geçerse eski kopyayı kaldırır; indirme veya doğrulama yarıda
+kalırsa önceki ortamı geri getirir. Ardından `.xti-data` içindeki yerel
+veritabanını hazırlar. Kullanıcı verisini silmez ve eski veritabanını
+kendiliğinden taşımaz. Eski sürüm uyarısı görürsen önce:
 
 ```sh
 ./xti migrate
@@ -68,18 +71,31 @@ Yedek almak için:
 ./xti backup
 ```
 
-## İsteğe bağlı sosyal kullanıcı adı araçları
+## Sosyal kullanıcı adı araçları
 
-Maigret ve Sherlock temel kurulumun parçası değildir. Bu özelliği kullanmak
-istediğinde, incelenmiş ve sabitlenmiş sürümleri ayrı yerel ortama kur:
+Maigret ve Sherlock normal kurulumun parçasıdır. Kurulu sürüm, resmî Git depo
+adresi, tam commit ve site kataloğu özeti şu komutla ağsız doğrulanabilir:
 
 ```sh
-./scripts/setup-brand
+./scripts/setup-brand --check
 ```
 
-Bu adım internet bağlantısı kullanır ve üçüncü taraf paketleri indirir. Domain,
-vaka, IOC, CTI, tedarikçi ve temel dış yüzey işlevlerini kullanmak için gerekli
-değildir.
+Onarım veya bilinçli temiz yeniden kurulum için `./scripts/setup-brand --force`
+kullanılır. Yalnız domain, vaka, IOC, CTI, tedarikçi ve dış yüzey çekirdeğini
+istiyorsan ilk kurulumda `./setup --core-only` diyebilirsin; daha sonra
+`./scripts/setup-brand` ile sosyal araçları ekleyebilirsin.
+
+Kullanıcı adı aramasında varsayılan dar kapsam `safe` profilidir. İncelenmiş
+geniş kapsam için:
+
+```sh
+./xti brand profile-list
+./xti brand username-preview markam --profile extended
+./xti brand username-preview markam --source sherlock --profile extended
+```
+
+Tek tek seçim için bir veya daha fazla `--site` kullan. `--profile` ve `--site`
+aynı komutta kullanılamaz.
 
 ## Güncelleme
 

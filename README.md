@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.124.1 · **Tarih:** 1 Kasım 2026 · **Durum:** Kişisel terminal sürümü klonla-çalıştır kullanımına hazır.
+**Sürüm:** 0.125.0 · **Tarih:** 2 Kasım 2026 · **Durum:** Kişisel terminal sürümü klonla-çalıştır kullanımına hazır.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -8,8 +8,9 @@ Aktif ürün kapsamı dış kaynaklı OSINT/XTI'dır. Sunucu içine ajan kurulma
 
 ## Hızlı başlangıç
 
-Python 3.11 veya daha yeni bir sürüm yeterlidir. Temel kullanım global Python
-ortamına paket kurmaz:
+Python 3.11 veya daha yeni bir sürüm yeterlidir. Kurulum global Python ortamına
+paket kurmaz; sosyal kullanıcı adı araçlarını proje içindeki `.venv` ortamına
+kurar:
 
 ```sh
 git clone https://github.com/mstdeveloper33/securehup_xti.git
@@ -173,30 +174,43 @@ zincirini tamamlar.
 
 ## Sosyal kullanıcı adını araştır
 
-Maigret ve Sherlock'u resmî depolarındaki incelenmiş, tam commit'lerden proje
-içindeki ayrı ortama bir kez kur:
+Normal `./setup`, Maigret ve Sherlock'u resmî depolarındaki incelenmiş tam
+commit'lerden proje içindeki ayrı ortama kurar ve her sonraki çalışmada
+kurulumu doğrular. Araçların geçişli Python bağımlılıkları da incelenmiş tam
+sürümlere bağlıdır; kurulum resmî GitHub ve PyPI kaynaklarını kullanır. Yalnız
+bu araçları denetlemek veya onarmak için:
 
 ```sh
-./scripts/setup-brand
+./scripts/setup-brand --check
+./scripts/setup-brand --force
 ```
 
 Ardından bir marka kullanıcı adını seçili herkese açık platformlarda araştır:
 
 ```sh
 ./xti brand username-preview markam
+./xti brand profile-list
+./xti brand username-preview markam --profile extended
 ./xti brand username-preview markam --site GitHub --site Instagram
 ./xti --json brand username-preview markam --site GitHub
 ./xti brand username-preview markam --source sherlock
+./xti brand username-preview markam --source sherlock --profile extended
 ./xti brand username-preview markam --source sherlock --site Carrd --site Rumble
 ./xti --json brand username-preview markam --source sherlock --site Carrd
 ```
 
 Komut yalnız açıkça verilen kullanıcı adını ve seçilen platformları kontrol
-eder. Varsayılan `maigret` kaynağı GitHub, GitLab, Reddit, Instagram, TikTok ve
-YouTube'a bakar; Facebook, Keybase, LinkedIn ve Twitter ayrıca seçilebilir.
-`--source sherlock` seçildiğinde varsayılan liste Carrd, CodeSandbox, GitBook,
-Rumble ve Weebly'dir; CashApp, ResearchGate ve Strava da açıkça seçilebilir.
-Kaynakların platform listeleri birbirine karıştırılamaz.
+eder. Seçenek verilmezse `safe` profili kullanılır: Maigret'te 6, Sherlock'ta
+5 platform. `--profile extended`, URL/host tanımları tek tek incelenmiş sabit
+geniş listeyi kullanır: Maigret'te 30, Sherlock'ta 26 platform. `--site`
+tekrarlanarak özel liste seçilebilir. `--profile` ile `--site` birlikte
+kullanılamaz; iki kaynağın platform listeleri de birbirine karıştırılamaz.
+
+`extended`, upstream aracın bütün kataloğu değildir. HTTP kullanan, yetişkin
+içerikli, yalnız arama sonucu döndüren veya incelenmemiş başka hedefe sıçrayan
+tanımlar kapsam dışıdır. Daha çok platform daha uzun çalışma, oran sınırlaması
+ve daha fazla “raporlanmadı” sonucu doğurabilir; hiçbir kota aşma yöntemi
+kullanılmaz.
 
 Sonuçlar XTI veritabanına yazılmaz; ham HTTP yanıtı, çıkarılmış profil bilgisi
 veya üçüncü taraf kimlikleri tutulmaz. “Bulundu, doğrulanmadı” yalnız aynı
@@ -211,8 +225,9 @@ sürüm kontrolünü devre dışı bırakmak için sabit kütüphane işlevi yal
 işçide çağrılır ve XTI yalnız dört alanlı kendi NDJSON raporunu üretir. Tor,
 I2P, proxy, Cloudflare aşma, otomatik güncelleme, yapay zekâ, kullanıcı adı
 türetme, özyinelemeli profil çıkarımı ve domain arama kapalıdır. Her platform
-için 5–30 saniye sınırı vardır; Maigret'te en fazla 10, Sherlock'ta en fazla 8
-platform seçilebilir.
+için 5–30 saniye sınırı vardır; Maigret'te en fazla 30, Sherlock'ta en fazla 26
+platform seçilebilir. Bütün süreç Maigret'te en fazla 300, Sherlock'ta en fazla
+100 saniyede güvenli biçimde durur.
 
 ### Kullanıcı adını kalıcı izle
 
@@ -220,6 +235,7 @@ platform seçilebilir.
 
 ```sh
 ./xti brand watch-add "Markam sosyal hesapları" markam --site GitHub --site Instagram
+./xti brand watch-add "Markam geniş takip" markam --profile extended
 ./xti brand watch-add "Markam Sherlock" markam --source sherlock --site Carrd --site Rumble
 ./xti brand watch-list
 ./xti brand watch-show IZLEME_KIMLIGI
@@ -246,12 +262,14 @@ eski çalışma gösterimi ağsızdır; `watch-run`, `watch-run-all` ve
 `watch-monitor` internete çıkar.
 
 Her kalıcı izleme `maigret` veya `sherlock` kaynağına oluşturulurken bağlanır.
-Kaynak sonradan değiştirilemez; aynı kullanıcı adını iki kaynakla izlemek için
+Profil adı yerine o anda çözülen tam platform listesi saklanır; ileride profil
+tanımı değişse bile mevcut izlemenin kapsamı sessizce değişmez. Kaynak sonradan
+değiştirilemez; aynı kullanıcı adını iki kaynakla izlemek için
 iki farklı yerel izleme adı kullanılır. Böylece her kaynağın ilk başarılı
 çalışması, fark geçmişi, kaynak hatası ve insan kararı ayrı kalır. Terminal ve
-JSON çıktıları seçilen kaynağı açıkça gösterir. Sherlock izlemesi için
-`./scripts/setup-brand` ile isteğe bağlı bağımlılıkların kurulmuş olması
-gerekir.
+JSON çıktıları seçilen kaynağı açıkça gösterir. Normal `./setup` iki aracı da
+kurup doğrular. `--core-only` kullanıldıysa önce `./scripts/setup-brand`
+çalıştırılmalıdır.
 
 `watch-run-all`, bütün etkin izlemeleri görünen adlarına göre sabit sırada bir
 kez çalıştırır. Varsayılan sınır 10, açıkça seçilebilen üst sınır 100
@@ -313,7 +331,7 @@ kayıtlıdır.
 ./xti --json brand source-coverage
 ```
 
-Komut Maigret, Sherlock, theHarvester, Web-Check, Holehe ve olası telefon aracı Ignorant seçeneklerini aynı zorunlu kapılarla karşılaştırır. Çalışma sırasında internete bağlanmaz, araç kurmaz, kullanıcı adı aramaz ve veri klasörü oluşturmaz. Bu kapının seçtiği Maigret adaptörü yukarıdaki ayrı ve isteğe bağlı kurulumla artık çalışmaktadır. Maigret kaynak kodu XTI içine kopyalanmamıştır; paket resmî repodaki tam commit'ten kurulur ve yalnız dar özellik kümesi çağrılır.
+Komut Maigret, Sherlock, theHarvester, Web-Check, Holehe ve olası telefon aracı Ignorant seçeneklerini aynı zorunlu kapılarla karşılaştırır. Çalışma sırasında internete bağlanmaz, araç kurmaz, kullanıcı adı aramaz ve veri klasörü oluşturmaz. Bu kapının seçtiği Maigret adaptörü normal doğrulanmış kurulumla çalışmaktadır. Maigret kaynak kodu XTI içine kopyalanmamıştır; paket resmî repodaki tam commit'ten kurulur ve yalnız sınırlı özellik kümesi çağrılır.
 
 `source-coverage`, sabit Maigret 0.6.6 ve Sherlock 0.16.2 kataloglarını
 incelenen tam commit ve SHA-256 özetleriyle karşılaştıran ikinci kapıdır. Yalnız
@@ -1525,7 +1543,7 @@ Temizlik veritabanı içinde yeniden kullanılabilir yer açar; dosyayı hemen k
 ./scripts/check
 ```
 
-Python 3.11+ gerekir; başlatıcı uygun sürümü seçer. Doğrulanan ortam macOS/Python 3.13.3'tür. Çalıştırıcı kilidi macOS/Linux içindir; Windows çalıştırıcısı henüz desteklenmez. Çekirdek özellikler ek Python paketi istemez. İsteğe bağlı sosyal kullanıcı adı önizlemesi `./scripts/setup-brand` ile resmî Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine kurar. Gerçek aramalar internet ister; testler ve geçmiş/kuyruk işlemleri internetsiz çalışır. Public Suffix List, Unicode ve isteğe bağlı sosyal kaynak/lisans bilgileri [THIRD_PARTY.md](THIRD_PARTY.md) içindedir.
+Python 3.11+ gerekir; başlatıcı uygun sürümü seçer. Doğrulanan ortam macOS/Python 3.13.3'tür. Çalıştırıcı kilidi macOS/Linux içindir; Windows çalıştırıcısı henüz desteklenmez. Çekirdek özellikler ek Python paketi istemez. Normal `./setup`, resmî Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine atomik kurar; sürüm, commit ve katalog bütünlüğünü doğrular. Yalnız çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar internet ister; testler ve geçmiş/kuyruk işlemleri internetsiz çalışır. Public Suffix List, Unicode ve sosyal kaynak/lisans bilgileri [THIRD_PARTY.md](THIRD_PARTY.md) içindedir.
 
 Geliştirme için tekrarlanabilir, tamamen geçici verili kontrol:
 

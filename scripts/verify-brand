@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+XTI_VENV="$XTI_PROJECT_DIR/.venv"
+
+if [ ! -x "$XTI_VENV/bin/python" ]; then
+    echo "Marka araç ortamı yok. Önce ./scripts/setup-brand çalıştır." >&2
+    exit 1
+fi
+
+export PYTHONPATH="$XTI_PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"
+exec "$XTI_VENV/bin/python" "$XTI_PROJECT_DIR/scripts/verify_brand_install.py" \
+    --prefix "$XTI_VENV"

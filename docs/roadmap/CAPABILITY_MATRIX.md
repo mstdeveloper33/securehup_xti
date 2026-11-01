@@ -1,6 +1,6 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
-**Karşılaştırma tarihi:** 31 Ekim 2026 · **Sürüm:** 0.123.
+**Karşılaştırma tarihi:** 2 Kasım 2026 · **Sürüm:** 0.125.
 
 **Aktif kapsam kararı:** CAP-030'un teknoloji çıkarımı ile CAP-034–041 arasındaki zafiyet, ürün/sürüm, paket ve CVE eşleştirme yetenekleri kullanıcı kararıyla aktif teslim planından çıkarıldı. Bu satırlar yalnız tarihsel karşılaştırma kaydı olarak korunur; yeni birleşik analiz bunları çalıştırmaz.
 
@@ -144,7 +144,7 @@ Referans kapsamı: sosyal hesap/uygulama taklidi, yüzey web, VIP ve finansal do
 
 | Kimlik | Yetenek | Bizim teslim hedefimiz | İş paketi | Faz / kaynak |
 |---|---|---|---|---|
-| CAP-068 | Sosyal hesap taklidi | Sabit Maigret ve kısa listeli Sherlock ile önizleme, kaynak-yalıtımlı kalıcı fark, tam profil insan kararı, tekil kutu, karma toplu ve ön plan yürütme var; daha geniş kaynak/parodi doğruluğu açık | BRD-02 | R8 / B0→B2 |
+| CAP-068 | Sosyal hesap taklidi | Doğrulanmış sabit Maigret/Sherlock kurulumu; 6/5 güvenli, 30/26 incelenmiş geniş veya özel kapsamlı önizleme; kaynak-yalıtımlı kalıcı fark, tam profil insan kararı, tekil kutu, karma toplu ve ön plan yürütme var. Ek kaynak ve parodi doğruluğu açık | BRD-02 | R8 / B0→B2 |
 | CAP-069 | Sahte mobil uygulama | Mağaza, yayıncı, paket ve marka ilişkisi | BRD-03 | R8 / B0→B2 |
 | CAP-070 | Yüzey web marka gözlemi | İlgili sayfa/ilan ve zamanlı içerik kanıtı | BRD-04 | R8 / B0→B2 |
 | CAP-071 | Kod/API deposu maruziyeti | Yetkili içerikte maskeli sır/kurum bağlantısı | BRD-04 | R8 / B0→B2 |

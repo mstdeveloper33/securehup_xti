@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**1 Kasım 2026 — 0.124.1 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**2 Kasım 2026 — 0.125.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
@@ -121,7 +121,7 @@ Terminal değişikliği alan adı kurallarını değiştirmeyi gerektirmez. Depo
 - Şema 52: şema 51'e insan onaylı tedarikçi güncel kaydını ve tam anlık görüntülü eklemeli yaşam döngüsü olaylarını ekler. Eski varlık, CTI veya ağ kanıtından tedarikçi ilişkisi uydurulmaz; tablolar boş başlar.
 - Şema 53: şema 52'ye kayıtlı son CNAME kanıtından türetilen tedarikçi adayını, kaynak kanıt zincirini ve geri alınabilir insan çözümleme kararlarını ekler. Eski CNAME kayıtlarından migration sırasında aday üretilmez; tablolar boş başlar ve yalnız açık `candidate-refresh` ile dolar.
 - Şema 54: şema 53'e vaka güncel durumu, dondurulmuş kaynak kanıt bağı, takip görevi ve tek sıralı eklemeli aktivite tablolarını ekler. Eski bulgu, profil, ransomware veya tedarikçi kayıtlarından vaka üretilmez; tablolar boş başlar.
-- 0.89.0–0.95.0 şema 39'u, 0.96.0 şema 40'ı, 0.97.0–0.99.0 şema 41'i, 0.100.0–0.102.0 şema 42'yi, 0.103.0–0.104.0 şema 43'ü, 0.105.0 şema 44'ü, 0.106.0–0.107.0 şema 45'i, 0.108.0–0.110.0 şema 46'yı, 0.111.0 şema 47'yi, 0.112.0 şema 48'i, 0.113.0–0.117.0 şema 49'u, 0.118.0 şema 50'yi, 0.119.0 şema 51'i, 0.120.0 şema 52'yi, 0.121.0–0.123.0 şema 53'ü ve 0.124.0–0.124.1 şema 54'ü kullanır. 0.122.0 tedarikçi iddia görünümü, 0.123.0 inceleme kartı ve 0.124.1 klonla-çalıştır başlangıcı migration gerektirmez. Her dış yüzey değişiklik bildirimi tam olarak bir değişmiş web/posta/servis kanıtına yabancı anahtarla bağlıdır; kanıt ve bildirim aynı transaction içinde yazılır. İlk CNAME dilimi bildirim üretmez.
+- 0.89.0–0.95.0 şema 39'u, 0.96.0 şema 40'ı, 0.97.0–0.99.0 şema 41'i, 0.100.0–0.102.0 şema 42'yi, 0.103.0–0.104.0 şema 43'ü, 0.105.0 şema 44'ü, 0.106.0–0.107.0 şema 45'i, 0.108.0–0.110.0 şema 46'yı, 0.111.0 şema 47'yi, 0.112.0 şema 48'i, 0.113.0–0.117.0 şema 49'u, 0.118.0 şema 50'yi, 0.119.0 şema 51'i, 0.120.0 şema 52'yi, 0.121.0–0.123.0 şema 53'ü ve 0.124.0–0.125.0 şema 54'ü kullanır. 0.122.0 tedarikçi iddia görünümü, 0.123.0 inceleme kartı, 0.124.1 klonla-çalıştır başlangıcı ve 0.125.0 sosyal araç kurulumu/profilleri migration gerektirmez. Her dış yüzey değişiklik bildirimi tam olarak bir değişmiş web/posta/servis kanıtına yabancı anahtarla bağlıdır; kanıt ve bildirim aynı transaction içinde yazılır. İlk CNAME dilimi bildirim üretmez.
 - Şema 1–53 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.
 - Domain tekilliği uygulama normalleştirmesi ve veritabanı kısıtıyla korunur.
 - Biçim işareti application_id=0x58544901; bu bir güven/özgünlük imzası değildir.
@@ -172,10 +172,26 @@ Domain modeli leak-site `post_url` değerini içermez; yalnız kaynak gönderisi
 
 `BrandSourceEvaluationService`, dış araç kurulmadan önce sürümlü `free-brand-osint-tool-gate-v2` kapısını ağsız uygular. Doğrulanmış upstream, bakım, ücretsiz/hesapsız temel kullanım, sonuç JSON'u, çalışma sınırı, kod lisansı, hesap-kurtarma yoklaması kullanmama ve güncel kapsam zorunludur. Maigret'in sınırlı CLI adaptörü ile theHarvester'ın yalnız iki P0 arşiv adaptörü seçilmiştir; Sherlock sonraki bağımsız kapsam kapısında küçük bir listeye kabul edilmiş, Web-Check, Holehe ve olası telefon aracı elenmiştir. Bu servis araç çalıştırmaz, kullanıcı adı/domain aramaz, depolama açmaz ve üçüncü taraf kodunu çekirdeğe dahil etmez. Ayrıntılar [ücretsiz marka OSINT aracı kararında](decisions/0107-free-brand-osint-tool-gate.md) ve [theHarvester sınır kararında](decisions/0117-bounded-theharvester-archive-discovery.md) bulunur.
 
-`BrandSourceCoverageService`, ikinci kaynak kararını düzeltilmiş ve sabitlenmiş `free-social-source-coverage-gate-v2` kanıtından ağsız üretir. Paketli kanıt tam SHA-256, boyut, tekrar alan reddi, alan kümeleri, HTTPS başvuruları, kaynak rolleri ve çapraz sayaç bağlarıyla doğrulanır. Maigret ve Sherlock'un sabit kataloglarından geliştirme zamanında türetilen ölçüm yalnız etkin HTTPS kullanıcı adı tanımlarını alır; normalleştirilmiş ad veya paketli Public Suffix List kayıt kökü ortak sayılır. Sherlock'un 455 uygun tanımından 103'ü/101 kayıt kökü eşleşmeyen kapsamdır; mevcut izinli 10 platformda yeni katkı yoktur. Bu nedenle Sherlock yalnız sekiz platformluk kısa liste için sınırlı adaptöre kabul edilmiştir. v2 kanıtı CLI'ın gizli sürüm isteğini kabul etmez; yalnız seçilen yerel katalog nesneleriyle yalıtılmış kütüphane işçisini ve XTI NDJSON sözleşmesini kaydeder. Servis üçüncü taraf aracı çalıştırmaz, katalog indirmez ve depolama açmaz. Ayrıntılar [ikinci sosyal kaynak kapsam kararındadır](decisions/0114-second-social-source-coverage-gate.md).
+`BrandSourceCoverageService`, ikinci kaynak kararını düzeltilmiş ve sabitlenmiş `free-social-source-coverage-gate-v2` kanıtından ağsız üretir. Paketli kanıt tam SHA-256, boyut, tekrar alan reddi, alan kümeleri, HTTPS başvuruları, kaynak rolleri ve çapraz sayaç bağlarıyla doğrulanır. Maigret ve Sherlock'un sabit kataloglarından geliştirme zamanında türetilen ölçüm yalnız etkin HTTPS kullanıcı adı tanımlarını alır; normalleştirilmiş ad veya paketli Public Suffix List kayıt kökü ortak sayılır. Sherlock'un 455 uygun tanımından 103'ü/101 kayıt kökü eşleşmeyen kapsamdır. İlk kabul sekiz platformluk kısa listeyle yapılmıştır; 0.125.0'da iki kaynak için URL/host bazında yeniden incelenen geniş profiller eklenmiştir. v2 kanıtı CLI'ın gizli sürüm isteğini kabul etmez; yalnız seçilen yerel katalog nesneleriyle yalıtılmış kütüphane işçisini ve XTI NDJSON sözleşmesini kaydeder. Servis üçüncü taraf aracı çalıştırmaz, katalog indirmez ve depolama açmaz. Ayrıntılar [ikinci sosyal kaynak kapsam kararında](decisions/0114-second-social-source-coverage-gate.md) ve [doğrulanmış kurulum/profil kararında](decisions/0123-verified-brand-toolchain-and-profiles.md) bulunur.
 
-`BrandUsernamePreviewService`, tek kullanıcı adını, izinli platform kümesini ve
-süre sınırını dış adaptörden önce doğrular. `MaigretUsernameSource`, resmî
+`setup-brand`, mevcut `.venv` ortamını sabit adlı proje-içi geri dönüş kopyasına
+taşır ve yeni ortamı kararlı `.venv` yolunda kurar. Paket bağımlılıklarını,
+dağıtım sürümünü, resmî depo adresini, istenen ve çözülen tam Git commit'ini,
+katalog dosyası türü/boyutu/SHA-256 özetini, bütün geniş profil URL izinlerini
+ve Maigret çalıştırıcısını doğrular. Geçişli bağımlılıklar sürümlü constraint
+dosyasına bağlıdır; yalıtılmış pip çalışması resmî PyPI indeksini ve Git
+yapılandırmasından yalıtılmış resmî GitHub URL'lerini kullanır. Başarısızlık
+veya yakalanan sinyalde kısmi
+ortam kaldırılıp eski ortam geri konur. PID kilidi eşzamanlı kurulumu engeller;
+yetim işaretli kurulum sonraki denemede geri alınır. Çalıştırıcı, kurulum
+işaretli `.venv` yerine sistemdeki desteklenen Python'a düşer. Geçerli ortam
+tekrar indirilmez. `./setup` bunu varsayılan çalıştırır; `--core-only`,
+`--check` ve `--force` açık alternatiflerdir.
+
+`BrandUsernamePreviewService`, tek kullanıcı adını, `safe`/`extended`/özel
+platform seçimini ve süre sınırını dış adaptörden önce doğrular. Maigret'in
+güvenli profili 6, geniş profili 30 elle incelenmiş HTTPS tanım içerir.
+`MaigretUsernameSource`, resmî
 reponun sabit commit'inden kurulan 0.6.6 CLI'ı kabuksuz ayrı süreçte çalıştırır.
 Paketli site veritabanının sabit SHA-256 özeti ve seçilen platformların HTTPS
 hostları doğrulanır; her çalışma için yalnız bu tam platformları taşıyan geçici
@@ -185,15 +201,19 @@ Tor/proxy, otomatik güncelleme, özyineleme, domain arama ve yapay zekâ kapal�
 Önizleme XTI deposunu açmaz ve yazmaz. Ayrıntılar [sınırlı Maigret
 kararındadır](decisions/0108-bounded-maigret-username-preview.md).
 
-`SherlockUsernamePreviewService`, Sherlock'a özgü sekiz platformu ve en fazla
-sekiz seçim sınırını ağdan önce doğrular. `SherlockUsernameSource`, resmî tam
+`SherlockUsernamePreviewService`, Sherlock'un 5 platformluk güvenli veya 26
+platformluk geniş profilini ve özel seçimini ağdan önce doğrular.
+`SherlockUsernameSource`, resmî tam
 commit'ten kurulan 0.16.2 paketinin sürümünü ve katalog SHA-256 özetini
 doğrulayıp yalnız seçilen platformları geçici kataloğa ayırır. Sherlock CLI'ın
 ek GitHub sürüm isteğini çalıştırmaz; sabit `sherlock()` kütüphane işlevini
 yalıtılmış işçide çağırır. İşçi kendi dört alanlı NDJSON raporunu yazar; ana
 süreç raporu kullanıcı adı, platform, durum ve HTTPS/443 host sınırıyla tekrar
 doğrular. Ham yanıt ve profil ayrıntısı alınmaz. Sonuç veritabanını açmaz veya
-yazmaz. Ayrıntılar [sınırlı Sherlock kararındadır](decisions/0115-bounded-sherlock-username-preview.md).
+yazmaz. Kalıcı izleme profil adını değil çözülen tam platform listesini saklar.
+Ayrıntılar [sınırlı Sherlock kararında](decisions/0115-bounded-sherlock-username-preview.md)
+ve [0.125.0 profil kararında](decisions/0123-verified-brand-toolchain-and-profiles.md)
+bulunur.
 
 `BrandUsernameWatchBatchService`, etkin sosyal kullanıcı adı izlemelerini
 `BrandUsernameWatchService.list_window` üzerinden görünen ad ve kimliğe göre
