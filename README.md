@@ -13,7 +13,7 @@ ortamına paket kurmaz:
 
 ```sh
 git clone https://github.com/mstdeveloper33/securehup_xti.git
-cd xti
+cd securehup_xti
 ./setup
 ./xti assets add example.com
 ./xti scan example.com --typos

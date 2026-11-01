@@ -8,7 +8,7 @@ Python bağımlılığı yoktur.
 
 ```sh
 git clone https://github.com/mstdeveloper33/securehup_xti.git
-cd xti
+cd securehup_xti
 ./setup
 ```
 
