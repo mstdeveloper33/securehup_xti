@@ -1,0 +1,14 @@
+#!/bin/sh
+# Prepare a fresh clone without changing the user's global Python environment.
+set -eu
+
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+cd "$XTI_PROJECT_DIR"
+
+./xti init
+
+printf '\nXTI kullanıma hazır.\n'
+printf 'İlk domainini ekle: ./xti assets add example.com\n'
+printf 'Aramayı başlat:      ./xti scan example.com --typos\n'
+printf 'Yardımı aç:          ./xti --help\n'
+

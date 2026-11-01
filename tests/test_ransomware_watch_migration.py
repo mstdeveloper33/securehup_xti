@@ -1,0 +1,110 @@
+"""Schema 40 to 41 adds empty, recoverable ransomware watch storage."""
+
+from contextlib import closing
+from pathlib import Path
+import sqlite3
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from xti.adapters.schema import SCHEMA_VERSION, validate_schema
+from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.sqlite_ransomware_watches import SQLiteRansomwareWatchRepository
+
+
+TABLES = (
+    "ransomware_identity_review_events",
+    "ransomware_monitor_cycle_watch_runs", "ransomware_monitor_cycles",
+    "ransomware_monitor_sessions",
+    "ransomware_watch_notifications", "ransomware_watch_run_items",
+    "ransomware_watch_runs", "ransomware_watch_events", "ransomware_watches",
+)
+
+
+class RansomwareWatchMigrationTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.path = Path(self.temp.name) / "legacy" / "xti.db"
+
+    def version_forty(self):
+        SQLiteAssetRepository(self.path).initialize()
+        with closing(sqlite3.connect(self.path)) as connection, connection:
+            for table in TABLES:
+                connection.execute(f"DROP TABLE {table}")
+            connection.execute("DROP TABLE IF EXISTS ransomlook_claim_run_items")
+            connection.execute("DROP TABLE IF EXISTS ransomlook_claim_runs")
+            connection.execute("DROP TABLE IF EXISTS ransomlook_watch_run_items")
+            connection.execute("DROP TABLE IF EXISTS ransomlook_watch_runs")
+            connection.execute("DROP TABLE IF EXISTS ransomlook_watch_events")
+            connection.execute("DROP TABLE IF EXISTS ransomlook_watches")
+            connection.execute("DROP TABLE IF EXISTS ransomware_source_review_events")
+            connection.execute("DROP TABLE IF EXISTS brand_username_review_notifications")
+            connection.execute("DROP TABLE IF EXISTS brand_username_review_events")
+            connection.execute("DROP TABLE IF EXISTS brand_username_watch_run_items")
+            connection.execute("DROP TABLE IF EXISTS brand_username_watch_runs")
+            connection.execute("DROP TABLE IF EXISTS brand_username_watch_events")
+            connection.execute("DROP TABLE IF EXISTS brand_username_watches")
+            connection.execute("DROP INDEX IF EXISTS supplier_candidate_resolutions_candidate_sequence")
+            connection.execute("DROP INDEX IF EXISTS supplier_candidate_evidence_candidate_sequence")
+            connection.execute("DROP INDEX IF EXISTS supplier_candidates_status_current")
+            connection.execute("DROP TABLE IF EXISTS supplier_candidate_resolution_events")
+            connection.execute("DROP TABLE IF EXISTS supplier_candidate_evidence")
+            connection.execute("DROP TABLE IF EXISTS supplier_candidates")
+            connection.execute("DROP INDEX IF EXISTS supplier_events_supplier_sequence")
+            connection.execute("DROP INDEX IF EXISTS suppliers_active_name")
+            connection.execute("DROP TABLE IF EXISTS supplier_events")
+            connection.execute("DROP TABLE IF EXISTS suppliers")
+            connection.execute("DROP TABLE IF EXISTS case_activities")
+            connection.execute("DROP TABLE IF EXISTS case_tasks")
+            connection.execute("DROP TABLE IF EXISTS case_evidence")
+            connection.execute("DROP TABLE IF EXISTS cases")
+            connection.execute("PRAGMA user_version=40")
+            self.assertEqual(validate_schema(connection, allow_legacy=True), 40)
+        return self.path
+
+    @staticmethod
+    def version(path):
+        with closing(sqlite3.connect(path)) as connection:
+            return connection.execute("PRAGMA user_version").fetchone()[0]
+
+    def test_v40_migrates_with_backup_and_empty_watch_storage(self):
+        path = self.version_forty()
+        result = SQLiteAssetRepository(path).migrate()
+        self.assertEqual((result["from_version"], result["to_version"]), (40, SCHEMA_VERSION))
+        with closing(sqlite3.connect(path)) as connection:
+            self.assertEqual(validate_schema(connection), SCHEMA_VERSION)
+            self.assertEqual(tuple(
+                connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                for table in TABLES
+            ), (0, 0, 0, 0, 0, 0, 0, 0, 0))
+        backup = Path(result["backup"])
+        self.assertEqual(self.version(backup), 40)
+        with closing(sqlite3.connect(backup)) as connection:
+            self.assertEqual(validate_schema(connection, allow_legacy=True), 40)
+
+    def test_failed_creation_rolls_back_and_keeps_valid_v40_backup(self):
+        path = self.version_forty()
+
+        def incomplete(connection):
+            connection.execute("CREATE TABLE ransomware_watches (id TEXT PRIMARY KEY)")
+            raise sqlite3.OperationalError("controlled failure")
+
+        with patch("xti.adapters.sqlite.create_ransomware_watch_schema", side_effect=incomplete):
+            with self.assertRaises(StorageError):
+                SQLiteAssetRepository(path).migrate()
+        self.assertEqual(self.version(path), 40)
+        backups = list((path.parent / "backups").glob("*.db"))
+        self.assertEqual((len(backups), self.version(backups[0])), (1, 40))
+
+    def test_v40_reads_never_migrate_or_create_watch_tables(self):
+        path = self.version_forty()
+        before = path.read_bytes()
+        with self.assertRaisesRegex(StorageError, "migrate"):
+            SQLiteRansomwareWatchRepository(path).list(active_only=True, limit=10)
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(self.version(path), 40)
+
+
+if __name__ == "__main__":
+    unittest.main()

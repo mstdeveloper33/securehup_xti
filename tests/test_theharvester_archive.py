@@ -1,0 +1,179 @@
+"""Pinned, P0-only theHarvester archive adapter contracts."""
+
+from copy import deepcopy
+import json
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+
+from xti.adapters.theharvester_archive import (
+    INTEGRATION_PROFILE,
+    REVIEWED_UPSTREAM_COMMIT,
+    SOURCES,
+    TheHarvesterArchiveSource,
+    parse_theharvester_jsonl,
+)
+from xti.ports.discovery import SourceError
+
+
+def report(*, statuses=("completed", "completed"), outside=False):
+    findings = [
+        {"sources": ["commoncrawl"], "type": "hostname", "value": "api.example.com"},
+        {
+            "sources": ["commoncrawl", "waybackarchive"],
+            "type": "hostname",
+            "value": "outside.test" if outside else "dev.example.com",
+        },
+    ]
+    counts = {"commoncrawl": 2, "waybackarchive": 1}
+    executions = []
+    for source, status in zip(SOURCES, statuses):
+        executions.append({
+            "duration_ms": 12.5,
+            "error_type": None if status == "completed" else "TimeoutError",
+            "result_count": counts[source] if status != "failed" else 0,
+            "source": source,
+            "status": status,
+            "stop_reason": None if status == "completed" else "runtime-limit",
+        })
+    if statuses == ("failed", "failed"):
+        findings = []
+    evidence_status = (
+        "failed" if statuses == ("failed", "failed")
+        else "partial" if statuses != ("completed", "completed")
+        else "complete"
+    )
+    summary = {
+        "action_executions": [], "artifacts": [],
+        "completed_at": "2026-10-31T10:01:00Z",
+        "counts": {"hostname": len(findings)} if findings else {},
+        "evidence_status": evidence_status, "result_count": len(findings),
+        "run_id": "123e4567-e89b-12d3-a456-426614174000",
+        "source_executions": executions,
+        "started_at": "2026-10-31T10:00:00Z",
+        "target": "example.com", "type": "summary",
+    }
+    return [summary, *findings]
+
+
+def payload(records) -> bytes:
+    return b"".join(
+        json.dumps(item, ensure_ascii=True, sort_keys=True).encode() + b"\n"
+        for item in records
+    )
+
+
+class TheHarvesterArchiveTests(unittest.TestCase):
+    def test_complete_report_keeps_source_provenance_and_minimal_hostnames(self):
+        batch = parse_theharvester_jsonl(
+            payload(report()), domain="example.com", limit=250,
+        )
+        self.assertEqual(batch.record_count, 2)
+        self.assertEqual(batch.warnings, ())
+        self.assertEqual(len(batch.documents), 3)
+        self.assertEqual(
+            [(item.records[0].domain, item.source_name.split(":")[1].split("@")[0])
+             for item in batch.documents],
+            [
+                ("api.example.com", "commoncrawl"),
+                ("dev.example.com", "commoncrawl"),
+                ("dev.example.com", "waybackarchive"),
+            ],
+        )
+        self.assertTrue(all(
+            item.records[0].observed_at == "2026-10-31T10:01:00+00:00"
+            for item in batch.documents
+        ))
+        self.assertIn(INTEGRATION_PROFILE.split("-")[1], batch.coverage_notes[0])
+
+    def test_partial_is_visible_and_two_failed_sources_are_not_empty_success(self):
+        records = report(statuses=("partial", "completed"))
+        batch = parse_theharvester_jsonl(
+            payload(records), domain="example.com", limit=250,
+        )
+        self.assertEqual(len(batch.warnings), 1)
+        self.assertIn("commoncrawl", batch.warnings[0])
+
+        with self.assertRaisesRegex(SourceError, "iki arşiv"):
+            parse_theharvester_jsonl(
+                payload(report(statuses=("failed", "failed"))),
+                domain="example.com", limit=250,
+            )
+
+    def test_schema_drift_active_evidence_and_out_of_scope_hostname_fail_closed(self):
+        cases = []
+        changed = report()
+        changed[0]["unexpected"] = True
+        cases.append(changed)
+        active = report()
+        active[0]["action_executions"] = [{"action": "dns-resolve"}]
+        cases.append(active)
+        cases.append(report(outside=True))
+        duplicate = report()
+        duplicate.append(deepcopy(duplicate[1]))
+        duplicate[0]["result_count"] = 3
+        duplicate[0]["counts"]["hostname"] = 3
+        duplicate[0]["source_executions"][0]["result_count"] = 3
+        cases.append(duplicate)
+        wrong_source = report()
+        wrong_source[1]["sources"] = ["crtsh"]
+        cases.append(wrong_source)
+        malformed_source = report()
+        malformed_source[1]["sources"] = [{"not": "text"}]
+        cases.append(malformed_source)
+        for records in cases:
+            with self.subTest(case=records), self.assertRaises(SourceError):
+                parse_theharvester_jsonl(
+                    payload(records), domain="example.com", limit=250,
+                )
+
+    def test_adapter_uses_fixed_command_temporary_home_and_pinned_checkout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            checkout = root / "checkout"
+            executable = checkout / ".venv" / "bin" / "theHarvester"
+            executable.parent.mkdir(parents=True)
+            executable.write_text("#!/bin/sh\n", encoding="utf-8")
+            executable.chmod(0o700)
+            (checkout / ".git").mkdir()
+            (checkout / ".git" / "HEAD").write_text(
+                REVIEWED_UPSTREAM_COMMIT + "\n", encoding="ascii",
+            )
+            seen = {}
+
+            def runner(command, **kwargs):
+                seen.update(command=command, kwargs=kwargs)
+                output = Path(command[command.index("-f") + 1]).with_suffix(".jsonl")
+                output.write_bytes(payload(report()))
+                return subprocess.CompletedProcess(command, 0, "safe stdout", "")
+
+            source = TheHarvesterArchiveSource(
+                runner=runner, executable_locator=lambda: executable,
+                checkout_locator=lambda: checkout,
+            )
+            batch = source.search("%.example.com")
+            self.assertEqual(batch.record_count, 2)
+            command = seen["command"]
+            self.assertEqual(command[1:7], [
+                "-d", "example.com", "-b", "commoncrawl,waybackarchive", "-l", "250",
+            ])
+            self.assertEqual(command[7:11], ["-j", "1", "-q", "-f"])
+            environment = seen["kwargs"]["env"]
+            self.assertEqual(environment["HOME"], seen["kwargs"]["cwd"])
+            self.assertNotIn("HTTP_PROXY", environment)
+            self.assertFalse(Path(environment["HOME"]).exists())
+
+    def test_missing_or_changed_checkout_never_runs(self):
+        called = []
+        source = TheHarvesterArchiveSource(
+            runner=lambda *args, **kwargs: called.append(args),
+            executable_locator=lambda: None, checkout_locator=lambda: None,
+        )
+        with self.assertRaisesRegex(SourceError, "setup-harvester"):
+            source.search("%.example.com")
+        self.assertEqual(called, [])
+
+
+if __name__ == "__main__":
+    unittest.main()

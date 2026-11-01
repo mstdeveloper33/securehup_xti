@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "dataset_version": "domain-evaluation-v2",
+  "description": "Sürüm 2 sentetik alan adı inceleme beklentileri ve dar kural korumaları; gerçek tehdit veya sahiplik verisi değildir.",
+  "cases": [
+    {"id":"own-001","category":"owned-boundary","asset":"example.com","domain":"example.com","expected":"ignore","baseline":"ignore","note":"İzlenen adresin kendisi dış taklit değildir."},
+    {"id":"own-002","category":"owned-boundary","asset":"example.com","domain":"www.example.com","expected":"ignore","baseline":"ignore","note":"Aynı kayıt kökündeki alt alan adı."},
+    {"id":"own-003","category":"owned-boundary","asset":"example.co.uk","domain":"mail.example.co.uk","expected":"ignore","baseline":"ignore","note":"Çok parçalı uzantıda aynı kayıt kökü."},
+    {"id":"own-004","category":"owned-boundary","asset":"alpha.github.io","domain":"login.alpha.github.io","expected":"ignore","baseline":"ignore","note":"Aynı özel barındırma kiracısı."},
+
+    {"id":"suffix-001","category":"alternate-suffix","asset":"example.com","domain":"example.net","expected":"review","baseline":"review","note":"Aynı ayırt edici ad farklı uzantıda."},
+    {"id":"suffix-002","category":"alternate-suffix","asset":"alpha.github.io","domain":"alpha.com","expected":"review","baseline":"review","note":"Özel barındırma kiracısından genel uzantıya aynı ad."},
+    {"id":"suffix-003","category":"alternate-suffix","asset":"ab.com","domain":"ab.net","expected":"review","baseline":"review","note":"Kısa ad için yalnız tam ad farklı uzantı sinyalidir."},
+    {"id":"suffix-004","category":"common-word","asset":"support.com","domain":"support.net","expected":"ignore","baseline":"ignore","note":"Yaygın hizmet sözcüğü tek başına zayıf sinyaldir."},
+
+    {"id":"typo-001","category":"single-edit","asset":"example.com","domain":"examp1e.net","expected":"review","baseline":"review","note":"Tek karakter değişimi."},
+    {"id":"typo-002","category":"single-edit","asset":"example.com","domain":"exampl.net","expected":"review","baseline":"review","note":"Tek karakter eksilmesi."},
+    {"id":"typo-003","category":"single-edit","asset":"example.com","domain":"exxample.net","expected":"review","baseline":"review","note":"Tek karakter eklenmesi."},
+    {"id":"typo-004","category":"adjacent-swap","asset":"example.com","domain":"exampel.net","expected":"review","baseline":"review","note":"Yan yana iki karakterin yer değiştirmesi."},
+    {"id":"typo-005","category":"short-brand","asset":"foo.com","domain":"foa.net","expected":"ignore","baseline":"ignore","note":"Kısa adlarda typo kuralı gürültü üretmemeli."},
+    {"id":"typo-gap-001","category":"combined-pattern","asset":"example.com","domain":"exampel-login.net","expected":"review","baseline":"review","note":"Yan yana harf değişimi ile bilinen hizmet eki birlikte incelemeye gönderilir."},
+
+    {"id":"service-001","category":"service-extension","asset":"example.com","domain":"example-support.net","expected":"review","baseline":"review","note":"Tireli hizmet eki."},
+    {"id":"service-002","category":"service-extension","asset":"example.com","domain":"destekexample.net","expected":"review","baseline":"review","note":"Bilinen bitişik hizmet öneki."},
+    {"id":"service-003","category":"service-extension","asset":"example.com","domain":"exampledestek.net","expected":"review","baseline":"review","note":"Bilinen bitişik hizmet soneki."},
+    {"id":"service-004","category":"service-extension","asset":"example.com","domain":"my-example-portal.net","expected":"review","baseline":"review","note":"Tire sınırları içinde marka."},
+    {"id":"service-005","category":"service-extension","asset":"apple.com","domain":"apple-support.net","expected":"review","baseline":"review","note":"Ayırt edici ad ile hizmet eki."},
+    {"id":"service-006","category":"service-extension","asset":"example.com","domain":"secureexample.net","expected":"review","baseline":"review","note":"Bilinen bitişik hizmet öneki."},
+    {"id":"service-gap-001","category":"combined-pattern","asset":"example.com","domain":"exampleshop.net","expected":"review","baseline":"review","note":"Yeterince uzun markaya bitişik mağaza ifadesi incelemeye gönderilir."},
+    {"id":"combined-guard-001","category":"combined-pattern-guard","asset":"example.com","domain":"exampel-garden.net","expected":"ignore","baseline":"ignore","note":"Yazım değişimi bilinmeyen bir ekle birleştiğinde yeni dar kural çalışmaz."},
+    {"id":"shop-guard-001","category":"combined-pattern-guard","asset":"work.com","domain":"workshop.net","expected":"ignore","baseline":"ignore","note":"Kısa sözcük içindeki shop sonu mağaza eki olarak yorumlanmaz."},
+    {"id":"shop-guard-002","category":"combined-pattern-guard","asset":"example.com","domain":"exampleshopping.net","expected":"ignore","baseline":"ignore","note":"Daha uzun rastgele sözcük yalnız shop alt dizesi nedeniyle aday olmaz."},
+
+    {"id":"substring-001","category":"unrelated-substring","asset":"example.com","domain":"examplecustomer.net","expected":"ignore","baseline":"ignore","note":"Her bitişik alt dize aday sayılmamalı."},
+    {"id":"substring-002","category":"unrelated-substring","asset":"apple.com","domain":"pineapple.net","expected":"ignore","baseline":"ignore","note":"Ad başka bir sözcüğün parçasıdır."},
+    {"id":"substring-003","category":"unrelated-substring","asset":"apple.com","domain":"appleman.net","expected":"ignore","baseline":"ignore","note":"Tanınmayan bitişik ek zayıf sinyaldir."},
+    {"id":"substring-004","category":"unrelated-substring","asset":"example.com","domain":"unrelated.net","expected":"ignore","baseline":"ignore","note":"İlgisiz alan adı."},
+
+    {"id":"subdomain-001","category":"deceptive-subdomain","asset":"example.com","domain":"example.com.attacker.net","expected":"review","baseline":"review","note":"Tam izlenen adres farklı kayıt kökünde alt bölüm olarak kullanılmıştır."},
+    {"id":"subdomain-002","category":"deceptive-subdomain","asset":"example.com","domain":"example.attacker.net","expected":"review","baseline":"review","note":"Marka farklı kayıt kökünün alt bölümüdür."},
+    {"id":"subdomain-003","category":"deceptive-subdomain","asset":"example.com","domain":"example.org.attacker.net","expected":"review","baseline":"review","note":"Marka başka uzantıyla alt bölümde kullanılmıştır."},
+    {"id":"subdomain-004","category":"deceptive-subdomain","asset":"support.com","domain":"support.com.attacker.net","expected":"review","baseline":"review","note":"Yaygın sözcük olsa da tam izlenen adres farklı kökte açık sinyaldir."},
+    {"id":"subdomain-005","category":"unrelated-substring","asset":"example.com","domain":"notexample.attacker.net","expected":"ignore","baseline":"ignore","note":"Alt bölüm içindeki rastgele alt dize yeterli değildir."},
+
+    {"id":"suffix-boundary-001","category":"public-suffix-boundary","asset":"ornek.com.tr","domain":"ornek-destek.net","expected":"review","baseline":"review","note":"Türkiye çok parçalı kayıt uzantısı."},
+    {"id":"suffix-boundary-002","category":"public-suffix-boundary","asset":"example.co.uk","domain":"example-support.co.uk","expected":"review","baseline":"review","note":"Birleşik Krallık çok parçalı kayıt uzantısı."},
+    {"id":"private-001","category":"private-suffix-boundary","asset":"alpha.github.io","domain":"alphb.github.io","expected":"review","baseline":"review","note":"Ayrı özel barındırma kiracıları ve tek karakter farkı."},
+    {"id":"private-002","category":"private-suffix-boundary","asset":"alpha.github.io","domain":"beta.github.io","expected":"ignore","baseline":"ignore","note":"İlgisiz özel barındırma kiracısı."},
+    {"id":"hyphen-brand-001","category":"service-extension","asset":"t-sirketi.com","domain":"t-sirketi-destek.net","expected":"review","baseline":"review","note":"Tire içeren izlenen ad korunur."},
+
+    {"id":"unicode-001","category":"unicode-confusable","asset":"example.com","domain":"еxample.net","expected":"review","baseline":"review","note":"İlk harfi Kiril olan görsel benzer ad."},
+    {"id":"unicode-002","category":"unicode-confusable","asset":"example.com","domain":"xn--xample-2of.net","expected":"review","baseline":"review","note":"Aynı Kiril örneğinin kanonik Punycode biçimi."},
+    {"id":"unicode-003","category":"unicode-confusable","asset":"example.com","domain":"еxample.com.attacker.net","expected":"review","baseline":"review","note":"Farklı kayıt kökündeki Unicode benzer alt etiket."},
+    {"id":"unicode-004","category":"unicode-benign","asset":"example.com","domain":"bücher.net","expected":"ignore","baseline":"ignore","note":"Geçerli fakat izlenen adla benzer olmayan uluslararası ad."},
+
+    {"id":"context-gap-001","category":"benign-context","asset":"northstar.com","domain":"north-star.net","expected":"ignore","baseline":"review","note":"Sentetik bağımsız kuruluş adı; yalnız sözcüksel benzerlik bağlamı bilemez."},
+    {"id":"context-gap-002","category":"benign-context","asset":"greenmarket.com","domain":"green-market.net","expected":"ignore","baseline":"review","note":"Sentetik bağımsız kuruluş adı; tire farkı tek başına sahiplik kanıtı değildir."},
+    {"id":"context-gap-003","category":"benign-context","asset":"catalog.com","domain":"catalog-data.net","expected":"ignore","baseline":"review","note":"Sentetik genel sözcük kullanımı; mevcut ek kuralının bilinen yanlış alarmıdır."},
+
+    {"id":"root-001","category":"invalid-boundary","asset":"example.com","domain":"co.uk","expected":"ignore","baseline":"ignore","note":"Yalnız genel uzantı kayıt kökü değildir."},
+    {"id":"root-002","category":"root-selection","asset":"example.com","domain":"com.example.org","expected":"review","baseline":"review","note":"Aday kayıt kökü sağdan public suffix sınırıyla belirlenir."}
+  ]
+}

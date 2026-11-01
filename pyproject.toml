@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xti-local"
+version = "0.124.1"
+description = "Personal, terminal-first external threat intelligence foundation"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+brand = [
+    "maigret @ git+https://github.com/soxoj/maigret.git@b8747b98820f4df9d1baf23235db7b2cb55d0198",
+    "sherlock-project @ git+https://github.com/sherlock-project/sherlock.git@a38ba54fda799cd786a2ab67a50143e1a63169e6",
+]
+
+[project.scripts]
+xti = "xti.interfaces.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+xti = ["data/*.dat", "data/*.json"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+

@@ -1,0 +1,56 @@
+#!/bin/sh
+set -eu
+
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+XTI_TOOL_PARENT="$XTI_PROJECT_DIR/.tools"
+XTI_TOOL_DIR="$XTI_TOOL_PARENT/theharvester"
+XTI_UPSTREAM="https://github.com/laramies/theHarvester.git"
+XTI_COMMIT="6790b147f52309e4eee22ed941db1d285ab2ec23"
+
+if ! command -v git >/dev/null 2>&1; then
+    echo "theHarvester kurulumu için git gerekiyor." >&2
+    exit 1
+fi
+if ! command -v uv >/dev/null 2>&1; then
+    echo "theHarvester ayrı Python 3.14 ortamı için ücretsiz uv aracı gerekiyor." >&2
+    echo "Kurulum belgesi: https://docs.astral.sh/uv/getting-started/installation/" >&2
+    exit 1
+fi
+
+mkdir -p "$XTI_TOOL_PARENT"
+if [ -e "$XTI_TOOL_DIR" ] && [ ! -d "$XTI_TOOL_DIR/.git" ]; then
+    echo ".tools/theharvester var fakat doğrulanabilir bir git deposu değil; değiştirilmedi." >&2
+    exit 1
+fi
+
+if [ ! -d "$XTI_TOOL_DIR/.git" ]; then
+    git clone --filter=blob:none --no-checkout "$XTI_UPSTREAM" "$XTI_TOOL_DIR"
+else
+    XTI_ORIGIN=$(git -C "$XTI_TOOL_DIR" remote get-url origin)
+    if [ "$XTI_ORIGIN" != "$XTI_UPSTREAM" ] && \
+       [ "$XTI_ORIGIN" != "https://github.com/laramies/theHarvester" ]; then
+        echo "Mevcut theHarvester deposunun origin adresi beklenen upstream değil; değiştirilmedi." >&2
+        exit 1
+    fi
+    if [ -n "$(git -C "$XTI_TOOL_DIR" status --porcelain --untracked-files=no)" ]; then
+        echo "Mevcut theHarvester deposunda yerel değişiklik var; üzerine yazılmadı." >&2
+        exit 1
+    fi
+fi
+
+git -C "$XTI_TOOL_DIR" fetch --depth 1 origin "$XTI_COMMIT"
+git -C "$XTI_TOOL_DIR" checkout --detach "$XTI_COMMIT"
+XTI_ACTUAL_COMMIT=$(git -C "$XTI_TOOL_DIR" rev-parse HEAD)
+if [ "$XTI_ACTUAL_COMMIT" != "$XTI_COMMIT" ]; then
+    echo "theHarvester commit doğrulaması başarısız." >&2
+    exit 1
+fi
+
+(
+    cd "$XTI_TOOL_DIR"
+    uv sync --frozen --no-dev
+)
+
+"$XTI_TOOL_DIR/.venv/bin/theHarvester" --help >/dev/null
+echo "theHarvester hazır: $XTI_COMMIT"
+echo "Yalnız XTI'ın sabit P0 commoncrawl ve waybackarchive profili kullanılacak."

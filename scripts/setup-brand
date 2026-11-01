@@ -1,0 +1,30 @@
+#!/bin/sh
+set -eu
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+XTI_VENV="$XTI_PROJECT_DIR/.venv"
+
+if [ ! -x "$XTI_VENV/bin/python" ]; then
+    XTI_BOOTSTRAP_PYTHON=""
+    for XTI_INTERPRETER in python3.14 python3.13 python3.12 python3.11 python3; do
+        if command -v "$XTI_INTERPRETER" >/dev/null 2>&1 &&
+           "$XTI_INTERPRETER" -c \
+               'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
+            XTI_BOOTSTRAP_PYTHON="$XTI_INTERPRETER"
+            break
+        fi
+    done
+    if [ -z "$XTI_BOOTSTRAP_PYTHON" ]; then
+        echo "Python 3.11 veya daha yeni bir sürüm gerekiyor." >&2
+        exit 1
+    fi
+    "$XTI_BOOTSTRAP_PYTHON" -m venv "$XTI_VENV"
+elif ! "$XTI_VENV/bin/python" -c \
+    'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
+    echo ".venv Python 3.11 veya daha yeni değil; klasörü kaldırıp yeniden çalıştır." >&2
+    exit 1
+fi
+
+"$XTI_VENV/bin/python" -m pip install "$XTI_PROJECT_DIR[brand]"
+"$XTI_VENV/bin/maigret" --version
+"$XTI_VENV/bin/python" -c \
+    'from importlib.metadata import version; print("Sherlock " + version("sherlock-project"))'

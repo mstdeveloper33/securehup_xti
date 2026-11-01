@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$XTI_PROJECT_DIR"
+exec "$XTI_PROJECT_DIR/scripts/python" -m unittest discover -s tests -v
+

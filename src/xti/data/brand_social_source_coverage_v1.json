@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "profile_version": "free-social-source-coverage-gate-v2",
+  "evaluated_at": "2026-10-31",
+  "matching_rule_version": "normalized-name-or-psl-root-v1",
+  "public_suffix_profile": {
+    "version": "2026-10-22_08-36-41_UTC",
+    "sha256": "0232f4df0831911356e8ee1f4d5c3b6b12c0ed3f6bd66b0f81c8ab5d3d49e9ca"
+  },
+  "sources": [
+    {
+      "identifier": "maigret-limited-cli",
+      "label": "Maigret",
+      "role": "primary",
+      "version": "0.6.6",
+      "upstream_commit": "b8747b98820f4df9d1baf23235db7b2cb55d0198",
+      "catalog_sha256": "8dd404e6b3012f01fd467c154b5159386d1362587070c661c2565ec8fa649899",
+      "catalog_bytes": 3329634,
+      "catalog_entries": 8517,
+      "eligible_entries": 6628,
+      "current_approved_platforms": 10,
+      "license": "MIT",
+      "reference_url": "https://github.com/soxoj/maigret"
+    },
+    {
+      "identifier": "sherlock-limited-library",
+      "label": "Sherlock",
+      "role": "candidate",
+      "version": "0.16.2",
+      "upstream_commit": "a38ba54fda799cd786a2ab67a50143e1a63169e6",
+      "catalog_sha256": "3fdfc6694c5cd99798881215554b09e617c6d5284a6219fae309882566a9fb30",
+      "catalog_bytes": 104039,
+      "catalog_entries": 481,
+      "eligible_entries": 455,
+      "current_approved_platforms": 9,
+      "license": "MIT",
+      "reference_url": "https://github.com/sherlock-project/sherlock"
+    }
+  ],
+  "comparison": {
+    "shared_candidate_entries": 352,
+    "candidate_unmatched_entries": 103,
+    "candidate_unmatched_distinct_hosts": 102,
+    "candidate_unmatched_distinct_registrable_domains": 101,
+    "current_approved_total": 10,
+    "current_shared_platforms": 9,
+    "current_primary_only": [
+      "Facebook"
+    ],
+    "current_candidate_only": [],
+    "method_notes": [
+      "Yalnız etkin, HTTPS kullanan, doğrudan kullanıcı adı profili tanımları karşılaştırıldı.",
+      "Maigret tarafında devre dışı, benzer-ad araması, ayna/kaynak bağı ve kullanıcı adı dışı tanımlar elendi.",
+      "Sherlock tarafında NSFW ve HTTPS olmayan tanımlar elendi.",
+      "Aynı normalleştirilmiş ad veya aynı Public Suffix List kayıt kökü ortak sayıldı.",
+      "Sayılar canlı profil doğruluğunu değil, sabitlenmiş katalog kapsamını ölçer."
+    ]
+  },
+  "criteria": [
+    {
+      "key": "pinned_official_release",
+      "label": "Resmî ve sabitlenmiş sürüm",
+      "required": true,
+      "passed": true,
+      "evidence": "Sherlock 0.16.2 tam upstream commit, katalog özeti ve MIT lisansıyla sabitlendi."
+    },
+    {
+      "key": "independent_catalog_contribution",
+      "label": "Maigret dışında ölçülebilir kapsam",
+      "required": true,
+      "passed": true,
+      "evidence": "Muhafazakâr eşleştirmeden sonra 103 tanım, 102 host ve 101 kayıt kökü aday kaynağa özgü kaldı."
+    },
+    {
+      "key": "current_allowlist_gain",
+      "label": "Mevcut 10 platformda yeni kapsam",
+      "required": false,
+      "passed": false,
+      "evidence": "Sherlock mevcut listede 9 platformu tekrarlar; yalnız Maigret'te bulunan Facebook nedeniyle yeni platform kazancı yoktur."
+    },
+    {
+      "key": "machine_readable_result",
+      "label": "Sıkı ayrıştırılabilir sonuç",
+      "required": true,
+      "passed": true,
+      "evidence": "Sabit kütüphane yapılandırılmış durum nesneleri üretir; XTI bunları kendi tam dört alanlı ve sınırlı NDJSON sözleşmesine dönüştürür."
+    },
+    {
+      "key": "bounded_local_catalog",
+      "label": "Gizli güncellemesiz sınırlı çalışma",
+      "required": true,
+      "passed": true,
+      "evidence": "Ek GitHub sürüm isteği yapan CLI kullanılmaz; sabit kütüphane işlevine yalnız hash ile doğrulanmış yerel katalogdan seçilen izinli site nesneleri verilir."
+    },
+    {
+      "key": "public_profile_method",
+      "label": "Hesap kurtarma kullanmayan yöntem",
+      "required": true,
+      "passed": true,
+      "evidence": "Seçilen kullanım yalnız herkese açık kullanıcı profili işaretlerini kontrol eder; e-posta/telefon kurtarma akışı kullanmaz."
+    },
+    {
+      "key": "clear_license",
+      "label": "Açık lisans",
+      "required": true,
+      "passed": true,
+      "evidence": "Sherlock upstream deposu MIT lisansı yayımlar."
+    }
+  ],
+  "decision": "accepted_for_limited_adapter",
+  "decision_reason": "Sherlock mevcut 10 platformu genişletmez; buna karşılık sabit katalogda 101 ayrı kayıt kökü potansiyeli vardır. Yalnız elle incelenmiş kısa liste, yerel katalog ve XTI tarafından üretilen sıkı NDJSON adaptörüyle ilerlenebilir.",
+  "shortlist": [
+    {
+      "platform": "Carrd",
+      "host": "carrd.co",
+      "purpose": "Marka adına açılmış sahte tek sayfalık web profili adayı"
+    },
+    {
+      "platform": "CashApp",
+      "host": "cash.app",
+      "purpose": "Marka veya yönetici adına açılmış ödeme profili adayı"
+    },
+    {
+      "platform": "CodeSandbox",
+      "host": "codesandbox.io",
+      "purpose": "Geliştirici veya ürün markası taklidi adayı"
+    },
+    {
+      "platform": "GitBook",
+      "host": "gitbook.com",
+      "purpose": "Sahte ürün belgelendirmesi veya destek profili adayı"
+    },
+    {
+      "platform": "ResearchGate",
+      "host": "researchgate.net",
+      "purpose": "Yönetici veya araştırmacı kimliği taklidi adayı"
+    },
+    {
+      "platform": "Rumble",
+      "host": "rumble.com",
+      "purpose": "Marka adına açılmış video kanalı adayı"
+    },
+    {
+      "platform": "Strava",
+      "host": "strava.com",
+      "purpose": "Yönetici veya sponsor marka profili taklidi adayı"
+    },
+    {
+      "platform": "Weebly",
+      "host": "weebly.com",
+      "purpose": "Marka adına açılmış sahte barındırılan site adayı"
+    }
+  ],
+  "next_step": "Maigret ve Sherlock sonuçlarını kaynak kimliğini kaybetmeden ayrı başlangıç çizgileriyle saklayan kalıcı çok-kaynak sosyal farkını tasarla.",
+  "limitations": [
+    "Katalogda bulunmak sitenin bugün doğru sonuç verdiğini kanıtlamaz.",
+    "Canlı exclusion listesi güvenli profilde indirilmez; bu nedenle geniş katalog taraması yapılmaz.",
+    "Aynı kullanıcı adını bulmak hesabın markaya ait veya taklit olduğunu kanıtlamaz.",
+    "Bu kapı kullanıcı adı sorgusu, veri yazımı, bildirim veya takedown yapmaz."
+  ],
+  "reference_urls": [
+    "https://github.com/sherlock-project/sherlock/releases/tag/v0.16.2",
+    "https://github.com/sherlock-project/sherlock/blob/a38ba54fda799cd786a2ab67a50143e1a63169e6/sherlock_project/resources/data.json",
+    "https://github.com/sherlock-project/sherlock/blob/a38ba54fda799cd786a2ab67a50143e1a63169e6/LICENSE",
+    "https://github.com/soxoj/maigret/tree/b8747b98820f4df9d1baf23235db7b2cb55d0198"
+  ]
+}

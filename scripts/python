@@ -1,0 +1,22 @@
+#!/bin/sh
+# Select a supported interpreter without changing the user's global environment.
+set -eu
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ -n "${XTI_PYTHON:-}" ]; then
+    if ! "$XTI_PYTHON" -c 'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
+        echo "XTI_PYTHON, Python 3.11 veya daha yeni bir sürümü göstermeli." >&2
+        exit 1
+    fi
+    export PYTHONPATH="$XTI_PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"
+    exec "$XTI_PYTHON" "$@"
+fi
+for XTI_INTERPRETER in "$XTI_PROJECT_DIR/.venv/bin/python" python3.14 python3.13 python3.12 python3.11 python3; do
+    if command -v "$XTI_INTERPRETER" >/dev/null 2>&1 &&
+       "$XTI_INTERPRETER" -c 'import sys; raise SystemExit(sys.version_info < (3, 11))' 2>/dev/null; then
+        export PYTHONPATH="$XTI_PROJECT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"
+        exec "$XTI_INTERPRETER" "$@"
+    fi
+done
+echo "Python 3.11 veya daha yeni bir sürüm gerekiyor." >&2
+exit 1
+

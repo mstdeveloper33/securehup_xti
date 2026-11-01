@@ -1,0 +1,8 @@
+# Sentetik örneklerdir. Bu dosyanın alınması ağ bağlantısı veya tarama yapmaz.
+# İzlenen adres: example.com
+example.com
+login.example.com
+example-support.net
+exampel.com
+example.com.attacker.net
+unrelated.org

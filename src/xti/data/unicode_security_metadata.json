@@ -1,0 +1,14 @@
+{
+  "version": "18.0.0",
+  "retrieved_at": "2026-10-29",
+  "confusables": {
+    "source": "https://www.unicode.org/Public/security/latest/confusables.txt",
+    "date": "2026-08-06T01:05:35Z",
+    "sha256": "6ed3ee967c9dfdf6677d563c9985182fbc50a2efb7d6059cd57b2e2ce18f5b92"
+  },
+  "idna_mapping": {
+    "source": "https://www.unicode.org/Public/idna/latest/IdnaMappingTable.txt",
+    "date": "2026-06-29T15:25:07Z",
+    "sha256": "a03b1eb38032268c696406a83f0972d6a815acd2c8d4151d42ec0fda70ffced1"
+  }
+}
