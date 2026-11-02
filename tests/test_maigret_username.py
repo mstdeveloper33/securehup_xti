@@ -290,27 +290,37 @@ class MaigretUsernameTests(unittest.TestCase):
                 "samplebrand", platforms=("GitHub",), request_timeout=10,
             )
 
-        def wrong_version(command, **kwargs):
-            return subprocess.CompletedProcess(command, 0, "maigret 9.9.9\n", "")
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "data.json"
+            database_sha256 = database_fixture(database)
 
-        with self.assertRaisesRegex(SourceError, "0.6.6 gerekiyor"):
-            MaigretUsernameSource(
-                runner=wrong_version,
-                executable_locator=lambda: "/safe/maigret",
-            ).preview(
-                "samplebrand", platforms=("GitHub",), request_timeout=10,
-            )
+            def wrong_version(command, **kwargs):
+                return subprocess.CompletedProcess(
+                    command, 0, "maigret 9.9.9\n", ""
+                )
 
-        def timeout(*args, **kwargs):
-            raise subprocess.TimeoutExpired(args[0], kwargs["timeout"])
+            with self.assertRaisesRegex(SourceError, "0.6.6 gerekiyor"):
+                MaigretUsernameSource(
+                    runner=wrong_version,
+                    executable_locator=lambda: "/safe/maigret",
+                    database_locator=lambda: database,
+                    database_sha256=database_sha256,
+                ).preview(
+                    "samplebrand", platforms=("GitHub",), request_timeout=10,
+                )
 
-        with self.assertRaisesRegex(SourceError, "süre sınırında"):
-            MaigretUsernameSource(
-                runner=timeout,
-                executable_locator=lambda: "/safe/maigret",
-            ).preview(
-                "samplebrand", platforms=("GitHub",), request_timeout=10,
-            )
+            def timeout(*args, **kwargs):
+                raise subprocess.TimeoutExpired(args[0], kwargs["timeout"])
+
+            with self.assertRaisesRegex(SourceError, "süre sınırında"):
+                MaigretUsernameSource(
+                    runner=timeout,
+                    executable_locator=lambda: "/safe/maigret",
+                    database_locator=lambda: database,
+                    database_sha256=database_sha256,
+                ).preview(
+                    "samplebrand", platforms=("GitHub",), request_timeout=10,
+                )
 
     def test_cli_terminal_and_json_are_write_free_and_explain_uncertainty(self):
         preview = BrandUsernamePreview(
