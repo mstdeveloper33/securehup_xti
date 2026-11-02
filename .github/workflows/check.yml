@@ -1,45 +1,31 @@
-name: XTI checks
+name: XTI quick checks
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: xti-check-${{ github.ref }}
+  group: xti-quick-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  brand-install:
+  quick:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
-          cache: pip
-      - name: Install and verify the pinned brand toolchain
-        run: ./setup
-      - name: Recheck without downloading
-        run: ./scripts/setup-brand --check
-
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - name: Run offline test suite
-        run: ./scripts/check
+      - name: Run fast offline checks
+        run: ./scripts/check-fast
 

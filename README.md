@@ -1540,8 +1540,16 @@ Temizlik veritabanı içinde yeniden kullanılabilir yer açar; dosyayı hemen k
 ./xti --help
 ./xti --version
 ./xti --json findings list
+./scripts/check-fast
 ./scripts/check
 ```
+
+`./scripts/check-fast` her değişiklikte çalıştırılan kısa, ağsız çekirdek ve
+kurulum kontrolüdür. `./scripts/check` 1.349 testlik tam regresyon paketidir;
+sürüm oluşturmadan önce veya GitHub'daki elle başlatılan tam kontrolde çalışır.
+GitHub'daki temiz Maigret/Sherlock kurulumu yalnız ilgili kurulum, sürüm veya
+marka adaptörü dosyaları değiştiğinde tekrar çalışır. `v*` etiketi ancak tam
+paket başarılı olursa GitHub sürümüne dönüştürülür.
 
 Python 3.11+ gerekir; başlatıcı uygun sürümü seçer. Doğrulanan ortam macOS/Python 3.13.3'tür. Çalıştırıcı kilidi macOS/Linux içindir; Windows çalıştırıcısı henüz desteklenmez. Çekirdek özellikler ek Python paketi istemez. Normal `./setup`, resmî Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine atomik kurar; sürüm, commit ve katalog bütünlüğünü doğrular. Yalnız çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar internet ister; testler ve geçmiş/kuyruk işlemleri internetsiz çalışır. Public Suffix List, Unicode ve sosyal kaynak/lisans bilgileri [THIRD_PARTY.md](THIRD_PARTY.md) içindedir.
 

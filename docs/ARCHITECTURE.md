@@ -524,7 +524,23 @@ Oturumun `completed/interrupted/failed` durumu ile kaynakların `complete/partia
 
 İzleme testleri tüm oturum boyunca tek sahipliği, monotonic süre/tur sınırını, kaynaklar arasında veya beklemede iptali, genel worker ve ayrı retry engelini, işlem ortası zorla kapanmayı, eksik sonuç sayılarını, atomik bağlantı ve kurtarmayı, şema 6→7→8 geçiş zincirini ve yedekten aynı raporun okunmasını kapsar. Süre sonunda başlamadan kapatılan iş ile hiç oluşturulmamış iş, aynı başlamış deneme sonuçlarını farklı başarı sonucuna dönüştürmez.
 
-`./scripts/check` girdi/ağ sınırlarını, 36 etiketli ad örneğini, kaynak hatalarını, kalıcılığı, tekrarları, kararları, yedek/restore, migration rollback, iş geçmişini, kilit yarışını, gerçek süreç ölümü sonrası kurtarmayı ve bekleme korumasını, hedef erişim sınırlarını, güncelliği, tutarlı raporu, yedekli temizliği, atomik bildirimleri, okundu bağımsızlığını, sayfalamayı, terminal sözleşmesini ve bağımlılık yönünü kontrol eder. Durum özeti testleri varlık/kaynak ayrımını, başarıdan sonraki hata görünümünü, saat sınırlarını, geçmişin kesilmeden seçilmesini, eşzamanlı yazma sırasında tutarlı okumayı ve yan etkisiz terminal kullanımını ekler. Testler geçici dizinlerde sahte ağ kaynaklarıyla çalışır. Güncel test toplamı ve gerçek kaynak denemelerinin doğrulanan kapsamı [STATUS.md](STATUS.md) içindedir. Sentetik örnekler gerçek internet doğruluğunun ölçümü değildir.
+`./scripts/check-fast` shell sözdizimi, Python derleme, bağımlılık yönü,
+kurulum geri alma, marka adaptörü sınırları ve temel CLI/depo davranışlarını
+ağsız kısa kapıda doğrular. `./scripts/check` girdi/ağ sınırlarını, 36 etiketli
+ad örneğini, kaynak hatalarını, kalıcılığı, tekrarları, kararları,
+yedek/restore, migration rollback, iş geçmişini, kilit yarışını, gerçek süreç
+ölümü sonrası kurtarmayı ve bekleme korumasını, hedef erişim sınırlarını,
+güncelliği, tutarlı raporu, yedekli temizliği, atomik bildirimleri, okundu
+bağımsızlığını, sayfalamayı, terminal sözleşmesini ve bağımlılık yönünü tam
+regresyon olarak kontrol eder. Durum özeti testleri varlık/kaynak ayrımını,
+başarıdan sonraki hata görünümünü, saat sınırlarını, geçmişin kesilmeden
+seçilmesini, eşzamanlı yazma sırasında tutarlı okumayı ve yan etkisiz terminal
+kullanımını ekler. Testler geçici dizinlerde sahte ağ kaynaklarıyla çalışır.
+Her gönderimde kısa kapı; ilgili dosya değişikliklerinde temiz marka kurulumu;
+elle veya `v*` sürüm etiketinde tam paket çalışır. Etiketli GitHub sürümü yalnız
+tam paket başarılı olduktan sonra oluşturulur. Güncel test toplamı ve gerçek
+kaynak denemelerinin doğrulanan kapsamı [STATUS.md](STATUS.md) içindedir.
+Sentetik örnekler gerçek internet doğruluğunun ölçümü değildir.
 
 Ağsız 30 tur denemesinde üç bulgu için üç bildirim oluştu; ikisi okunmamış kaldı. Zorla süreç kapatma (SIGKILL) sonrası tamamlanmış okundu/okunmadı kayıtları korundu. Bunlar tekrar ve kesinti davranışı doğrulamalarıdır; büyük ölçek veya canlı kaynaklarla uzun süreli çalışma ölçümü değildir.
 

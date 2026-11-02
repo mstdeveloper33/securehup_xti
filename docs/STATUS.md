@@ -25,8 +25,8 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
   oluşturulurken profil adını değil çözülen tam platform listesini saklama;
   gelecekteki profil değişikliğinin mevcut izleme kapsamını sessizce
   değiştirmemesi. Şema 54'ü değiştirmeme.
-- CI'da ağsız tam testten ayrı olarak temiz Python 3.11 ortamında varsayılan
-  kurulumu ve ikinci ağsız bütünlük denetimini çalıştırma.
+- CI'da ilgili kurulum dosyaları değiştiğinde temiz Python 3.11 ortamında
+  varsayılan kurulumu ve ikinci ağsız bütünlük denetimini çalıştırma.
 
 - `./setup` ile temiz bir Git klonunda global Python ortamını değiştirmeden
   yerel kayıt alanını başlatma. Çekirdekte harici Python bağımlılığı istememe;
@@ -34,9 +34,11 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
   yönlendirme.
 - README başında kısa klonlama, ilk domain ve tarama akışı; ayrı hızlı başlangıç
   belgesinde veri konumu, yedek, güncelleme ve doğrulanmış sosyal araç kurulumu.
-- GitHub'da her `main` gönderimi ve pull request için Python 3.11 üzerinde tam
-  ağsız kontrol paketini çalıştıran, salt-okunur izinli ve eşzamanlı eski koşuyu
-  iptal eden sınırlı CI iş akışı.
+- GitHub'da her `main` gönderimi ve pull request için Python 3.11 üzerinde kısa
+  ağsız kapı; elle veya `v*` etiketinde Python 3.13 üzerinde tam regresyon;
+  yalnız başarılı etiket kontrolünden sonra GitHub sürümü oluşturan ayrık,
+  en-az-yetkili iş akışları. Güncel resmî Node 24 tabanlı GitHub action'larını
+  kullanma ve checkout kimlik bilgisini çalışma dizininde kalıcı tutmama.
 - `.xti-data`, sanal ortamlar, üçüncü taraf araçlar, veritabanları, ortam
   dosyaları ve derleme çıktılarının kaynak kontrolü dışında tutulması.
 
@@ -963,7 +965,7 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 
 İzlenen köklerin altındaki adresler dış taklit kontrolünde atlanır. Kaynaktaki desteklenmeyen adlar sayılarak elenir; dosyada ise hatalı satır tüm importu reddeder. Önceki 0.1–0.25 kayıtları için `./xti migrate` gerekir; eski JSON geçmişi korunarak okunur. Şema 6'daki bulgu bildirim kutusu yeniden oluşturulmaz, okundu bilgisi değişmez; eski veriden istisna, dış yüzey kapsamı, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS veya servis kontrolü uydurulmaz. Eski kalıcı istisnalar kalıcı kalır. Eski uygulamaya geri dönüş geçiş öncesi yedekledir. Varsayılan JSON `data.results` altında kaynak başına sonuç, `--check` varsa ayrıca `data.checks` içerir. `sources` ayrıca kayıtlı beklemeleri içerir. Ayrıntılar README'dedir. Kilit yerel macOS/Linux dosya sistemi içindir; Windows ve dağıtık çalıştırma desteklenmez.
 
-R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu, kaynak dışlama kuralları ve GitHub Actions kontrol tanımı hazırdır; uzak GitHub deposuna yayın henüz yapılmadı.
+R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu ile uzak GitHub `main` dalı yayımlanmış ve aynı commit zincirindedir; runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
 
@@ -971,8 +973,11 @@ R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin
 30/26 öğelik izinli kapsamını, profil-site çakışmasını, terminal/JSON profil
 görünümünü, kalıcı izlemede çözülmüş listenin korunmasını, kaynak ve HTTPS host
 ayrımını; varsayılan/çekirdek-only kurulum sırasını ve başarısız yeniden
-kurulumda önceki `.venv` ortamının geri getirilmesini doğruladı. Tam kontrolde
-1.345 otomatik test 263,486 saniyede geçti. Ayrı gerçek temiz kurulumda önce ağ
+kurulumda önceki `.venv` ortamının geri getirilmesini doğruladı. CI ayrımı için
+eklenen dört yapılandırma testi her gönderimdeki 54 testlik kısa kapıyı, dosya
+değişimine bağlı temiz marka kurulumunu ve yalnız tam kontrolden sonra sürüm
+oluşturulmasını sabitler. Son tam kontrolde 1.349 otomatik test 269,142 saniyede
+geçti. Ayrı gerçek temiz kurulumda önce ağ
 kısıtı nedeniyle başarısız indirme eski ortamı geri getirdi; resmî PyPI/GitHub
 erişimiyle ikinci deneme tam sabit bağımlılıkları kurdu, `pip check`, sürüm,
 commit, katalog özeti ve iki geniş geçici katalog denetimlerini geçti. Canlı
