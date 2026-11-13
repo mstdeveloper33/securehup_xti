@@ -128,6 +128,49 @@ class TheHarvesterArchiveTests(unittest.TestCase):
                     payload(records), domain="example.com", limit=250,
                 )
 
+    def test_failed_sources_preserve_their_separate_validated_reasons(self):
+        records = report(statuses=("failed", "failed"))
+        executions = records[0]["source_executions"]
+        executions[0]["stop_reason"] = "invalid-catalog"
+        executions[0]["error_type"] = "RuntimeError: private diagnostic detail"
+        executions[1]["stop_reason"] = "runtime-limit"
+        with self.assertRaises(SourceError) as raised:
+            parse_theharvester_jsonl(
+                payload(records), domain="example.com", limit=250,
+            )
+        message = str(raised.exception)
+        self.assertIn("commoncrawl: failed, neden: invalid-catalog", message)
+        self.assertIn("waybackarchive: failed, neden: runtime-limit", message)
+        self.assertNotIn("private diagnostic detail", message)
+
+        executions[0]["stop_reason"] = None
+        executions[1]["stop_reason"] = "request-error"
+        with self.assertRaises(SourceError) as raised:
+            parse_theharvester_jsonl(
+                payload(records), domain="example.com", limit=250,
+            )
+        self.assertIn("commoncrawl: failed, neden: bildirilmedi", str(raised.exception))
+        self.assertIn("waybackarchive: failed, neden: request-error", str(raised.exception))
+
+    def test_failed_source_reasons_reject_control_characters_and_remain_bounded(self):
+        for reason in ("invalid\ncatalog", "\x1b[31merror", "\u202ereversed", "x" * 201):
+            with self.subTest(reason=reason):
+                records = report(statuses=("failed", "failed"))
+                records[0]["source_executions"][0]["stop_reason"] = reason
+                with self.assertRaisesRegex(SourceError, "beklenmeyen kanıt metni"):
+                    parse_theharvester_jsonl(
+                        payload(records), domain="example.com", limit=250,
+                    )
+
+        records = report(statuses=("failed", "failed"))
+        for execution in records[0]["source_executions"]:
+            execution["stop_reason"] = "x" * 200
+        with self.assertRaises(SourceError) as raised:
+            parse_theharvester_jsonl(
+                payload(records), domain="example.com", limit=250,
+            )
+        self.assertLess(len(str(raised.exception)), 600)
+
     def test_adapter_uses_fixed_command_temporary_home_and_pinned_checkout(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

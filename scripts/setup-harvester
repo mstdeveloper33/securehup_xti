@@ -11,11 +11,22 @@ if ! command -v git >/dev/null 2>&1; then
     echo "theHarvester kurulumu için git gerekiyor." >&2
     exit 1
 fi
-if ! command -v uv >/dev/null 2>&1; then
+if command -v uv >/dev/null 2>&1; then
+    XTI_UV=$(command -v uv)
+elif [ -f "$XTI_TOOL_PARENT/uv/bin/uv" ] && [ -x "$XTI_TOOL_PARENT/uv/bin/uv" ]; then
+    XTI_UV="$XTI_TOOL_PARENT/uv/bin/uv"
+else
     echo "theHarvester ayrı Python 3.14 ortamı için ücretsiz uv aracı gerekiyor." >&2
+    echo "uv PATH içinde veya .tools/uv/bin/uv konumunda bulunmalı." >&2
     echo "Kurulum belgesi: https://docs.astral.sh/uv/getting-started/installation/" >&2
     exit 1
 fi
+
+# Keep a relative PATH entry usable after entering the tool checkout.
+case "$XTI_UV" in
+    /*) ;;
+    *) XTI_UV="$(pwd)/$XTI_UV" ;;
+esac
 
 mkdir -p "$XTI_TOOL_PARENT"
 if [ -e "$XTI_TOOL_DIR" ] && [ ! -d "$XTI_TOOL_DIR/.git" ]; then
@@ -48,7 +59,10 @@ fi
 
 (
     cd "$XTI_TOOL_DIR"
-    uv sync --frozen --no-dev
+    export UV_CACHE_DIR="${UV_CACHE_DIR-$XTI_TOOL_PARENT/uv-cache}"
+    export UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR-$XTI_TOOL_PARENT/python}"
+    export UV_PYTHON_BIN_DIR="${UV_PYTHON_BIN_DIR-$XTI_TOOL_PARENT/python-bin}"
+    "$XTI_UV" sync --frozen --no-dev
 )
 
 "$XTI_TOOL_DIR/.venv/bin/theHarvester" --help >/dev/null

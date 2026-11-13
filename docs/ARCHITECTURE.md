@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**13 Kasım 2026 — 0.127.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**13 Kasım 2026 — 0.127.1 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
@@ -334,6 +334,14 @@ Her sonuç `surface_checks` içinde append-only saklanır. Kanonik durum; DNS du
 `surface_service_checks` yetki gerekçesi, DNS kanıtı, kesin IP, açık/kapalı/belirsiz port durumları, politika sürümü, özet ve değişimi eklemeli saklar. `unknown` kapalı sayılmaz. Değişim DNS, adres, kontrol edilen IP ve port geçişlerini ayırır. Yazma transaction'ı kapsamı yeniden doğrular; arada kaldırılırsa sonuç yazılmaz. `surface services show` salt okunurdur. Şema 13→14 geçişi kurtarma yedeğinden sonra tabloyu boş oluşturur. Ayrıntılar [sınırlı servis kararı](decisions/0025-approved-pinned-service-inventory.md) içindedir.
 
 `SurfaceDiscoveryService`, kayıtlı kök varlık, `DomainSource` ve ayrı `SurfaceCandidateRepository` sözleşmelerine bağlıdır. `surface discover`, seçilen adaptöre yalnız `%.kök` desenini verir ve doğrulanmış yanıttan kökün kesin altındaki kanonik adları seçer. Varsayılan crt.sh adaptörü sertifika kayıtlarını kullanır. İsteğe bağlı theHarvester adaptörü sabit commit'teki ayrı Python 3.14 ortamında yalnız Common Crawl ve Wayback Archive P0 kaynaklarını tek işçiyle çalıştırır; geçici HOME kullanır ve yalnız katı JSONL hostname kanıtını kabul eder. DNS, e-posta, kişi, screenshot, takeover ve doğrudan hedef işlemleri kapalıdır. Kökün kendisi ve kapsam dışı adlar aday olmaz; bulunan hedefe bağlanılmaz.
+
+0.127.1 kurulum düzeltmesi PATH'teki `uv` aracına öncelik verir; yoksa proje
+içindeki `.tools/uv/bin/uv` kullanılır. Yönetilen Python ve önbellek varsayılan
+olarak `.tools` altında tutulur, açık ortam ayarları korunur. İki arşiv de
+başarısızsa şema/kapsam doğrulamasından geçmiş kaynak adları, durumları ve
+200 karakterle sınırlı durma nedenleri `SourceError` içinde korunur; ham
+araç tanılaması aktarılmaz. Model, kayıt şeması ve başarılı/kısmi keşif
+davranışı değişmez.
 
 `surface_candidates` güncel `pending/owned/rejected` durumunu ve kaynak gözlem aralığını; `surface_candidate_sources` sağlayıcı/kaynak/özet/ham ad/zaman kanıtını; `surface_candidate_events` ilk keşif ile bütün gerekçeli kullanıcı kararlarını tutar. Aday + kaynak özeti tekildir. Tekrar kaynak kullanıcı kararını sıfırlamaz; yeni pasif kanıt ilk/son görülme aralığını genişletir. Liste/ayrıntı tek salt okunur anlık görüntüdür. `owned` kararı varlık kaydı veya aktif kapsam oluşturmaz; hedef kontrolü için ayrı `assets add` ve `surface approve` gerekir.
 

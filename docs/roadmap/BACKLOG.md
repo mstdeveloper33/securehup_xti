@@ -170,7 +170,7 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 
 Temel, marka/domain ve ilk dış yüzey omurgası, kişisel tedarikçi/vaka çekirdekleri ve 0.127.0 birleşik kaynak durumu teslim edildi. Güncel geliştirme sırası şöyledir:
 
-1. Mevcut kaynakların kişisel kullanım kabulünü tamamlamak. Feodo/CERT Polska IOC ve ThreatCluster/RansomLook ilk/tekrar kabulü 13 Kasım 2026'da tamamlandı; bu kişisel kayıt alanında ATT&CK senkronu ve theHarvester kurulum/canlı kapsam denemesi kaldı. Kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
+1. Kaynakların gerçek kapsamını izlemek. Feodo/CERT Polska IOC, ThreatCluster/RansomLook ve ATT&CK ilk/tekrar kabulü 13 Kasım 2026'da tamamlandı. theHarvester kuruldu ve tekrar kurulumu doğrulandı; Common Crawl/Wayback tam keşfi başarısız olduğu için canlı kapsam kabulü açık kaldı. Kaynak erişimi düzeldiğinde katkı ölçülecek; bu dış kaynak sorunu diğer günlük akışları durdurmaz. Kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
 2. Seçilen mevcut akışları tek günlük çalışma altında toplamak; yeni/değişen sonuçları ve kaynak hatalarını anlaşılır göstermek.
 3. Ölçülen kapsam boşluğuna katkı sağlayan açık kaynak adaptörlerini lisans, sürüm ve kabul testleriyle eklemek.
 4. CTI, tedarikçi ve vaka bağlantılarını kaynaklı değişiklikler ve gerçek kullanım geri bildirimiyle geliştirmek.

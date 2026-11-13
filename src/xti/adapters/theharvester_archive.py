@@ -219,7 +219,13 @@ def parse_theharvester_jsonl(
     ):
         raise SourceError("theHarvester sonuç sayaçları kendi içinde tutarsız.")
     if evidence_status == "failed":
-        raise SourceError("theHarvester iki arşiv kaynağını da tamamlayamadı.")
+        details = "; ".join(
+            f"{source}: {status}, neden: {reason or 'bildirilmedi'}"
+            for source, status, _count, reason in executions
+        )
+        raise SourceError(
+            f"theHarvester iki arşiv kaynağını da tamamlayamadı. {details}."
+        )
 
     warnings = tuple(
         f"{source} kaynağı {status} durumunda tamamlandı"

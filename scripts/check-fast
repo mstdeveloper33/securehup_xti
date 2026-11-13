@@ -12,12 +12,16 @@ sh -n \
     scripts/check-fast \
     scripts/python \
     scripts/setup-brand \
+    scripts/setup-harvester \
     scripts/verify-brand
 
 "$XTI_PROJECT_DIR/scripts/python" -m compileall -q src
 exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_architecture.py \
     tests/test_setup.py \
+    tests/test_setup_harvester.py \
+    tests/test_theharvester_archive.py \
+    tests/test_mitre_attack.py \
     tests/test_maigret_username.py \
     tests/test_sherlock_username.py \
     tests/test_brand_username_watches.py \

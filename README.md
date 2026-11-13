@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.127.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Birleşik kaynak durumu ve günlük toplama–inceleme–vaka akışı.
+**Sürüm:** 0.127.1 · **Tarih:** 13 Kasım 2026 · **Durum:** Birleşik kaynak durumu, günlük kullanım ve ek arşiv kurulumu/hata açıklaması düzeltmeleri.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -919,9 +919,14 @@ kullanabilir veya isteğe bağlı ikinci arşiv kaynağını bir kez kurabilirsi
 ./scripts/setup-harvester
 ```
 
-Bu kurulum için ücretsiz `git` ve `uv` gerekir. theHarvester ayrı Python 3.14
-ortamına, resmî deponun incelenmiş tam commit'inden kurulur; kodu XTI çekirdeğine
-kopyalanmaz. Ardından yalnız kayıtlı kökün altındaki adları ara:
+Bu kurulum için ücretsiz `git` ve `uv` gerekir. Betik önce PATH'teki `uv`
+aracını, yoksa proje içindeki `.tools/uv/bin/uv` kurulumunu kullanır. `uv`
+kendiliğinden indirilmez; kurulum seçenekleri [resmî belgede](https://docs.astral.sh/uv/getting-started/installation/)
+anlatılır. Python ve önbellek varsayılan olarak proje içindeki `.tools`
+alanında tutulur; açıkça verilmiş `UV_CACHE_DIR`, `UV_PYTHON_INSTALL_DIR` ve
+`UV_PYTHON_BIN_DIR` değerleri korunur. theHarvester ayrı Python 3.14 ortamına,
+resmî deponun incelenmiş tam commit'inden ve kilitli bağımlılıklarıyla kurulur;
+kodu XTI çekirdeğine kopyalanmaz. Ardından yalnız kayıtlı kökün altındaki adları ara:
 
 ```sh
 ./xti assets add markam.com

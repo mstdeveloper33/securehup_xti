@@ -1,8 +1,10 @@
 # XTI hızlı başlangıç
 
 XTI için Git, Python 3.11 veya daha yeni bir sürüm ve ilk kurulumda internet
-bağlantısı gerekir. Global Python ortamına paket kurulmaz; üçüncü taraf araçlar
-yalnız proje içindeki `.venv` ortamında tutulur.
+bağlantısı gerekir. Global Python ortamına paket kurulmaz; Maigret ve Sherlock
+proje içindeki `.venv` ortamında tutulur. İsteğe bağlı theHarvester ayrı
+`.tools/theharvester` ortamını kullanır; kurulumu ve kaynakları
+[günlük kullanım rehberinde](DAILY_USE.md) anlatılır.
 
 ## 1. Klonla ve hazırla
 

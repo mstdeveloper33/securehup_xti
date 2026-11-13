@@ -35,6 +35,25 @@ Yazım hatalı adları da aramak istediğinde `./xti scan example.com --typos`
 kullanabilirsin. Daha fazla sorgu daha uzun sürebilir. Bir kaynak hata verirse
 ekrandaki kısmi sonuç ve hata açıklamasını dikkate al; alınan kanıtlar korunur.
 
+### İsteğe bağlı ek arşiv kaynağı
+
+theHarvester için `git` ve ücretsiz `uv` kurulu olmalı. `uv` PATH'te veya
+proje içindeki `.tools/uv/bin/uv` konumunda olabilir. Bir kez çalıştırılan
+kurulum, aracı incelenmiş sürümüyle ayrı Python ortamına yerleştirir:
+
+```sh
+./scripts/setup-harvester
+./xti surface discover example.com --source theharvester
+./xti surface discovery-health example.com
+./xti surface candidates example.com --status all
+```
+
+Bu profil yalnız Common Crawl ve Wayback Archive kayıtlarında alt alan adı
+arar; hedef siteye aktif test yapmaz. `discovery-health` her sağlayıcının son
+kayıtlı sonucunu ayrı gösterir; `candidates` bulunan adayları listeler.
+Kısmi sonuç veya kaynak hatası, alt alan adı bulunmadığı anlamına gelmez.
+Kurulumun tamamlanması arşivlerin o anda erişilebilir olduğunu garanti etmez.
+
 ## 3. İstersen ücretsiz tehdit kaynaklarını kullan
 
 ### Zararlı IP ve domain listeleri
@@ -97,6 +116,31 @@ geçmişi ayrıdır. ThreatCluster'ın çıktıdaki zaman penceresi ve RansomLoo
 son yedi günlük kapsamı dışında sonuç çıkarılmaz. Eşleşme bulunmaması bu
 sınırlı kapsamda sonuç olmadığını söyler; güvenli olunduğunu kanıtlamaz.
 Bulunanlar kaynak iddialarıdır; doğrulanmış ihlal değildir.
+
+### MITRE tehdit bilgi tabanı
+
+Tehdit grubu, kampanya ve zararlı yazılım kayıtlarını araştırmak için:
+
+```sh
+./xti cti attack-sync
+./xti cti search "APT29" --kind entity
+./xti cti entity-list --type threat-actor --limit 20
+```
+
+`attack-sync` resmî MITRE kaynağından sürümü sabitlenmiş Enterprise ATT&CK
+v20.0 verisini alır. Arama ve listeleme komutları yerel kayıtları okur;
+internete çıkmaz. Bir kaydın bağlantılarını görmek için arama veya listeleme
+çıktısındaki gerçek kimliği `VARLIK_KIMLIGI` yerine yaz:
+
+```sh
+./xti cti entity-show VARLIK_KIMLIGI
+./xti cti relation-list --entity VARLIK_KIMLIGI --limit 20
+```
+
+Bu sürüm etkin grup, kampanya, zararlı yazılım ve seçili ilişkileri alır;
+ATT&CK teknikleri/taktikleri ve bütün veri türleri dahil değildir. Bir grubun
+katalogda bulunması domainine saldırdığı anlamına gelmez. Senkron yalnız
+komutu çalıştırdığında yapılır; otomatik zamanlama veya sürüm yükseltme yoktur.
 
 ## 4. Marka kullanıcı adı izlemesini bir kez oluştur
 

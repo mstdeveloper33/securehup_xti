@@ -1,5 +1,20 @@
 # Değişiklik Kaydı
 
+## 0.127.1 — 13 Kasım 2026
+
+- theHarvester kurulum betiği PATH'te `uv` yoksa proje içindeki
+  `.tools/uv/bin/uv` aracını kullanır. Python ve önbellek varsayılan olarak
+  `.tools` içinde tutulur; açık ortam ayarları korunur. Çekirdek Python
+  ortamı ve sabit upstream commit/bağımlılık kilidi değişmez.
+- İki arşiv de başarısız olduğunda doğrulanmış kaynak adı, durum ve durma
+  nedeni hata açıklamasında korunur; başarısız çalışma boş sonuç sayılmaz.
+- Günlük kullanım rehberine MITRE bilgi tabanı ve isteğe bağlı pasif arşiv
+  kurulumu/keşfi eklendi. Şema 54 değişmez.
+- Hızlı kapı 104/104, tam regresyon 1.382/1.382 testle geçti. Ayrı canlı
+  kullanımda MITRE ilk/tekrar senkronu ve theHarvester kurulumu doğrulandı;
+  arşiv kaynaklarının tam keşfi başarısız kaldığı için canlı kapsam kabulü
+  açık tutuldu.
+
 ## 0.127.0 — 13 Kasım 2026
 
 - `sources status`, 11 kaynak/iş akışının kurulumunu, son denemesini, son

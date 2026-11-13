@@ -1,10 +1,18 @@
 # XTI — Güncel Uygulama Durumu
 
-**13 Kasım 2026 · 0.127.0 sürümü birleşik kaynak durumunu ve günlük kullanım akışını ekledi**
+**13 Kasım 2026 · 0.127.1 sürümü ek arşiv kurulumunu ve kaynak hata açıklamasını düzeltir**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `scripts/setup-harvester`, PATH'te `uv` bulunmazsa proje içindeki
+  `.tools/uv/bin/uv` aracını kullanır. Python/önbellek varsayılanları `.tools`
+  içinde kalır; açık ortam ayarları korunur. Araç ayrı Python ortamında,
+  aynı incelenmiş upstream commit ve kilitli bağımlılıklarla kurulur.
+- theHarvester iki arşivi de tamamlayamadığında doğrulanmış kaynak/durum/durma
+  nedenlerini hata açıklamasında saklar. Hata boş başarıya çevrilmez;
+  kullanıcı kaydı veya önceki adaylar silinmez.
 
 - `sources status [--domain KÖK] [--details]` ile 11 kaynak/iş akışının yerel
   kurulumu, son denemesi, son başarılı verisi, güncelliği, hata/bekleme bilgisi
@@ -1000,6 +1008,35 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu ile uzak GitHub `main` dalı yayımlanmış ve aynı commit zincirindedir; runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.127.1 hızlı kapısı 104/104 testle 26,181 saniyede, tam regresyonu
+1.382/1.382 testle 294,154 saniyede geçti. Yeni testler proje içi/PATH uv
+seçimini, göreli ve boşluk içeren yolları, açık dizin ayarlarını, eksik araçta
+yazmadan durmayı ve iki arşivin sınırlı/doğrulanmış hata nedenlerini sınadı.
+Otomatik testler gerçek interneti veya kişisel veri alanını kullanmadı.
+
+13 Kasım 2026, 0.127.1 canlı kullanım kabulü: resmî MITRE ATT&CK Enterprise
+v20.0 dosyasındaki 26.690 nesneden desteklenen 982 varlık ve 809 ilişki kişisel
+kayıt alanına alındı. İkinci senkronda hepsi değişmeyen olarak sayıldı; yeni,
+güncellenen veya geri çekilen kayıt oluşmadı. APT29 araması, varlık ayrıntısı
+ve kaynaklı ilişkileri yerel komutlardan açıldı. Bu araştırma kataloğu varlığa
+yönelik saldırı veya otomatik aktör atfı değildir.
+
+theHarvester'ın incelenmiş commit'i ayrı Python 3.14.10 ortamında kuruldu;
+yerel yardımcı uv 0.13.8 ve kilitli 41 paket kullanıldı. Düzeltmeden sonra
+yalnız `./scripts/setup-harvester` ile kurulum yeniden doğrulandı. Arşiv keşfi
+ise iki tam denemede başarısız kaldı; son kayıtta Common Crawl
+`invalid-catalog`, Wayback `runtime-limit` nedenleri ayrı korundu. Ayrı dar
+tanı isteğinde Common Crawl yanıt gelmeden bağlantıyı kapattı; tek satırlık
+Wayback sorgusu boş JSON döndü. Dar isteğin başarısı tam arşiv çalışmasının
+başarısı sayılmadı. Önceki crt.sh adayı/kanıtları korundu; bu denemede yeni
+arşiv kapsamı veya tekilleştirilmiş canlı başarılı tekrar kanıtlanmış değildir.
+Başarılı/kısmi/başarısız ayrımı ve tekrar sözleşmesi ağsız testlerde sınanır.
+
+Kurulum ve arşiv tanı kayıtları, kişisel varlık bilgileri ve alınan MITRE
+verisi Git dışında yerel alanda kaldı. CTI/aday/durum/doctor okumalarının
+öncesinde ve sonrasında veritabanı SHA-256 özeti aynı kaldı; işlem öncesi ve
+sonrası yedek alındı. Uygulama şeması 54 değişmedi.
 
 13 Kasım 2026 ek canlı kullanım kabulü: mevcut Feodo, CERT Polska,
 ThreatCluster ve RansomLook adaptörleri kişisel kayıt alanında güncellendi.
