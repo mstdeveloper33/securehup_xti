@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**13 Kasım 2026 — 0.129.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**13 Kasım 2026 — 0.129.1 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
@@ -192,7 +192,7 @@ Domain modeli leak-site `post_url` değerini içermez; yalnız kaynak gönderisi
 `BrandSourceEvaluationService`, dış araç kurulmadan önce sürümlü `free-brand-osint-tool-gate-v2` kapısını ağsız uygular. Doğrulanmış upstream, bakım, ücretsiz/hesapsız temel kullanım, sonuç JSON'u, çalışma sınırı, kod lisansı, hesap-kurtarma yoklaması kullanmama ve güncel kapsam zorunludur. Maigret'in sınırlı CLI adaptörü ile theHarvester'ın yalnız iki P0 arşiv adaptörü seçilmiştir; Sherlock sonraki bağımsız kapsam kapısında küçük bir listeye kabul edilmiş, Web-Check, Holehe ve olası telefon aracı elenmiştir. Bu servis araç çalıştırmaz, kullanıcı adı/domain aramaz, depolama açmaz ve üçüncü taraf kodunu çekirdeğe dahil etmez. Ayrıntılar [ücretsiz marka OSINT aracı kararında](decisions/0107-free-brand-osint-tool-gate.md) ve [theHarvester sınır kararında](decisions/0117-bounded-theharvester-archive-discovery.md) bulunur.
 
 `SurfaceSourceEvaluationService`, pasif alt alan adı adaptörlerini sürümlü
-`passive-surface-source-gate-v2` kapısıyla ağsız değerlendirir. Aktif kimlikler
+`passive-surface-source-gate-v4` kapısıyla ağsız değerlendirir. Aktif kimlikler
 domain katmanındaki tek `SURFACE_DISCOVERY_PROVIDERS` sözleşmesiyle birebir
 eşleşir; SQLite kanıt okuma/yazma doğrulaması ve sağlık görünümü aynı sırayı
 kullanır. Subfinder v2.17.0 normal CLI'si, sağlayıcı hatalarını makine-okunur
@@ -360,6 +360,15 @@ devamlı sayfalama uygulanır. `p0-archives-v2` profilinde sınırda durma kısm
 sonuçtur; iki çalışmamış kaynak genel başarısızlık verir. Standart paket
 kurulumu `.pth` üzerinden editable yükleme gerektirmez. Detaylar
 [0126 numaralı karardadır](decisions/0126-bounded-archive-transport.md).
+
+0.129.1 arşiv profili `p0-archives-v3`, kabul kapısı v4'tür. Common Crawl
+istek aralığı yanıt bitişinden itibaren en az bir saniyedir. Bağlantı
+hatasında bütçe/istek hakkı varsa tek tekrar 60 saniye sonra yapılır;
+hak kalmadığında asıl hata nedeni korunur. Common Crawl'ın yıllık indeks
+sorguları için 150, Wayback için bağımsız 90 saniye; süreç için 270 saniye
+ayrılır. İstek/yanıt/sonuç sınırları ve şema değişmez. Önceki profilin
+kanıtları korunur; yeni profil yeni kaynak özeti üretir. Gerekçe ve kapsam
+[0128 numaralı karardadır](decisions/0128-commoncrawl-request-pacing.md).
 
 `surface_candidates` güncel `pending/owned/rejected` durumunu ve kaynak gözlem aralığını; `surface_candidate_sources` sağlayıcı/kaynak/özet/ham ad/zaman kanıtını; `surface_candidate_events` ilk keşif ile bütün gerekçeli kullanıcı kararlarını tutar. Aday + kaynak özeti tekildir. Tekrar kaynak kullanıcı kararını sıfırlamaz; yeni pasif kanıt ilk/son görülme aralığını genişletir. Liste/ayrıntı tek salt okunur anlık görüntüdür. `owned` kararı varlık kaydı veya aktif kapsam oluşturmaz; hedef kontrolü için ayrı `assets add` ve `surface approve` gerekir.
 

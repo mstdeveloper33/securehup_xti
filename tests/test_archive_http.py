@@ -201,11 +201,15 @@ class ArchiveHTTPTests(unittest.TestCase):
             self.assertEqual(self.opener.call_count, 1)
 
     def test_transient_disconnect_timeout_and_5xx_retry_only_once(self):
-        for failure in (RemoteDisconnected("private endpoint"), TimeoutError(), Response(status=502)):
+        for failure, wait in (
+            (RemoteDisconnected("private endpoint"), 60.0),
+            (TimeoutError(), 60.0),
+            (Response(status=502), 2.0),
+        ):
             client = self.client(responses=[failure, Response()])
             self.assertEqual(client.get(CATALOG).status, 200)
             self.assertEqual(self.opener.call_count, 2)
-            self.assertEqual(self.clock.sleeps, [1.0])
+            self.assertEqual(self.clock.sleeps, [wait])
         for failures, reason in (([TimeoutError(), TimeoutError()], "timeout"), ([RemoteDisconnected(), RemoteDisconnected()], "connection-closed"), ([Response(status=500), Response(status=500)], "http-500")):
             client = self.client(responses=failures)
             self.assert_reason(reason, lambda: client.get(CATALOG))
@@ -222,8 +226,93 @@ class ArchiveHTTPTests(unittest.TestCase):
         self.assert_reason("request-limit", lambda: client.get(CATALOG))
         self.assertEqual(self.opener.call_count, 1)
         client = self.client(responses=[TimeoutError(), Response()], max_requests=1)
-        self.assert_reason("request-limit", lambda: client.get(CATALOG))
+        self.assert_reason("timeout", lambda: client.get(CATALOG))
         self.assertEqual(self.opener.call_count, 1)
+        self.assertEqual(self.clock.sleeps, [])
+
+    def test_commoncrawl_interval_starts_after_slow_response_and_is_shared(self):
+        clock = Clock()
+        gate = _SourceGate()
+        first = self.client(
+            clock=clock, gate=gate,
+            responses=[Response(b"{}", clock=clock, delay=3.0)],
+        )
+        first.get(CATALOG)
+        self.assertEqual(clock.now, 6.0)  # Body and final EOF read each took time.
+        starts = []
+        def second_opener(request, **kwargs):
+            starts.append(clock.now)
+            return Response()
+        second = self.client(clock=clock, gate=gate, opener=second_opener)
+        second.get(CATALOG)
+        self.assertEqual(starts, [7.0])
+        self.assertEqual(clock.sleeps, [1.0])
+
+    def test_commoncrawl_failure_also_leaves_interval_for_next_client(self):
+        clock = Clock()
+        gate = _SourceGate()
+        def failed_opener(request, **kwargs):
+            clock.now += 4.0
+            raise RemoteDisconnected()
+        first = self.client(clock=clock, gate=gate, opener=failed_opener, max_requests=1)
+        self.assert_reason("connection-closed", lambda: first.get(CATALOG))
+        self.assertEqual(clock.sleeps, [])
+        second = self.client(clock=clock, gate=gate)
+        self.assertEqual(second.get(CATALOG).status, 200)
+        self.assertEqual(clock.now, 5.0)
+        self.assertEqual(clock.sleeps, [1.0])
+
+    def test_commoncrawl_insufficient_retry_time_keeps_original_reason_without_sleep(self):
+        for failure, reason, budget, elapsed in (
+            (RemoteDisconnected(), "connection-closed", 60.0, 0.0),
+            (TimeoutError(), "timeout", 90.0, 30.0),
+            (Response(status=502), "http-502", 2.0, 0.0),
+        ):
+            with self.subTest(reason=reason):
+                clock = Clock()
+                calls = []
+                def opener(request, **kwargs):
+                    calls.append(request)
+                    clock.now += elapsed
+                    if isinstance(failure, Exception):
+                        raise failure
+                    return failure
+                client = self.client(clock=clock, opener=opener, budget_seconds=budget)
+                self.assert_reason(reason, lambda: client.get(CATALOG))
+                self.assertEqual(len(calls), 1)
+                self.assertEqual(clock.sleeps, [])
+
+    def test_no_remaining_attempt_does_not_sleep_for_network_or_http_retry(self):
+        for failure, reason in (
+            (RemoteDisconnected(), "connection-closed"),
+            (Response(status=500), "http-500"),
+        ):
+            with self.subTest(reason=reason):
+                client = self.client(responses=[failure, Response()], max_requests=1)
+                self.assert_reason(reason, lambda: client.get(CATALOG))
+                self.assertEqual(self.opener.call_count, 1)
+                self.assertEqual(self.clock.sleeps, [])
+
+    def test_wayback_retains_short_retry_without_commoncrawl_spacing(self):
+        url = WB + urlencode(TARGET)
+        for failure in (RemoteDisconnected(), TimeoutError(), Response(status=502)):
+            with self.subTest(failure=type(failure).__name__):
+                client = self.client("waybackarchive", responses=[failure, Response(), Response()])
+                self.assertEqual(client.get(url).status, 200)
+                self.assertEqual(self.clock.sleeps, [1.0])
+                self.assertEqual(client.get(url).status, 200)
+                self.assertEqual(self.clock.sleeps, [1.0])
+
+    def test_retry_wakeup_past_deadline_preserves_original_error(self):
+        clock = Clock()
+        def late_sleep(delay):
+            clock.sleeps.append(delay)
+            clock.now += 100.0
+        clock.sleep = late_sleep
+        client = self.client(clock=clock, responses=[RemoteDisconnected(), Response()])
+        self.assert_reason("connection-closed", lambda: client.get(CATALOG))
+        self.assertEqual(self.opener.call_count, 1)
+        self.assertEqual(clock.sleeps, [60.0])
 
     def test_total_budget_stops_slow_stream_and_closes_response(self):
         clock = Clock()
@@ -236,8 +325,8 @@ class ArchiveHTTPTests(unittest.TestCase):
     def test_per_request_budget_retries_without_resetting_global_deadline(self):
         clock = Clock()
         response = Response(b"123456", clock=clock, delay=1.1, chunk=1)
-        client = self.client(responses=[response, Response()], clock=clock, request_timeout=2, budget_seconds=10)
-        self.assertEqual(client.get(CATALOG).status, 200)
+        client = self.client("waybackarchive", responses=[response, Response()], clock=clock, request_timeout=2, budget_seconds=10)
+        self.assertEqual(client.get(WB + urlencode(TARGET)).status, 200)
         self.assertEqual(self.opener.call_count, 2)
         self.assertTrue(response.closed)
 

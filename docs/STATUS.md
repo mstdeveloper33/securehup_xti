@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**13 Kasım 2026 · 0.129.0 sürümü seçilen pasif kaynakları tek çalışmada toplar ve birleşik analiz üretir**
+**13 Kasım 2026 · 0.129.1 sürümü Common Crawl süre bütçesini ve istek aralığını düzeltir**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -19,18 +19,21 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
   Yeni şema veya kalıcı birleşik oturum oluşturulmaz. Terminalden bağımsız
   servis ve JSON sonucu ilerideki React/API bağlantısına temel oluşturur.
 
-- Arşiv v2 işçisi, sabit theHarvester kurulumundan indeks/hostname/sayfa
+- Arşiv v3 işçisi, sabit theHarvester kurulumundan indeks/hostname/sayfa
   ayrıştırma yardımcılarını kullanır; upstream dosyalarını değiştirmez.
   Yalnız resmî Common Crawl/Wayback HTTPS uç noktalarına ve kayıtlı domain
   sorgularına izin verir. TLS doğrulanır; yönlendirme/proxy açılmaz.
 - HTTP hatası, TLS hatası, bağlantı kapanması, zaman aşımı, bozuk veri ve
   başarılı boş yanıt ayrı kalır. 429/503 bekleme bilgisi korunur; anında
   tekrar yapılmaz. Diğer geçici bağlantı hatalarında bütçe içinde bir tekrar
-  vardır; Common Crawl istekleri seri ve aralıklıdır.
+  vardır; Common Crawl bağlantı hatasında 60 saniye bekler. Yeni deneme
+  için süre/istek hakkı yoksa beklemeden asıl hata korunur. Common Crawl
+  istekleri seri çalışır; her yanıtın bitişinden sonra en az bir saniye ayrılır.
 - Wayback tek domain sorgusunu küçük sayfalar ve devam anahtarıyla yürütür.
   Common Crawl sayfasında ilk 50 kayıt sonrasını atlama davranışı giderilir.
-  Kaynak başına 90 saniye/30 istek; süreçte 240 saniye ve yanıtta 2 MiB
-  sınırı vardır. Sınırda durma kısmi kapsamdır; tamamlanan sayfalar korunur.
+  Common Crawl için 150, Wayback için 90 saniye; kaynak başına 30 istek,
+  süreçte 270 saniye ve yanıtta 2 MiB sınırı vardır. Sınırda durma kısmi
+  kapsamdır; tamamlanan sayfalar korunur.
 - theHarvester `--no-editable` ile standart paket olarak kurulur; gizlenmiş
   `.pth` dosyasına bağımlılık kalkar. Kurulum kontrolü checkout dışında
   yapılır. Ayrı Python ortamı eksikse sorgu başlamadan açıklayıcı hata verilir.
@@ -1037,6 +1040,35 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu ile uzak GitHub `main` dalı yayımlanmış ve aynı commit zincirindedir; runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.129.1 hızlı kapısı 172/172 testle 33,650 saniyede; tam regresyonu
+1.450/1.450 testle 290,234 saniyede geçti. Yeni testler
+Common Crawl yanıtı bittikten sonraki aralığı, 60 saniyelik bağlantı tekrarı,
+yetersiz süre/istek hakkı durumunda asıl hata nedenini ve Wayback ayrımını
+doğrular. Gerçek taşıma + sahte saatli 13 indeks testi eski 90 saniyenin
+12. sorguda tükendiğini; yeni bütçede 104 saniyede tamamlandığını ve
+Wayback'in bağımsız bütçesinin korunduğunu gösterir.
+
+13 Kasım 2026, 0.129.1 erişim tanısı: katalog kod değişmeden HTTP 200 döndü.
+Eski bütçeyle gerçek taşıma katalog ve 11 indeksi okudu, sonraki sorguda
+90 saniye tükendi. Yeni bütçeyle ilk normal CLI kabulünde Common Crawl
+yaklaşık 54 saniye sonra HTTP 504 ile kısmi kaldı; Wayback yaklaşık 17
+saniyede tamamlandı. Ayrı sınırlı tanıda katalog yine HTTP 200 iken ilk
+indeks 504, tek tekrarı 502 verdi. Bu sonuçlar yalnız uygulama süresinin
+artırılmasının sağlayıcı hatasını ortadan kaldırmadığını gösterir. İlk
+bağlantı kapanmasının kesin nedeni veya IP engeli kanıtlanmış değildir.
+
+Birkaç dakika ara verilen son normal CLI denemesinde Common Crawl yaklaşık
+25 saniyede HTTP 504 nedeniyle başarısız, Wayback yaklaşık 11 saniyede
+tamamlandı. Genel sonuç kısmi olarak kayıtlıdır; yeni aday oluşmadı.
+Katalog erişimi geri gelmiş ve uygulamadaki süre/aralık hataları düzelmiş
+olsa da Common Crawl'ın tam canlı kapsam kabulü hâlâ açıktır. Sağlayıcıdan
+gelen 502/504 hataları yerel kodla ortadan kaldırılmış gibi sunulmaz.
+
+İşlem öncesi ve sonrası tutarlı yedek alındı. Son kaynak sağlığı, aday
+listesi, kaynak durumu ve doctor okumalarının tümü başarılı; veritabanı
+SHA-256 özeti bu okumalar boyunca değişmedi. Şema 54 korunur. Kişisel
+hedef, ham tanı ve kabul çıktıları Git dışındaki yerel veri alanında kalır.
 
 0.129.0 hızlı kapısı 165/165 testle 33,663 saniyede; tam regresyonu
 1.443/1.443 testle 280,563 saniyede geçti. Son terminal açıklaması

@@ -1,5 +1,25 @@
 # Değişiklik Kaydı
 
+## 0.129.1 — 13 Kasım 2026
+
+- Common Crawl'ın seçilen yıllık arşiv dönemleri için süre bütçesi 90'dan
+  150 saniyeye çıkarıldı; Wayback'in ayrı 90 saniyesi korunur. İki kaynağı
+  kapsayan dış süreç sınırı 270 saniye oldu.
+- Common Crawl'da aralık istek başlangıcından değil, yanıtın bitişinden
+  hesaplanır. Her istek sonrası en az bir saniye; bağlantı/zaman aşımı
+  hatasında bütçe yeterliyse tek tekrar öncesinde 60 saniye beklenir.
+  İstek/süre hakkı yoksa beklemeden asıl hata nedeni korunur.
+- Common Crawl'da bekleme talimatı olmayan geçici 5xx için tekrar aralığı iki saniyedir;
+  429/503 ve TLS davranışı değişmez. Profil v3, kabul kapısı v4;
+  bağımlılıklar, upstream commit, kullanıcı kanıtları ve şema 54 korunur.
+- Sahte saatli gerçek taşıma testi eski 90 saniyelik bütçenin 13 indeksli
+  kapsamı yarıda kestiğini, yeni bütçenin tamamladığını doğrular. Kaynak
+  sunucusunun 502/504 hatası başarı veya boş sonuç olarak gösterilmez.
+- Hızlı kapı 172/172, tam regresyon 1.450/1.450 testle geçti. Katalog
+  erişimi HTTP 200 ile geri geldi; son normal canlı denemede Common Crawl
+  HTTP 504 ile başarısız, Wayback tamamlandı. Genel sonuç kısmi; Common
+  Crawl'ın tam canlı kapsam kabulü açık kalır.
+
 ## 0.129.0 — 13 Kasım 2026
 
 - `collect DOMAIN` kayıtlı domainin crt.sh/urlscan marka aramalarını ve

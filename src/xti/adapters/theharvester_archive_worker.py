@@ -25,6 +25,7 @@ from xti.domain.assets import ValidationError, normalize_domain
 
 
 SOURCES = ("commoncrawl", "waybackarchive")
+SOURCE_BUDGET_SECONDS = {"commoncrawl": 150, "waybackarchive": 90}
 CC_CATALOG = "https://index.commoncrawl.org/collinfo.json"
 WAYBACK_CDX = "https://web.archive.org/cdx/search/cdx"
 MAX_REPORT_BYTES = 2 * 1024 * 1024
@@ -337,7 +338,10 @@ def run_archive_sources(
     ):
         started = monotonic()
         try:
-            client = client_factory(name, domain, budget_seconds=90, request_timeout=30, max_requests=30)
+            client = client_factory(
+                name, domain, budget_seconds=SOURCE_BUDGET_SECONDS[name],
+                request_timeout=30, max_requests=30,
+            )
             helper = helper_class(domain, limit=limit)
             outcome = collector(domain, limit, client, helper)
         except Exception:

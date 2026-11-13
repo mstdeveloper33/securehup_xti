@@ -1,6 +1,7 @@
 """Archive pagination and truthful source outcomes without installed tools/network."""
 
 from datetime import datetime, timezone
+from io import BytesIO
 import json
 from pathlib import Path
 import stat
@@ -8,7 +9,9 @@ import tempfile
 import unittest
 from urllib.parse import parse_qs, urlsplit
 
-from xti.adapters.archive_http import ArchiveHTTPError, ArchiveHTTPResponse
+from xti.adapters.archive_http import (
+    ArchiveHTTPClient, ArchiveHTTPError, ArchiveHTTPResponse, _SourceGate,
+)
 from xti.adapters.theharvester_archive import parse_theharvester_jsonl
 from xti.adapters.theharvester_archive_worker import (
     collect_commoncrawl, collect_wayback, run_archive_sources, write_report,
@@ -103,7 +106,10 @@ class ArchiveWorkerTests(unittest.TestCase):
             if source == "waybackarchive":
                 self.assertEqual(len(clients["commoncrawl"].calls), 3)
             self.assertEqual(domain, DOMAIN)
-            self.assertEqual(kwargs, {"budget_seconds": 90, "request_timeout": 30, "max_requests": 30})
+            self.assertEqual(kwargs, {
+                "budget_seconds": 150 if source == "commoncrawl" else 90,
+                "request_timeout": 30, "max_requests": 30,
+            })
             constructed.append(source)
             return clients[source]
 
@@ -137,6 +143,81 @@ class ArchiveWorkerTests(unittest.TestCase):
         self.assertEqual(query["matchType"], ["domain"])
         self.assertEqual(query["pageSize"], ["1"])
         self.assertNotIn("limit", query)
+
+    def test_thirteen_slow_indexes_complete_with_current_budget_and_wayback_is_independent(self):
+        # The observed yearly catalog selected 13 indexes. Individually healthy
+        # metadata requests took long enough to exhaust the former 90s budget.
+        indexes = [
+            f"https://index.commoncrawl.org/CC-MAIN-2026-{40 - number:02d}-index"
+            for number in range(13)
+        ]
+
+        class HTTPResponse(BytesIO):
+            status = 200
+            headers = {}
+
+        for previous_budget in (True, False):
+            with self.subTest(previous_budget=previous_budget):
+                elapsed = [0.0]
+                calls = []
+                constructed = []
+
+                def clock():
+                    return elapsed[0]
+
+                def sleep(delay):
+                    elapsed[0] += delay
+
+                def opener(request, *, timeout):
+                    parsed = urlsplit(request.full_url)
+                    calls.append(parsed)
+                    if parsed.path == "/collinfo.json":
+                        delay, body = 0, catalog(*indexes).body
+                    elif parsed.hostname == "index.commoncrawl.org":
+                        delay, body = 7, b'{"pages":0,"pageSize":1}'
+                    else:
+                        delay, body = 20, b"https://mail.example.com/\n"
+                    if delay >= timeout:
+                        elapsed[0] += timeout
+                        raise TimeoutError("response headers exceeded request deadline")
+                    elapsed[0] += delay
+                    return HTTPResponse(body)
+
+                def factory(source, domain, **kwargs):
+                    constructed.append((source, clock(), kwargs["budget_seconds"]))
+                    if previous_budget and source == "commoncrawl":
+                        kwargs["budget_seconds"] = 90
+                    return ArchiveHTTPClient(
+                        source, domain, opener=opener, clock=clock, sleep=sleep,
+                        gate=_SourceGate(), **kwargs,
+                    )
+
+                records = run_archive_sources(
+                    DOMAIN, 250, commoncrawl_helpers=Helpers, wayback_helpers=Helpers,
+                    client_factory=factory, monotonic=clock,
+                )
+                summary = records[0]
+                cc, wb = summary["source_executions"]
+                self.assertEqual(
+                    (cc["status"], cc["stop_reason"]),
+                    ("partial", "timeout") if previous_budget else ("completed", None),
+                )
+                self.assertEqual(wb["status"], "completed")
+                self.assertEqual(wb["duration_ms"], 20_000)
+                self.assertEqual(
+                    constructed,
+                    [("commoncrawl", 0.0, 150),
+                     ("waybackarchive", 90.0 if previous_budget else 104.0, 90)],
+                )
+                metadata = [call for call in calls if call.query and "showNumPages" in call.query]
+                self.assertEqual(
+                    [call.path for call in metadata],
+                    [urlsplit(index).path for index in indexes[:12 if previous_budget else 13]],
+                )
+                self.assertEqual(summary["evidence_status"], "partial" if previous_budget else "complete")
+                self.assertEqual(records[1:], [
+                    {"type": "hostname", "value": "mail.example.com", "sources": ["waybackarchive"]},
+                ])
 
     def test_cc_no_capture_404_requires_exact_source_message(self):
         for body in (f"No Captures found for: {DOMAIN}\n",

@@ -28,14 +28,14 @@ from xti.ports.discovery import SourceError
 PROVIDER = "theharvester"
 SOURCE_NAME = "theHarvester P0 arşivleri"
 REVIEWED_UPSTREAM_COMMIT = "6790b147f52309e4eee22ed941db1d285ab2ec23"
-INTEGRATION_PROFILE = f"theharvester-{REVIEWED_UPSTREAM_COMMIT[:12]}-p0-archives-v2"
+INTEGRATION_PROFILE = f"theharvester-{REVIEWED_UPSTREAM_COMMIT[:12]}-p0-archives-v3"
 SOURCES = ("commoncrawl", "waybackarchive")
 MAX_RESULT_LIMIT = 500
 DEFAULT_RESULT_LIMIT = 250
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 MAX_LINE_BYTES = 64 * 1024
 MAX_PROCESS_OUTPUT = 1024 * 1024
-PROCESS_TIMEOUT_SECONDS = 240
+PROCESS_TIMEOUT_SECONDS = 270
 _SUMMARY_FIELDS = frozenset({
     "action_executions", "artifacts", "completed_at", "counts",
     "evidence_status", "result_count", "run_id", "source_executions",
@@ -358,7 +358,9 @@ class TheHarvesterArchiveSource:
                     timeout=PROCESS_TIMEOUT_SECONDS,
                 )
             except subprocess.TimeoutExpired as error:
-                raise SourceError("theHarvester 240 saniyelik sürede tamamlanamadı.") from error
+                raise SourceError(
+                    f"theHarvester {PROCESS_TIMEOUT_SECONDS} saniyelik sürede tamamlanamadı."
+                ) from error
             except OSError as error:
                 raise SourceError(
                     "theHarvester çalıştırılamadı; sonuç üretilmedi."

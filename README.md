@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.129.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Seçilen pasif kaynakları tek çalışmada toplama ve birleşik analiz.
+**Sürüm:** 0.129.1 · **Tarih:** 13 Kasım 2026 · **Durum:** Common Crawl süre ve istek aralığı düzeltmesi.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -998,11 +998,14 @@ adlarını sağlayıcı ve arşiv kaynağı ayrı kalacak biçimde saklar. Kök 
 ilgisiz ad, e-posta, kişi, IP ve başka sonuç türleri alınmaz. DNS çözümleme,
 ekran görüntüsü, takeover veya hedefe doğrudan bağlantı açılmaz.
 
-Arşiv v2 profili, kurulu theHarvester'ın ayrıştırma yardımcılarını ayrı süreçte
+Arşiv v3 profili, kurulu theHarvester'ın ayrıştırma yardımcılarını ayrı süreçte
 kullanır; üçüncü taraf kaynak dosyalarını değiştirmez. Wayback tek domain
 sorgusunu küçük sayfalar ve devam anahtarıyla yürütür. Common Crawl aynı sayfanın
-kalanını atlamadan okur. Her kaynak için süre ve istek bütçesi ayrıdır; sınırda
-kalan çalışma kısmi gösterilir. HTTP, TLS, zaman aşımı ve bağlantı kesilmesi
+kalanını atlamadan okur. Common Crawl için 150, Wayback için 90 saniye ve
+kaynak başına en çok 30 istek ayrılır. Common Crawl'da her yanıtın ardından
+en az bir saniye beklenir; bağlantı hatasında kalan bütçe yeterliyse tek
+tekrar 60 saniye sonra yapılır. Sınırda kalan çalışma kısmi gösterilir.
+HTTP, TLS, zaman aşımı ve bağlantı kesilmesi
 gerçek boş yanıttan ayrılır. 429/503 durumlarında anında tekrar yapılmaz;
 sağlayıcının erişimi, tamamlanan yerel kurulumdan bağımsızdır.
 

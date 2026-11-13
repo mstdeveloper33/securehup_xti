@@ -19,7 +19,7 @@ from xti.interfaces.cli import main
 class SurfaceSourceEvaluationTests(unittest.TestCase):
     def test_active_adapters_pass_every_required_gate_and_match_runtime(self):
         report = SurfaceSourceEvaluationService().report()
-        self.assertEqual(report.profile_version, "passive-surface-source-gate-v3")
+        self.assertEqual(report.profile_version, "passive-surface-source-gate-v4")
         self.assertEqual(report.active_identifiers, SURFACE_DISCOVERY_PROVIDERS)
         active = [item for item in report.candidates if item.decision == "active"]
         self.assertEqual([item.identifier for item in active], list(SURFACE_DISCOVERY_PROVIDERS))

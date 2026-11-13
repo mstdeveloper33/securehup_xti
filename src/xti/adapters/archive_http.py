@@ -31,7 +31,7 @@ _HOSTS = {
     "commoncrawl": "index.commoncrawl.org",
     "waybackarchive": "web.archive.org",
 }
-USER_AGENT = "XTI/archive-p0-v2 (passive archive index research)"
+USER_AGENT = "XTI/archive-p0-v3 (passive archive index research)"
 
 
 class ArchiveHTTPError(Exception):
@@ -57,7 +57,7 @@ class ArchiveHTTPResponse:
 @dataclass
 class _SourceGate:
     lock: threading.Lock = field(default_factory=threading.Lock)
-    last_started: float | None = None
+    last_finished: float | None = None
 
 
 # A second client in this process cannot make concurrent requests to the same
@@ -223,6 +223,15 @@ class ArchiveHTTPClient:
         self._sleep(delay)
         self._remaining()
 
+    def _retry_pause(self, delay: float) -> bool:
+        """Wait only when another attempt can start, preserving its cause otherwise."""
+        if self._requests >= self.max_requests or delay >= self._deadline - self._clock():
+            return False
+        self._sleep(delay)
+        # A slow wakeup must not replace the observed network/HTTP failure with
+        # a synthetic deadline error. The caller still owns the original cause.
+        return self._clock() < self._deadline
+
     def _headers(self, raw) -> dict[str, str]:
         result: dict[str, str] = {}
         size = 0
@@ -317,12 +326,11 @@ class ArchiveHTTPClient:
         self._remaining()
         if self._requests >= self.max_requests:
             raise ArchiveHTTPError("request-limit")
-        if self.source == "commoncrawl" and self._gate.last_started is not None:
-            delay = 1.0 - (self._clock() - self._gate.last_started)
+        if self.source == "commoncrawl" and self._gate.last_finished is not None:
+            delay = 1.0 - (self._clock() - self._gate.last_finished)
             if delay > 0:
                 self._pause(delay)
         self._requests += 1
-        self._gate.last_started = self._clock()
         request_deadline = self._clock() + min(self.request_timeout, self._remaining())
         request = Request(url, headers={
             "User-Agent": USER_AGENT,
@@ -330,11 +338,16 @@ class ArchiveHTTPClient:
             "Accept-Encoding": "identity",
         })
         try:
-            response = self._opener(request, timeout=self._remaining(request_deadline))
-        except HTTPError as error:
-            response = error
-        with response:
-            return self._consume(response, request_deadline)
+            try:
+                response = self._opener(request, timeout=self._remaining(request_deadline))
+            except HTTPError as error:
+                response = error
+            with response:
+                return self._consume(response, request_deadline)
+        finally:
+            # Common Crawl's recommended client leaves the interval after a
+            # completed request, including when that request was slow or failed.
+            self._gate.last_finished = self._clock()
 
     def get(self, url: str) -> ArchiveHTTPResponse:
         self._validate_url(url)
@@ -349,8 +362,8 @@ class ArchiveHTTPClient:
                         attempt == 0 and error.status is not None
                         and 500 <= error.status <= 599 and error.status != 503
                         and error.retry_after_seconds is None
+                        and self._retry_pause(2.0 if self.source == "commoncrawl" else 1.0)
                     ):
-                        self._pause(1.0)
                         continue
                     raise
                 except (URLError, HTTPException, OSError) as error:
@@ -362,8 +375,8 @@ class ArchiveHTTPClient:
                         else "connection-closed" if isinstance(cause, (RemoteDisconnected, ConnectionResetError, BrokenPipeError))
                         else "transport-error"
                     )
-                    if attempt == 0:
-                        self._pause(1.0)
+                    delay = 60.0 if self.source == "commoncrawl" else 1.0
+                    if attempt == 0 and self._retry_pause(delay):
                         continue
                     raise ArchiveHTTPError(reason) from error
             raise AssertionError("Unreachable archive retry state")

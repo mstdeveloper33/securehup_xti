@@ -205,7 +205,7 @@ class TheHarvesterArchiveTests(unittest.TestCase):
             self.assertEqual(command[2:7], [
                 "--domain", "example.com", "--limit", "250", "--report",
             ])
-            self.assertEqual(seen["kwargs"]["timeout"], 240)
+            self.assertEqual(seen["kwargs"]["timeout"], 270)
             environment = seen["kwargs"]["env"]
             self.assertEqual(environment["HOME"], seen["kwargs"]["cwd"])
             self.assertNotIn("HTTP_PROXY", environment)

@@ -43,10 +43,14 @@ _CATALOG = (
             "Yalnız Common Crawl ve Wayback Archive P0 hostname sonuçları kabul edilir.",
             "Common Crawl yalnız katalogdaki en yeni bitiş tarihinden geriye "
             "365 günlük indeksleri kapsar; bütün tarihsel arşiv değildir.",
-            "Arşiv v2 profili kaynak başına 90 saniye ve en çok 30 istek kullanır; "
+            "Arşiv v3 profili Common Crawl için 150, Wayback için 90 saniye "
+            "ve kaynak başına en çok 30 istek kullanır; "
             "süre, istek veya sonuç sınırında kalan kapsam kısmi gösterilir.",
             "HTTP/TLS/bağlantı hatası boş yanıt sayılmaz; 429/503 sonrasında "
             "anında tekrar yapılmaz ve kaynak bekleme bilgisi korunur.",
+            "Common Crawl istekleri yanıt bittikten sonra en az bir saniye "
+            "arayla gönderilir; bağlantı hatasında bütçe yeterliyse tek tekrar "
+            "öncesinde 60 saniye beklenir.",
             "DNS çözümleme, e-posta toplama, ekran görüntüsü, takeover ve aktif "
             "hedef işlemleri kapalıdır.",
             "Arşivde görülen ad sahiplik veya güncel erişilebilirlik kanıtı değildir.",
