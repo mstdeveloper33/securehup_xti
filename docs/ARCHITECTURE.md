@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**13 Kasım 2026 — 0.127.1 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**13 Kasım 2026 — 0.128.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
@@ -342,6 +342,15 @@ başarısızsa şema/kapsam doğrulamasından geçmiş kaynak adları, durumlar�
 200 karakterle sınırlı durma nedenleri `SourceError` içinde korunur; ham
 araç tanılaması aktarılmaz. Model, kayıt şeması ve başarılı/kısmi keşif
 davranışı değişmez.
+
+0.128.0, sabit üçüncü taraf dosyalarına dokunmadan arşiv bağlantısını ayrı XTI
+işçisine taşır. İşçi kurulu upstream seçim/ayrıştırma yardımcılarını çağırır;
+`archive_http` yalnız iki resmî HTTPS sunucusunu ve kayıtlı kök sorgusunu
+kabul eder. HTTP/bağlantı/boş sonuç ayrımı, kaynak başına ayrı bütçe ve
+devamlı sayfalama uygulanır. `p0-archives-v2` profilinde sınırda durma kısmi
+sonuçtur; iki çalışmamış kaynak genel başarısızlık verir. Standart paket
+kurulumu `.pth` üzerinden editable yükleme gerektirmez. Detaylar
+[0126 numaralı karardadır](decisions/0126-bounded-archive-transport.md).
 
 `surface_candidates` güncel `pending/owned/rejected` durumunu ve kaynak gözlem aralığını; `surface_candidate_sources` sağlayıcı/kaynak/özet/ham ad/zaman kanıtını; `surface_candidate_events` ilk keşif ile bütün gerekçeli kullanıcı kararlarını tutar. Aday + kaynak özeti tekildir. Tekrar kaynak kullanıcı kararını sıfırlamaz; yeni pasif kanıt ilk/son görülme aralığını genişletir. Liste/ayrıntı tek salt okunur anlık görüntüdür. `owned` kararı varlık kaydı veya aktif kapsam oluşturmaz; hedef kontrolü için ayrı `assets add` ve `surface approve` gerekir.
 

@@ -62,9 +62,14 @@ fi
     export UV_CACHE_DIR="${UV_CACHE_DIR-$XTI_TOOL_PARENT/uv-cache}"
     export UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR-$XTI_TOOL_PARENT/python}"
     export UV_PYTHON_BIN_DIR="${UV_PYTHON_BIN_DIR-$XTI_TOOL_PARENT/python-bin}"
-    "$XTI_UV" sync --frozen --no-dev
+    "$XTI_UV" sync --frozen --no-dev --no-editable
 )
 
-"$XTI_TOOL_DIR/.venv/bin/theHarvester" --help >/dev/null
+# Verify the installed package, not an import accidentally satisfied by the
+# checkout as the current directory (editable .pth files may be ignored).
+(
+    cd "$XTI_TOOL_PARENT"
+    "$XTI_TOOL_DIR/.venv/bin/theHarvester" --help >/dev/null
+)
 echo "theHarvester hazır: $XTI_COMMIT"
 echo "Yalnız XTI'ın sabit P0 commoncrawl ve waybackarchive profili kullanılacak."

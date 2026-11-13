@@ -28,14 +28,14 @@ from xti.ports.discovery import SourceError
 PROVIDER = "theharvester"
 SOURCE_NAME = "theHarvester P0 arşivleri"
 REVIEWED_UPSTREAM_COMMIT = "6790b147f52309e4eee22ed941db1d285ab2ec23"
-INTEGRATION_PROFILE = f"theharvester-{REVIEWED_UPSTREAM_COMMIT[:12]}-p0-archives-v1"
+INTEGRATION_PROFILE = f"theharvester-{REVIEWED_UPSTREAM_COMMIT[:12]}-p0-archives-v2"
 SOURCES = ("commoncrawl", "waybackarchive")
 MAX_RESULT_LIMIT = 500
 DEFAULT_RESULT_LIMIT = 250
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 MAX_LINE_BYTES = 64 * 1024
 MAX_PROCESS_OUTPUT = 1024 * 1024
-PROCESS_TIMEOUT_SECONDS = 180
+PROCESS_TIMEOUT_SECONDS = 240
 _SUMMARY_FIELDS = frozenset({
     "action_executions", "artifacts", "completed_at", "counts",
     "evidence_status", "result_count", "run_id", "source_executions",
@@ -158,7 +158,7 @@ def parse_theharvester_jsonl(
     evidence_status = summary["evidence_status"]
     statuses = tuple(item[1] for item in executions)
     expected_status = (
-        "failed" if all(status == "failed" for status in statuses)
+        "failed" if all(status in {"failed", "rate-limited", "skipped"} for status in statuses)
         else "partial" if any(status != "completed" for status in statuses)
         else "complete"
     )
@@ -239,6 +239,8 @@ def parse_theharvester_jsonl(
         warnings=warnings,
         coverage_notes=(
             f"theHarvester commit {REVIEWED_UPSTREAM_COMMIT}",
+            f"XTI bağlantı profili: {INTEGRATION_PROFILE}",
+            "Common Crawl: katalogdaki en yeni bitiş tarihinden geriye 365 günlük indeksler.",
             "Yalnız P0 commoncrawl ve waybackarchive; hedefe doğrudan bağlantı yok.",
         ),
     )
@@ -295,6 +297,9 @@ class TheHarvesterArchiveSource:
             or not executable.resolve().is_relative_to(checkout.resolve())
         ):
             raise SourceError("theHarvester kurulumu incelenen commit ile uyuşmuyor.")
+        interpreter = executable.with_name("python")
+        if not interpreter.is_file() or not os.access(interpreter, os.X_OK):
+            raise SourceError("theHarvester ayrı Python ortamı eksik; ./scripts/setup-harvester çalıştır.")
 
     @staticmethod
     def _safe_environment(directory: str) -> dict[str, str]:
@@ -302,6 +307,7 @@ class TheHarvesterArchiveSource:
         for name in (
             "ALL_PROXY", "HTTPS_PROXY", "HTTP_PROXY", "OPENAI_API_KEY",
             "all_proxy", "https_proxy", "http_proxy",
+            "PYTHONHOME", "PYTHONSTARTUP",
         ):
             environment.pop(name, None)
         environment.update({
@@ -309,6 +315,8 @@ class TheHarvesterArchiveSource:
             "XDG_DATA_HOME": str(Path(directory) / "data"),
             "THEHARVESTER_RUN_DB": str(Path(directory) / "data" / "run.sqlite"),
             "NO_PROXY": "*", "no_proxy": "*", "PYTHONIOENCODING": "utf-8",
+            "PYTHONPATH": str(Path(__file__).resolve().parents[2]),
+            "PYTHONNOUSERSITE": "1",
         })
         return environment
 
@@ -336,10 +344,12 @@ class TheHarvesterArchiveSource:
         self._verify_checkout(checkout, executable)
         with tempfile.TemporaryDirectory(prefix="xti-theharvester-") as directory:
             work = Path(directory)
-            report = work / "xti-report"
+            report = work / "xti-report.jsonl"
+            worker = Path(__file__).with_name("theharvester_archive_worker.py")
             command = [
-                str(executable), "-d", domain, "-b", ",".join(SOURCES),
-                "-l", str(self.result_limit), "-j", "1", "-q", "-f", str(report),
+                str(executable.with_name("python")), str(worker),
+                "--domain", domain, "--limit", str(self.result_limit),
+                "--report", str(report),
             ]
             try:
                 result = self._runner(
@@ -348,7 +358,7 @@ class TheHarvesterArchiveSource:
                     timeout=PROCESS_TIMEOUT_SECONDS,
                 )
             except subprocess.TimeoutExpired as error:
-                raise SourceError("theHarvester 180 saniyelik sürede tamamlanamadı.") from error
+                raise SourceError("theHarvester 240 saniyelik sürede tamamlanamadı.") from error
             except OSError as error:
                 raise SourceError(
                     "theHarvester çalıştırılamadı; sonuç üretilmedi."
@@ -360,7 +370,7 @@ class TheHarvesterArchiveSource:
                 raise SourceError("theHarvester işlem çıktısı güvenli sınırı aştı.")
             if result.returncode != 0:
                 raise SourceError("theHarvester kaynak çalışmasını tamamlayamadı.")
-            path = report.with_suffix(".jsonl")
+            path = report
             try:
                 metadata = path.lstat()
                 if not stat.S_ISREG(metadata.st_mode) or stat.S_ISLNK(metadata.st_mode):

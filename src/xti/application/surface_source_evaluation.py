@@ -8,7 +8,7 @@ from xti.domain.surface_source_evaluation import (
 )
 
 
-PROFILE_VERSION = "passive-surface-source-gate-v2"
+PROFILE_VERSION = "passive-surface-source-gate-v3"
 EVALUATED_AT = "2026-11-13"
 REQUIRED = (
     "verified_upstream",
@@ -119,8 +119,8 @@ class SurfaceSourceEvaluationService:
             decision="active",
             purpose="Common Crawl ve Wayback Archive kayıtlarından alt alan adı adayı bulmak.",
             integration_mode=(
-                "Tam commit'e sabit ayrı ortam; yalnız iki P0 arşiv sağlayıcısı ve "
-                "XTI tarafından doğrulanan JSONL."
+                "Tam commit'e sabit ayrı ortam; upstream ayrıştırma yardımcıları, "
+                "XTI arşiv v2 bağlantı işçisi ve doğrulanan JSONL."
             ),
             upstream_version="commit 6790b147f52309e4eee22ed941db1d285ab2ec23",
             maintenance_risk="medium",
@@ -143,7 +143,8 @@ class SurfaceSourceEvaluationService:
                 ),
                 _criterion(
                     "bounded_execution", "Süre ve yanıt sınırları var", True,
-                    "İki sabit sağlayıcı, tek işçi ve 250 sonuç sınırı kullanılır.",
+                    "İki sabit sağlayıcı seri çalışır; kaynak başına 90 saniye/30 istek, "
+                    "250 hostname sınırı ve kısmi kapsam bildirimi kullanılır.",
                 ),
                 _criterion(
                     "strict_machine_contract", "Katı makine sözleşmesi var", True,

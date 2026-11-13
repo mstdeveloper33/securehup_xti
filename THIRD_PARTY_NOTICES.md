@@ -15,6 +15,11 @@ XTI yalnız Common Crawl ve Wayback Archive P0 hostname sonuçlarını kullanır
 aktif hedef özelliklerini çalıştırmaz. Kurulan üçüncü taraf yazılımı dağıtmak
 veya değiştirmek GPL-2.0-only koşullarına tabidir.
 
+Arşiv v2 işçisi, aynı sabit kurulumdan indeks seçimi, hostname ve sayfa
+ayrıştırma yardımcılarını ayrı süreçte çağırır. XTI'a ait HTTP/sayfalama
+katmanı upstream dosyalarını değiştirmez. Kaynak protokolleri ve sınırlar
+[0126 numaralı kararda](docs/decisions/0126-bounded-archive-transport.md) kayıtlıdır.
+
 ## Sherlock
 
 İsteğe bağlı sosyal kullanıcı adı önizlemesi Sherlock 0.16.2'yi resmî

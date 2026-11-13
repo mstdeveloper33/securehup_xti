@@ -4,6 +4,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -179,6 +180,7 @@ class TheHarvesterArchiveTests(unittest.TestCase):
             executable.parent.mkdir(parents=True)
             executable.write_text("#!/bin/sh\n", encoding="utf-8")
             executable.chmod(0o700)
+            executable.with_name("python").symlink_to(sys.executable)
             (checkout / ".git").mkdir()
             (checkout / ".git" / "HEAD").write_text(
                 REVIEWED_UPSTREAM_COMMIT + "\n", encoding="ascii",
@@ -187,7 +189,7 @@ class TheHarvesterArchiveTests(unittest.TestCase):
 
             def runner(command, **kwargs):
                 seen.update(command=command, kwargs=kwargs)
-                output = Path(command[command.index("-f") + 1]).with_suffix(".jsonl")
+                output = Path(command[command.index("--report") + 1])
                 output.write_bytes(payload(report()))
                 return subprocess.CompletedProcess(command, 0, "safe stdout", "")
 
@@ -198,14 +200,44 @@ class TheHarvesterArchiveTests(unittest.TestCase):
             batch = source.search("%.example.com")
             self.assertEqual(batch.record_count, 2)
             command = seen["command"]
-            self.assertEqual(command[1:7], [
-                "-d", "example.com", "-b", "commoncrawl,waybackarchive", "-l", "250",
+            self.assertEqual(command[0], str(executable.with_name("python")))
+            self.assertEqual(Path(command[1]).name, "theharvester_archive_worker.py")
+            self.assertEqual(command[2:7], [
+                "--domain", "example.com", "--limit", "250", "--report",
             ])
-            self.assertEqual(command[7:11], ["-j", "1", "-q", "-f"])
+            self.assertEqual(seen["kwargs"]["timeout"], 240)
             environment = seen["kwargs"]["env"]
             self.assertEqual(environment["HOME"], seen["kwargs"]["cwd"])
             self.assertNotIn("HTTP_PROXY", environment)
+            self.assertEqual(environment["PYTHONNOUSERSITE"], "1")
+            self.assertEqual(Path(environment["PYTHONPATH"]).name, "src")
             self.assertFalse(Path(environment["HOME"]).exists())
+
+    def test_both_rate_limited_sources_are_not_partial_success(self):
+        records = report(statuses=("failed", "failed"))
+        for item in records[0]["source_executions"]:
+            item["status"] = "rate-limited"
+            item["stop_reason"] = "http-429"
+        with self.assertRaisesRegex(SourceError, "rate-limited.*http-429"):
+            parse_theharvester_jsonl(payload(records), domain="example.com", limit=250)
+
+    def test_incomplete_python_installation_is_rejected_before_execution(self):
+        with tempfile.TemporaryDirectory() as directory:
+            checkout = Path(directory)
+            (checkout / ".git").mkdir()
+            (checkout / ".git/HEAD").write_text(REVIEWED_UPSTREAM_COMMIT + "\n")
+            executable = checkout / ".venv/bin/theHarvester"
+            executable.parent.mkdir(parents=True)
+            executable.write_text("#!/bin/sh\n")
+            executable.chmod(0o700)
+            calls = []
+            source = TheHarvesterArchiveSource(
+                executable_locator=lambda: executable, checkout_locator=lambda: checkout,
+                runner=lambda *args, **kwargs: calls.append(args),
+            )
+            with self.assertRaisesRegex(SourceError, "Python ortamı eksik"):
+                source.search("%.example.com")
+            self.assertEqual(calls, [])
 
     def test_missing_or_changed_checkout_never_runs(self):
         called = []

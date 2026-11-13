@@ -1,10 +1,26 @@
 # XTI — Güncel Uygulama Durumu
 
-**13 Kasım 2026 · 0.127.1 sürümü ek arşiv kurulumunu ve kaynak hata açıklamasını düzeltir**
+**13 Kasım 2026 · 0.128.0 sürümü arşiv bağlantısını, sayfalamayı ve ayrı ortam kurulumunu düzeltir**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- Arşiv v2 işçisi, sabit theHarvester kurulumundan indeks/hostname/sayfa
+  ayrıştırma yardımcılarını kullanır; upstream dosyalarını değiştirmez.
+  Yalnız resmî Common Crawl/Wayback HTTPS uç noktalarına ve kayıtlı domain
+  sorgularına izin verir. TLS doğrulanır; yönlendirme/proxy açılmaz.
+- HTTP hatası, TLS hatası, bağlantı kapanması, zaman aşımı, bozuk veri ve
+  başarılı boş yanıt ayrı kalır. 429/503 bekleme bilgisi korunur; anında
+  tekrar yapılmaz. Diğer geçici bağlantı hatalarında bütçe içinde bir tekrar
+  vardır; Common Crawl istekleri seri ve aralıklıdır.
+- Wayback tek domain sorgusunu küçük sayfalar ve devam anahtarıyla yürütür.
+  Common Crawl sayfasında ilk 50 kayıt sonrasını atlama davranışı giderilir.
+  Kaynak başına 90 saniye/30 istek; süreçte 240 saniye ve yanıtta 2 MiB
+  sınırı vardır. Sınırda durma kısmi kapsamdır; tamamlanan sayfalar korunur.
+- theHarvester `--no-editable` ile standart paket olarak kurulur; gizlenmiş
+  `.pth` dosyasına bağımlılık kalkar. Kurulum kontrolü checkout dışında
+  yapılır. Ayrı Python ortamı eksikse sorgu başlamadan açıklayıcı hata verilir.
 
 - `scripts/setup-harvester`, PATH'te `uv` bulunmazsa proje içindeki
   `.tools/uv/bin/uv` aracını kullanır. Python/önbellek varsayılanları `.tools`
@@ -119,7 +135,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 
 - `./scripts/setup-harvester` ile incelenmiş upstream commit'ini proje içindeki ayrı `.tools` ortamına kurma; çekirdeğe üçüncü taraf kod veya Python 3.14 bağımlılığı eklememe.
 - `surface discover/watch KÖK --source theharvester` ile yalnız Common Crawl ve Wayback Archive P0 hostname kaynaklarını çalıştırma; hedef hostname'e doğrudan bağlantı, DNS çözümleme, e-posta/kişi toplama, screenshot, takeover ve API scan açmama.
-- Geçici HOME/veri alanı, sabit iki kaynak, 250 sonuç, tek işçi, 180 saniye ve sıkı çıktı sınırı kullanma. Tam commit ve çalıştırılabilir dosyanın checkout içinde olduğunu her çalışmada doğrulama.
+- Geçici HOME/veri alanı, sabit iki kaynak, 250 sonuç, tek işçi, 240 saniyelik dış süreç sınırı ve sıkı çıktı sınırı kullanma. Tam commit ve çalıştırılabilir dosyanın checkout içinde olduğunu her çalışmada doğrulama.
 - JSONL özetini ve hostname kanıtını tekrar alan, tam alan kümesi, UTC zaman, kaynak durum/sayaç, boş aktif işlem, kanonik kapsam ve boyut bağlarıyla kapalı biçimde doğrulama.
 - Common Crawl ve Wayback gözlemlerini aynı aday altında ayrı kaynak kanıtları olarak saklama; sağlayıcı kimliğini çalışma geçmişi, terminal ve JSON sonucunda gösterme. Kaynak hatasını boş sonuç, arşiv kaydını sahiplik/güncellik/risk kararı saymama.
 - Şema 50→51 geçişinde yalnız iki provider denetimini genişletme; bütün crt.sh kanıtlarını ve çalışma sıra numaralarını koruma, önce doğrulanmış yedek alma ve hata halinde rollback.
@@ -1008,6 +1024,29 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu ile uzak GitHub `main` dalı yayımlanmış ve aynı commit zincirindedir; runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.128.0 hızlı kapısı 141/141 testle 27,917 saniyede, tam regresyonu
+1.419/1.419 testle 283,685 saniyede geçti. Yeni testler bağlantı/TLS/HTTP
+hatasını başarılı boş yanıttan ayırmayı, gecikmeli tekrar ve kota davranışını,
+yanıt/süre/istek sınırlarını, kayıpsız sayfalamayı, bağımsız kaynak bütçelerini
+ve checkout dışından paket kurulumunu ağsız sınadı.
+
+13 Kasım 2026, 0.128.0 canlı kabulü: aynı kayıtlı kökte iki ayrı arşiv
+denemesinde Wayback sorgusu tamamlandı; alt alan adı adayı dönmedi. İlk
+deneme uygulama geçmişine kısmi olarak kaydedildi; ikinci denemede işçinin
+kaynak özeti ayrıca saklandı ve Wayback yaklaşık 23 saniyede tamamlandı.
+Common Crawl iki denemede de HTTP yanıtı gelmeden bağlantıyı kapattı
+(`connection-closed`). Bu kaynak için başarılı canlı kapsam hâlâ
+doğrulanmadı; bozuk katalog veya kesin IP engeli iddiası yapılmıyor.
+Genel sonuç bu nedenle başarılı boş değil, kısmi kaldı. İki kaynağın da
+çözüldüğü veya gelecekte kesintisiz çalışacağı iddia edilmez.
+
+Standart paket kurulumu gerçek ayrı ortamda tekrar çalıştırıldı ve checkout
+dışındaki import/CLI kontrolü geçti. Mevcut crt.sh adayı ve kanıtları korundu;
+arşivden yeni aday oluşmadı. Kaynak durumu, keşif sağlığı, aday listesi ve
+doctor okumaları öncesi/sonrası veritabanı SHA-256 özeti aynı kaldı. İşlem
+öncesi/sonrası yedek alındı; şema 54 değişmedi. Tanı yanıtları, kişisel hedef
+ve kabul kayıtları Git dışında yerel veri alanında tutuldu.
 
 0.127.1 hızlı kapısı 104/104 testle 26,181 saniyede, tam regresyonu
 1.382/1.382 testle 294,154 saniyede geçti. Yeni testler proje içi/PATH uv

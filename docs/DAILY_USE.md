@@ -54,6 +54,12 @@ kayıtlı sonucunu ayrı gösterir; `candidates` bulunan adayları listeler.
 Kısmi sonuç veya kaynak hatası, alt alan adı bulunmadığı anlamına gelmez.
 Kurulumun tamamlanması arşivlerin o anda erişilebilir olduğunu garanti etmez.
 
+Arşiv v2 sorgusu aynı domain için tekrarlı kapsam sorgusu göndermez; küçük
+sayfalarla ilerler. Kaynaklardan biri kesilirse diğerinin doğrulanan sonucu
+korunur. Süre/sonuç sınırında kalan çalışma “kısmi” görünür. Kota veya sunucu
+bekleme bildirimi varsa komutu art arda çalıştırma; gösterilen nedeni ve
+bekleme bilgisini dikkate al. Kaynak hatası hiçbir zaman “aday yok” değildir.
+
 ## 3. İstersen ücretsiz tehdit kaynaklarını kullan
 
 ### Zararlı IP ve domain listeleri

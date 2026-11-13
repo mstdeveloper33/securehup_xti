@@ -33,6 +33,7 @@ class HarvesterSetupTests(unittest.TestCase):
             (self.bin / name).symlink_to(executable)
         self.git_log = self.root / "git-calls.jsonl"
         self.uv_log = self.root / "uv-call.json"
+        self.cli_log = self.root / "cli-smoke.json"
         self.environment = {
             key: value for key, value in os.environ.items()
             if key not in UV_VARIABLES
@@ -41,6 +42,7 @@ class HarvesterSetupTests(unittest.TestCase):
         self.environment["PATH"] = str(self.bin)
         self.environment["XTI_TEST_GIT_LOG"] = str(self.git_log)
         self.environment["XTI_TEST_UV_LOG"] = str(self.uv_log)
+        self.environment["XTI_TEST_CLI_LOG"] = str(self.cli_log)
         self.write_executable(self.bin / "git", '''
 import json
 import os
@@ -63,6 +65,16 @@ elif "remote" in args:
         path.chmod(0o700)
 
     def add_uv(self, path, label):
+        cli_body = f"#!{sys.executable}\n" + '''
+import json
+import os
+from pathlib import Path
+import sys
+Path(os.environ["XTI_TEST_CLI_LOG"]).write_text(json.dumps({
+    "cwd": str(Path.cwd()), "args": sys.argv[1:],
+}))
+raise SystemExit(int(os.environ.get("XTI_TEST_CLI_EXIT", "0")))
+'''
         self.write_executable(path, f'''
 import json
 import os
@@ -75,13 +87,13 @@ data = {{
 Path(os.environ["XTI_TEST_UV_LOG"]).write_text(json.dumps(data))
 executable = Path.cwd() / ".venv/bin/theHarvester"
 executable.parent.mkdir(parents=True, exist_ok=True)
-executable.write_text("#!/bin/sh\\nexit 0\\n")
+executable.write_text({cli_body!r})
 executable.chmod(0o700)
 ''')
 
-    def run_installer(self):
+    def run_installer(self, *, cwd=None):
         return subprocess.run(
-            [str(self.installer)], cwd=self.root, env=self.environment,
+            [str(self.installer)], cwd=cwd or self.root, env=self.environment,
             capture_output=True, text=True, timeout=10, check=False,
         )
 
@@ -90,8 +102,11 @@ executable.chmod(0o700)
         self.assertIn(f"theHarvester hazır: {COMMIT}", result.stdout)
         call = json.loads(self.uv_log.read_text())
         self.assertEqual(call["label"], label)
-        self.assertEqual(call["args"], ["sync", "--frozen", "--no-dev"])
+        self.assertEqual(call["args"], ["sync", "--frozen", "--no-dev", "--no-editable"])
         self.assertEqual(call["cwd"], str(self.root / ".tools/theharvester"))
+        smoke = json.loads(self.cli_log.read_text())
+        self.assertEqual(smoke["cwd"], str(self.root / ".tools"))
+        self.assertEqual(smoke["args"], ["--help"])
         return call
 
     def test_project_local_uv_is_used_without_changing_path(self):
@@ -122,6 +137,21 @@ executable.chmod(0o700)
         self.environment.update(overrides)
         call = self.assert_success(self.run_installer(), "path")
         self.assertEqual(call["environment"], overrides)
+
+    def test_smoke_check_leaves_checkout_even_when_installer_starts_there(self):
+        checkout = self.root / ".tools/theharvester"
+        (checkout / ".git").mkdir(parents=True)
+        self.add_uv(self.bin / "uv", "path")
+        self.assert_success(self.run_installer(cwd=checkout), "path")
+
+    def test_failed_installed_cli_smoke_check_is_not_reported_ready(self):
+        self.add_uv(self.bin / "uv", "path")
+        self.environment["XTI_TEST_CLI_EXIT"] = "1"
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn("theHarvester hazır", result.stdout)
+        smoke = json.loads(self.cli_log.read_text())
+        self.assertEqual(smoke["cwd"], str(self.root / ".tools"))
 
     def test_missing_uv_stops_before_clone_or_tool_directory_creation(self):
         result = self.run_installer()

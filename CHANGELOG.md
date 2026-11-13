@@ -1,5 +1,24 @@
 # Değişiklik Kaydı
 
+## 0.128.0 — 13 Kasım 2026
+
+- theHarvester arşivleri için ayrı XTI işçisi ve sınırlandırılmış HTTPS
+  taşıması eklendi. Sabit upstream seçim/ayrıştırma yardımcıları kullanılır;
+  kurulu üçüncü taraf kaynak dosyaları değiştirilmez.
+- Yutulan bağlantı hatasının boş sayfa/bozuk katalog olarak görünmesi
+  giderildi. HTTP/TLS/kesinti/zaman aşımı ayrılır; 429/503 anında tekrarlanmaz,
+  bekleme bilgisi korunur. Gerçek boş sonuç yalnız doğrulanmış yanıttır.
+- Wayback tek domain sorgusu ve küçük devamlı sayfalar kullanır. Common
+  Crawl sayfasındaki ilk 50 kayıt sonrasını atlayan davranış kaldırıldı.
+  Bütçe ve sonuç sınırları kısmi kapsam olarak gösterilir; önceki sayfalar
+  korunur. Profil v2, kabul kapısı v3; şema 54 değişmez.
+- theHarvester standart paket olarak kurulur; editable `.pth` dosyasının
+  gizli işaretlendiği ortamda import hatası önlenir. Kurulum kontrolü araç
+  checkout'u dışında yapılır.
+- Hızlı kapı 141/141, tam regresyon 1.419/1.419 testle geçti. İki canlı
+  denemede Wayback tamamlandı; Common Crawl HTTP yanıtı vermeden bağlantıyı
+  kapatmayı sürdürdü. Kaynak erişimi sorunu açık, genel sonuç kısmi kaldı.
+
 ## 0.127.1 — 13 Kasım 2026
 
 - theHarvester kurulum betiği PATH'te `uv` yoksa proje içindeki

@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.127.1 · **Tarih:** 13 Kasım 2026 · **Durum:** Birleşik kaynak durumu, günlük kullanım ve ek arşiv kurulumu/hata açıklaması düzeltmeleri.
+**Sürüm:** 0.128.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Pasif arşivlerde kontrollü bağlantı, sayfalama ve kaynak hatası ayrımı.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -945,6 +945,14 @@ kullanır. Bulunan `vpn.markam.com` veya `api.markam.com` gibi kesin alt alan
 adlarını sağlayıcı ve arşiv kaynağı ayrı kalacak biçimde saklar. Kök adres,
 ilgisiz ad, e-posta, kişi, IP ve başka sonuç türleri alınmaz. DNS çözümleme,
 ekran görüntüsü, takeover veya hedefe doğrudan bağlantı açılmaz.
+
+Arşiv v2 profili, kurulu theHarvester'ın ayrıştırma yardımcılarını ayrı süreçte
+kullanır; üçüncü taraf kaynak dosyalarını değiştirmez. Wayback tek domain
+sorgusunu küçük sayfalar ve devam anahtarıyla yürütür. Common Crawl aynı sayfanın
+kalanını atlamadan okur. Her kaynak için süre ve istek bütçesi ayrıdır; sınırda
+kalan çalışma kısmi gösterilir. HTTP, TLS, zaman aşımı ve bağlantı kesilmesi
+gerçek boş yanıttan ayrılır. 429/503 durumlarında anında tekrar yapılmaz;
+sağlayıcının erişimi, tamamlanan yerel kurulumdan bağımsızdır.
 
 Aynı ad iki arşivde görülürse tek aday ve iki ayrı kaynak kanıtı oluşur; ekranda
 yalnız yanıltıcı bir “2 aynı kayıt” sayısı gösterilmez. Aynı kanıt yeniden
