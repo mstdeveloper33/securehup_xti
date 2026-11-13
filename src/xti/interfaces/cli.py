@@ -295,6 +295,9 @@ from xti.application.surface_discovery_status import SurfaceDiscoveryStatusServi
 from xti.application.surface_source_evaluation import SurfaceSourceEvaluationService
 from xti.application.evaluation import EvaluationService
 from xti.application.sources import SourceCatalogService
+from xti.application.source_readiness import SourceReadinessService
+from xti.adapters.source_readiness import SQLiteSourceReadinessRepository
+from xti.interfaces.source_readiness import report_lines as source_readiness_lines
 from xti.application.findings import (
     DomainImportService, FindingService, FINDING_STATUSES, REVIEW_DECISIONS,
 )
@@ -2784,9 +2787,19 @@ def build_parser() -> Parser:
     job_actions.add_parser("recover", help="Kapanmış çalıştırıcıdan kalan işleri yarım olarak işaretle.")
     worker = commands.add_parser("worker", help="Sıradaki kayıtlı işi çalıştır.")
     worker.add_argument("--once", action="store_true", required=True, help="Bir işi çalıştırıp çık.")
-    commands.add_parser(
+    sources = commands.add_parser(
         "sources",
         help="Kullanılan kaynakları, sınırlarını ve son kaydedilen sonucu göster; ağ isteği yapmaz.",
+    )
+    source_actions = sources.add_subparsers(dest="source_action")
+    source_status = source_actions.add_parser(
+        "status", help="Kurulum, son çalışma, veri güncelliği ve sonraki komutu tek ekranda göster.",
+    )
+    source_status.add_argument("--domain", help="Tarama ve alt alan adı kayıtlarını bu domaine daralt.")
+    source_status.add_argument("--details", action="store_true", help="Kaynak kapsamını, zamanları ve kanıt sınırlarını aç.")
+    source_status.add_argument(
+        "--stale-after-hours", type=int, default=24,
+        help="Son başarılı yerel kayıt için güncellik eşiği (1–8760 saat; varsayılan 24).",
     )
     findings = commands.add_parser("findings", help="Aday bulguları incele ve kararını kaydet.")
     finding_actions = findings.add_subparsers(dest="finding_action", required=True)
@@ -6060,6 +6073,11 @@ def run(args: argparse.Namespace) -> int | None:
         attempt = jobs.run(progress=terminal_progress(args.json))
         provider = jobs.show(attempt.job_id).job.provider if attempt is not None else "crt.sh"
         return emit_attempt(attempt, as_json=args.json, provider=provider)
+    elif args.command == "sources" and args.source_action == "status":
+        report = SourceReadinessService(
+            SQLiteSourceReadinessRepository(settings.database),
+        ).show(domain=args.domain, stale_after_hours=args.stale_after_hours)
+        emit(asdict(report), source_readiness_lines(report, details=args.details), as_json=args.json)
     elif args.command == "sources":
         catalog = SourceCatalogService().list()
         statuses = make_jobs(settings, repository).source_status()

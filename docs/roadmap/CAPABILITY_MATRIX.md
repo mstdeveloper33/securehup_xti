@@ -1,6 +1,11 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
-**Karşılaştırma tarihi:** 13 Kasım 2026 · **Sürüm:** 0.126.
+**Karşılaştırma tarihi:** 13 Kasım 2026 · **Sürüm:** 0.127.
+
+0.127.0: Kaynak durumu tarama, keşif, sosyal araç, IOC, ransomware ve ATT&CK
+akışlarını tek ağsız görünümde birleştirir; günlük kullanım rehberi ve
+bütünleşik vaka/tekrar testleri eklendi. Bu görünüm yeni veri kapsamı veya
+canlı kaynak erişilebilirliği ölçümü değildir.
 
 **Aktif kapsam kararı:** CAP-030'un teknoloji çıkarımı ile CAP-034–041 arasındaki zafiyet, ürün/sürüm, paket ve CVE eşleştirme yetenekleri kullanıcı kararıyla aktif teslim planından çıkarıldı. Bu satırlar yalnız tarihsel karşılaştırma kaydı olarak korunur; yeni birleşik analiz bunları çalıştırmaz.
 

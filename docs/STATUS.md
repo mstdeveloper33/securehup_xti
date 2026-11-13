@@ -1,10 +1,22 @@
 # XTI — Güncel Uygulama Durumu
 
-**13 Kasım 2026 · 0.126.0 sürümü pasif kaynak bütünlüğünü, sağlayıcı bazlı kanıt durumunu ve sürümlü adaptör kabul kapısını ekledi**
+**13 Kasım 2026 · 0.127.0 sürümü birleşik kaynak durumunu ve günlük kullanım akışını ekledi**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `sources status [--domain KÖK] [--details]` ile 11 kaynak/iş akışının yerel
+  kurulumu, son denemesi, son başarılı verisi, güncelliği, hata/bekleme bilgisi
+  ve sonraki komutu. Tarama/keşif kaynakları, sosyal araçlar, IOC, ransomware
+  ve MITRE ATT&CK kapsamı ayrı satırlarda korunur.
+- Kısa terminal tablosu, ayrıntılı görünüm ve JSON çıktısı; ağ/veri yazımı
+  olmadan çalışma. Hazırlanmamış veritabanını oluşturmayıp `./setup` önerme.
+  MITRE ATT&CK için mevcut başarı kanıtını gösterme; tutulmayan başarısız
+  senkron geçmişinden son deneme uydurmama. Şema 54 değişmez.
+- [Günlük kullanım rehberi](DAILY_USE.md) ve toplama → inceleme → vaka → tekrar
+  akışının bütünleşik testleri. Aynı kanıtın tekrarında kimlik/vaka geçmişi
+  korunur; kaynak hatası önceki başarılı sosyal ölçümü silmez.
 
 - `surface discovery-health KÖK` ile crt.sh ve theHarvester'ın son kayıtlı
   çalışmalarını birbirinden bağımsız gösterme. Tamamlandı, kısmi, başarısız,
@@ -988,6 +1000,14 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu ile uzak GitHub `main` dalı yayımlanmış ve aynı commit zincirindedir; runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.127.0 kısa kapısı 84/84, tam regresyonu 1.374/1.374 testle 294,923
+saniyede geçti. Yeni testler aynı domain/izleme kapsamındaki önceki başarıyı,
+kurulum metadata/commit/katalog denetimini, eksik/bozuk kayıtları, beklemeyi,
+zaman sınırlarını, önerilen komutların ayrıştırılmasını ve günlük vaka/tekrar
+zincirini doğruladı. Otomatik testler ağsız geçici veride çalıştı. Ayrı gerçek
+kullanım denemesinde pasif toplama ve iki sosyal kaynak tekrarı çalıştırıldı;
+kanıtların tamamı yalnız yerel veri alanında tutuldu ve yedeklendi.
 
 0.126.0 hedefli testler aktif kabul kapısı ile çalışma zamanı sağlayıcılarının
 birebir eşleşmesini; Subfinder'ın katı makine sözleşmesi, kaynak sonucu ayrımı

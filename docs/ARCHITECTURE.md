@@ -1,8 +1,16 @@
 # Yerel Uygulamanın Mimarisi
 
-**13 Kasım 2026 — 0.126.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**13 Kasım 2026 — 0.127.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
+
+`SourceReadinessService`, küçük `SourceReadinessRepository` sözleşmesinden
+yerel kurulum ve kayıt geçmişini alır. SQLite/kurulum adaptörü mevcut kayıt
+doğrulamalarını kullanır; servis tek saat üzerinden kayıt yaşını ve beklemeyi
+hesaplar. Terminal kısa tablo ve isteğe bağlı ayrıntı, JSON tam rapor üretir.
+Domain filtresi tarama/keşfe uygulanır. Son kayıt bütün varlıkların durumuna
+genellenmez; ATT&CK'de tutulmayan başarısız senkron geçmişi bilinmiyor kalır.
+Komut kaynak istemcilerini çalıştırmaz, depolama oluşturmaz veya değiştirmez.
 
 Aktif ürün yönü savunmacı OSINT/dijital risk izlemedir. Ürün, sürüm, paket ve CVE modülleri geçmiş veri ve şema uyumluluğu için kod tabanında korunur; `analyze` bileşimine ve yeni teslim sırasına dahil edilmez. Bu ayrım veri silmez ve eski komutların sonuçlarını yeni dış risk kanıtı gibi sunmaz.
 

@@ -1,5 +1,17 @@
 # Değişiklik Kaydı
 
+## 0.127.0 — 13 Kasım 2026
+
+- `sources status`, 11 kaynak/iş akışının kurulumunu, son denemesini, son
+  başarılı kaydını, güncelliğini, beklemesini ve sonraki komutunu tek terminal
+  tablosunda gösterir. `--domain` tarama/keşfi daraltır; `--details` kanıtı açar.
+- Kurulum ve geçmiş ağsız okunur; eksik veritabanı oluşturulmaz. MITRE ATT&CK
+  için tutulmayan deneme geçmişi bilinmiyor kalır. Şema 54 korunur.
+- Günlük kullanım rehberi ve bütünleşik toplama → inceleme → vaka → tekrar
+  testleri eklendi. Aynı kanıt ve vaka hareketi gereksiz çoğalmaz; kaynak
+  hatasından sonra son başarılı sosyal ölçümle karşılaştırma sürer.
+- Hızlı kapı 84/84, tam regresyon 1.374/1.374 testle geçti.
+
 ## 0.126.0 — 13 Kasım 2026
 
 - Pasif keşif sağlayıcıları domain katmanındaki tek `crt.sh`/`theharvester`

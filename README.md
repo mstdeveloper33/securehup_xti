@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.126.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Kişisel terminal sürümü klonla-çalıştır kullanımına hazır; pasif kaynaklar ayrı kanıt durumuyla izlenir.
+**Sürüm:** 0.127.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Birleşik kaynak durumu ve günlük toplama–inceleme–vaka akışı.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -24,6 +24,30 @@ Sonraki kullanımlarda proje klasöründe doğrudan `./xti` komutunu çalıştı
 Yerel veriler `.xti-data` altında kalır ve GitHub'a gönderilmez. Ayrıntılı ama
 kısa kurulum ve güncelleme rehberi için
 [XTI hızlı başlangıç belgesine](docs/GETTING_STARTED.md) bak.
+
+## Nereden başlayacağım?
+
+```sh
+./xti sources status
+./xti sources status --domain example.com
+./xti sources status --domain example.com --details
+```
+
+Bu ekran 11 kaynak/iş akışının kurulumunu, son çalışma sonucunu, son başarılı
+yerel kaydın güncelliğini ve önerilen sonraki komutu birlikte gösterir.
+Tarama ile alt alan adı keşfi ayrı satırlardır. `--domain` bu iki işlemi seçilen
+domaine daraltır; sosyal izlemeler ve genel beslemeler kendi kapsamını korur.
+İlk iki komut kısa tablo, `--details` kapsam ve kanıt zamanlarını gösterir.
+`./xti --json sources status` aynı bilgileri makine-okunur verir.
+
+Durum ekranı yerel geçmişi okur; kaynakları yenilemek için gösterilen komutları
+çalıştırman gerekir. MITRE ATT&CK geçmişinde başarısız senkron denemesi
+tutulmadığından son deneme bilinmiyor olarak kalır; kayıtlı başarılı veri
+ayrıca gösterilir. Verinin yeni alınmış olması kaynağın güncel veya şu an
+erişilebilir olduğunu garanti etmez.
+
+İlk gün kayıt, veri toplama, sonuç inceleme, gerçek adayı vakaya ekleme ve
+sonraki gün tekrar için [günlük kullanım rehberini](docs/DAILY_USE.md) izle.
 
 ## Bulguları vaka altında yönet
 
@@ -1556,8 +1580,8 @@ Temizlik veritabanı içinde yeniden kullanılabilir yer açar; dosyayı hemen k
 ./scripts/check
 ```
 
-`./scripts/check-fast` her değişiklikte çalıştırılan 65 testlik kısa, ağsız
-çekirdek ve kurulum kontrolüdür. `./scripts/check` 1.355 testlik tam regresyon paketidir;
+`./scripts/check-fast` her değişiklikte çalıştırılan 84 testlik kısa, ağsız
+çekirdek ve kurulum kontrolüdür. `./scripts/check` 1.374 testlik tam regresyon paketidir;
 sürüm oluşturmadan önce veya GitHub'daki elle başlatılan tam kontrolde çalışır.
 GitHub'daki temiz Maigret/Sherlock kurulumu yalnız ilgili kurulum, sürüm veya
 marka adaptörü dosyaları değiştiğinde tekrar çalışır. `v*` etiketi ancak tam
