@@ -350,7 +350,7 @@ Fazlar tarih taahhüdü değildir. Bir fazın kapısı geçilmeden ona bağlı �
 | R9 | Tedarikçi risk ilişkileri | R4, R6; mevcutsa R7 | G9 |
 | R10 | API, paylaşım, vaka ve onaylı aksiyonlar | R3, R6; aksiyona göre R7/R8 | G10 |
 | R11 | Takım ürünü, web, çok kiracılı güvenlik | G3, G10; ürünleşme bütçesi | G11 |
-| R12 | Ölçülmüş AI ve gelişmiş otomasyon — kullanıcı kararıyla ertelendi | Yeni açık kapsam kararı; etiketli veri, G6/G10; model kapasitesi | G12 |
+| R12 | Gelecekte isteğe bağlı LLM analiz desteği; henüz uygulanmadı | Kayıtlı kaynak/kanıt ve vaka akışı; ayrılmış değerlendirme verisi; cihaz kapasitesi | G12 |
 | R13 | Kaynak kapsamı ve hizmet olgunluğu | İlgili modül kapıları | G13 |
 
 R6'nın temel IOC ve rapor işleri R4 çalışmalarıyla kaynak izin verdiğinde paralel yürüyebilir. Tek geliştiricide aynı anda bir ana özellik ve bir bakım işi sınırı önerilir.
@@ -471,15 +471,15 @@ Aksiyon onayı alıcıya, hedefe, kanıta ve gönderilecek içeriğin belirli s�
 
 ### R12 — AI destekli analiz ve denetimli iş akışları
 
-**Plan durumu:** Kullanıcı kararıyla etkin teslim planından çıkarıldı. Aşağıdaki gereksinimler yalnız ileride ayrıca istenirse kullanılacak güvenlik kapılarıdır; mevcut sıra AI kurulumu, yerel model veya ücretli model API'si içermez.
+**Plan durumu:** 13 Kasım 2026 kullanıcı kararıyla gelecekteki teslim planına isteğe bağlı LLM analiz desteği eklendi. Henüz model kurulmadı ve bu özellik uygulanmadı. İlk teslim kayıtlı kanıttan açıklama, günlük özet ve vaka taslağı üretir; web paneli, REST API veya tüm veri kaynaklarının tamamlanmasını gerektirmez. Araç kullanan çok adımlı otomasyon bu ilk kapsamın dışında kalır. Kullanım, aşamalar ve kabul ölçümleri [LLM planında](LLM_PLAN.md) tanımlıdır.
 
 **Amaç:** İnceleme süresini azaltırken kanıt ve karar kalitesini korumak.
 
-**İşler:** Metin sınıflandırma; kaynaklı özet; varlık çıkarımı; benzer olay gruplama; sınırlı sorgu asistanı; kayıtlı araçlarla iş akışı; model/prompt/veri sürümü; maliyet ve gecikme ölçümü; model kapalıyken temel işlev; değerlendirme ve geri alma.
+**İşler:** Önce LLM'siz sonuçla karşılaştırılan küçük model deneyi, kaynaklı bulgu/günlük/vaka özeti ve ilk sürümden itibaren model/prompt/veri sürüm kaydı. Sonraki teslimlerde salt okuma yerel sorgu asistanı, gerekçeli inceleme sırası ve ilişki önerileri. Kaynak iddiası, model yorumu ve insan kararı ayrı tutulur; model eksik kanıtı tamamlanmış sayamaz veya alarmı kendiliğinden kapatamaz.
 
-**G12:** Kurallı temel yönteme karşı etiketli, ayrılmış test kümesinde ölçülmüş fayda var. Kaynaksız iddialar ve hatalı alıntılar ölçülüyor. Toplanan içerikteki talimatlar model için yetki oluşturmuyor. Dışa veri aktarımı açık politikaya bağlı. Aksiyon araçları dar yetkili; onaysız mesaj/takedown/engelleme yok. Güncelleme sonrası kalite gerilerse önceki sürüme dönülebiliyor.
+**G12:** Kurallı temel yönteme karşı etiketli, ayrılmış test kümesinde ölçülmüş fayda var. Kaynaksız iddia, hatalı atıf, kaçırılan önemli bilgi ve analist inceleme süresi ölçülüyor. Toplanan içerikteki talimatlar model için yetki oluşturmuyor. İlk sürüm dış eylem gerçekleştirmiyor veya insan kararını değiştirmiyor. Dışa veri aktarımı ayrı ve açık seçime bağlı. Model kapalıyken veya yanıt vermediğinde mevcut toplama, alarm ve vaka akışı çalışıyor. Güncelleme sonrası kalite gerilerse önceki sürüme dönülebiliyor.
 
-AI'ın kendi bildirdiği güven yüzdesi kalibre edilmiş doğruluk olasılığı sayılmaz. API maliyeti veya yerel model donanım ihtiyacı bütçe kararına bağlanır. Platform AI olmadan çalışır ve etkin planda AI bağımlılığı yoktur.
+AI'ın kendi bildirdiği güven yüzdesi kalibre edilmiş doğruluk olasılığı sayılmaz. Önce mevcut cihazda çalışabilecek, kullanım koşulları uygun bir yerel model değerlendirilir; model adı Türkçe kalite, bellek ve süre ölçülmeden seçilmez. İleride harici API ayrı veri aktarımı ve bütçe kararıdır. Platform LLM olmadan çalışmaya devam eder; standart kurulum modele bağımlı hale getirilmez.
 
 ### R13 — Kapsam genişletme ve hizmet olgunluğu
 

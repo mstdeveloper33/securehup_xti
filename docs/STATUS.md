@@ -1001,6 +1001,31 @@ R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin
 
 ## Son doğrulama
 
+13 Kasım 2026 ek canlı kullanım kabulü: mevcut Feodo, CERT Polska,
+ThreatCluster ve RansomLook adaptörleri kişisel kayıt alanında güncellendi.
+O andaki listelerde sırasıyla 5 IP, 19.623 domain, 1.295 ve 329 kaynak iddiası
+bulunuyordu; bunlar izlenen varlığın bulgu sayıları değildir. İkinci başarılı
+indirmede dört kaynakta da yeni/değişen/çıkan kayıt sıfırdı. Kaynak geçmişi,
+domain IOC analizi, ThreatCluster domain/ad izlemesi ve RansomLook ad
+izlemesinin ilk/tekrar sonuçları doğrulandı. Kayıtlı IP kanıtı bulunmadığından
+bu deneme varlığın IP IOC karşılaştırmasını veya aktif yüzeyini doğrulamaz.
+
+İlk kısıtlı ağ denemesinin başarısız kaydı geçmişte korundu; izinli ağ
+denemesiyle Feodo başarıya geçti. Kaynak durumu kalan iki eksik bölümü
+(theHarvester kurulumu ve bu kişisel alanda ATT&CK senkronu) ayrı gösterdi.
+Salt okunur analiz/durum/doctor/izleme görüntüleme öncesi ve sonrası veritabanı
+SHA-256 özeti aynı kaldı. Önce/sonra yedek alındı; kabul kayıtları ve izleme
+kimlikleri yalnız Git dışında tutulan yerel veri alanına kaydedildi.
+
+Bu kullanım kabulünde mevcut beş test modülündeki 30/30 hedefli test 5,642
+saniyede geçti: `test_cti_feeds`, `test_certpl_warning`,
+`test_ransomware_history`, `test_ransomlook_history`,
+`test_source_readiness_adapter`. Bunlar ağsız/geçici veride hata korumasını,
+boş başarıyı, tekrarı, kaynak ayrımını ve yedek/geri yüklemeyi sınadı.
+Uygulama kodu, şema ve sürüm değişmedi; [günlük kullanım rehberine](DAILY_USE.md)
+ücretsiz beslemelerin yenileme ve izleme adımları eklendi. Kaynakların gelecekte
+erişilebilirliği ve daha geniş kapsamı bu tek denemeyle garanti edilmez.
+
 0.127.0 kısa kapısı 84/84, tam regresyonu 1.374/1.374 testle 294,923
 saniyede geçti. Yeni testler aynı domain/izleme kapsamındaki önceki başarıyı,
 kurulum metadata/commit/katalog denetimini, eksik/bozuk kayıtları, beklemeyi,
@@ -1111,7 +1136,7 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
-Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı. Öncelik, ürünü kişisel kullanımda çalıştırmak; gerçek kullanım sırasında ortaya çıkan kaynak sağlığı, kurulum ve terminal deneyimi ihtiyaçlarını ölçerek düzeltmektir. Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web paneli, e-posta/SMS ve yapay zekâ sonraki karara kadar beklemededir. Atama, kullanıcı/rol, müşteri ayrımı ve SLA ancak takım ürününe geçildiğinde ele alınacaktır. Sunucu envanteri, ürün/sürüm, paket ve CVE eşleştirmesi aktif plandan çıkarılmıştır. Doğrudan forum/pazar/Telegram toplama, kimlik sızıntısı, TAXII ve takedown henüz uygulanmadı; STIX dosya dışa aktarımı halen yalnız IOC `Indicator` nesnelerini kapsar.
+Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı. Öncelik, ürünü kişisel kullanımda çalıştırmak; gerçek kullanım sırasında ortaya çıkan kaynak sağlığı, kurulum ve terminal deneyimi ihtiyaçlarını ölçerek düzeltmektir. Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web paneli ve e-posta/SMS sonraki karara kadar beklemededir. 13 Kasım 2026 kullanıcı kararıyla gelecekte isteğe bağlı LLM desteği plana alındı: kaynaklı açıklama, günlük özet, vaka taslağı ve daha sonra salt okuma soru-cevap. Henüz uygulanmadı, model kurulmadı ve harici API bağlanmadı; [LLM planı](roadmap/LLM_PLAN.md) kullanım ve ölçüm şartlarını tanımlar. Atama, kullanıcı/rol, müşteri ayrımı ve SLA ancak takım ürününe geçildiğinde ele alınacaktır. Sunucu envanteri, ürün/sürüm, paket ve CVE eşleştirmesi aktif plandan çıkarılmıştır. Doğrudan forum/pazar/Telegram toplama, kimlik sızıntısı, TAXII ve takedown henüz uygulanmadı; STIX dosya dışa aktarımı halen yalnız IOC `Indicator` nesnelerini kapsar.
 
 Yeni sohbette bu dosya, [mimari](ARCHITECTURE.md) ve ilgili [iş paketi](roadmap/BACKLOG.md) üzerinden devam edilebilir.
 

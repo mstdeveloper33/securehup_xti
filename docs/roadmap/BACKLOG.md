@@ -147,14 +147,15 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 
 ## R12: AI ve denetimli otomasyon
 
-Bu bölüm kullanıcı kararıyla etkin backlog dışında tutulur. AIM işleri ancak yeni bir açık kapsam kararı verilirse yeniden önceliklendirilir; mevcut geliştirme yerel model veya harici AI API'sine bağımlı değildir.
+13 Kasım 2026 kullanıcı kararıyla isteğe bağlı LLM analiz desteği gelecekteki plana alındı; henüz uygulanmadı. İlk kapsam mevcut kanıtlardan açıklama, günlük özet ve vaka taslağıdır. Model kurulumu, ücretli API veya otomatik dış eylem bu plan güncellemesinin teslimi değildir. Ayrıntılar [LLM planında](LLM_PLAN.md); çekirdek LLM kapalıyken çalışır.
 
 | Kimlik | Teslimat | Önkoşul | Kabul kanıtı | Öncelik / boyut / kaynak |
 |---|---|---|---|---|
-| AIM-01 | Etiketli veri, temel yöntem karşılaştırması ve model seçim deneyi | PHI-05, DWI-02 veya CTI-02 | Ayrılmış test kümesi; kalite/gecikme/maliyet ve veri aktarımı değerlendirmesi | P2 / L / B0→B2 |
-| AIM-02 | Kaynaklı özet, varlık çıkarımı ve sınıflandırma önerileri | AIM-01 | Kaynaksız iddia ve prompt injection testleri; model kapalıyken çekirdek çalışır | P2 / L / B0→B2 |
-| AIM-03 | Salt okuma sorgu asistanı ve dar araç/MCP bağlantıları | AIM-02, INT-02, kapsam yetkileri | Araç allowlist, schema, tenant kapsamı, maliyet ve süre sınırları | P3 / L / B0→B3 |
-| AIM-04 | Onaylı çok adımlı iş akışları ve model/prompt sürüm yönetimi | AIM-03, RSP-01 | Yetkisiz aksiyon yok; kayıtlı karar izi ve regresyonda geri dönüş | P3 / XL / B2→B3 |
+| AIM-01 | Etiketli örnekler, LLM'siz temel yöntem ve yerel model deneyi | Kayıtlı kanıt, kaynak durumu ve vaka örnekleri | Ayrılmış test kümesi; doğruluk, eksik bilgi, inceleme süresi, gecikme ve bellek ölçümü | P2 / M / B0 |
+| AIM-02 | Kaynaklı bulgu açıklaması, günlük özet ve vaka taslağı | AIM-01, ilk AIM-05 kontrolleri | Kanıt atfı, belirsizlik, dış metindeki talimatlara direnç ve model kapalı/hatalı testi; insan kararı değişmez | P2 / L / B0→B2 |
+| AIM-03 | Salt okuma yerel sorgu asistanı; sonrasında metinden varlık çıkarımı ve gerekçeli inceleme/ilişki önerileri | AIM-02, kapsamı sınırlı yerel okuma servisleri | Serbest SQL/kabuk yok; sorgu kapsamı, kanıt atfı, süre ve veri sınırı; REST API gerekmez | P3 / L / B0→B2 |
+| AIM-04 | Ayrı kapsam kararı gerektiren araç/MCP ve onaylı çok adımlı iş akışları; ilk LLM kapsamı dışında | AIM-03; dış eylem için ayrıca kapsam ve yetki | Dar araç listesi, kayıtlı karar/onay, durdurma; onaysız dış eylem yok | P3 / XL / B2→B3 |
+| AIM-05 | İlk deneyden itibaren model/prompt/kanıt sürümü, kaynak sınırı ve geri dönüş | AIM-01 ile birlikte | Kayıtlı yapılandırma, her güncellemede aynı değerlendirme, gerilemede geri dönüş; harici API ancak açık seçimle | P2 / M / B0→B2 |
 
 ## R13: Kapsam ve işletim olgunluğu
 
@@ -167,16 +168,16 @@ Bu bölüm kullanıcı kararıyla etkin backlog dışında tutulur. AIM işleri 
 
 ## İlk çekilecek işler
 
-Temel, marka/domain ve ilk dış yüzey omurgası tamamlandı; **FND-09 birleşik analiz görünümü 0.90.0'da teslim edildi**. Güncel geliştirme sırası şöyledir:
+Temel, marka/domain ve ilk dış yüzey omurgası, kişisel tedarikçi/vaka çekirdekleri ve 0.127.0 birleşik kaynak durumu teslim edildi. Güncel geliştirme sırası şöyledir:
 
-1. Kaynak koşulları açık CTI varlık/ilişki adaptörlerini eklemek ve mevcut araştırma akışını otomatik hüküm üretmeden genişletmek.
-2. Dış yüzeyde eksik/eski kanıt görünümünü ve güvenli yapılandırma adaylarını tamamlamak; ürün, sürüm veya CVE tahmini yapmamak.
-3. Yasal ve herkese açık ransomware/sızıntı kaynaklarını adaptörlerle eklemek; ham iddiayı doğrulanmış ihlal saymamak.
-4. Marka korumasını sahte sayfa, sosyal hesap, logo/görsel ve mobil uygulama adaylarıyla genişletmek.
-5. Tedarikçi riskini dış yüzey, CTI ve açık olay kanıtıyla kurmak; ardından vaka, STIX/TAXII, yerel API, webhook/SIEM ve insan onaylı takedown akışlarına geçmek.
-6. Kullanıcı açıkça ihtiyaç duyduğunda web paneli, kullanıcı/rol/müşteri ayrımı ve ölçülmüş ölçek altyapısını eklemek.
+1. Mevcut kaynakların kişisel kullanım kabulünü tamamlamak. Feodo/CERT Polska IOC ve ThreatCluster/RansomLook ilk/tekrar kabulü 13 Kasım 2026'da tamamlandı; bu kişisel kayıt alanında ATT&CK senkronu ve theHarvester kurulum/canlı kapsam denemesi kaldı. Kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
+2. Seçilen mevcut akışları tek günlük çalışma altında toplamak; yeni/değişen sonuçları ve kaynak hatalarını anlaşılır göstermek.
+3. Ölçülen kapsam boşluğuna katkı sağlayan açık kaynak adaptörlerini lisans, sürüm ve kabul testleriyle eklemek.
+4. CTI, tedarikçi ve vaka bağlantılarını kaynaklı değişiklikler ve gerçek kullanım geri bildirimiyle geliştirmek.
+5. Sürekli Linux kullanımı gerektiğinde zamanlama, yeniden başlatma, disk ve yedekten dönüş kontrollerini tamamlamak.
+6. İsteğe bağlı LLM için önce küçük kalite/cihaz deneyi, ardından kaynaklı açıklama ve özetler; başarılı olursa salt okuma soru-cevap ve inceleme önerileri eklemek. Bu iş web/API veya bütün kaynakların tamamlanmasına bağlı değildir; Linux hizmeti de zorunlu önkoşul değildir.
 
-Ürün/sürüm, paket envanteri, CVE/KEV/EPSS eşleştirmesi ve yapay zekâ bu aktif sırada değildir. Kafka/OpenSearch gibi ağır altyapı da kişisel kullanım ölçümleri ihtiyaç göstermeden kurulmaz.
+Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web paneli ve e-posta/SMS kullanıcı kararıyla beklemededir. Ürün/sürüm, paket envanteri ve CVE/KEV/EPSS eşleştirmesi aktif kapsam dışındadır. LLM desteğinin plana alınması bu işleri yeniden açmaz. Kafka/OpenSearch gibi ağır altyapı da kişisel kullanım ölçümleri ihtiyaç göstermeden kurulmaz.
 
 Dış kaynağa bağlı işin öncesinde küçük bir erişim deneyi yapılır. Kaynak sağlanamıyorsa fixture ile sözleşme geliştirilebilir; işin canlı kapsam kabulü kapatılmaz.
 

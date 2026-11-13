@@ -14,6 +14,8 @@ Komut kaynak istemcilerini çalıştırmaz, depolama oluşturmaz veya değiştir
 
 Aktif ürün yönü savunmacı OSINT/dijital risk izlemedir. Ürün, sürüm, paket ve CVE modülleri geçmiş veri ve şema uyumluluğu için kod tabanında korunur; `analyze` bileşimine ve yeni teslim sırasına dahil edilmez. Bu ayrım veri silmez ve eski komutların sonuçlarını yeni dış risk kanıtı gibi sunmaz.
 
+**Planlanan, henüz uygulanmamış LLM sınırı:** İsteğe bağlı analiz servisi mevcut uygulama servislerinden kapsamı sınırlı kanıtları okuyacak; küçük bir model sözleşmesi üzerinden değiştirilebilir yerel/harici sağlayıcı adaptörünü çağıracaktır. Domain kuralları model kütüphanesine bağlı olmayacak. İlk sürümün kanıt, insan kararı veya dış eylem üzerinde yazma yetkisi olmayacak; taslak model çıktısı kanıttan ayrı, kaynak kimlikleri ve model/prompt sürümüyle gösterilecek. LLM hatası mevcut toplama/inceleme akışını durdurmayacak. Bu sınır aşağıdaki uygulanmış yapı diyagramına dahil değildir; ayrıntılar [LLM planındadır](roadmap/LLM_PLAN.md).
+
 ```text
 Terminal → Uygulama servisi
               ├─ Alan adı kuralları ← sürümlü Unicode/IDNA profili

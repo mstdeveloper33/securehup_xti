@@ -196,7 +196,7 @@ STIX/TAXII/TLP desteği bizim açık standart hedefimizdir; bu satırlar rakibin
 
 ## 11. AI ve araç tabanlı iş akışları
 
-Bu bölüm rakip/kapsam karşılaştırması olarak korunur; kullanıcı kararıyla etkin teslim hedefi değildir. Platformun çekirdek işlevleri AI olmadan geliştirilecektir.
+13 Kasım 2026 kullanıcı kararıyla isteğe bağlı LLM analiz desteği gelecekteki plana alındı; henüz uygulanmadı. Önce CAP-096/097 ve ilk deneyden itibaren CAP-102, sonra CAP-098/099'un kanıtla sınırlandırılmış bölümü değerlendirilir. CAP-100/101 araç ve otomasyon kapsamı ayrıca kararlaştırılacaktır. Kullanım ve kabul ölçümleri [LLM planında](LLM_PLAN.md); çekirdek LLM olmadan çalışır.
 
 Referans kapsamı: analiz ajanları, özelleştirilebilir iş akışları ve API/MCP araç erişimi. Araç sayıları yerine tamamlanabilen kullanıcı işleri karşılaştırılır. Belirli MCP özellikleri “yakında” olarak etiketlenebildiğinden mevcut/önizleme ayrımı korunur. [SOCRadar ATI](https://socradar.io/products/agentic-threat-intelligence/), [MCP](https://socradar.io/socradar-mcp-server/)
 
@@ -204,11 +204,11 @@ Referans kapsamı: analiz ajanları, özelleştirilebilir iş akışları ve API
 |---|---|---|---|---|
 | CAP-096 | Analiz temel yöntemi ve ölçüm | Etiketli veri, kurallı temel yöntem, maliyet/kalite karşılaştırması | AIM-01 | R12 / B0→B2 |
 | CAP-097 | Kaynaklı özet | İddia başına kanıt; yeterli kanıt yoksa karar vermeme | AIM-02 | R12 / B0→B2 |
-| CAP-098 | Metin ve varlık çıkarımı | Çok dil, alıntı, eski haber ve belirsizlik değerlendirmesi | AIM-02 | R12 / B0→B2 |
+| CAP-098 | Metin ve varlık çıkarımı | Çok dil, alıntı, eski haber ve belirsizlik değerlendirmesi; sonraki teslim | AIM-03 | R12 / B0→B2 |
 | CAP-099 | Sorgu asistanı | Salt okuma, sınırlandırılmış arama ve sonuç dayanakları | AIM-03 | R12 / B0→B3 |
-| CAP-100 | MCP/araç bağlantısı | Dar araç listesi, yetki, şema, süre ve maliyet limiti | AIM-03 | R12 / B0→B3 |
+| CAP-100 | MCP/araç bağlantısı | İlk LLM kapsamı dışında; dar araç listesi, yetki, şema, süre ve maliyet limiti | AIM-04 | R12 / B0→B3 |
 | CAP-101 | Denetimli çok adımlı akış | Kayıtlı karar, durdurma ve dış eylemde sürüme bağlı onay | AIM-04 | R12 / B2→B3 |
-| CAP-102 | Model yaşam döngüsü | Prompt/model sürümü, regresyon, veri aktarımı ve geri dönüş | AIM-04 | R12 / B0→B3 |
+| CAP-102 | Model yaşam döngüsü | İlk deneyden itibaren prompt/model sürümü, regresyon, veri aktarımı ve geri dönüş | AIM-05 | R12 / B0→B3 |
 
 ## 12. Takım, MSSP ve kurumsal güven
 

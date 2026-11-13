@@ -35,7 +35,70 @@ Yazım hatalı adları da aramak istediğinde `./xti scan example.com --typos`
 kullanabilirsin. Daha fazla sorgu daha uzun sürebilir. Bir kaynak hata verirse
 ekrandaki kısmi sonuç ve hata açıklamasını dikkate al; alınan kanıtlar korunur.
 
-## 3. Marka kullanıcı adı izlemesini bir kez oluştur
+## 3. İstersen ücretsiz tehdit kaynaklarını kullan
+
+### Zararlı IP ve domain listeleri
+
+```sh
+./xti ioc sync --source feodo
+./xti ioc sync --source certpl
+./xti ioc status --source feodo
+./xti ioc status --source certpl
+./xti analyze example.com
+```
+
+`sync` internetteki listeyi yerel kataloğa alır; `status` ve `analyze`
+kayıtlı veriyi okur. Feodo IP, CERT Polska domain kayıtları sağlar.
+Katalogdaki toplam kayıt sayısı senin domainindeki bulgu sayısı değildir.
+Analiz, eldeki domain ve IP kanıtlarını bu kayıtlarla karşılaştırır; IP
+kanıtı yoksa IP karşılaştırması için kapsam eksik kalır. Kaynak hatasında
+önceki geçerli katalog korunur; hata mesajını ve son başarılı tarihi kontrol et.
+
+### Ransomware iddiaları
+
+Önce iki ayrı kaynağın kayıtlarını al ve güncellemenin tamamlandığını kontrol et:
+
+```sh
+./xti ransomware refresh --source threatcluster
+./xti ransomware status --source threatcluster
+./xti ransomware refresh --source ransomlook
+./xti ransomware status --source ransomlook
+```
+
+İzlemeleri bir kez oluştur. `Markam` yerine kuruluşunun adını yaz:
+
+```sh
+./xti ransomware watch-add "Markam domain" example.com --kind domain --source threatcluster
+./xti ransomware watch-add "Markam kuruluş" "Markam" --kind organization --match contains --source ransomlook
+```
+
+RansomLook domain bilgisi sağlamaz; yalnız kuruluş adı izlenir. `contains`,
+adın kaynak başlığı içinde geçmesini arar ve en az 5 karakter ister.
+Benzer adlı başka kuruluşlar da eşleşebilir. Yalnız tam ad eşleşmesini
+istiyorsan `--match exact` kullan.
+
+Komutların verdiği kimlikleri aşağıdaki yer tutucuların yerine yaz:
+
+```sh
+./xti ransomware watch-run THREATCLUSTER_IZLEME_KIMLIGI --source threatcluster
+./xti ransomware watch-show THREATCLUSTER_IZLEME_KIMLIGI --source threatcluster
+./xti ransomware watch-run RANSOMLOOK_IZLEME_KIMLIGI --source ransomlook
+./xti ransomware watch-show RANSOMLOOK_IZLEME_KIMLIGI --source ransomlook
+```
+
+`watch-run` internete çıkmaz; son başarılı yerel kaynak kaydını izleme
+ifadenle karşılaştırıp sonucu saklar. `watch-show` bu geçmişi gösterir.
+Yenileme başarısızsa önce sorunu incele; eski başarılı kayıt üzerinden
+yapılan karşılaştırmayı yeni canlı sonuç olarak değerlendirme.
+
+İlk başarılı kaynak ve izleme çalışmaları karşılaştırma başlangıcıdır;
+katalogdaki kayıtlar otomatik olarak sana ait alarm sayılmaz. İki kaynağın
+geçmişi ayrıdır. ThreatCluster'ın çıktıdaki zaman penceresi ve RansomLook'un
+son yedi günlük kapsamı dışında sonuç çıkarılmaz. Eşleşme bulunmaması bu
+sınırlı kapsamda sonuç olmadığını söyler; güvenli olunduğunu kanıtlamaz.
+Bulunanlar kaynak iddialarıdır; doğrulanmış ihlal değildir.
+
+## 4. Marka kullanıcı adı izlemesini bir kez oluştur
 
 ```sh
 ./xti brand watch-add "Markam Maigret" markam --site GitHub --site Instagram
@@ -60,7 +123,7 @@ adresi değişen, değişmeyen veya artık raporlanmayan profilleri gösterir.
 aynı kullanıcı adına ait bir profil işaretidir; resmî hesap veya taklit
 olduğuna ilişkin karar ayrıca inceleme gerektirir.
 
-## 4. Sonuçları incele
+## 5. Sonuçları incele
 
 ```sh
 ./xti sources status --domain example.com
@@ -81,7 +144,7 @@ list` içindeki “İzlenen” alanına bak.
 Hiç aday görünmüyorsa kaynak durumunu kontrol et. Başarısız arama ile
 tamamlanan aramada eşleşme bulunmaması aynı anlama gelmez.
 
-## 5. Takip edeceğin gerçek adayı vakaya ekle
+## 6. Takip edeceğin gerçek adayı vakaya ekle
 
 İncelemeye değer bir domain adayı varsa aşağıdaki akışı kullan. Örnekteki
 başlığı, özeti ve gerekçeyi yaptığın incelemeye göre değiştir:
@@ -102,7 +165,7 @@ adayın tehdit olarak doğrulandığı anlamına gelmez. Sosyal profil kanıtı
 eklemek için önce o tam profil hakkında gerekçeli insan incelemesi gerekir.
 Sonuç yoksa örneği tamamlamak için kanıt veya inceleme kararı oluşturma.
 
-## 6. Sonraki gün tekrar et
+## 7. Sonraki gün tekrar et
 
 ```sh
 ./xti sources status --domain example.com
@@ -115,6 +178,13 @@ Sonuç yoksa örneği tamamlamak için kanıt veya inceleme kararı oluşturma.
 ./xti cases list
 ./xti backup
 ```
+
+Ücretsiz tehdit kaynaklarını da kullanıyorsan 3. bölümdeki `ioc sync` ve
+`ransomware refresh` komutlarını tekrarla. Her kaynağın durumunu ayrı kontrol
+et; yenilemesi başarılı olan ransomware kaynağı için mevcut izleme
+kimliğiyle `watch-run` ve `watch-show` çalıştır. İzlemeleri yeniden oluşturma.
+Bu komutlar arka planda otomatik zamanlama başlatmaz; RansomLook izlemesi
+de açık yenileme ve çalıştırma ister.
 
 Aynı domain kanıtı yeniden geldiğinde mevcut aday ve karar geçmişi korunur.
 Sosyal izleme son başarılı ölçümle karşılaştırılır; kaynak hatası önceki
