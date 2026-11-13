@@ -17,6 +17,7 @@ _FINDING = {
 
 def report_lines(
     report: UnifiedAnalysisReport, *, after_explicit_refresh: bool = False,
+    after_collection: bool = False,
 ) -> list[str]:
     overview = report.overview
     web = overview.latest_check
@@ -26,6 +27,8 @@ def report_lines(
         f"Birleşik dış risk analizi: {safe_text(report.asset_value)}",
         f"Değerlendirme zamanı: {safe_text(report.observed_at)}",
         (
+            "Analiz aşaması: Kaynak denemelerinden sonra kayıtlı kanıt okundu."
+            if after_collection else
             "Analiz aşaması: Açık IOC yenilemesinden sonra yalnız kayıtlı kanıt okundu."
             if after_explicit_refresh else
             "Çalışma biçimi: Yalnız kayıtlı veri; yeni internet bağlantısı yapılmadı."
@@ -123,7 +126,12 @@ def report_lines(
         report.next_steps, start=1,
     ))
     notes = report.notes
-    if after_explicit_refresh:
+    if after_collection:
+        notes = (
+            "Toplama adımları ağ ve kayıt kullanır; analiz aşaması ayrıca ağ kullanmaz.",
+            *report.notes[1:],
+        )
+    elif after_explicit_refresh:
         notes = (
             "IOC yenilemesi ağ kullandı ve çalışma geçmişi yazdı; analiz aşaması ayrıca ağ kullanmadı.",
             *report.notes[1:],

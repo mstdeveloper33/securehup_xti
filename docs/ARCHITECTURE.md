@@ -1,8 +1,17 @@
 # Yerel Uygulamanın Mimarisi
 
-**13 Kasım 2026 — 0.128.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**13 Kasım 2026 — 0.129.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
+
+`CollectionService`, seçilen mevcut `JobService`, `SurfaceDiscoveryService`
+ve `CtiFeedService` işlemlerini tek çalışma kilidi altında seri yürütür.
+Kaynak sonuçları kendi depolarında saklanır; son `UnifiedAnalysisService`
+görünümü bu kayıtlardan okunur. Donmuş plan/adım/sonuç modelleri terminal ve
+JSON tarafından kullanılır. Servis CLI, HTTP veya SQLite import etmez;
+ilerideki React/API katmanı aynı işlevi çağırabilir. Ayrı bir genel workflow
+motoru, birleşik çalışma tablosu veya otomatik kaldığı yerden sürdürme yoktur.
+Ayrıntılar [0127 numaralı karardadır](decisions/0127-explicit-passive-collection.md).
 
 `SourceReadinessService`, küçük `SourceReadinessRepository` sözleşmesinden
 yerel kurulum ve kayıt geçmişini alır. SQLite/kurulum adaptörü mevcut kayıt

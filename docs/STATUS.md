@@ -1,10 +1,23 @@
 # XTI — Güncel Uygulama Durumu
 
-**13 Kasım 2026 · 0.128.0 sürümü arşiv bağlantısını, sayfalamayı ve ayrı ortam kurulumunu düzeltir**
+**13 Kasım 2026 · 0.129.0 sürümü seçilen pasif kaynakları tek çalışmada toplar ve birleşik analiz üretir**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `collect DOMAIN` ile kayıtlı domain için crt.sh/urlscan marka aramalarını
+  ve crt.sh pasif alt alan adı keşfini tek uygulama servisinde çalıştırma.
+  `--task` ile yalnız seçilen işler; isteğe bağlı theHarvester arşivi ve
+  Feodo/CERT Polska IOC yenilemesi. `--plan` ağsız/yazmasız önizlemedir.
+- Her seçili adımın kaynak sonucu, gerçek iş/deneme/keşif/IOC kimliği ve
+  sayaçları ayrı kalır. Beklenen kaynak hatası sonrası diğer adımlar devam
+  eder; depolama/bütünlük hatasında yeni adım başlatılmaz. Genel kısmi/hata
+  durumu son birleşik analiz tarafından başarıya çevrilmez.
+- Ortak çalışma kilidi, kayıtlı hedef ve seçili depoların ağ öncesi
+  doğrulaması; tekrarında mevcut tekilleştirme/insan kararlarını koruma.
+  Yeni şema veya kalıcı birleşik oturum oluşturulmaz. Terminalden bağımsız
+  servis ve JSON sonucu ilerideki React/API bağlantısına temel oluşturur.
 
 - Arşiv v2 işçisi, sabit theHarvester kurulumundan indeks/hostname/sayfa
   ayrıştırma yardımcılarını kullanır; upstream dosyalarını değiştirmez.
@@ -1025,6 +1038,30 @@ R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin
 
 ## Son doğrulama
 
+0.129.0 hızlı kapısı 165/165 testle 33,663 saniyede; tam regresyonu
+1.443/1.443 testle 280,563 saniyede geçti. Son terminal açıklaması
+düzeltmesinden sonra 9 CLI bütünleşme testi 8,159 saniyede yeniden geçti.
+Yeni 24 test seçim/ön doğrulama, tek kilit, bağımsız kaynak hataları,
+depolama/kullanıcı kesintisi, kalıcı kaynak kimlikleri, tekrar ve insan kararı
+korunumu, kaynak listesi–hedef bulgusu ayrımı ve JSON/terminal sonuçlarını
+ağsız geçici veride doğruladı. Mimari bağımlılık denetimi de geçti.
+
+13 Kasım 2026, 0.129.0 canlı kabulü: kayıtlı tek domain için iki marka
+araması, crt.sh alt alan adı keşfi ve iki IOC yenilemesi aynı `collect`
+çağrısında yaklaşık 12,6 saniyede tamamlandı. Beş adım ayrı kimlik/durumla
+çıktıda korundu; genel sonuç `complete` ve çıkış kodu 0 oldu. Yeni marka
+bulgusu veya pasif aday oluşmadı; önceki tek alt alan adı adayı korundu.
+Feodo listesi 5 IP, CERT Polska listesi 19.596 domain içeriyordu; bu sayılar
+hedefin bulgu sayısı değildir. Son birleşik analizde IOC eşleşmesi yoktu.
+İsteğe bağlı theHarvester bu kabulde çalıştırılmadı; önceki Common Crawl
+erişim sorunu çözülmüş sayılmadı.
+
+Beş adımlı `--plan` öncesi/sonrası veritabanı özeti aynı kaldı. Canlı toplama
+öncesi/sonrası yedek alındı; sonraki kaynak durumu, doctor ve analiz okumaları
+da veritabanını değiştirmedi. Şema 54 değişmedi; kabul çıktıları ve kişisel
+domain bilgileri Git dışında tutuldu. Tekrar/karar korunumu, kesinti ve
+kısmi/tam kaynak hataları geçici verili otomatik testlerle ayrıca sınandı.
+
 0.128.0 hızlı kapısı 141/141 testle 27,917 saniyede, tam regresyonu
 1.419/1.419 testle 283,685 saniyede geçti. Yeni testler bağlantı/TLS/HTTP
 hatasını başarılı boş yanıttan ayırmayı, gecikmeli tekrar ve kota davranışını,
@@ -1211,6 +1248,13 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 0.91.0 testleri açık başarılı IOC yenilemesini, yenileme sonrası tekrar analizi, kaynak hatasında önceki kataloğun korunmasını, hata–eşleşme yokluğu ayrımını, bilinmeyen hedefin ağdan önce reddini ve varsayılan analizin salt-okunur kalmasını doğruladı. Tam kontrolde 1.110 otomatik test 172,606 saniyede geçti; gerçek ağ kullanılmadı.
 
 ## Sonraki teslim
+
+13 Kasım 2026 son kullanıcı yönlendirmesi: terminal menüsü yerine özellik
+geliştirmeye devam edilecek; React arayüzü ileride ayrı projeden bağlanacak.
+0.129.0 seçilen pasif toplama işlerini birleştiren uygulama servisini teslim
+eder. React veya REST API henüz eklenmedi. Sonraki özellikler mevcut toplama,
+CTI, tedarikçi ve vaka zincirindeki somut boşluklara göre seçilecek; kaynak
+kapsamı, doğrulanmış katkı ve mevcut mimari sınırlar korunacak.
 
 Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı. Öncelik, ürünü kişisel kullanımda çalıştırmak; gerçek kullanım sırasında ortaya çıkan kaynak sağlığı, kurulum ve terminal deneyimi ihtiyaçlarını ölçerek düzeltmektir. Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web paneli ve e-posta/SMS sonraki karara kadar beklemededir. 13 Kasım 2026 kullanıcı kararıyla gelecekte isteğe bağlı LLM desteği plana alındı: kaynaklı açıklama, günlük özet, vaka taslağı ve daha sonra salt okuma soru-cevap. Henüz uygulanmadı, model kurulmadı ve harici API bağlanmadı; [LLM planı](roadmap/LLM_PLAN.md) kullanım ve ölçüm şartlarını tanımlar. Atama, kullanıcı/rol, müşteri ayrımı ve SLA ancak takım ürününe geçildiğinde ele alınacaktır. Sunucu envanteri, ürün/sürüm, paket ve CVE eşleştirmesi aktif plandan çıkarılmıştır. Doğrudan forum/pazar/Telegram toplama, kimlik sızıntısı, TAXII ve takedown henüz uygulanmadı; STIX dosya dışa aktarımı halen yalnız IOC `Indicator` nesnelerini kapsar.
 

@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.128.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Pasif arşivlerde kontrollü bağlantı, sayfalama ve kaynak hatası ayrımı.
+**Sürüm:** 0.129.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Seçilen pasif kaynakları tek çalışmada toplama ve birleşik analiz.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -48,6 +48,57 @@ erişilebilir olduğunu garanti etmez.
 
 İlk gün kayıt, veri toplama, sonuç inceleme, gerçek adayı vakaya ekleme ve
 sonraki gün tekrar için [günlük kullanım rehberini](docs/DAILY_USE.md) izle.
+
+## Bir domain için kaynakları birlikte çalıştır
+
+Önceden kaydettiğin bir domainin marka aramasını, alt alan adı keşfini ve
+isteğe bağlı IOC listesi yenilemesini aynı çalışmada yapabilirsin:
+
+```sh
+./xti collect example.com --plan
+./xti collect example.com
+./xti --json collect example.com
+```
+
+`--plan` yalnız seçilen işleri gösterir; internete çıkmaz ve veri yazmaz.
+Normal çalıştırma sırasıyla crt.sh marka araması, urlscan marka araması ve
+crt.sh alt alan adı keşfi yapar; sonunda kayıtlı kanıtların birleşik analizini
+gösterir. Domain kayıtlı değilse önce `./xti assets add example.com` gerekir.
+
+`--task` ile aşağıdaki işleri seçebilirsin. Tekrarlanan seçenekler birlikte
+çalışır; **seçim varsayılan listenin yerine geçer**. Her iş en fazla bir kez,
+tabloda belirtilen sabit sırayla çalışır:
+
+| İş | İşlev |
+|---|---|
+| `scan-crtsh` | Sertifika kayıtlarında benzer domain araması |
+| `scan-urlscan` | Mevcut web inceleme kayıtlarında benzer domain araması |
+| `discover-crtsh` | Sertifika kayıtlarında alt alan adı keşfi |
+| `discover-theharvester` | Kurulu araçla Common Crawl/Wayback pasif arşiv keşfi |
+| `ioc-feodo` | Genel C2 IP listesini yenileme |
+| `ioc-certpl` | Genel domain IOC listesini yenileme |
+
+```sh
+./xti collect example.com \
+  --task scan-crtsh --task scan-urlscan --task discover-crtsh \
+  --task ioc-feodo --task ioc-certpl
+```
+
+Her adım kendi gerçek çalışma kimliği, sonucu, yeni kayıtları ve hatalarıyla
+gösterilir. IOC listesi toplamı domainin bulgu sayısı değildir. Kaynaklar aynı
+adresi görebileceği için sayaçlar tek bir “benzersiz toplam” gibi toplanmaz.
+Kaynak hatası diğer adımların çalışmasını engellemez; önceki geçerli veriler
+korunur. Depolama/bütünlük hatası veya `Ctrl+C` yeni adımları durdurur;
+tamamlanmış kayıtlar kendi geçmişlerinde kalır. Kısmi/başarısız toplama JSON'da
+`ok:false`, terminal çıkışında `3` üretir; analiz üretilmesi toplama hatasını
+başarıya çevirmez.
+
+Komut hedef siteye DNS/TLS/HTTPS/port kontrolü göndermez. Sosyal izleme,
+ransomware, ATT&CK, dış bildirim ve otomatik takvim bu ilk toplama akışında
+yer almaz. Yeni bir birleşik oturum geçmişi veya otomatik devam kurulmaz;
+mevcut `jobs`, `surface runs` ve `ioc status` geçmişleri korunur. Normal
+`analyze` komutu ağsız kalır. İş mantığı terminalden bağımsız uygulama
+servisindedir; ileride React için hazırlanacak API aynı servisi kullanabilir.
 
 ## Bulguları vaka altında yönet
 
@@ -362,13 +413,14 @@ incelenen tam commit ve SHA-256 özetleriyle karşılaştıran ikinci kapıdır.
 etkin, HTTPS kullanan doğrudan kullanıcı adı tanımları alınır; aynı
 normalleştirilmiş ad veya aynı Public Suffix List kayıt kökü ortak sayılır.
 Sherlock'un 455 uygun tanımından 352'si ortak, 103'ü eşleşmeyen tanımdır; bu
-tanımlar 102 host ve 101 ayrı kayıt kökü oluşturur. Mevcut güvenli 10 platformda
+tanımlar 102 host ve 101 ayrı kayıt kökü oluşturur. İlk değerlendirmedeki 10 platformda
 ise 9 platform ortaktır, Facebook yalnız Maigret'tedir ve Sherlock yeni platform
 eklemez.
 
-Bu nedenle Sherlock bütün kataloğuyla çalıştırılmaz. Yalnız Carrd, CashApp,
-CodeSandbox, GitBook, ResearchGate, Rumble, Strava ve Weebly için sınırlı
-adaptör çalışır. `brand source-coverage` hâlâ ağsız ölçüm komutudur;
+Sherlock bütün kataloğuyla çalıştırılmaz. Güncel kurulumda `safe` profili
+5, `extended` profili 26 incelenmiş platform içerir; Maigret'te bu sayılar
+6 ve 30'dur. Tam güncel seçim `brand profile-list` ile görülür.
+`brand source-coverage` hâlâ ağsız ölçüm komutudur;
 `brand username-preview ... --source sherlock` ise yalnız kullanıcı açıkça
 çalıştırdığında seçilen platformlara bağlanan, yazmasız canlı önizlemedir.
 Kurulum tam commit'e, site kataloğu tam SHA-256 özetine sabittir. Geniş katalog,
@@ -1593,8 +1645,8 @@ Temizlik veritabanı içinde yeniden kullanılabilir yer açar; dosyayı hemen k
 ./scripts/check
 ```
 
-`./scripts/check-fast` her değişiklikte çalıştırılan 84 testlik kısa, ağsız
-çekirdek ve kurulum kontrolüdür. `./scripts/check` 1.374 testlik tam regresyon paketidir;
+`./scripts/check-fast` her değişiklikte çalıştırılan kısa, ağsız
+çekirdek ve kurulum kontrolüdür. `./scripts/check` tam regresyon paketidir;
 sürüm oluşturmadan önce veya GitHub'daki elle başlatılan tam kontrolde çalışır.
 GitHub'daki temiz Maigret/Sherlock kurulumu yalnız ilgili kurulum, sürüm veya
 marka adaptörü dosyaları değiştiğinde tekrar çalışır. `v*` etiketi ancak tam

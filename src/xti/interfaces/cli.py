@@ -148,6 +148,12 @@ from xti.adapters.sqlite_services import SQLiteSurfaceServiceScanRepository
 from xti.adapters.evaluation_dataset import EvaluationDataError, load_evaluation_dataset
 from xti.application.assets import AssetService
 from xti.application.analysis import UnifiedAnalysisRefreshService, UnifiedAnalysisService
+from xti.application.collection import CollectionService
+from xti.domain.collection import COLLECTION_TASK_IDS, DEFAULT_COLLECTION_TASKS
+from xti.interfaces.collection import (
+    plan_lines as collection_plan_lines,
+    result_lines as collection_result_lines,
+)
 from xti.application.asset_context import AssetCriticalityService
 from xti.application.suppliers import SupplierService
 from xti.application.supplier_candidates import SupplierCandidateService
@@ -690,6 +696,25 @@ def build_parser() -> Parser:
             "tekrar üret. Verilmezse komut ağsız ve salt-okunurdur."
         ),
     )
+    collect = commands.add_parser(
+        "collect",
+        help="Kayıtlı domain için seçilen pasif kaynakları topla ve birleşik analiz üret.",
+    )
+    collect.add_argument("domain", help="Önceden kaydedilmiş domain.")
+    collect.add_argument(
+        "--plan", action="store_true",
+        help="Seçilen işleri ağ ve veri yazımı olmadan göster; toplama başlatmaz.",
+    )
+    collect.add_argument(
+        "--task", action="append", choices=COLLECTION_TASK_IDS, dest="tasks",
+        help=(
+            "Çalışacak işi seç; tekrarlanabilir. Seçim varsayılan listenin yerine geçer. "
+            "Varsayılan: scan-crtsh, scan-urlscan, discover-crtsh."
+        ),
+    )
+    collect.add_argument("--typos", action="store_true", help="Marka aramasına sınırlı yazım varyantlarını ekle.")
+    collect.add_argument("--stale-after-hours", type=int, default=24, help="Analiz güncellik eşiği (1–8760 saat).")
+    collect.add_argument("--finding-limit", type=int, default=10, help="Analizde gösterilecek marka adayı (1–50).")
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -3066,6 +3091,43 @@ def make_cti_feed(settings: Settings, source_name: str):
     return SQLiteCtiFeedRepository(settings.database, policy), source
 
 
+def make_analysis_service(settings: Settings, repository: SQLiteAssetRepository) -> UnifiedAnalysisService:
+    return UnifiedAnalysisService(
+        SurfaceOverviewService(repository, SQLiteSurfaceOverviewRepository(settings.database)),
+        SurfaceFreshnessService(repository, SQLiteSurfaceFreshnessRepository(settings.database)),
+        SurfaceDiscoveryStatusService(repository, SQLiteSurfaceCandidateRepository(settings.database)),
+        SurfaceExposureService(repository, SQLiteSurfaceFreshnessRepository(settings.database)),
+        SQLiteFindingRepository(settings.database),
+        SQLiteCtiIndicatorRepository(settings.database),
+    )
+
+
+def make_collection_service(
+    settings: Settings, repository: SQLiteAssetRepository, tasks: list[str] | None,
+) -> CollectionService:
+    selected = DEFAULT_COLLECTION_TASKS if tasks is None else tasks
+    discoveries = {}
+    if "discover-crtsh" in selected:
+        discoveries["crt.sh"] = SurfaceDiscoveryService(
+            repository, SQLiteSurfaceCandidateRepository(settings.database),
+            CrtShSource(cooldowns=SQLiteCooldownRepository(settings.database)),
+        )
+    if "discover-theharvester" in selected:
+        discoveries["theharvester"] = SurfaceDiscoveryService(
+            repository, SQLiteSurfaceCandidateRepository(settings.database),
+            TheHarvesterArchiveSource(),
+        )
+    feeds = {}
+    for name in ("feodo", "certpl"):
+        if f"ioc-{name}" in selected:
+            feed_repository, feed_source = make_cti_feed(settings, name)
+            feeds[name] = CtiFeedService(feed_repository, feed_source)
+    return CollectionService(
+        make_jobs(settings, repository), discoveries, feeds,
+        make_analysis_service(settings, repository),
+    )
+
+
 def surface_check_incomplete(check) -> bool:
     return bool(check.result.errors) or check.result.dns_status in {"failed", "blocked"}
 
@@ -3208,23 +3270,26 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "evaluate":
         report = EvaluationService(make_domain_matcher()).run(load_evaluation_dataset())
         emit(asdict(report), evaluation_lines(report), as_json=args.json)
+    elif args.command == "collect":
+        collection = make_collection_service(settings, repository, args.tasks)
+        options = {
+            "tasks": args.tasks, "typos": args.typos,
+            "stale_after_hours": args.stale_after_hours,
+            "finding_limit": args.finding_limit,
+        }
+        if args.plan:
+            plan = collection.plan(args.domain, **options)
+            emit(asdict(plan), collection_plan_lines(plan), as_json=args.json)
+            return 0
+        result = collection.run(args.domain, progress=terminal_progress(args.json), **options)
+        if args.json:
+            print(json.dumps({"ok": result.status == "complete", "data": asdict(result)}, ensure_ascii=True))
+        else:
+            for line in collection_result_lines(result):
+                print(line)
+        return 0 if result.status == "complete" else 3
     elif args.command == "analyze":
-        analysis_service = UnifiedAnalysisService(
-            SurfaceOverviewService(
-                repository, SQLiteSurfaceOverviewRepository(settings.database),
-            ),
-            SurfaceFreshnessService(
-                repository, SQLiteSurfaceFreshnessRepository(settings.database),
-            ),
-            SurfaceDiscoveryStatusService(
-                repository, SQLiteSurfaceCandidateRepository(settings.database),
-            ),
-            SurfaceExposureService(
-                repository, SQLiteSurfaceFreshnessRepository(settings.database),
-            ),
-            SQLiteFindingRepository(settings.database),
-            SQLiteCtiIndicatorRepository(settings.database),
-        )
+        analysis_service = make_analysis_service(settings, repository)
         if args.refresh_ioc is not None:
             feed_repository, feed_source = make_cti_feed(
                 settings, args.refresh_ioc,

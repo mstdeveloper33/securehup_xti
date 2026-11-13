@@ -32,6 +32,8 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_source_readiness.py \
     tests/test_source_readiness_adapter.py \
     tests/test_daily_workflow.py \
+    tests/test_collection_service.py \
+    tests/test_collection_cli.py \
     tests/test_ci_configuration.py \
     tests/test_cli.py \
     tests/test_storage.py \

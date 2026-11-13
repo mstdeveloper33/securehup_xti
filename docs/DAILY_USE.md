@@ -21,6 +21,32 @@ içindir. Durum ekranını açmak yeni arama başlatmaz.
 
 ## 2. Domain için veri topla
 
+Marka aramalarını ve alt alan adı keşfini tek çalışmada yapmak için:
+
+```sh
+./xti collect example.com --plan
+./xti collect example.com
+```
+
+İlk komut yalnız planı gösterir. İkinci komut iki marka kaynağını ve crt.sh
+alt alan adı keşfini çalıştırır; her kaynağın sonucundan sonra birleşik analiz
+verir. Bu komut kayıtlı domain ister ve aktif hedef kontrolü yapmaz. Kaynak
+hatasında diğer kaynaklar devam eder; sonuç “kısmi” ise hatalı bölümü boş
+arama olarak değerlendirme.
+
+Aynı akışta iki IOC listesini de yenilemek için bütün istediğin işleri belirt:
+
+```sh
+./xti collect example.com \
+  --task scan-crtsh --task scan-urlscan --task discover-crtsh \
+  --task ioc-feodo --task ioc-certpl
+```
+
+`--task` varsayılan listeye ekleme yapmaz, onun yerine geçer. Arşiv kaynağı
+isteğe bağlı `discover-theharvester` işidir ve ayrı kurulumu gerekir.
+
+İşleri ayrı ayrı çalıştırmak da mümkündür:
+
 ```sh
 ./xti scan example.com
 ./xti surface discover example.com

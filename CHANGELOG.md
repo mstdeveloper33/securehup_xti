@@ -1,5 +1,22 @@
 # Değişiklik Kaydı
 
+## 0.129.0 — 13 Kasım 2026
+
+- `collect DOMAIN` kayıtlı domainin crt.sh/urlscan marka aramalarını ve
+  crt.sh pasif keşfini aynı akışta çalıştırır; sonunda birleşik analiz verir.
+  `--task` seçimi varsayılan listenin yerine geçer; isteğe bağlı arşiv ve
+  Feodo/CERT Polska yenilemesi de seçilebilir. `--plan` ağsız ve yazmasızdır.
+- Seçili işler ağ öncesinde doğrulanır; mevcut kaynak servisleri tek çalışma
+  kilidini paylaşır. Kaynak hatasında diğer adımlar sürer, tamamlanan kayıtlar
+  ve insan kararları korunur. Her kaynak kendi kimliği/sayacıyla gösterilir;
+  kısmi/başarısız toplama son analizle başarıya dönüştürülmez.
+- İş mantığı terminalden bağımsızdır; aynı modeller JSON çıktısında kullanılır.
+  Şema 54 değişmez; hedefe aktif kontrol, dış bildirim, React/API veya kalıcı
+  birleşik oturum eklenmez.
+- Hızlı kapı 165/165, tam regresyon 1.443/1.443 testle geçti. Canlı kabulte
+  beş seçili toplama adımı tamamlandı; mevcut aday korundu, yeni bulgu/aday
+  oluşmadı. Common Crawl erişimi bu kabulde yeniden sınanmadı.
+
 ## 0.128.0 — 13 Kasım 2026
 
 - theHarvester arşivleri için ayrı XTI işçisi ve sınırlandırılmış HTTPS

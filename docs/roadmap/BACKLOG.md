@@ -171,13 +171,13 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 Temel, marka/domain ve ilk dış yüzey omurgası, kişisel tedarikçi/vaka çekirdekleri ve 0.127.0 birleşik kaynak durumu teslim edildi. Güncel geliştirme sırası şöyledir:
 
 1. Kaynakların gerçek kapsamını izlemek. Feodo/CERT Polska IOC, ThreatCluster/RansomLook ve ATT&CK ilk/tekrar kabulü 13 Kasım 2026'da tamamlandı. theHarvester kurulumu ve arşiv bağlantı/sayfalama düzeltmesi 0.128.0'da doğrulandı. Wayback iki canlı denemede tamamlandı ve alt alan adı adayı dönmedi; Common Crawl HTTP yanıtı vermeden bağlantıyı kapattığı için onun canlı kapsam kabulü açık kaldı. Kaynak erişimi düzeldiğinde katkı ölçülecek; bu dış kaynak sorunu diğer günlük akışları durdurmaz. Kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
-2. Seçilen mevcut akışları tek günlük çalışma altında toplamak; yeni/değişen sonuçları ve kaynak hatalarını anlaşılır göstermek.
+2. Seçilen mevcut akışları tek günlük çalışma altında toplamak. 0.129.0'da `collect` ile kayıtlı domainin marka araması, pasif keşfi ve açık seçimli IOC yenilemesi uygulandı; adım sonuçları ve birleşik analiz ayrı korunur. Sosyal/ransomware kapsamı, kalıcı birleşik oturum ve otomatik devam bu ilk dilime dahil değildir.
 3. Ölçülen kapsam boşluğuna katkı sağlayan açık kaynak adaptörlerini lisans, sürüm ve kabul testleriyle eklemek.
 4. CTI, tedarikçi ve vaka bağlantılarını kaynaklı değişiklikler ve gerçek kullanım geri bildirimiyle geliştirmek.
 5. Sürekli Linux kullanımı gerektiğinde zamanlama, yeniden başlatma, disk ve yedekten dönüş kontrollerini tamamlamak.
 6. İsteğe bağlı LLM için önce küçük kalite/cihaz deneyi, ardından kaynaklı açıklama ve özetler; başarılı olursa salt okuma soru-cevap ve inceleme önerileri eklemek. Bu iş web/API veya bütün kaynakların tamamlanmasına bağlı değildir; Linux hizmeti de zorunlu önkoşul değildir.
 
-Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web paneli ve e-posta/SMS kullanıcı kararıyla beklemededir. Ürün/sürüm, paket envanteri ve CVE/KEV/EPSS eşleştirmesi aktif kapsam dışındadır. LLM desteğinin plana alınması bu işleri yeniden açmaz. Kafka/OpenSearch gibi ağır altyapı da kişisel kullanım ölçümleri ihtiyaç göstermeden kurulmaz.
+Son kullanıcı yönlendirmesine göre terminal menüsü yapılmadan özellik geliştirmeye devam edilir; React arayüzü ileride ayrı projeden bağlanacaktır. Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web panelinin uygulanması ve e-posta/SMS kullanıcı kararıyla beklemededir. Ürün/sürüm, paket envanteri ve CVE/KEV/EPSS eşleştirmesi aktif kapsam dışındadır. LLM desteğinin plana alınması bu işleri yeniden açmaz. Kafka/OpenSearch gibi ağır altyapı da kişisel kullanım ölçümleri ihtiyaç göstermeden kurulmaz.
 
 Dış kaynağa bağlı işin öncesinde küçük bir erişim deneyi yapılır. Kaynak sağlanamıyorsa fixture ile sözleşme geliştirilebilir; işin canlı kapsam kabulü kapatılmaz.
 
