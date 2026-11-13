@@ -554,6 +554,40 @@ class SurfaceCLITests(unittest.TestCase):
         self.assertEqual(self.database.read_bytes(), before)
         self.assertEqual(self.passive_source.calls, [])
 
+    def test_discovery_health_keeps_provider_results_separate_without_network(self):
+        self.ok("surface", "discover", "example.com", "--source", "crt.sh")
+        self.harvester_source.error = SourceError("Arşiv geçici olarak kullanılamıyor.")
+        code, stdout, stderr = self.invoke(
+            "surface", "discover", "example.com", "--source", "theharvester",
+        )
+        self.assertEqual((code, stderr), (3, ""))
+        self.assertFalse(json.loads(stdout)["ok"])
+        self.passive_source.calls.clear()
+        self.harvester_source.calls.clear()
+        before = self.database.read_bytes()
+
+        report = self.ok("surface", "discovery-health", "example.com")
+        self.assertEqual(
+            [(item["provider"], item["outcome"]) for item in report["sources"]],
+            [("crt.sh", "complete_found"), ("theharvester", "failed")],
+        )
+        self.assertEqual((report["complete_count"], report["failed_count"]), (1, 1))
+        selected = self.ok(
+            "surface", "discovery-status", "example.com", "--source", "crt.sh",
+        )
+        self.assertEqual((selected["provider"], selected["outcome"]), (
+            "crt.sh", "complete_found",
+        ))
+        code, stdout, stderr = self.invoke(
+            "surface", "discovery-health", "example.com", as_json=False,
+        )
+        self.assertEqual((code, stderr), (0, ""))
+        self.assertIn("crt.sh", stdout)
+        self.assertIn("theharvester", stdout)
+        self.assertIn("Arşiv geçici olarak kullanılamıyor", stdout)
+        self.assertEqual(self.database.read_bytes(), before)
+        self.assertEqual(self.passive_source.calls + self.harvester_source.calls, [])
+
     def test_unknown_passive_root_is_rejected_before_source_or_probe(self):
         self.error("surface", "discover", "unknown.example")
         self.assertEqual(self.passive_source.calls, [])
@@ -586,6 +620,12 @@ class SurfaceCLITests(unittest.TestCase):
             "surface", "candidates", "example.com", "--status", "all",
         )["items"]
         self.assertEqual(len(candidates), 2)
+        before = self.database.read_bytes()
+        shown = self.ok(
+            "surface", "candidate", "show", candidates[0]["id"],
+        )
+        self.assertEqual(shown["sources"][0]["provider"], "theharvester")
+        self.assertEqual(self.database.read_bytes(), before)
         self.assertEqual(self.probe.calls, [])
 
     def test_invalid_watch_limits_and_unknown_root_do_not_access_source(self):

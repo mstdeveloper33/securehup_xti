@@ -18,6 +18,7 @@ from xti.domain.surface import (
     SurfaceCandidateSource,
     SurfaceDiscoveryRun,
     SurfaceDiscoveryRunRequest,
+    SURFACE_DISCOVERY_PROVIDERS,
 )
 
 
@@ -25,7 +26,7 @@ _STATUSES = frozenset({"pending", "owned", "rejected"})
 _ACTIONS = frozenset({"discovered", "owned", "rejected", "reopened", "updated"})
 _INITIAL_REASON = "Pasif dış yüzey kaynağından bulundu."
 _RUN_STATUSES = frozenset({"complete", "partial", "failed"})
-_PROVIDERS = frozenset({"crt.sh", "theharvester"})
+_PROVIDERS = frozenset(SURFACE_DISCOVERY_PROVIDERS)
 _MAX_SEQUENCE = 2**63 - 1
 
 
@@ -189,7 +190,7 @@ class SQLiteSurfaceCandidateRepository:
     def _source(row) -> SurfaceCandidateSource:
         try:
             provider = _printable(row[2], maximum=32)
-            if provider != "crt.sh":
+            if provider not in _PROVIDERS:
                 raise ValueError("Unsupported provider")
             return SurfaceCandidateSource(
                 _identifier(row[0]), _identifier(row[1]), provider,
@@ -304,7 +305,7 @@ class SQLiteSurfaceCandidateRepository:
                     or existing.observed_at != item.observed_at
                 ):
                     raise ValidationError(
-                        "Aynı sertifika özeti çelişen kaynak kanıtı taşıyor; kayıt yapılmadı."
+                        "Aynı kaynak özeti çelişen kanıt taşıyor; kayıt yapılmadı."
                     )
                 evidence_existing += 1
                 continue
@@ -440,24 +441,34 @@ class SQLiteSurfaceCandidateRepository:
         return summary, run
 
     def list_discovery_runs(
-        self, asset_id: str, *, limit: int = 20,
+        self, asset_id: str, *, provider: str | None = None, limit: int = 20,
     ) -> tuple[SurfaceDiscoveryRun, ...]:
         try:
             asset_id = _identifier(asset_id)
+            if provider is not None:
+                provider = _printable(provider, maximum=32)
+                if provider not in _PROVIDERS:
+                    raise ValueError("Unsupported provider")
         except (ValueError, TypeError) as exc:
-            raise ValidationError("Pasif keşif geçmişi için geçerli kök kimliği gerekli.") from exc
+            raise ValidationError(
+                "Pasif keşif geçmişi için geçerli kök kimliği ve sağlayıcı gerekli."
+            ) from exc
         if type(limit) is not int or not 1 <= limit <= 100:
             raise ValidationError("Pasif keşif geçmiş sınırı 1–100 arasında olmalı.")
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
             if connection.execute("SELECT value FROM assets WHERE id = ?", (asset_id,)).fetchone() is None:
                 raise ValidationError("Kayıtlı kök adres bulunamadı.")
+            provider_clause = " AND provider = ?" if provider is not None else ""
+            parameters = (
+                (asset_id, provider, limit) if provider is not None else (asset_id, limit)
+            )
             rows = connection.execute(
                 "SELECT sequence, id, asset_id, asset_value, provider, status, source_url, "
                 "started_at, finished_at, record_count, skipped_names, ignored_names, warnings, "
                 "candidate_count, candidates_created, candidates_existing, evidence_created, "
                 "evidence_existing, error FROM surface_discovery_runs WHERE asset_id = ? "
-                "ORDER BY sequence DESC LIMIT ?", (asset_id, limit),
+                f"{provider_clause} ORDER BY sequence DESC LIMIT ?", parameters,
             ).fetchall()
             runs = tuple(self._run(row) for row in rows)
             connection.rollback()

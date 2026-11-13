@@ -1,6 +1,9 @@
 """Safe terminal rendering for passive discovery source and result status."""
 
-from xti.domain.surface_discovery_status import SurfaceDiscoveryStatusReport
+from xti.domain.surface_discovery_status import (
+    SurfaceDiscoveryHealthReport,
+    SurfaceDiscoveryStatusReport,
+)
 from xti.interfaces.text import safe_text
 
 
@@ -73,4 +76,46 @@ def report_lines(report: SurfaceDiscoveryStatusReport) -> list[str]:
             if report.provider not in (None, "crt.sh") else ""
         ),
     ])
+    return lines
+
+
+def health_lines(report: SurfaceDiscoveryHealthReport) -> list[str]:
+    lines = [
+        f"Pasif keşif kaynak kanıtı: {safe_text(report.asset_value)}",
+        f"Sağlayıcı: {report.provider_count} | tamamlanan: {report.complete_count} | "
+        f"kısmi: {report.partial_count} | başarısız: {report.failed_count} | "
+        f"hiç çalışmamış: {report.never_run_count}",
+        f"İlgilenilmeli: {report.attention_count} | kayıt güncellik eşiği: "
+        f"{report.freshness_hours} saat",
+    ]
+    for item in report.sources:
+        age = f" | {_age(item.age_seconds)}" if item.age_seconds is not None else ""
+        lines.extend([
+            "",
+            f"{safe_text(item.provider or 'Bilinmeyen sağlayıcı')}",
+            f"  Kaynak sonucu: {_SOURCE[item.source_status]}",
+            f"  Veri sonucu: {_RESULT[item.result_status]}",
+            f"  Kayıt güncelliği: {_FRESHNESS[item.freshness]}{age}",
+            "  Boş sonuç güvenilir mi: "
+            + ("Evet, bu sorgu tamamlandı" if item.empty_result_confirmed else "Hayır"),
+        ])
+        if item.run_id is not None:
+            lines.append(
+                f"  Son çalışma: {safe_text(item.run_id)} | {safe_text(item.finished_at)}"
+            )
+        lines.extend(
+            f"  Kaynak uyarısı: {safe_text(warning)}" for warning in item.warnings
+        )
+        if item.error is not None:
+            lines.append(f"  Kaynak hatası: {safe_text(item.error)}")
+        lines.extend(f"  {safe_text(reason)}" for reason in item.reasons)
+        lines.append(
+            f"  Sonraki güvenli adım: {_NEXT[item.next_step]}"
+        )
+        if item.next_step != "none":
+            lines.append(
+                f"  Komut: ./xti surface discover {safe_text(report.asset_value)} "
+                f"--source {safe_text(item.provider or 'crt.sh')}"
+            )
+    lines.extend(["", *(safe_text(note) for note in report.notes)])
     return lines

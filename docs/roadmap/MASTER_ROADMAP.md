@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Sürüm:** 0.125 · **Hazırlanma tarihi:** 2 Kasım 2026 · **Durum:** Aktif hedef planı domain/marka koruması, dış yüzey kanıtı, IOC/CTI, dark web ve ransomware iddiaları, geniş marka koruması, tedarikçi riski, vaka/entegrasyon ve insan onaylı takedown kapsamıdır. İki açık ransomware kaynağının ayrı geçmişleri/izlemeleri, tedarikçi ve kişisel vaka çekirdekleri çalışıyor. Maigret ve Sherlock doğrulanmış varsayılan kurulum, güvenli/geniş/özel profil ve kaynak-yalıtımlı izlemeyle; theHarvester sınırlı arşiv keşfiyle bağlıdır. Sıradaki ana iş kişisel gerçek kullanımda kaynak sağlığı ve terminal deneyimidir; yerel API ve STIX/TAXII kullanıcı kararıyla beklemededir. Sunucu içi envanter, ürün/sürüm çıkarımı, paket takibi ve CVE/KEV/EPSS eşleştirmesi aktif plandan çıkarılmıştır. Gerçek ilerleme [STATUS.md](../STATUS.md) içinde izlenir.
+**Sürüm:** 0.126 · **Hazırlanma tarihi:** 13 Kasım 2026 · **Durum:** Aktif hedef planı domain/marka koruması, dış yüzey kanıtı, IOC/CTI, dark web ve ransomware iddiaları, geniş marka koruması, tedarikçi riski, vaka/entegrasyon ve insan onaylı takedown kapsamıdır. İki açık ransomware kaynağının ayrı geçmişleri/izlemeleri, tedarikçi ve kişisel vaka çekirdekleri çalışıyor. Maigret ve Sherlock doğrulanmış varsayılan kurulum, güvenli/geniş/özel profil ve kaynak-yalıtımlı izlemeyle; theHarvester sınırlı arşiv keşfiyle bağlıdır. Pasif yüzey kaynakları artık sürümlü kabul kapısı ve sağlayıcı bazlı kayıt durumuyla korunur. Sıradaki ana iş aynı kaynak-hazırlık sözleşmesini tarama, sosyal araç, IOC, ransomware ve ATT&CK kaynaklarına genişletip terminal özetini sadeleştirmektir; yerel API ve STIX/TAXII kullanıcı kararıyla beklemededir. Sunucu içi envanter, ürün/sürüm çıkarımı, paket takibi ve CVE/KEV/EPSS eşleştirmesi aktif plandan çıkarılmıştır. Gerçek ilerleme [STATUS.md](../STATUS.md) içinde izlenir.
 
 0.88.0, güncel yerel IOC kaynak iddialarını yedi gösterge türünde STIX 2.1 Indicator Bundle dosyasına ağsız, salt-okunur ve atomik çıkarır. CTI nesne/ilişki kapsamı, TLP, içe aktarma ve TAXII ile kalıcı sistem zamanlaması/dış kanal aboneliği açık kalır.
 
@@ -79,6 +79,8 @@
 0.124.1, temiz klonda global Python ortamını değiştirmeden yerel kayıt alanını hazırlayan tekrar güvenli `./setup` akışını ve kısa kullanım belgesini ekler.
 
 0.125.0, normal kuruluma sabit commit/katalog doğrulamalı atomik Maigret ve Sherlock ortamını ekler. Kullanıcı adı önizleme ve izlemeleri mevcut dar `safe`, elle incelenmiş 30/26 sitelik `extended` veya özel `--site` kapsamını seçebilir; bütün upstream katalog, kota aşma ve profil çıkarımı kapalıdır. Kalıcı izleme çözülen tam listeyi saklar. Şema 54 değişmez.
+
+0.126.0, pasif yüzey sağlayıcılarını tek çalışma sözleşmesine bağlar; theHarvester kanıtının ayrıntıda okunmasını düzeltir ve crt.sh/theHarvester son kayıtlarını birbirinden bağımsız sağlık görünümünde gösterir. Sürümlü kabul kapısı Subfinder v2.17.0 normal CLI'sini makine-okunur kaynak hata/tamamlanma kanıtı ve bağımsız kapsam katkısı olmadığı için erteler. Komutlar ağsız/salt okunurdur; şema 54 değişmez.
 
 **Başlangıç koşulları:** Kişisel kullanım, ücretli hizmet bütçesi yok, Python öncelikli geliştirme, terminalden kullanım, sınırlı veritabanı deneyimi. Donanım ve haftalık çalışma süresi henüz bilinmiyor.
 

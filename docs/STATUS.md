@@ -1,10 +1,30 @@
 # XTI — Güncel Uygulama Durumu
 
-**2 Kasım 2026 · 0.125.0 sürümü doğrulanmış sosyal araç kurulumunu ve geniş profil seçimini ekledi**
+**13 Kasım 2026 · 0.126.0 sürümü pasif kaynak bütünlüğünü, sağlayıcı bazlı kanıt durumunu ve sürümlü adaptör kabul kapısını ekledi**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `surface discovery-health KÖK` ile crt.sh ve theHarvester'ın son kayıtlı
+  çalışmalarını birbirinden bağımsız gösterme. Tamamlandı, kısmi, başarısız,
+  hiç çalışmadı; güncel, eski ve zaman tutarsızlığı durumlarını ayrı tutma.
+  Bir sağlayıcının tamamlanmasını diğerinin hatasını örtecek genel başarıya
+  dönüştürmeme.
+- `surface discovery-status KÖK --source crt.sh|theharvester` ile tek
+  sağlayıcının son kanıtını seçme; seçim verilmediğinde önceki en-son-çalışma
+  davranışını ve JSON biçimini koruma.
+- Sağlayıcı durumunu yalnız kayıtlı geçmişten ve salt okunur üretme. Ağ
+  isteği, canlı sağlık iddiası, veri yazımı veya migration başlatmama; her
+  eksik/eski/hatalı satırda sağlayıcıya özgü sonraki komutu gösterme.
+- `surface source-evaluation` ile çalışma zamanı sağlayıcı kümesine birebir
+  bağlı, sürümlü ve ağsız pasif adaptör kabul kapısı. crt.sh ve sınırlı
+  theHarvester profilini kabul etme; Subfinder v2.17.0 normal CLI'sini kaynak
+  hatası/tamamlanma kanıtını JSONL'de korumadığı ve bağımsız ücretsiz kapsam
+  katkısı gösterilmediği için erteleme.
+- theHarvester keşfiyle kaydedilen aday kaynak kanıtını ayrıntı ve birleşik
+  bildirim yolunda crt.sh ile aynı katı doğrulamayla okuyabilme. Sağlayıcıdan
+  bağımsız metinlerde “pasif kaynak kanıtı” kullanma. Şema 54'ü değiştirmeme.
 
 - `./setup` ile Maigret 0.6.6 ve Sherlock 0.16.2'yi kullanıcı global Python
   ortamını değiştirmeden sabit resmî Git commit'lerinden `.venv` alanına
@@ -968,6 +988,15 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu ile uzak GitHub `main` dalı yayımlanmış ve aynı commit zincirindedir; runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.126.0 hedefli testler aktif kabul kapısı ile çalışma zamanı sağlayıcılarının
+birebir eşleşmesini; Subfinder'ın katı makine sözleşmesi, kaynak sonucu ayrımı
+ve bağımsız kapsam kapılarında ertelenmesini; theHarvester kanıtının depolama ve
+terminal ayrıntısından okunmasını; aynı kökte crt.sh başarısı ile theHarvester
+hatasının ayrı görünmesini; sağlayıcı filtresi ile birleşik sağlık görünümünün
+ağsız, salt okunur çalışmasını doğruladı. Kısa kapıda 65/65, tam regresyonda
+1.355/1.355 test 275,634 saniyede geçti. Otomatik testler gerçek internete ve
+kullanıcı veri klasörüne dokunmadı; şema 54 değişmedi.
 
 0.125.0 testleri `safe`/`extended`/özel platform çözümünü, iki kaynağın
 30/26 öğelik izinli kapsamını, profil-site çakışmasını, terminal/JSON profil

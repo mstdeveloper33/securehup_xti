@@ -59,7 +59,7 @@ class SurfaceCandidateRepository(Protocol):
         ...
 
     def list_discovery_runs(
-        self, asset_id: str, *, limit: int = 20,
+        self, asset_id: str, *, provider: str | None = None, limit: int = 20,
     ) -> tuple[SurfaceDiscoveryRun, ...]:
         ...
 

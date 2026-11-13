@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.125.0 · **Tarih:** 2 Kasım 2026 · **Durum:** Kişisel terminal sürümü klonla-çalıştır kullanımına hazır.
+**Sürüm:** 0.126.0 · **Tarih:** 13 Kasım 2026 · **Durum:** Kişisel terminal sürümü klonla-çalıştır kullanımına hazır; pasif kaynaklar ayrı kanıt durumuyla izlenir.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -484,7 +484,13 @@ Kullanılan bütün internet bağlantılarını ve aralarındaki farkı görmek 
 
 Bu komut crt.sh, isteğe bağlı theHarvester Common Crawl/Wayback ve urlscan pasif arşivlerini, Google Public DNS çözümleyicisini, ücretsiz Feodo Tracker ve CERT Polska IOC beslemelerini, ThreatCluster açık ransomware iddia akışını, resmî MITRE ATT&CK Enterprise verisini, CISA KEV, FIRST EPSS, NIST NVD, OSV.dev, Canonical Ubuntu OSV, Red Hat ve SUSE CSAF VEX zafiyet kaynaklarını, yalnız açık kullanıcı komutuyla hedefe bağlanan HTTPS HEAD kontrolünü ve onaylı kesin IP'ye yapılan sınırlı TCP servis kontrolünü ayrı gösterir. Her bağlantının amacı, ücretli anahtar kullanıp kullanmadığı, hangi komutlarda çalıştığı ve temel sınırları görünürdür. Komut yeni ağ isteği göndermez; son kaydedilen kaynak sonuçlarını da ayrıca listeler.
 
-İlk ikinci-kaynak değerlendirmesinde HackerTarget, Common Crawl, Cert Spotter ve Subfinder doğrudan çekirdek adaptörüne alınmadı. Daha sonra Common Crawl ile Wayback Archive, kaynak durumunu ve JSONL kanıtını ayrı raporlayan sabit theHarvester profili üzerinden sınırlandırılarak kabul edildi. İlk değerlendirme [0023 numaralı kayıtta](docs/decisions/0023-free-passive-source-evaluation.md), güncel karar [0117 numaralı kayıtta](docs/decisions/0117-bounded-theharvester-archive-discovery.md) bulunur.
+İlk ikinci-kaynak değerlendirmesinde HackerTarget, Common Crawl, Cert Spotter ve Subfinder doğrudan çekirdek adaptörüne alınmadı. Daha sonra Common Crawl ile Wayback Archive, kaynak durumunu ve JSONL kanıtını ayrı raporlayan sabit theHarvester profili üzerinden sınırlandırılarak kabul edildi. Subfinder v2.17.0 yeniden incelendi; normal CLI çıktısı kaynak hatası ile tamamlanmış boş sonucu güvenilir biçimde ayıramadığı ve mevcut ücretsiz kapsamın çoğunu tekrarladığı için eklenmedi. Kararı internete çıkmadan görmek için:
+
+```sh
+./xti surface source-evaluation
+```
+
+İlk değerlendirme [0023 numaralı kayıtta](docs/decisions/0023-free-passive-source-evaluation.md), theHarvester kararı [0117 numaralı kayıtta](docs/decisions/0117-bounded-theharvester-archive-discovery.md), güncel kabul kapısı ise [0124 numaralı kayıtta](docs/decisions/0124-passive-source-integrity-and-adapter-gate.md) bulunur.
 
 Kaynakların yanıtları ve hataları ayrı tutulur. Bir kaynak erişim hatası verdiğinde diğerinden alınan sonuçlar korunur; genel sonuç kısmi olarak görünür. Depolama veya uygulama doğrulama hataları ise kalan işleri durdurabilir. Kaynak hatası, aday bulunmadığı anlamına gelmez.
 
@@ -901,6 +907,7 @@ kopyalanmaz. Ardından yalnız kayıtlı kökün altındaki adları ara:
 ./xti surface watch markam.com --source theharvester --cycles 3 --interval 3600 --duration 86400
 ./xti surface candidates markam.com
 ./xti surface runs markam.com
+./xti surface discovery-health markam.com
 ```
 
 `discover` varsayılan olarak crt.sh sertifika kayıtlarını sorgular.
@@ -929,12 +936,17 @@ Son pasif keşfin gerçekten boş mu, eksik mi, yoksa kaynak hatası mı olduğu
 
 ```sh
 ./xti surface discovery-status markam.com
+./xti surface discovery-status markam.com --source crt.sh
+./xti surface discovery-status markam.com --source theharvester
 ./xti surface discovery-status markam.com --stale-after-hours 72
+./xti surface discovery-health markam.com
 ```
 
-`Kaynak çalıştı` ve `Aday görülmedi` birlikte görünüyorsa son sorgu tamamlanmış, o kaynak yanıtında aday bulunmamıştır. `Kaynak sonucu eksik` veya `Kaynak çalışmadı` durumunda aday görülmemesi boş sonuç sayılmaz; veri sonucu `Bilinmiyor` ya da eksik kapsam olarak açıklanır. Hiç çalışma yoksa bu da ayrı gösterilir.
+`discovery-status` varsayılan olarak en son pasif çalışmayı gösterir; `--source` ile tek sağlayıcının son kaydı seçilir. `discovery-health` ise crt.sh ve theHarvester satırlarını aynı ekranda ama ayrı sonuçlar olarak gösterir. Birinin tamamlanması diğerinin hatasını gizlemez.
 
-Güncellik varsayılan 24 saatlik rapor eşiğiyle ayrıca gösterilir. Eski tamamlanmış boş sonuç geçmişte geçerli olsa da bugünkü durumu anlatmayabilir. Komut yalnız kayıtlı son çalışma geçmişini okur; crt.sh'ye veya bulunan hedeflere bağlanmaz, yeni çalışma başlatmaz ve veritabanını değiştirmez. Tamamlanmış boş yanıt da internette hiç alt alan adı veya risk olmadığını kanıtlamaz.
+`Kaynak çalıştı` ve `Aday görülmedi` birlikte görünüyorsa seçilen sorgu tamamlanmış, o kaynak yanıtında aday bulunmamıştır. `Kaynak sonucu eksik` veya `Kaynak çalışmadı` durumunda aday görülmemesi boş sonuç sayılmaz; veri sonucu `Bilinmiyor` ya da eksik kapsam olarak açıklanır. Hiç çalışma yoksa bu da ayrı gösterilir.
+
+Güncellik varsayılan 24 saatlik rapor eşiğiyle ayrıca gösterilir. Eski tamamlanmış boş sonuç geçmişte geçerli olsa da bugünkü durumu anlatmayabilir. Bu komutlar yalnız kayıtlı çalışma geçmişini okur; crt.sh'ye, arşivlere veya bulunan hedeflere bağlanmaz, yeni çalışma başlatmaz ve veritabanını değiştirmez. “Güncel kayıt”, kaynağın şu anda canlı olduğunu kanıtlamaz. Tamamlanmış boş yanıt da internette hiç alt alan adı veya risk olmadığını göstermez.
 
 `surface watch`, aynı pasif keşfi terminal açıkken sınırlı biçimde tekrarlar. `--cycles` en fazla turu, `--interval` tamamlanan iki tur arasındaki beklemeyi, `--duration` ise yeni bir tur başlatılabilecek toplam süreyi belirler. Varsayılanlar 3 tur, 3600 saniye ve 86400 saniyedir. Kaynak hatası bir turu başarısız olarak geçmişe yazar; bütçe varsa izleme sonraki turda yeniden dener.
 
@@ -1544,8 +1556,8 @@ Temizlik veritabanı içinde yeniden kullanılabilir yer açar; dosyayı hemen k
 ./scripts/check
 ```
 
-`./scripts/check-fast` her değişiklikte çalıştırılan kısa, ağsız çekirdek ve
-kurulum kontrolüdür. `./scripts/check` 1.349 testlik tam regresyon paketidir;
+`./scripts/check-fast` her değişiklikte çalıştırılan 65 testlik kısa, ağsız
+çekirdek ve kurulum kontrolüdür. `./scripts/check` 1.355 testlik tam regresyon paketidir;
 sürüm oluşturmadan önce veya GitHub'daki elle başlatılan tam kontrolde çalışır.
 GitHub'daki temiz Maigret/Sherlock kurulumu yalnız ilgili kurulum, sürüm veya
 marka adaptörü dosyaları değiştiğinde tekrar çalışır. `v*` etiketi ancak tam
@@ -1586,6 +1598,8 @@ Bu komut sahte iki kaynakla tekrar, kaynak hatası ve kontrollü kesinti senaryo
 0.29 `surface inventory` tek final `data` nesnesinde kök kapsamını, bütün aday durum toplamlarını, seçilen filtredeki toplam/gösterilen sayısını ve adaylara bağlı kayıt/kapsam sayılarını döndürür. Her öğede `candidate_status`, `registration_status`, `scope_status`, `active_check_authorized` ve yalnız öneri olan `next_step` ayrı alanlardır. Filtreleme bu katmanları değiştirmez; komut başarılı salt okuma için çıkış 0/`ok:true` verir.
 
 0.30 `surface discovery-status` son kayıtlı pasif keşif çalışmasını `source_status`, `result_status`, `outcome`, `coverage_complete`, `empty_result_confirmed`, güncellik ve yaş alanlarıyla açıklar. Son çalışma kimliği/sayıları, uyarı ve hata korunur. Kısmi veya başarısız çalışma `empty_result_confirmed:false` verir; komut internet ve yazma yapmadan başarılı salt okuma için çıkış 0/`ok:true` döndürür.
+
+0.126 `surface discovery-status --source` aynı sözleşmeyi seçilen sağlayıcının son kaydıyla sınırlar. Yeni `surface discovery-health` sonucu sabit sağlayıcı sırasındaki `sources` listesini; tamamlanan/kısmi/başarısız/hiç çalışmamış ve kayıt güncelliği sayaçlarını taşır. Bir sağlayıcının tamamlanması diğerinin hatasını gizlemez. `surface source-evaluation` aktif kimlikleri, sürümlü ölçütleri ve ertelenen adaptör engellerini veri klasörü oluşturmadan döndürür. Üç komut da canlı ağ sağlığı iddiası üretmez; şema 54 değişmez.
 
 0.31 `storage readiness` kullanım, klasör/disk toplamları, ihtiyatlı boş alan eşiği, yönetilen yedek envanteri, son yedek bütünlüğü/şema/yaş durumu ve saklama önizlemesini tek final `data` nesnesinde verir. `local_recovery_status`, ayrı ortam ve restore tatbikatı hakkında kanıt olmayan bilgiyi tamamlanmış saymaz. Dosya taraması ve SQLite doğrulaması salt okunurdur; başarılı görünüm çıkış 0/`ok:true` verir.
 

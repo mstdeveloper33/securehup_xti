@@ -265,8 +265,8 @@ def detail_lines(item: InboxDetails) -> list[str]:
             f"Aday adres: {safe_text(candidate.domain)} | Kök: {safe_text(candidate.asset_value)}",
             f"İnceleme durumu: {safe_text(candidate.status)} | Kanıt: {candidate.source_count}",
             f"İlk görülme: {safe_text(candidate.first_seen_at)}",
-            f"Aday ve sertifika kanıtları: ./xti surface candidate show {safe_text(candidate.id)}",
-            "Bu pasif sertifika kaydıdır; adaya ağ bağlantısı yapılmadı ve sahiplik otomatik kabul edilmedi.",
+            f"Aday ve pasif kaynak kanıtları: ./xti surface candidate show {safe_text(candidate.id)}",
+            "Bu pasif kaynak kaydıdır; adaya ağ bağlantısı yapılmadı ve sahiplik otomatik kabul edilmedi.",
             "Ayrıntıya bakmak bildirimi okundu işaretlemez.",
         ]
     finding = item.details.finding

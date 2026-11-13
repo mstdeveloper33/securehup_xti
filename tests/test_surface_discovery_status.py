@@ -36,7 +36,7 @@ class SurfaceDiscoveryStatusTests(unittest.TestCase):
         finished = finished or NOW - timedelta(hours=1)
         evidence = tuple(
             SurfaceCandidateEvidence(
-                domain, "crt.sh", f"https://crt.sh/?id={number}",
+                domain, provider, f"fixture:{provider}:{number}",
                 hashlib.sha256(f"certificate-{number}".encode()).hexdigest(),
                 domain, finished.isoformat(),
             )
@@ -127,6 +127,30 @@ class SurfaceDiscoveryStatusTests(unittest.TestCase):
         report = self.service.show("example.com")
         self.assertEqual(report.provider, "theharvester")
 
+    def test_provider_health_keeps_success_failure_and_empty_state_separate(self):
+        self.record("complete", domains=("api.example.com",), provider="crt.sh")
+        self.record(
+            "failed", provider="theharvester", error="Arşiv kaynağı yanıt vermedi.",
+        )
+        before = self.path.read_bytes()
+
+        latest = self.service.show("example.com")
+        crtsh = self.service.show("example.com", provider="crt.sh")
+        report = self.service.health("example.com")
+
+        self.assertEqual((latest.provider, latest.outcome), ("theharvester", "failed"))
+        self.assertEqual((crtsh.provider, crtsh.outcome), ("crt.sh", "complete_found"))
+        self.assertEqual(
+            [(item.provider, item.outcome) for item in report.sources],
+            [("crt.sh", "complete_found"), ("theharvester", "failed")],
+        )
+        self.assertEqual(
+            (report.complete_count, report.failed_count, report.never_run_count),
+            (1, 1, 0),
+        )
+        self.assertEqual(report.attention_count, 1)
+        self.assertEqual(self.path.read_bytes(), before)
+
     def test_invalid_threshold_and_unknown_root_do_not_mutate_storage(self):
         before = self.path.read_bytes()
         for value in (0, 8761, True):
@@ -135,6 +159,8 @@ class SurfaceDiscoveryStatusTests(unittest.TestCase):
                     self.service.show("example.com", freshness_hours=value)
         with self.assertRaisesRegex(ValidationError, "kayıtlı değil"):
             self.service.show("unknown.example")
+        with self.assertRaisesRegex(ValidationError, "crt.sh veya theharvester"):
+            self.service.show("example.com", provider="subfinder")
         self.assertEqual(self.path.read_bytes(), before)
 
 

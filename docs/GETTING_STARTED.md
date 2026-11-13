@@ -39,6 +39,16 @@ Yalnız sana ait olan veya izleme iznin bulunan domaini ekle:
 `scan`, herkese açık sertifika ve geçmiş web inceleme kayıtlarını araştırır.
 Bulunan kayıtlar adaydır; tek başına phishing veya kötü niyet kanıtı değildir.
 
+İki pasif alt alan adı sağlayıcısının kayıtlı durumunu ayrı görmek için:
+
+```sh
+./xti surface discovery-health example.com
+```
+
+Bu komut yeni internet isteği yapmaz. `crt.sh` ve isteğe bağlı theHarvester'ın
+son kayıtlarını tamamlandı, kısmi, başarısız veya hiç çalışmadı biçiminde ayrı
+gösterir. Güncel kayıt, kaynağın o anda canlı olduğu anlamına gelmez.
+
 ## 3. Sonraki kullanımlar
 
 Proje klasöründe şu komut yeterlidir:
@@ -53,7 +63,11 @@ Komutların listesini ve her komutun seçeneklerini şöyle görebilirsin:
 ```sh
 ./xti --help
 ./xti scan --help
+./xti surface source-evaluation
 ```
+
+Son komut pasif kaynakların neden kabul edildiğini ve incelenip ertelenen
+araçları sürümlü, ağsız bir raporda gösterir.
 
 ## Verinin konumu
 

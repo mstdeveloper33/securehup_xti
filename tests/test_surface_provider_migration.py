@@ -137,7 +137,8 @@ class SurfaceProviderMigrationTests(unittest.TestCase):
             self.assertIn("'theharvester'", source_sql)
             self.assertIn("'theharvester'", run_sql)
 
-        saved, run = SQLiteSurfaceCandidateRepository(self.path).record_discovery(
+        repository = SQLiteSurfaceCandidateRepository(self.path)
+        saved, run = repository.record_discovery(
             asset.id,
             asset.value,
             (
@@ -158,6 +159,15 @@ class SurfaceProviderMigrationTests(unittest.TestCase):
         self.assertEqual(
             (saved.candidates_created, run.sequence, run.provider),
             (1, 2, "theharvester"),
+        )
+        candidate = next(
+            item for item in repository.list_candidates(asset.id, status=None, limit=10)
+            if item.domain == "archive.example.com"
+        )
+        details = repository.candidate_details(candidate.id)
+        self.assertEqual(
+            [(item.provider, item.source_name) for item in details.sources],
+            [("theharvester", "theHarvester:commoncrawl@test")],
         )
 
         backup = Path(result["backup"])

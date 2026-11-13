@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from xti.domain.enrichment import ProbeResult
 
 
+SURFACE_DISCOVERY_PROVIDERS = ("crt.sh", "theharvester")
+
+
 @dataclass(frozen=True, slots=True)
 class SurfaceScope:
     asset_id: str

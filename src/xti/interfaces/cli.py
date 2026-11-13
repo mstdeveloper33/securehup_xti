@@ -292,6 +292,7 @@ from xti.application.vulnerability_reassessment import VulnerabilityReassessment
 from xti.application.vulnerability_notifications import VulnerabilityNotificationService
 from xti.application.tracked_nvd_refresh import TrackedNvdRefreshService
 from xti.application.surface_discovery_status import SurfaceDiscoveryStatusService
+from xti.application.surface_source_evaluation import SurfaceSourceEvaluationService
 from xti.application.evaluation import EvaluationService
 from xti.application.sources import SourceCatalogService
 from xti.application.findings import (
@@ -310,6 +311,7 @@ from xti.domain.matching import (
     LEGACY_RULE_VERSION, RULE_VERSION,
 )
 from xti.domain.priority import parse_timestamp
+from xti.domain.surface import SURFACE_DISCOVERY_PROVIDERS
 from xti.ports.jobs import WorkerBusyError
 from xti.ports.discovery import SourceError
 from xti.interfaces.text import safe_text
@@ -388,6 +390,7 @@ from xti.interfaces.vulnerability import (
 )
 from xti.interfaces.surface_inventory import report_lines as surface_inventory_report_lines
 from xti.interfaces.surface_discovery_status import (
+    health_lines as surface_discovery_health_lines,
     report_lines as surface_discovery_status_report_lines,
 )
 from xti.interfaces.storage_readiness import report_lines as storage_readiness_report_lines
@@ -580,6 +583,9 @@ from xti.interfaces.vendor_source_evaluation import (
 )
 from xti.interfaces.brand_source_evaluation import (
     report_lines as brand_source_evaluation_lines,
+)
+from xti.interfaces.surface_source_evaluation import (
+    report_lines as surface_source_evaluation_lines,
 )
 from xti.interfaces.brand_source_coverage import (
     report_lines as brand_source_coverage_lines,
@@ -2482,6 +2488,10 @@ def build_parser() -> Parser:
         "surface", help="Kayıtlı adreslerin pasif ve yetkili aktif dış yüzey kanıtlarını yönet.",
     )
     surface_actions = surface.add_subparsers(dest="surface_action", required=True)
+    surface_actions.add_parser(
+        "source-evaluation",
+        help="Pasif kaynak adaptörlerinin sürümlü kabul kararını ağsız göster.",
+    )
     surface_approve = surface_actions.add_parser(
         "approve", help="Kayıtlı adresi açık gerekçeyle yetkili kontrol kapsamına al.",
     )
@@ -2563,7 +2573,7 @@ def build_parser() -> Parser:
     )
     surface_discover.add_argument("domain", help="Önceden kaydedilmiş kök adres.")
     surface_discover.add_argument(
-        "--source", choices=("crt.sh", "theharvester"), default="crt.sh",
+        "--source", choices=SURFACE_DISCOVERY_PROVIDERS, default="crt.sh",
         help="Pasif kaynak (varsayılan: crt.sh).",
     )
     surface_watch = surface_actions.add_parser(
@@ -2571,7 +2581,7 @@ def build_parser() -> Parser:
     )
     surface_watch.add_argument("domain", help="Önceden kaydedilmiş kök adres.")
     surface_watch.add_argument(
-        "--source", choices=("crt.sh", "theharvester"), default="crt.sh",
+        "--source", choices=SURFACE_DISCOVERY_PROVIDERS, default="crt.sh",
         help="Her turda kullanılacak pasif kaynak (varsayılan: crt.sh).",
     )
     surface_watch.add_argument(
@@ -2625,8 +2635,21 @@ def build_parser() -> Parser:
     )
     surface_discovery_status.add_argument("domain", help="Kayıtlı kök adres.")
     surface_discovery_status.add_argument(
+        "--source", choices=SURFACE_DISCOVERY_PROVIDERS,
+        help="Yalnız seçilen sağlayıcının son kaydını göster; verilmezse en son çalışma.",
+    )
+    surface_discovery_status.add_argument(
         "--stale-after-hours", type=int, default=24,
         help="Bu saatten eski çalışmayı eski göster (1–8760; varsayılan 24).",
+    )
+    surface_discovery_health = surface_actions.add_parser(
+        "discovery-health",
+        help="Her pasif sağlayıcının son kayıtlı sonucunu ayrı ve ağsız göster.",
+    )
+    surface_discovery_health.add_argument("domain", help="Kayıtlı kök adres.")
+    surface_discovery_health.add_argument(
+        "--stale-after-hours", type=int, default=24,
+        help="Bu saatten eski kaydı eski göster (1–8760; varsayılan 24).",
     )
     surface_run = surface_actions.add_parser(
         "run", help="Tek bir pasif keşif çalışmasının ayrıntısını göster; internete çıkmaz.",
@@ -4684,6 +4707,13 @@ def run(args: argparse.Namespace) -> int | None:
                 "Önceki bulgu ve kararlar değişmedi. Sonraki kaynak kaydı yeniden aday olabilir.",
             ], as_json=args.json)
     elif args.command == "surface":
+        if args.surface_action == "source-evaluation":
+            report = SurfaceSourceEvaluationService().report()
+            emit(
+                asdict(report), surface_source_evaluation_lines(report),
+                as_json=args.json,
+            )
+            return None
         surface_repository = SQLiteSurfaceRepository(settings.database)
         surface_service = SurfaceService(repository, surface_repository)
         candidate_repository = SQLiteSurfaceCandidateRepository(settings.database)
@@ -4938,9 +4968,20 @@ def run(args: argparse.Namespace) -> int | None:
         elif args.surface_action == "discovery-status":
             report = SurfaceDiscoveryStatusService(
                 repository, candidate_repository,
-            ).show(args.domain, freshness_hours=args.stale_after_hours)
+            ).show(
+                args.domain, provider=args.source,
+                freshness_hours=args.stale_after_hours,
+            )
             emit(
                 asdict(report), surface_discovery_status_report_lines(report),
+                as_json=args.json,
+            )
+        elif args.surface_action == "discovery-health":
+            report = SurfaceDiscoveryStatusService(
+                repository, candidate_repository,
+            ).health(args.domain, freshness_hours=args.stale_after_hours)
+            emit(
+                asdict(report), surface_discovery_health_lines(report),
                 as_json=args.json,
             )
         elif args.surface_action == "run":

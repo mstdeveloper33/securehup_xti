@@ -19,6 +19,7 @@ from xti.domain.surface import (
     SurfaceDiscoveryResult,
     SurfaceDiscoveryRun,
     SurfaceDiscoveryRunRequest,
+    SURFACE_DISCOVERY_PROVIDERS,
     SurfaceWatchCycle,
     SurfaceWatchReport,
     SurfaceScope,
@@ -36,7 +37,6 @@ from xti.ports.surface import (
 
 MAX_DISCOVERY_DOCUMENTS = 10_000
 SURFACE_CANDIDATE_STATUSES = frozenset({"pending", "owned", "rejected"})
-SURFACE_DISCOVERY_PROVIDERS = frozenset({"crt.sh", "theharvester"})
 
 
 class SurfaceOverviewService:
@@ -201,7 +201,7 @@ class SurfaceService:
 
 
 class SurfaceDiscoveryService:
-    """Passive CT discovery; it never connects to a discovered candidate."""
+    """Passive source discovery; it never connects to a discovered candidate."""
 
     def __init__(
         self, assets: AssetRepository, repository: SurfaceCandidateRepository,

@@ -30,3 +30,22 @@ class SurfaceDiscoveryStatusReport:
     next_step: str
     reasons: tuple[str, ...]
     notes: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SurfaceDiscoveryHealthReport:
+    asset_id: str
+    asset_value: str
+    observed_at: str
+    freshness_hours: int
+    provider_count: int
+    complete_count: int
+    partial_count: int
+    failed_count: int
+    never_run_count: int
+    current_record_count: int
+    stale_record_count: int
+    clock_error_count: int
+    attention_count: int
+    sources: tuple[SurfaceDiscoveryStatusReport, ...]
+    notes: tuple[str, ...]

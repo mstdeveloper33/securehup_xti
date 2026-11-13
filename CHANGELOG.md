@@ -1,5 +1,23 @@
 # Değişiklik Kaydı
 
+## 0.126.0 — 13 Kasım 2026
+
+- Pasif keşif sağlayıcıları domain katmanındaki tek `crt.sh`/`theharvester`
+  sözleşmesine bağlandı. theHarvester ile kaydedilen adayın kaynak ayrıntısını
+  ve ilgili bildirim yolunu açarken oluşan sağlayıcı doğrulama hatası giderildi;
+  kullanıcı metinleri sağlayıcıdan bağımsız “pasif kaynak kanıtı” yapıldı.
+- `surface discovery-health KÖK`, iki sağlayıcının son kayıtlı çalışmasını ayrı
+  tamamlanma, veri, güncellik, hata ve sonraki komut bilgisiyle ağsız/salt
+  okunur gösterir. `surface discovery-status KÖK --source ...` tek sağlayıcıyı
+  seçer; eski varsayılan davranış korunur.
+- `surface source-evaluation`, aktif adaptörlerin çalışma zamanı sağlayıcı
+  kümesiyle birebir eşleşmesini zorunlu kılan sürümlü kabul kapısını ekledi.
+  Subfinder v2.17.0 normal CLI'si, kaynak hatası ile tamamlanmış boş sonucu
+  makine-okunur JSONL'de ayıramadığı ve bağımsız ücretsiz kapsam katkısı
+  göstermediği için ertelendi; araç kurulmadı veya dağıtılmadı.
+- Yeni görünüm ve kabul kararı veritabanı şemasını değiştirmez; şema 54 kalır.
+- Kısa ağsız kapı 65/65, tam regresyon 1.355/1.355 testle geçti.
+
 ## 0.124.1 — 1 Kasım 2026
 
 - Temiz bir klondan `./setup` ile global Python ortamını değiştirmeden yerel XTI
