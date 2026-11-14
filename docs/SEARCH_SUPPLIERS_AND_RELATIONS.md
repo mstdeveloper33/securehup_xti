@@ -134,5 +134,6 @@ hesaplanır. Kaynağın veya yerel okuyucunun açık kapasitesi aşılırsa eksi
 sonuç başarı gibi sunulmaz; işlem açıklayıcı hatayla durur. Her birleşik
 okuma kendi içinde tek SQLite okuma anını kullanır.
 
-Bu sürüm otomatik HTML rapor arşivleme, web paneli, e-posta gönderimi veya
-yeni dış kaynak eklemez. Mevcut kuruluş HTML dışa aktarımı kullanılabilir.
+Otomatik HTML rapor arşivleme 15 Kasım 2026 kullanıcı kararıyla plandan
+çıkarıldı. Mevcut kuruluş HTML dışa aktarımı komutla kullanılabilir.
+Bu sürüm web paneli, e-posta gönderimi veya yeni dış kaynak eklemez.

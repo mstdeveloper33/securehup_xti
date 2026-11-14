@@ -11,7 +11,9 @@ sessiz başlangıç, atomik yerel bildirim ve tarihî kaynak/kapsam kanıtı.
 0.138.0 ilk üç yeni özelliği ekler: platform genelinde yerel arama, açık
 tedarikçi kaynak değişim bildirimleri ve kayıtlı varlık ilişki geçmişi.
 [Kullanım ve sınırlar](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML
-rapor arşivi henüz uygulanmadı; gerçek Linux kullanım kabulü de açıktır.
+rapor arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; eklenecek
+işler arasında değildir. Mevcut komutla HTML dışa aktarımı kullanılabilir.
+Sıradaki doğrulama gerçek Linux üzerinde klonla–kur–çalıştır kabulüdür.
 Kuruluş raporu, kapsamlı dönem/kaynak katkısı, önce/sonra kanıtları,
 doğrudan CTI bağlamı ve HIBP kamu metadata kataloğu kullanılabilir.
 Aşağıdaki eski sürüm notları tarihî kapsamı açıklar; geniş roadmap'in
@@ -186,14 +188,13 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 
 ## İlk çekilecek işler
 
-Temel, marka/domain ve ilk dış yüzey omurgası, kişisel tedarikçi/vaka çekirdekleri ve 0.127.0 birleşik kaynak durumu teslim edildi. Güncel geliştirme sırası şöyledir:
+Temel, marka/domain ve ilk dış yüzey omurgası, kişisel tedarikçi/vaka çekirdekleri ve birleşik kaynak durumu teslim edildi. 0.138.0 ile yerel birleşik arama, tedarikçi değişim bildirimleri ve varlık ilişki geçmişi de kullanılabilir. Güncel sıra şöyledir:
 
-1. Kaynakların gerçek kapsamını izlemek. Feodo/CERT Polska IOC, ThreatCluster/RansomLook ve ATT&CK ilk/tekrar kabulü 13 Kasım 2026'da tamamlandı. theHarvester kurulum ve arşiv bağlantı/sayfalama düzeltmesi 0.128.0'da doğrulandı. 0.129.1'de Common Crawl katalog erişimi geri geldi; yıllık indeksler için 90 saniyenin yetersizliği ile istek/tekrar aralığı düzeltildi. Son canlı denemede Common Crawl HTTP 504 ile başarısız, Wayback tamamlandı. Tam Common Crawl kapsam kabulü dış kaynak hatası nedeniyle açık kalır; katkı başarılı kapsam alındığında ölçülecek. Bu durum diğer günlük akışları durdurmaz. Kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
-2. Seçilen akışları günlük çalışmada toplamak: domain/IOC/sosyal/ransomware, kayıtlı profiller, kalıcı oturumlar ve açık eksik-adım tekrarı 0.133.0'a kadar uygulandı. 0.135.0 HIBP'yi de açık görev olarak ekler. Başarılı kaynak aynı işlemde tamamlanma kaydına bağlanır; otomatik devam başlatılmaz. HIBP kuruluş izleme/bildirim 0.136.0, vaka kanıtı ve HTML rapor 0.137.0 ile eklendi.
-3. Ölçülen kapsam boşluğuna katkı sağlayan açık kaynak adaptörlerini lisans, sürüm ve kabul testleriyle eklemek.
-4. CTI, tedarikçi ve vaka bağlantılarını kaynaklı değişiklikler ve gerçek kullanım geri bildirimiyle geliştirmek.
-5. Sürekli Linux kullanımı gerektiğinde zamanlama, yeniden başlatma, disk ve yedekten dönüş kontrollerini tamamlamak.
-6. İsteğe bağlı LLM için önce küçük kalite/cihaz deneyi, ardından kaynaklı açıklama ve özetler; başarılı olursa salt okuma soru-cevap ve inceleme önerileri eklemek. Bu iş web/API veya bütün kaynakların tamamlanmasına bağlı değildir; Linux hizmeti de zorunlu önkoşul değildir.
+1. Gerçek Linux üzerinde temiz klonlama, kurulum ve terminal kullanımını doğrulamak. Sürekli kullanım için mevcut zamanlama, yeniden başlatma, disk ve yedekten dönüş akışlarını aynı ortamda sınamak; bunlar henüz gerçek Linux'ta tamamlandı sayılmaz.
+2. Kaynakların gerçek kapsamını ve erişimini doğrulamak. Son kayıtlı Common Crawl denemesi HTTP 504 ile başarısız, Wayback başarılıydı; bu tarihî sonuç güncel erişim durumu değildir. Common Crawl canlı kabulü yeniden sınanacak; kaynaklar kesinti, eski veri ve gerçek sonuç yokluğu olarak ayrılacak. Önceki kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
+3. Ölçülen kapsam boşluğuna katkı sağlayan açık kaynak adaptörlerini lisans, sürüm ve kabul testleriyle eklemek. Önce küçük erişim ve katkı deneyi yapılır; henüz yeni sağlayıcı veya ücretli API seçilmez.
+4. Günlük kullanımda CTI, tedarikçi ve vaka bağlantılarındaki somut eksikleri tamamlamak. Kayıtlı profil/oturum/eksik-adım tekrarı, HIBP toplama ve kuruluş bildirimi, tarihî vaka kanıtı, komutla HTML raporu ve 0.138.0'daki üç özellik zaten kullanılabilir.
+5. İleride isteğe bağlı LLM için önce küçük kalite/cihaz deneyi, ardından kaynaklı açıklama, günlük özet ve vaka taslağı; yararı doğrulanırsa salt okuma soru-cevap ve inceleme önerileri eklemek. Bu iş React/API, bütün kaynakların tamamlanması veya Linux hizmetine bağlı değildir. Şimdiki plan güncellemesi model kurmaz veya ücretli hizmet açmaz.
 
 Son kullanıcı yönlendirmesine göre terminal menüsü yapılmadan özellik geliştirmeye devam edilir; React arayüzü ileride ayrı projeden bağlanacaktır. Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web panelinin uygulanması ve e-posta/SMS kullanıcı kararıyla beklemededir. Ürün/sürüm, paket envanteri ve CVE/KEV/EPSS eşleştirmesi aktif kapsam dışındadır. LLM desteğinin plana alınması bu işleri yeniden açmaz. Kafka/OpenSearch gibi ağır altyapı da kişisel kullanım ölçümleri ihtiyaç göstermeden kurulmaz.
 

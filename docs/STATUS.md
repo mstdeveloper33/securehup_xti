@@ -1676,6 +1676,12 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
+15 Kasım 2026 kullanıcı kararı: otomatik HTML rapor arşivi plandan
+çıkarıldı; eklenecek işler arasında değildir. Mevcut komutla HTML raporu
+kullanılabilir. Yakın sıra gerçek Linux kullanım kabulü, kaynak erişimi ve
+kapsam kontrolü, ardından katkısı doğrulanan yeni kaynak adaptörleridir.
+
+
 14 Kasım 2026 onaylı sekiz teslim 0.131.0–0.133.0'da tamamlandı;
 Linux hizmetinin gerçek Linux üzerinde etkinleştirme kabulü ayrıca bekler.
 [Sıralı plan](roadmap/ORDERED_INTEGRATION_PLAN.md) bu ayrımı gösterir.

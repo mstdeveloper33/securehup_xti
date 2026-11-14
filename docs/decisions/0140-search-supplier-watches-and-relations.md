@@ -48,6 +48,8 @@ hata verir. Bu ilk sürüm kişisel SQLite kullanımına uygundur; büyük hacim
 okuma maliyetleri ölçülerek ayrı arama deposu değerlendirilebilir. Bugünden
 Kafka/OpenSearch zorunluluğu oluşturulmaz.
 
-Otomatik HTML rapor arşivi bu teslimde kapsam dışındadır. Web paneli, LLM
-ve dış bildirim kanalı eklenmez; sonraki arayüzler aynı application
-sözleşmelerini kullanabilir.
+Otomatik HTML rapor arşivi başlangıçta bu teslimin dışında bırakılmıştır.
+15 Kasım 2026 kullanıcı kararıyla gelecek plandan da çıkarılmıştır; mevcut
+komutla HTML dışa aktarımı korunur. Web paneli, LLM ve dış bildirim kanalı
+bu teslimde eklenmez; sonraki arayüzler aynı application sözleşmelerini
+kullanabilir.

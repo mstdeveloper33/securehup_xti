@@ -118,7 +118,10 @@ vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN
 0.138.0 yerel birleşik arama, üç kaynaklı açık tedarikçi bildirim izlemesi
 ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
-arşivi, gerçek Linux hizmet kabulü ve Common Crawl dış erişimi ayrı açık konulardır.
+arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
+HTML dışa aktarımı kullanılabilir. Sırada gerçek Linux kullanım kabulü,
+ardından kaynak erişimi/kapsamı ve katkısı doğrulanan yeni adaptörler vardır.
+Common Crawl canlı erişim kabulü ayrıca açık kalır.
 
 **Uzun vadeli hedef:** SOCRadar'ın kamuya açık ürün kapsamını karşılaştırma noktası olarak kullanan; kaynakları, tespitleri, kanıtları ve operasyonu ölçülebilen bir Extended Threat Intelligence platformu geliştirmek.
 
