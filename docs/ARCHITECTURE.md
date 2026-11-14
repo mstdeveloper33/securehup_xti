@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**14 Kasım 2026 — 0.134.0, şema 60 ana proje yapısı.**
+**14 Kasım 2026 — 0.135.0, şema 61 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
@@ -24,6 +24,15 @@ kataloğu silmez. Kuruluş/dönem raporu aynı bağlantıdan tam domain eşleşm
 okur; kaynak sınıfları/atıf/lisans kaybolmaz. Readiness genel katalog
 durumunu, domain eşleşme sayısından ayırır. Harici kütüphane gerekmez.
 [0136 kararı](decisions/0136-public-breach-metadata.md).
+
+0.135.0, HIBP'yi açık `notices-hibp` toplama birimi yapar. Kaynak servisi/depo
+portu isteğe bağlı `CollectionOperationToken` taşır; kaynak run/farkları ile
+sonuç makbuzu aynı SQLite transaction'da yazılır. Şema 61, kaynak türü ve
+doğrudan `public_notice_runs` yabancı anahtarını mevcut toplama tablolarına
+ekler. Eski şema 56–60 tanımları ayrı doğrulanır; yedekli yeniden kurma eski
+alanları, rowid'leri ve kaynak bağlarını korur. Eski profil/plan sürümü ve
+özetleri değişmez. Ortak katalog kapsamı ile domain analizi ayrıdır; yeniden
+deneme yalnız eksik birimleri yürütür. [0137 kararı](decisions/0137-public-notice-collection.md).
 
 `SchedulingService`, profil/plan, ortak kilit, kurtarma, dosya üretimi ve
 yedek portlarını birleştirir. `SystemdScheduleWriter` yalnız yeni dosya
@@ -250,9 +259,10 @@ Terminal değişikliği alan adı kurallarını değiştirmeyi gerektirmez. Depo
 - Şema 58: STIX kimlikli ATT&CK kataloğu, başarılı senkron ve değişim geçmişi.
 - Şema 59: ayrı RansomLook izleme bildirimi, ortak kutu sırası ve okundu durumu.
 - Şema 60: HIBP kamu metadata kataloğu çalışmaları ve kompakt fark geçmişi.
+- Şema 61: açık HIBP toplama birimi ve atomik, doğrudan kaynak sonuç bağı.
   Bu ek tablolar eski kayıtlardan tahminle doldurulmaz; mevcut kaynak kanıtları korunur.
-- 0.131.0 şema 55, 0.132.0 şema 56 kullanır; 0.133.0 şema 59, 0.134.0 şema 60'tır.
-- Şema 1–59 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.
+- 0.131.0 şema 55, 0.132.0 şema 56 kullanır; 0.133.0 şema 59, 0.134.0 şema 60, 0.135.0 şema 61'dir.
+- Şema 1–60 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.
 - Domain tekilliği uygulama normalleştirmesi ve veritabanı kısıtıyla korunur.
 - Biçim işareti application_id=0x58544901; bu bir güven/özgünlük imzası değildir.
 - Eski şemadan geçiş açık migrate komutuyla yapılır. Yazma kilidi altında önce özgün sürümün yedeği alınır. Gerekli ara tablolar ve şema 17'nin zafiyet tabloları tek transaction içinde oluşturulur; yalnız şema 1–5'ten geçişte önceki bulguların bildirimleri oluşturulur. Hata geri alınır; bilinmeyen şema değiştirilmez. Önceki sürümlerin tablo kümeleri sabittir.

@@ -110,6 +110,11 @@ marka, LLM, React/API ve takım ürünü bu teslimle tamamlanmış sayılmaz.
 
 **Başlangıç koşulları:** Kişisel kullanım, ücretli hizmet bütçesi yok, Python öncelikli geliştirme, terminalden kullanım, sınırlı veritabanı deneyimi. Donanım ve haftalık çalışma süresi henüz bilinmiyor.
 
+0.135.0, HIBP kamu kataloğunu açık toplama görevi, profil ve mevcut Linux
+zamanlama akışına bağlar. Kesintide tamamlanan kaynak korunur; yalnız eksik
+işler tekrar edilir. HIBP bildirim/vaka bağları ve HTML rapor
+[sonraki ayrı adımlardır](PUBLIC_NOTICE_WORKFLOW_PLAN.md).
+
 **Uzun vadeli hedef:** SOCRadar'ın kamuya açık ürün kapsamını karşılaştırma noktası olarak kullanan; kaynakları, tespitleri, kanıtları ve operasyonu ölçülebilen bir Extended Threat Intelligence platformu geliştirmek.
 
 Bu belge uygulanacak tasarımı ve önerilen kabul hedeflerini tarif eder. Hiçbir performans değeri ölçülmüş mevcut ürün sonucu değildir. Rakibin özel verilerine, iç mimarisine veya bağımsız kalite ölçümlerine erişimimiz bulunmuyor. Kamuya açık özelliklerin bulunması, veri kapsamı ve hizmet kalitesinin eşdeğer olduğunu kanıtlamaz.

@@ -3238,6 +3238,9 @@ def make_collection_service(
         make_jobs(settings, repository), discoveries, feeds,
         make_analysis_service(settings, repository),
         watch_collection=watch_collection,
+        public_notices=(PublicNoticeService(
+            SQLitePublicNoticeRepository(settings.database), HibpPublicNoticeSource(),
+        ) if "notices-hibp" in selected else None),
     )
 
 

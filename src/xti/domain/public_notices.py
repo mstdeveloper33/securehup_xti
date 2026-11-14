@@ -9,6 +9,7 @@ import re
 from xti.domain.assets import ValidationError, normalize_domain
 
 
+HIBP_CONTRACT_VERSION = "hibp-public-notices-v1"
 HIBP_SOURCE_NAME = "Have I Been Pwned public breach catalog"
 HIBP_SOURCE_URL = "https://haveibeenpwned.com/api/v3/breaches"
 HIBP_ATTRIBUTION = "Have I Been Pwned — https://haveibeenpwned.com"

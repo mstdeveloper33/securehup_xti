@@ -13,6 +13,7 @@ from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from tests.test_attack_catalog import parsed
 from tests.test_mitre_attack import NOW
+from tests.collection_v60_fixture import collection_layout_v60
 CATALOG_TABLES = ('attack_catalog_changes', 'attack_catalog_phases', 'attack_catalog_relationships', 'attack_catalog_entities', 'attack_catalog_runs')
 
 def rows(path, version):
@@ -31,6 +32,7 @@ class AttackCatalogMigrationTests(unittest.TestCase):
         self.storage.add('example.com')
         SQLiteCtiKnowledgeRepository(self.path).sync_attack_snapshot(replace(parsed(), catalog=None), recorded_at=NOW.isoformat())
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            collection_layout_v60(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")

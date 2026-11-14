@@ -6,6 +6,7 @@ from xti.domain.analysis import UnifiedAnalysisReport
 from xti.domain.brand_username_watches import BrandUsernameWatchRunReport
 from xti.domain.cti_feeds import CtiFeedRun
 from xti.domain.jobs import ScanAttempt
+from xti.domain.public_notices import PublicNoticeRefreshReport
 from xti.domain.ransomlook_ransomware import RansomLookClaimRunReport
 from xti.domain.ransomlook_watches import RansomLookWatchRunReport
 from xti.domain.ransomware_claims import RansomwareClaimRunReport
@@ -42,6 +43,7 @@ COLLECTION_TASKS = (
     ),
     CollectionTask("ioc-feodo", "ioc", "feodo", "Feodo Tracker IOC yenilemesi"),
     CollectionTask("ioc-certpl", "ioc", "certpl", "CERT Polska IOC yenilemesi"),
+    CollectionTask("notices-hibp", "public_notice", "hibp", "HIBP kamu olay kataloğu yenilemesi"),
 )
 COLLECTION_TASK_IDS = tuple(task.id for task in COLLECTION_TASKS)
 DEFAULT_COLLECTION_TASKS = COLLECTION_TASK_IDS[:3]
@@ -72,6 +74,7 @@ class CollectionStep:
     feed: CtiFeedRun | None = None
     username: BrandUsernameWatchRunReport | None = None
     ransomware: CollectionRansomwareResult | None = None
+    public_notices: PublicNoticeRefreshReport | None = None
 
 
 @dataclass(frozen=True, slots=True)

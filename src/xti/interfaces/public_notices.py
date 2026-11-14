@@ -124,3 +124,21 @@ def public_notice_search_lines(report) -> list[str]:
 
 def public_notice_detail_lines(report) -> list[str]:
     return _header(report) + _source_state(report) + _notice_lines(report.notice, detailed=True) + [safe_text(note) for note in report.notes]
+
+
+def public_notice_collection_lines(report) -> list[str]:
+    """Describe a shared catalog refresh separately from the selected domain."""
+    run = report.run
+    lines = _header(report) + [
+        "Kapsam: bütün ortak kamu kataloğu; seçilen domainin bulgu sayısı değildir.",
+        "Kaynak çalışması: " + safe_text(run.id),
+    ]
+    if run.status == "complete":
+        lines.append(f"Katalog kaydı: {run.notice_count} | eklenen {run.added_count}, değişen {run.updated_count}, aynı {run.unchanged_count}, listeden çıkan {run.removed_count}")
+        if report.is_baseline:
+            lines.append("İlk başarılı alım başlangıç çizgisidir; bu kayıtlar bugün yaşanmış yeni ihlaller değildir.")
+    else:
+        lines.append("Kaynak hatası: " + safe_text(run.error or "Katalog yenilenemedi."))
+        lines.append("Varsa önceki başarılı katalog korunur; bu durum sıfır olay sonucu değildir.")
+    lines.append("Bu çalışmanın ayrıntısı: ./xti notices run-show " + safe_text(run.id))
+    return lines

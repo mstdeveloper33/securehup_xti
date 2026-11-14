@@ -191,7 +191,7 @@ _CATALOG = (
         kind="public_incident_metadata_catalog",
         purpose="Yayımlanmış olayların başlık, domain, tarih, veri kategorisi ve kaynak sınıflarını araştırır.",
         access=(
-            "Yalnız açık 'notices refresh' komutuyla anahtarsız kamu kataloğu okunur; "
+            "Açık 'notices refresh' veya 'collect --task notices-hibp' seçimiyle anahtarsız kamu kataloğu okunur; "
             "ücretli servis yoktur. Kota veya erişim sınırı uygulanabilir."
         ),
         credential_required=False,
@@ -201,6 +201,7 @@ _CATALOG = (
             "notices refresh", "notices status", "notices search KURULUS",
             "notices search --domain ALAN_ADI", "notices show KAYNAK_KIMLIGI",
             "notices run-show CALISMA_KIMLIGI",
+            "collect ALAN_ADI --task notices-hibp",
         ),
         limits=(
             "Yalnız https://haveibeenpwned.com/api/v3/breaches okunur; hedef domain veya kişilere istek gönderilmez.",

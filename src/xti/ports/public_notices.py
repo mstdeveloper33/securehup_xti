@@ -2,6 +2,7 @@
 
 from typing import Protocol
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.public_notices import (
     PublicNoticeFeed, PublicNoticeRefreshReport, PublicNoticeRun,
     PublicNoticeSnapshot, PublicNoticeStatus,
@@ -14,14 +15,15 @@ class PublicNoticeSource(Protocol):
 
 
 class PublicNoticeRepository(Protocol):
-    def validate(self) -> None:
+    def validate(self, *, operation: CollectionOperationToken | None = None) -> None:
         ...
 
     def apply(self, feed: PublicNoticeFeed, *, started_at: str, finished_at: str,
-              item_limit: int) -> PublicNoticeRefreshReport:
+              item_limit: int, operation: CollectionOperationToken | None = None) -> PublicNoticeRefreshReport:
         ...
 
-    def record_failure(self, *, started_at: str, finished_at: str, error: str) -> PublicNoticeRun:
+    def record_failure(self, *, started_at: str, finished_at: str, error: str,
+                       operation: CollectionOperationToken | None = None) -> PublicNoticeRun:
         ...
 
     def status(self, *, run_limit: int, offset: int = 0) -> PublicNoticeStatus:

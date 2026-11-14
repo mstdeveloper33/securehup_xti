@@ -1,7 +1,7 @@
 # XTI günlük kullanım
 
-Bu belge 0.134.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
-çalıştır; şema 60 geçişi önce geri dönüş yedeği alır.
+Bu belge 0.135.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
+çalıştır; şema 61 geçişi önce geri dönüş yedeği alır.
 
 Bu örneklerde `example.com` yerine izleyeceğin domaini, `markam` yerine marka
 kullanıcı adını yaz. Komutları proje klasöründe çalıştır. İlk kez kullanıyorsan
@@ -85,6 +85,28 @@ Aynı akışta iki IOC listesini de yenilemek için bütün istediğin işleri b
 
 `--task` varsayılan listeye ekleme yapmaz, onun yerine geçer. Arşiv kaynağı
 isteğe bağlı `discover-theharvester` işidir ve ayrı kurulumu gerekir.
+
+Kamu ihlal kataloğunu da aynı çalışmada yenilemek için `notices-hibp` işini
+tam seçimine ekle:
+
+```sh
+./xti profiles save gunluk example.com \
+  --task scan-crtsh --task scan-urlscan --task discover-crtsh --task notices-hibp
+./xti collect --profile gunluk --plan
+./xti collect --profile gunluk
+```
+
+Aynı adla `save` tam seçimi değiştirir; önceki profilindeki IOC, arşiv veya
+izlemeleri de istiyorsan bu komutta açıkça belirt. Yalnız katalog istersen
+`./xti collect example.com --task notices-hibp` yeterlidir; domain önceden
+kayıtlı olmalıdır. Kaynak bir kez sorgulanır. Liste bütün kamu kataloğudur;
+çıktıdaki toplam olay sayısı senin domainine ait olay sayısı değildir.
+
+İlk başarılı alım başlangıçtır. Katalog/sonuç bağı birlikte kaydedildiği için
+kesintiden sonra `collections resume` tamamlanan HIBP kaydını korur. Hata
+durumunda eski katalog kalır ve yalnız başarısız iş yeniden denenebilir.
+Kaynak atfı/lisansı çalışma geçmişinde de görünür. Profil mevcut Linux
+zamanlayıcısıyla kullanılabilir; HIBP için ayrı zamanlayıcı kurulmaz.
 
 Kayıtlı kullanıcı adı ve kuruluş izlemelerini de aynı çalışmaya ekleyebilirsin.
 Kimlikleri `./xti brand watch-list`, `./xti ransomware watch-list` ve

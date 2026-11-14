@@ -19,6 +19,18 @@ hizmetinin gerçekten çalıştığı bu işlemle doğrulanmış olmaz.
 varsa seçimini tamamen değiştirir. Sosyal/ransomware izlemeleri yalnız açık
 kimlikle profile eklenir; kendiliğinden tüm izlemeler çalıştırılmaz.
 
+HIBP kamu olay kataloğunu da aynı profile eklemek için tam seçimi yaz:
+
+```sh
+./xti profiles save gunluk example.com --task scan-crtsh --task scan-urlscan --task discover-crtsh --task notices-hibp
+./xti collect --profile gunluk --plan
+```
+
+Bu örnek varsayılan üç işe HIBP'yi ekler. Yalnız HIBP istersen tek
+`--task notices-hibp` kullan. HIBP sayıları ortak katalog toplamıdır;
+domainine ait olayların sayısı değildir. Profil kaydı ve plan ağ kullanmaz;
+katalog, profili çalıştırdığında veya zamanlanan hizmet çalıştığında yenilenir.
+
 ## 2. Zamanlama dosyalarını üret
 
 Her gün Türkiye saatiyle 09.00:

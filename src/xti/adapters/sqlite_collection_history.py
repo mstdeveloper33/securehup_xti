@@ -10,14 +10,14 @@ from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_collection_profiles import SQLiteCollectionProfileRepository
 from xti.adapters.sqlite_collection_receipts import (
     REFERENCE_COLUMNS, RESULT_TABLES, _row, canonical_time, operation_context,
-    source_result, summary_json,
+    receipt_source_metadata, source_result, summary_json,
 )
 from xti.domain.assets import ValidationError
 from xti.domain.collection_profiles import (
     CollectionProfile, canonical_definition_json, definition_sha256, parse_definition_json,
 )
 from xti.domain.collection_history import (
-    ANALYSIS_STATUSES, MAX_COLLECTION_GENERATIONS, SESSION_STATUSES, STEP_STATUSES, STOP_CODES,
+    ANALYSIS_STATUSES, MAX_COLLECTION_GENERATIONS, MAX_COLLECTION_UNITS, SESSION_STATUSES, STEP_STATUSES, STOP_CODES,
     CollectionFrozenPlan, CollectionOperationToken, CollectionProfileOrigin,
     CollectionRetainedResult, CollectionResumePlan, CollectionSession, CollectionSessionDetails,
     CollectionSessionPage, CollectionSessionStep, CollectionStepReceipt,
@@ -153,7 +153,7 @@ class SQLiteCollectionHistoryRepository:
     def _step(row, unit, session):
         try:
             record = CollectionSessionStep(
-                history_uuid(row["id"]), history_uuid(row["session_id"]), _integer(row["ordinal"], maximum=58),
+                history_uuid(row["id"]), history_uuid(row["session_id"]), _integer(row["ordinal"], maximum=MAX_COLLECTION_UNITS),
                 row["step_key"], row["kind"], row["source"],
                 history_uuid(row["watch_id"]) if row["watch_id"] is not None else None,
                 history_sha256(row["target_sha256"]),
@@ -204,7 +204,8 @@ class SQLiteCollectionHistoryRepository:
             ):
                 raise ValueError("receipt summary mismatch")
             source_run_id = _row(connection, RESULT_TABLES[kind], result_id)["source_run_id"] if unit.kind == "ransomware_watch" else None
-            return CollectionStepReceipt(step.id, recorded_at, step.status, kind, result_id, counters, row["summary_sha256"], source_run_id)
+            return CollectionStepReceipt(step.id, recorded_at, step.status, kind, result_id, counters, row["summary_sha256"], source_run_id,
+                                         **receipt_source_metadata(kind))
         except (ValueError, TypeError, KeyError, RecursionError) as error:
             raise StorageError("Toplama sonuç kanıtı bozuk; işlem durduruldu.") from error
 
@@ -240,7 +241,8 @@ class SQLiteCollectionHistoryRepository:
                     raise StorageError("Toplama devam zinciri ebeveyn tanımıyla uyuşmuyor.")
                 expected = resume_units(session.plan, set(completed))
             rows = connection.execute(
-                "SELECT id FROM collection_session_steps WHERE session_id=? ORDER BY ordinal LIMIT 59", (session.id,),
+                "SELECT id FROM collection_session_steps WHERE session_id=? ORDER BY ordinal LIMIT ?",
+                (session.id, MAX_COLLECTION_UNITS + 1),
             ).fetchall()
             if len(rows) != len(expected):
                 raise StorageError("Toplama adımları dondurulmuş devam planıyla uyuşmuyor.")

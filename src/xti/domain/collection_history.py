@@ -16,7 +16,7 @@ from xti.domain.collection_profiles import (
 from xti.domain.ransomware_watches import normalize_ransomware_watch_query
 
 EXECUTOR_CONTRACT_VERSION = 1
-MAX_COLLECTION_UNITS = 58
+MAX_COLLECTION_UNITS = 59
 MAX_COLLECTION_GENERATIONS = 100
 SESSION_STATUSES = frozenset({"running", "complete", "partial", "failed", "interrupted"})
 STEP_STATUSES = frozenset({"pending", "running", "complete", "partial", "failed", "interrupted", "skipped"})
@@ -30,6 +30,7 @@ RESULT_KINDS = (
     "scan_attempt", "discovery_run", "feed_run", "username_run",
     "threatcluster_source_run", "ransomlook_source_run",
     "threatcluster_watch_run", "ransomlook_watch_run",
+    "public_notice_run",
 )
 
 
@@ -321,6 +322,9 @@ class CollectionStepReceipt:
     summary: tuple[tuple[str, int], ...]
     summary_sha256: str
     source_run_id: str | None = None
+    source_attribution: str | None = None
+    source_license: str | None = None
+    source_scope: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

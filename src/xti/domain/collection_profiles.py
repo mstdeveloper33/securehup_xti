@@ -75,7 +75,7 @@ def normalize_profile_definition(value: CollectionProfileDefinition) -> Collecti
         or not 1 <= len(tasks) <= len(COLLECTION_TASK_IDS)
         or any(not isinstance(task, str) or task not in COLLECTION_TASK_IDS for task in tasks)
     ):
-        raise ValidationError("Profil için desteklenen 1–6 temel görev seçilmeli.")
+        raise ValidationError(f"Profil için desteklenen 1–{len(COLLECTION_TASK_IDS)} temel görev seçilmeli.")
     if len(set(tasks)) != len(tasks):
         raise ValidationError("Profil görevleri tekrarlı olamaz.")
     if type(value.typos) is not bool:

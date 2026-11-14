@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.134.0 · **Tarih:** 14 Kasım 2026 · **Şema:** 60.
+**Sürüm:** 0.135.0 · **Tarih:** 14 Kasım 2026 · **Şema:** 61.
 Kuruluş birleşik raporu, kuruluşa özel değişim/kaynak görünümü, ayrıntılı
 önce/sonra kanıtı, CTI ilişki bağlamı ve ücretsiz kamu ihlal kataloğu kullanılabilir.
 
@@ -44,7 +44,7 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 60 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 61 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
@@ -179,6 +179,27 @@ adaptör seçilmeyecek. Common Crawl'ın dış erişim sorunu açık kalıyor;
 [Karar dayanağı](docs/roadmap/SOURCE_PROVIDER_EVALUATION.md) ayrıntıları açıklar.
 
 ## Ücretsiz kamu ihlal kataloğu ve CTI ilişkileri
+
+HIBP kataloğunu günlük toplama profiline de katabilirsin:
+
+```sh
+./xti collect example.com --task scan-crtsh --task scan-urlscan --task discover-crtsh --task notices-hibp --plan
+./xti profiles save gunluk example.com --task scan-crtsh --task scan-urlscan --task discover-crtsh --task notices-hibp
+./xti collect --profile gunluk
+```
+
+`--task` tam seçimi belirtir; yalnız `--task notices-hibp` kullanırsan sadece
+katalog yenilenir. Kayıtlı bir domain gerekir. HIBP açık seçimlidir; eski
+profillerin seçimi ve geçmişi korunur. Normal varsayılan üç iş aynıdır.
+Bu profil mevcut `schedule generate` akışıyla zamanlanabilir; dosya üretimi
+ve hazırlık komutları kaynak sorgusu veya hizmet etkinleştirmesi yapmaz.
+
+Katalog ve toplama sonucu aynı işlemde kaydedilir. Başarılı indirmeden sonra
+üst işlem kesilirse `collections resume` bu kaydı korur; yalnız eksik işleri
+çalıştırır. Kaynak hatası son başarılı kataloğu silmez ve toplamayı başarılı
+göstermez. Katalog sayaçları bütün kaynağa aittir, domainin bulgu sayısı değildir.
+İlk alım tarihî başlangıç çizgisidir. Ayrıntı için çıktıdaki `notices run-show`
+komutunu kullan; terminaldeki kısa görünüm saklanan kataloğu kısmaz.
 
 ```sh
 ./xti notices refresh

@@ -8,6 +8,10 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.sqlite_collection_receipts import (
+    record_collection_step_receipt, validate_public_notice_operation,
+)
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.public_notices import (
     HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_NAME, HIBP_SOURCE_URL, MAX_NOTICES,
@@ -169,10 +173,11 @@ class SQLitePublicNoticeRepository:
     def __init__(self, path: Path) -> None:
         self._storage = SQLiteAssetRepository(path)
 
-    def validate(self) -> None:
+    def validate(self, *, operation: CollectionOperationToken | None = None) -> None:
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
             _audit(connection)
+            validate_public_notice_operation(connection, operation)
 
     @staticmethod
     def _insert(connection, run: PublicNoticeRun, changes: tuple[PublicNoticeChange, ...], previous_chain: str | None) -> None:
@@ -187,7 +192,8 @@ class SQLitePublicNoticeRepository:
             )
 
     def apply(self, feed: PublicNoticeFeed, *, started_at: str, finished_at: str,
-              item_limit: int = 20) -> PublicNoticeRefreshReport:
+              item_limit: int = 20,
+              operation: CollectionOperationToken | None = None) -> PublicNoticeRefreshReport:
         _bounds(item_limit)
         _times(started_at, finished_at)
         try:
@@ -212,6 +218,7 @@ class SQLitePublicNoticeRepository:
         with self._storage._connection() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
+                validate_public_notice_operation(connection, operation)
                 runs, old_changes, current, previous_chain = _audit(connection)
                 identifier = str(uuid4())
                 changes = []
@@ -234,6 +241,10 @@ class SQLitePublicNoticeRepository:
                     updated, len(incoming) - added - updated, removed, None,
                 )
                 self._insert(connection, run, changes, previous_chain)
+                record_collection_step_receipt(
+                    connection, operation, result_kind="public_notice_run",
+                    result_id=run.id, result_status=run.status,
+                )
                 connection.commit()
             except BaseException:
                 connection.rollback()
@@ -241,18 +252,24 @@ class SQLitePublicNoticeRepository:
         return PublicNoticeRefreshReport(run, changes[:item_limit], len(changes),
                                          not any(old.status == "complete" for old in runs))
 
-    def record_failure(self, *, started_at: str, finished_at: str, error: str) -> PublicNoticeRun:
+    def record_failure(self, *, started_at: str, finished_at: str, error: str,
+                       operation: CollectionOperationToken | None = None) -> PublicNoticeRun:
         _times(started_at, finished_at)
         notice_text(error, maximum=2000)
         with self._storage._connection() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
+                validate_public_notice_operation(connection, operation)
                 runs, _, _, previous_chain = _audit(connection)
                 if len(runs) >= MAX_RUNS:
                     raise ValidationError("Kamu olay yerel geçmiş kapasitesi doldu; kayıtlar değiştirilmedi.")
                 run = PublicNoticeRun((runs[-1].sequence + 1) if runs else 1, str(uuid4()), "failed",
                                       started_at, finished_at, None, None, None, 0, 0, 0, 0, 0, error)
                 self._insert(connection, run, (), previous_chain)
+                record_collection_step_receipt(
+                    connection, operation, result_kind="public_notice_run",
+                    result_id=run.id, result_status=run.status,
+                )
                 connection.commit()
             except BaseException:
                 connection.rollback()

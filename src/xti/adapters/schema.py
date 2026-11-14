@@ -4,9 +4,13 @@ import sqlite3
 from uuid import uuid4
 
 from xti.adapters.public_notice_schema import PUBLIC_NOTICE_DDL
+from xti.adapters.collection_public_notice_schema import (
+    COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V60_DDL,
+    COLLECTION_RECEIPT_V60_COLUMNS, migrate_collection_public_notice_schema,
+)
 
 
-SCHEMA_VERSION = 60
+SCHEMA_VERSION = 61
 
 ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
 APPLICATION_ID = 0x58544901
@@ -63,50 +67,6 @@ RANSOMLOOK_NOTIFICATION_DDL = (
 
 class SchemaError(ValueError):
     """A database is not a supported XTI layout."""
-
-
-COLLECTION_HISTORY_DDL = ('CREATE TABLE collection_sessions (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT '
- 'NOT NULL UNIQUE, root_id TEXT NOT NULL REFERENCES collection_sessions(id) ON DELETE RESTRICT, '
- 'parent_id TEXT UNIQUE REFERENCES collection_sessions(id) ON DELETE RESTRICT, generation INTEGER '
- 'NOT NULL CHECK (generation BETWEEN 1 AND 100), profile_event_id TEXT REFERENCES '
- 'collection_profile_events(id) ON DELETE RESTRICT, definition_json TEXT NOT NULL, '
- 'definition_sha256 TEXT NOT NULL, plan_json TEXT NOT NULL, plan_sha256 TEXT NOT NULL, '
- 'executor_contract_version INTEGER NOT NULL CHECK (executor_contract_version=1), status TEXT NOT '
- "NULL CHECK (status IN ('running', 'complete', 'partial', 'failed', 'interrupted')), started_at "
- 'TEXT NOT NULL, finished_at TEXT, stop_reason TEXT, analysis_status TEXT NOT NULL CHECK '
- "(analysis_status IN ('pending', 'complete', 'failed')), analysis_recorded_at TEXT, UNIQUE "
- '(root_id, generation))',
- 'CREATE TABLE collection_session_steps (id TEXT PRIMARY KEY NOT NULL, session_id TEXT NOT NULL '
- 'REFERENCES collection_sessions(id) ON DELETE RESTRICT, ordinal INTEGER NOT NULL CHECK (ordinal '
- "BETWEEN 1 AND 58), step_key TEXT NOT NULL, kind TEXT NOT NULL CHECK (kind IN ('scan', "
- "'discovery', 'ioc', 'username_watch', 'ransomware_refresh', 'ransomware_watch')), source TEXT "
- "NOT NULL CHECK (source IN ('crt.sh', 'urlscan', 'theharvester', 'feodo', 'certpl', 'maigret', "
- "'sherlock', 'threatcluster', 'ransomlook')), watch_id TEXT, target_sha256 TEXT NOT NULL, "
- 'depends_on_step_id TEXT REFERENCES collection_session_steps(id) ON DELETE RESTRICT, scan_job_id '
- 'TEXT UNIQUE REFERENCES scan_jobs(id) ON DELETE RESTRICT, status TEXT NOT NULL CHECK (status IN '
- "('pending', 'running', 'complete', 'partial', 'failed', 'interrupted', 'skipped')), started_at "
- 'TEXT, finished_at TEXT, error_code TEXT, UNIQUE (session_id, ordinal), UNIQUE (session_id, '
- 'step_key))',
- 'CREATE TABLE collection_step_receipts (step_id TEXT PRIMARY KEY NOT NULL REFERENCES '
- 'collection_session_steps(id) ON DELETE RESTRICT, recorded_at TEXT NOT NULL, result_status TEXT '
- "NOT NULL CHECK (result_status IN ('complete', 'partial', 'failed', 'interrupted')), summary_json "
- 'TEXT NOT NULL, summary_sha256 TEXT NOT NULL, scan_attempt_id TEXT UNIQUE REFERENCES '
- 'scan_attempts(id) ON DELETE RESTRICT, discovery_run_id TEXT UNIQUE REFERENCES '
- 'surface_discovery_runs(id) ON DELETE RESTRICT, feed_run_id TEXT UNIQUE REFERENCES '
- 'cti_feed_runs(id) ON DELETE RESTRICT, username_run_id TEXT UNIQUE REFERENCES '
- 'brand_username_watch_runs(id) ON DELETE RESTRICT, threatcluster_source_run_id TEXT UNIQUE '
- 'REFERENCES ransomware_claim_runs(id) ON DELETE RESTRICT, ransomlook_source_run_id TEXT UNIQUE '
- 'REFERENCES ransomlook_claim_runs(id) ON DELETE RESTRICT, threatcluster_watch_run_id TEXT UNIQUE '
- 'REFERENCES ransomware_watch_runs(id) ON DELETE RESTRICT, ransomlook_watch_run_id TEXT UNIQUE '
- 'REFERENCES ransomlook_watch_runs(id) ON DELETE RESTRICT, CHECK ((scan_attempt_id IS NOT NULL) + '
- '(discovery_run_id IS NOT NULL) + (feed_run_id IS NOT NULL) + (username_run_id IS NOT NULL) + '
- '(threatcluster_source_run_id IS NOT NULL) + (ransomlook_source_run_id IS NOT NULL) + '
- '(threatcluster_watch_run_id IS NOT NULL) + (ransomlook_watch_run_id IS NOT NULL)=1))',
- 'CREATE INDEX collection_sessions_status_sequence ON collection_sessions(status, sequence)',
- 'CREATE INDEX collection_sessions_root_generation ON collection_sessions(root_id, generation)',
- 'CREATE INDEX collection_session_steps_session_ordinal ON collection_session_steps(session_id, '
- 'ordinal)',
- 'CREATE INDEX collection_session_steps_scan_job ON collection_session_steps(scan_job_id)')
 
 
 ASSETS_DDL = (
@@ -1418,7 +1378,7 @@ TABLES = {
     'organization_link_events': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('link_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('action', 'TEXT', 1, 0), ('revision', 'INTEGER', 1, 0), ('target_kind', 'TEXT', 1, 0), ('target_value', 'TEXT', 1, 0), ('reason', 'TEXT', 1, 0), ('recorded_at', 'TEXT', 1, 0)],
     'collection_sessions': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('root_id', 'TEXT', 1, 0), ('parent_id', 'TEXT', 0, 0), ('generation', 'INTEGER', 1, 0), ('profile_event_id', 'TEXT', 0, 0), ('definition_json', 'TEXT', 1, 0), ('definition_sha256', 'TEXT', 1, 0), ('plan_json', 'TEXT', 1, 0), ('plan_sha256', 'TEXT', 1, 0), ('executor_contract_version', 'INTEGER', 1, 0), ('status', 'TEXT', 1, 0), ('started_at', 'TEXT', 1, 0), ('finished_at', 'TEXT', 0, 0), ('stop_reason', 'TEXT', 0, 0), ('analysis_status', 'TEXT', 1, 0), ('analysis_recorded_at', 'TEXT', 0, 0)],
     'collection_session_steps': [('id', 'TEXT', 1, 1), ('session_id', 'TEXT', 1, 0), ('ordinal', 'INTEGER', 1, 0), ('step_key', 'TEXT', 1, 0), ('kind', 'TEXT', 1, 0), ('source', 'TEXT', 1, 0), ('watch_id', 'TEXT', 0, 0), ('target_sha256', 'TEXT', 1, 0), ('depends_on_step_id', 'TEXT', 0, 0), ('scan_job_id', 'TEXT', 0, 0), ('status', 'TEXT', 1, 0), ('started_at', 'TEXT', 0, 0), ('finished_at', 'TEXT', 0, 0), ('error_code', 'TEXT', 0, 0)],
-    'collection_step_receipts': [('step_id', 'TEXT', 1, 1), ('recorded_at', 'TEXT', 1, 0), ('result_status', 'TEXT', 1, 0), ('summary_json', 'TEXT', 1, 0), ('summary_sha256', 'TEXT', 1, 0), ('scan_attempt_id', 'TEXT', 0, 0), ('discovery_run_id', 'TEXT', 0, 0), ('feed_run_id', 'TEXT', 0, 0), ('username_run_id', 'TEXT', 0, 0), ('threatcluster_source_run_id', 'TEXT', 0, 0), ('ransomlook_source_run_id', 'TEXT', 0, 0), ('threatcluster_watch_run_id', 'TEXT', 0, 0), ('ransomlook_watch_run_id', 'TEXT', 0, 0)],
+    'collection_step_receipts': [('step_id', 'TEXT', 1, 1), ('recorded_at', 'TEXT', 1, 0), ('result_status', 'TEXT', 1, 0), ('summary_json', 'TEXT', 1, 0), ('summary_sha256', 'TEXT', 1, 0), ('scan_attempt_id', 'TEXT', 0, 0), ('discovery_run_id', 'TEXT', 0, 0), ('feed_run_id', 'TEXT', 0, 0), ('username_run_id', 'TEXT', 0, 0), ('threatcluster_source_run_id', 'TEXT', 0, 0), ('ransomlook_source_run_id', 'TEXT', 0, 0), ('threatcluster_watch_run_id', 'TEXT', 0, 0), ('ransomlook_watch_run_id', 'TEXT', 0, 0), ('public_notice_run_id', 'TEXT', 0, 0)],
 
     "collection_profiles": [
         ("id", "TEXT", 1, 1), ("name_key", "TEXT", 1, 0),
@@ -2283,7 +2243,7 @@ UNIQUE_KEYS = {
     'organization_link_events': {('id',), ('link_id', 'revision')},
     'collection_sessions': {('id',), ('parent_id',), ('root_id', 'generation')},
     'collection_session_steps': {('session_id', 'ordinal'), ('session_id', 'step_key'), ('id',), ('scan_job_id',)},
-    'collection_step_receipts': {('threatcluster_watch_run_id',), ('username_run_id',), ('scan_attempt_id',), ('discovery_run_id',), ('ransomlook_source_run_id',), ('ransomlook_watch_run_id',), ('threatcluster_source_run_id',), ('step_id',), ('feed_run_id',)},
+    'collection_step_receipts': {('public_notice_run_id',), ('threatcluster_watch_run_id',), ('username_run_id',), ('scan_attempt_id',), ('discovery_run_id',), ('ransomlook_source_run_id',), ('ransomlook_watch_run_id',), ('threatcluster_source_run_id',), ('step_id',), ('feed_run_id',)},
 
     "collection_profiles": {("id",), ("name_key",)},
     "collection_profile_events": {("id",), ("profile_id", "revision")},
@@ -2737,7 +2697,7 @@ FOREIGN_KEYS = {
     'organization_link_events': {('organization_links', 'link_id', 'id', 'NO ACTION', 'RESTRICT'), ('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT')},
     'collection_sessions': {('collection_sessions', 'root_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_profile_events', 'profile_event_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_sessions', 'parent_id', 'id', 'NO ACTION', 'RESTRICT')},
     'collection_session_steps': {('collection_session_steps', 'depends_on_step_id', 'id', 'NO ACTION', 'RESTRICT'), ('scan_jobs', 'scan_job_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_sessions', 'session_id', 'id', 'NO ACTION', 'RESTRICT')},
-    'collection_step_receipts': {('ransomware_watch_runs', 'threatcluster_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_watch_runs', 'ransomlook_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_claim_runs', 'ransomlook_source_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('brand_username_watch_runs', 'username_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_session_steps', 'step_id', 'id', 'NO ACTION', 'RESTRICT'), ('cti_feed_runs', 'feed_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('scan_attempts', 'scan_attempt_id', 'id', 'NO ACTION', 'RESTRICT'), ('surface_discovery_runs', 'discovery_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomware_claim_runs', 'threatcluster_source_run_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'collection_step_receipts': {('public_notice_runs', 'public_notice_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomware_watch_runs', 'threatcluster_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_watch_runs', 'ransomlook_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_claim_runs', 'ransomlook_source_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('brand_username_watch_runs', 'username_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_session_steps', 'step_id', 'id', 'NO ACTION', 'RESTRICT'), ('cti_feed_runs', 'feed_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('scan_attempts', 'scan_attempt_id', 'id', 'NO ACTION', 'RESTRICT'), ('surface_discovery_runs', 'discovery_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomware_claim_runs', 'threatcluster_source_run_id', 'id', 'NO ACTION', 'RESTRICT')},
 
     "collection_profiles": set(),
     "collection_profile_events": {
@@ -3248,6 +3208,7 @@ VERSION_TABLES = {
     58: frozenset(TABLES),
     59: frozenset(TABLES),
     60: frozenset(TABLES),
+    61: frozenset(TABLES),
 }
 
 for _legacy_version in range(1, 60):
@@ -3876,6 +3837,11 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             "Dosya değiştirilmedi; uygun uygulama sürümünü kullanın."
         )
     tables = {name: TABLES[name] for name in VERSION_TABLES[version]}
+    if 56 <= version < 61:
+        tables["collection_step_receipts"] = [
+            column for column in TABLES["collection_step_receipts"]
+            if column[0] in COLLECTION_RECEIPT_V60_COLUMNS
+        ]
     if 47 <= version < 50:
         tables["brand_username_watches"] = BRAND_USERNAME_WATCH_V49_COLUMNS
     if version == 8:
@@ -3920,7 +3886,8 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             if declaration is None or " ".join(declaration[0].split()) != " ".join(statement.split()):
                 raise SchemaError("Kuruluş kayıt düzeni beklenen biçimde değil.")
     if "collection_sessions" in tables:
-        for statement in COLLECTION_HISTORY_DDL:
+        collection_ddl = COLLECTION_HISTORY_V60_DDL if version < 61 else COLLECTION_HISTORY_DDL
+        for statement in collection_ddl:
             words = statement.split()
             object_type, name = words[1].lower(), words[2]
             declaration = connection.execute(
@@ -4490,13 +4457,21 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             for row in connection.execute("SELECT * FROM pragma_index_list(?)", (name,))
             if row[2] and not row[4]
         }
-        if not UNIQUE_KEYS[name].issubset(unique_columns):
+        expected_unique = UNIQUE_KEYS[name]
+        if name == "collection_step_receipts" and version < 61:
+            expected_unique = expected_unique - {("public_notice_run_id",)}
+        if not expected_unique.issubset(unique_columns):
             raise SchemaError("Veritabanında gerekli tekillik kontrolü eksik.")
         keys = {tuple(row) for row in connection.execute(
             'SELECT "table", "from", "to", on_update, on_delete '
             "FROM pragma_foreign_key_list(?)", (name,)
         )}
-        if keys != FOREIGN_KEYS[name]:
+        expected_keys = FOREIGN_KEYS[name]
+        if name == "collection_step_receipts" and version < 61:
+            expected_keys = expected_keys - {
+                ("public_notice_runs", "public_notice_run_id", "id", "NO ACTION", "RESTRICT"),
+            }
+        if keys != expected_keys:
             raise SchemaError("Veritabanının kayıt bağlantıları beklenen biçimde değil.")
     for name, (table, columns) in indexes.items():
         row = connection.execute(

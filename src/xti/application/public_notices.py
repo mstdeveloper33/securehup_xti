@@ -6,6 +6,7 @@ import unicodedata
 from uuid import UUID
 
 from xti.domain.assets import ValidationError, normalize_domain
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.public_notices import (
     PublicNoticeDetail, PublicNoticeRefreshReport, PublicNoticeSearchReport,
     PublicNoticeStatus, notice_id,
@@ -33,18 +34,22 @@ class PublicNoticeService:
             raise ValidationError(f"Kamu olay görünüm sınırı 1–{maximum} olmalı.")
         return value
 
-    def refresh(self, *, item_limit: int = 20) -> PublicNoticeRefreshReport:
+    def refresh(self, *, item_limit: int = 20,
+                operation: CollectionOperationToken | None = None) -> PublicNoticeRefreshReport:
         self._limit(item_limit, 500)
         if self.source is None:
             raise ValidationError("Kamu olay kaynağı yapılandırılmamış.")
-        self.repository.validate()
+        operation_options = {"operation": operation} if operation is not None else {}
+        self.repository.validate(**operation_options)
         started_at = self._now()
         try:
             feed = self.source.fetch()
         except SourceError as error:
-            run = self.repository.record_failure(started_at=started_at, finished_at=self._now(), error=str(error))
+            run = self.repository.record_failure(started_at=started_at, finished_at=self._now(), error=str(error),
+                                                 **operation_options)
             return PublicNoticeRefreshReport(run, (), 0, False)
-        return self.repository.apply(feed, started_at=started_at, finished_at=self._now(), item_limit=item_limit)
+        return self.repository.apply(feed, started_at=started_at, finished_at=self._now(), item_limit=item_limit,
+                                     **operation_options)
 
     @staticmethod
     def _offset(value: int) -> int:

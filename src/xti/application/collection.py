@@ -7,6 +7,7 @@ from xti.application.analysis import UnifiedAnalysisService
 from xti.application.collection_watches import CollectionWatchService
 from xti.application.cti_feeds import CtiFeedService
 from xti.application.jobs import JobService
+from xti.application.public_notices import PublicNoticeService
 from xti.application.surface import SurfaceDiscoveryService
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.collection import (
@@ -21,6 +22,10 @@ from xti.domain.collection import (
 from xti.domain.cti_feeds import CTI_FEED_POLICIES, CtiFeedRun
 from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.jobs import ScanAttempt
+from xti.domain.public_notices import (
+    HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_NAME, HIBP_SOURCE_URL,
+    PublicNoticeRefreshReport, PublicNoticeStatus,
+)
 from xti.domain.surface import SurfaceDiscoveryResult
 
 
@@ -38,6 +43,7 @@ class CollectionService:
         feeds: Mapping[str, CtiFeedService],
         analysis: UnifiedAnalysisService,
         *, watch_collection: CollectionWatchService | None = None,
+        public_notices: PublicNoticeService | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.jobs = jobs
@@ -45,6 +51,7 @@ class CollectionService:
         self.feeds = dict(feeds)
         self.analysis = analysis
         self.watch_collection = watch_collection or CollectionWatchService()
+        self.public_notices = public_notices
         self.clock = clock or (lambda: datetime.now(timezone.utc))
 
     def _now(self) -> datetime:
@@ -66,7 +73,7 @@ class CollectionService:
             or not 1 <= len(tasks) <= len(COLLECTION_TASKS)
             or any(not isinstance(task, str) or task not in COLLECTION_TASK_IDS for task in tasks)
         ):
-            raise ValidationError("Toplama için desteklenen 1–6 görev seçilmeli.")
+            raise ValidationError(f"Toplama için desteklenen 1–{len(COLLECTION_TASKS)} görev seçilmeli.")
         if len(set(tasks)) != len(tasks):
             raise ValidationError("Toplama görevleri tekrarlı olamaz.")
         selected = set(tasks)
@@ -122,6 +129,14 @@ class CollectionService:
                 if getattr(discovery.source, "provider", "crt.sh") != task.source:
                     raise ValidationError("Pasif keşif kaynağı seçilen görevle uyuşmuyor.")
                 discovery.list(value, status=None, limit=1)
+            elif task.kind == "public_notice":
+                if self.public_notices is None or self.public_notices.source is None:
+                    raise ValidationError("Seçilen kamu olay kaynağı yapılandırılmamış.")
+                status = self.public_notices.status(run_limit=1)
+                if (not isinstance(status, PublicNoticeStatus)
+                        or status.source_name != HIBP_SOURCE_NAME or status.source_url != HIBP_SOURCE_URL
+                        or status.attribution != HIBP_ATTRIBUTION or status.license != HIBP_LICENSE):
+                    raise ValidationError("Kamu olay kaynağı seçilen görevle uyuşmuyor.")
             else:
                 feed = self.feeds.get(task.source)
                 if feed is None or feed.source is None:
@@ -145,6 +160,10 @@ class CollectionService:
                 "Kaynak hatası diğer kaynakların sonucunu silmez; başarısız veya kısmi toplama boş başarı sayılmaz.",
                 "Her adım kendi kalıcı geçmişini tutar; birleşik sonuç için ayrı oturum kaydı veya otomatik devam yoktur.",
             ) + ((
+                "HIBP yenilemesi ortak kamu olay kataloğunu günceller; katalog sayıları seçilen domainin bulgu sayısı değildir.",
+                "HIBP yalnız kamu olay metaverisidir; e-posta, hesap veya parola sorgusu yapılmaz.",
+                HIBP_ATTRIBUTION, HIBP_LICENSE,
+            ) if any(task.kind == "public_notice" for task in selected) else ()) + ((
                 "İzlemeler açık kimlik seçiminizle çalışır; domainle sahiplik veya kuruluş ilişkisi otomatik kurulmaz.",
                 "Her ransomware kaynağı bir kez yenilenir; yenileme başarısızsa o kaynağın seçilen izlemeleri çalıştırılmaz.",
                 "İlk izleme ölçümü başlangıç kaydıdır; yeni tehdit veya doğrulanmış ihlal anlamına gelmez.",
@@ -191,6 +210,16 @@ class CollectionService:
             ):
                 raise ValidationError("Pasif keşif geçersiz toplama sonucu üretti.")
             return CollectionStep(task=task, status=result.status, discovery=result)
+        if task.kind == "public_notice":
+            if self.public_notices is None:
+                raise ValidationError("Seçilen kamu olay kaynağı yapılandırılmamış.")
+            result = self.public_notices.refresh(**kwargs)
+            if (not isinstance(result, PublicNoticeRefreshReport)
+                    or result.run.status not in {"complete", "failed"}
+                    or result.source_name != HIBP_SOURCE_NAME or result.source_url != HIBP_SOURCE_URL
+                    or result.attribution != HIBP_ATTRIBUTION or result.license != HIBP_LICENSE):
+                raise ValidationError("Kamu olay yenilemesi geçersiz toplama sonucu üretti.")
+            return CollectionStep(task=task, status=result.run.status, public_notices=result)
         result = self.feeds[task.source].sync(**kwargs)
         if (
             not isinstance(result, CtiFeedRun) or result.status not in {"complete", "failed"}
@@ -227,7 +256,7 @@ class CollectionService:
             # Recheck under the shared lock before the first persistent action.
             plan = self.plan(
                 plan.asset_value,
-                tasks=tuple(task.id for task in plan.tasks if task.kind in {"scan", "discovery", "ioc"}),
+                tasks=tuple(task.id for task in plan.tasks if task.id in COLLECTION_TASK_IDS),
                 typos=typos,
                 stale_after_hours=stale_after_hours, finding_limit=finding_limit,
                 username_watch_ids=tuple(

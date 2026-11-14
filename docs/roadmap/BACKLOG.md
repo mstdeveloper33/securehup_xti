@@ -3,6 +3,8 @@
 14 Kasım 2026: [sekiz adımlı plan](ORDERED_INTEGRATION_PLAN.md) 0.133.0,
 [kuruluş raporu ve ücretsiz devam dilimi](ORGANIZATION_WORKFLOW_PLAN.md)
 0.134.0 ile uygulandı. Güncel sonuçlar [STATUS](../STATUS.md) içindedir.
+0.135.0, HIBP'yi mevcut toplama/profil/zamanlama akışına bağlar;
+[dört adımlı devam planının](PUBLIC_NOTICE_WORKFLOW_PLAN.md) ilk teslimidir.
 Kuruluş raporu, kapsamlı dönem/kaynak katkısı, önce/sonra kanıtları,
 doğrudan CTI bağlamı ve HIBP kamu metadata kataloğu kullanılabilir.
 Aşağıdaki eski sürüm notları tarihî kapsamı açıklar; geniş roadmap'in
@@ -180,7 +182,7 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 Temel, marka/domain ve ilk dış yüzey omurgası, kişisel tedarikçi/vaka çekirdekleri ve 0.127.0 birleşik kaynak durumu teslim edildi. Güncel geliştirme sırası şöyledir:
 
 1. Kaynakların gerçek kapsamını izlemek. Feodo/CERT Polska IOC, ThreatCluster/RansomLook ve ATT&CK ilk/tekrar kabulü 13 Kasım 2026'da tamamlandı. theHarvester kurulum ve arşiv bağlantı/sayfalama düzeltmesi 0.128.0'da doğrulandı. 0.129.1'de Common Crawl katalog erişimi geri geldi; yıllık indeksler için 90 saniyenin yetersizliği ile istek/tekrar aralığı düzeltildi. Son canlı denemede Common Crawl HTTP 504 ile başarısız, Wayback tamamlandı. Tam Common Crawl kapsam kabulü dış kaynak hatası nedeniyle açık kalır; katkı başarılı kapsam alındığında ölçülecek. Bu durum diğer günlük akışları durdurmaz. Kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
-2. Seçilen mevcut akışları tek günlük çalışma altında toplamak. 0.129.0'da `collect` ile domain araması/keşfi ve IOC yenilemesi; 0.130.0'da açık kimlikle seçilen sosyal/ThreatCluster/RansomLook izlemeleri uygulandı. Her ransomware kaynağı bir kez yenilenir, seçilen izlemeler tam o kayda bağlanır; izleme sonuçları domain analizinden ayrı korunur. Kalıcı birleşik oturum, kayıtlı toplama profili ve otomatik devam henüz yoktur.
+2. Seçilen akışları günlük çalışmada toplamak: domain/IOC/sosyal/ransomware, kayıtlı profiller, kalıcı oturumlar ve açık eksik-adım tekrarı 0.133.0'a kadar uygulandı. 0.135.0 HIBP'yi de açık görev olarak ekler. Başarılı kaynak aynı işlemde tamamlanma kaydına bağlanır; otomatik devam başlatılmaz. HIBP için kuruluş izleme/bildirim, vaka kanıtı ve HTML rapor sonraki ayrı işlerdir.
 3. Ölçülen kapsam boşluğuna katkı sağlayan açık kaynak adaptörlerini lisans, sürüm ve kabul testleriyle eklemek.
 4. CTI, tedarikçi ve vaka bağlantılarını kaynaklı değişiklikler ve gerçek kullanım geri bildirimiyle geliştirmek.
 5. Sürekli Linux kullanımı gerektiğinde zamanlama, yeniden başlatma, disk ve yedekten dönüş kontrollerini tamamlamak.

@@ -636,9 +636,12 @@ class SQLitePeriodicChangesRepository:
                     step.error_code or 'Toplama adımı hâlâ açık.', step.status,
                     asset_value=domain if domain_selected else None,
                     watch_id=step.watch_id, run_id=details.session.id,
-                    shared_scope=shared_scope,
+                    shared_scope=shared_scope or step.kind == 'public_notice',
                     commands=(('./xti', 'collections', 'show', details.session.id),),
-                    evidence_note=('Bu satır yalnız seçili adıma aittir; tam oturum ayrıntısı kuruluş dışı hedefleri de içerebilir.' if shared_scope else None),
+                    evidence_note=('Bu adım ortak kamu kataloğunun yenilenmesidir; domainin sorgulandığını veya ihlalini göstermez.'
+                                   if step.kind == 'public_notice' else
+                                   'Bu satır yalnız seçili adıma aittir; tam oturum ayrıntısı kuruluş dışı hedefleri de içerebilir.'
+                                   if shared_scope else None),
                 ), window)
 
     def _public_notices(self, connection, scope, organization, window, events, runs, expected):

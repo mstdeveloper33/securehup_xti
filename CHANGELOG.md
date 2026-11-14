@@ -1,5 +1,26 @@
 # Değişiklik Kaydı
 
+## 0.135.0 — 14 Kasım 2026
+
+- HIBP kamu katalog yenilemesi `--task notices-hibp` ile mevcut toplama,
+  kayıtlı profil ve Linux zamanlama akışına katılır. Varsayılan üç iş aynıdır;
+  seçim açık yapılır ve kayıtlı domain gerekir. Yeni HTTP kaynağı, ücretli
+  API veya paket bağımlılığı eklenmedi.
+- Kaynak run/farkları ve toplama tamamlanma bağı aynı işlemde kaydedilir.
+  Başarıdan sonra üst komut kesilirse devam aynı kataloğu yeniden indirmez;
+  hata son başarılı kataloğu korur, eksik işler ayrıca tekrar edilir.
+- Katalog toplamı domainin bulgu sayısı olarak gösterilmez. İlk alım,
+  kaynak atfı/lisansı, gerçek run kimliği ve ayrıntıya geçiş; terminal,
+  JSON ve korunmuş geçmişte görünür. Önizleme/plan/zamanlama hazırlığı ağsızdır.
+- Şema 60→61 yedekli yeniden kurma ile toplama adım/sonuç bağlantısını
+  genişletir; önceki kayıtlar, profil ve plan özetleri korunur. Yeni HIBP
+  bildirimleri, vaka bağlama ve HTML rapor sonraki ayrı teslimlerdir.
+- Tam paket: 1.777 test / 562,841 saniye; 1.776 başarılı, bir Linux kontrolü
+  macOS'ta atlandı. Hızlı kapı: 383 test / 166,578 saniye, aynı tek atlama.
+  Gerçek verinin kopyasında ve asıl verinin yedekli yükseltmesinde 129 tablo,
+  86.843 satırın eski alanları/rowid'leri korundu; yedekten ayrı dosyaya
+  geri dönüş şema 60 ve özgün verilerle eşleşti.
+
 ## 0.134.0 — 14 Kasım 2026
 
 - `organizations report ID`: etkin açık domain/izleme bağlantılarına göre

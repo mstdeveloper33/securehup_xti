@@ -1,6 +1,6 @@
 # Kuruluş raporu: günlük kullanım
 
-0.134.0 · şema 60. Eski kurulumda önce `./xti migrate` çalıştır; komut
+0.135.0 · şema 61. Eski kurulumda önce `./xti migrate` çalıştır; komut
 geçişten önce benzersiz geri dönüş yedeği oluşturur.
 
 ## 1. Kayıtlarını bir kez grupla
@@ -110,7 +110,7 @@ HIBP olay kataloğu bu domain keşif karşılaştırmasına karıştırılmaz.
 ./xti notices run-show CALISMA_KIMLIGI --offset 20 --limit 20
 ```
 
-Yalnız `refresh` internetten tek kamu kataloğunu alır. `--limit` indirme
+Bu `notices` komutları içinde yalnız `refresh` internetten tek kamu kataloğunu alır. `--limit` indirme
 kapsamını kısmaz; gösterilen değişim sayısını belirler. API anahtarı veya
 ücretli hesap aranmaz. `search` ve diğer görünümler yereldir; sınırsız ve
 kesintisiz dış servis erişimi taahhüt edilmez. Geçmişteki tüm olayları ilk
@@ -128,6 +128,15 @@ görünür. Kaynaktan çıkarılan kayıt çözülmüş olay sayılmaz. `show` g
 kataloğu, `run-show` seçilen çalışmanın başlangıç/değişim/hata kanıtını açar;
 çıkarılmış eski olay da orada okunur. Kuruluş raporuna yalnız tam domain
 eşleşmeleri girer; isim araması araştırma adayıdır.
+
+0.135.0 ile `collect example.com --task notices-hibp` aynı yenilemeyi
+kayıtlı toplama oturumuna bağlar. Profilin tam `--task` seçimine bu işi
+ekleyebilir, mevcut Linux zamanlayıcısıyla çalıştırabilirsin. Başarılı kaynak
+kaydı ile tamamlanma bağı aynı işlemde saklanır; kesintide başarılı kayıt
+korunur. `--plan`, profil kaydetme ve zamanlama hazırlığı kaynak sorgulamaz.
+HIBP ortak katalogdur; seçili domainin hedefte sorgulandığı anlamına gelmez.
+Bildirim/izleme tanımı, bu olayı vakaya bağlama ve HTML rapor ayrı gelecek
+işlerdir; bu teslim bunları kendiliğinden başlatmaz.
 
 ## 6. Bir göstergenin kayıtlı CTI ilişkilerini aç
 

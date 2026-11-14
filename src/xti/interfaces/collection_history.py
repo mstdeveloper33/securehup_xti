@@ -11,6 +11,20 @@ _STATUS = {
 }
 
 
+def _public_notice_lines(receipt) -> list[str]:
+    if receipt.result_kind != "public_notice_run":
+        return []
+    lines = [
+        "    Kaynak: " + safe_text(receipt.source_attribution or ""),
+        "    Lisans: " + safe_text(receipt.source_license or ""),
+        "    Kapsam: ortak kamu kataloğu; sayaçlar seçilen domainin bulguları değildir.",
+        "    Kaynak çalışma ayrıntısı: ./xti notices run-show " + safe_text(receipt.result_id),
+    ]
+    if dict(receipt.summary).get("is_baseline") == 1:
+        lines.append("    İlk başarılı katalog başlangıç çizgisidir; bugün yaşanmış yeni ihlaller değildir.")
+    return lines
+
+
 def register_history_parser(commands) -> None:
     parser = commands.add_parser("collections", help="Toplama geçmişini göster ve eksik işleri yeniden dene.")
     actions = parser.add_subparsers(dest="collection_action", required=True)
@@ -62,6 +76,7 @@ def detail_lines(details: CollectionSessionDetails) -> list[str]:
                 lines.append(f"    Bağlı kaynak yenilemesi: {safe_text(receipt.source_run_id)}")
             for name, value in receipt.summary:
                 lines.append(f"    {safe_text(name)}: {value}")
+            lines.extend(_public_notice_lines(receipt))
         if step.error_code:
             lines.append(f"    Durma nedeni: {safe_text(step.error_code)}")
     for retained in details.retained:
@@ -69,6 +84,7 @@ def detail_lines(details: CollectionSessionDetails) -> list[str]:
             f"  Önceki yürütmeden korundu: {safe_text(retained.unit.step_key)} | "
             f"{safe_text(retained.receipt.result_id)} | {safe_text(retained.receipt.recorded_at)}"
         )
+        lines.extend(_public_notice_lines(retained.receipt))
     lines.extend([
         f"Yerel analiz durumu: {_STATUS[session.analysis_status]}",
         "Bu görünüm kayıtlı geçmişi okur; yeni kaynak sorgusu veya yeni analiz üretmez.",
@@ -90,6 +106,7 @@ def resume_plan_lines(plan: CollectionResumePlan) -> list[str]:
         lines.append(f"  Çalıştırılacak: {safe_text(unit.step_key)}")
     for retained in plan.retained:
         lines.append(f"  Korunacak: {safe_text(retained.unit.step_key)} | {safe_text(retained.receipt.result_id)}")
+        lines.extend(_public_notice_lines(retained.receipt))
     if not plan.units:
         lines.append("Kaynaklar tamamlanmış; yalnız yerel analiz yeniden üretilecek.")
     return lines

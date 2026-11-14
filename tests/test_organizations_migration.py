@@ -17,6 +17,7 @@ from xti.adapters.sqlite_collection_history import SQLiteCollectionHistoryReposi
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.domain.collection_profiles import CollectionProfileDefinition
 from xti.domain.collection_history import CollectionFrozenPlan, CollectionFrozenUnit
+from tests.collection_v60_fixture import collection_layout_v60
 
 
 NOW = "2026-11-14T12:00:00+00:00"
@@ -52,6 +53,8 @@ class OrganizationMigrationTests(unittest.TestCase):
             ))
             SQLiteCollectionHistoryRepository(path).begin(plan, started_at=NOW)
         with closing(sqlite3.connect(path)) as connection, connection:
+            if version >= 56:
+                collection_layout_v60(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")

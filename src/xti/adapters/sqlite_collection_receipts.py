@@ -16,6 +16,9 @@ from xti.domain.collection_history import (
     sha256_text, unit_sha256, username_contract,
 )
 from xti.domain.cti_feeds import CTI_FEED_POLICIES
+from xti.domain.public_notices import (
+    HIBP_ATTRIBUTION, HIBP_CONTRACT_VERSION, HIBP_LICENSE, HIBP_SOURCE_NAME, HIBP_SOURCE_URL,
+)
 from xti.domain.ransomlook_ransomware import RANSOMLOOK_SOURCE_NAME
 from xti.domain.ransomlook_watches import ransomlook_watch_definition_sha256, ransomlook_watch_query_key
 from xti.domain.ransomware_claims import RANSOMWARE_SOURCE_NAME
@@ -24,6 +27,7 @@ from xti.domain.ransomware_watches import ransomware_watch_definition_sha256, ra
 RESULT_TABLES = {
     "scan_attempt": "scan_attempts", "discovery_run": "surface_discovery_runs",
     "feed_run": "cti_feed_runs", "username_run": "brand_username_watch_runs",
+    "public_notice_run": "public_notice_runs",
     "threatcluster_source_run": "ransomware_claim_runs", "ransomlook_source_run": "ransomlook_claim_runs",
     "threatcluster_watch_run": "ransomware_watch_runs", "ransomlook_watch_run": "ransomlook_watch_runs",
 }
@@ -94,6 +98,37 @@ def operation_context(connection, operation: CollectionOperationToken, *, allow_
         raise StorageError("Toplama işlem kimliği güncel açık adımla uyuşmuyor.") from error
 
 
+def _public_notice_unit(unit, definition, step) -> None:
+    if (
+        (unit.step_key, unit.kind, unit.source, unit.contract_version)
+        != ("notices-hibp", "public_notice", "hibp", HIBP_CONTRACT_VERSION)
+        or unit.asset_value != definition.asset_value or unit.watch is not None
+        or "notices-hibp" not in definition.task_ids
+        or (step["step_key"], step["kind"], step["source"])
+        != (unit.step_key, unit.kind, unit.source)
+        or step["watch_id"] is not None or step["depends_on_step_id"] is not None
+        or step["scan_job_id"] is not None
+    ):
+        raise StorageError("Toplama kamu kataloğu hedefi veya kaynak sözleşmesi uyuşmuyor.")
+
+
+def validate_public_notice_operation(connection, operation: CollectionOperationToken | None) -> None:
+    """Read-only preflight, repeated inside the later source transaction."""
+    if operation is None:
+        return
+    session, step, unit, plan = operation_context(connection, operation)
+    _public_notice_unit(unit, plan.definition, step)
+    # Full session validation also binds profile origins, resume ancestors and
+    # earlier receipts. Import lazily: the history reader uses source_result.
+    from xti.adapters.sqlite_collection_history import SQLiteCollectionHistoryRepository
+    details = SQLiteCollectionHistoryRepository._details(connection, session["id"])
+    SQLiteCollectionHistoryRepository._current_origin(connection, plan)
+    if (details.session.plan != plan
+            or not any(item.id == operation.step_id and item.status == "running" for item in details.steps)
+            or not connection.execute("SELECT 1 FROM assets WHERE value=?", (plan.definition.asset_value,)).fetchone()):
+        raise StorageError("Toplama kamu kataloğu işlemi etkin oturum kapsamıyla uyuşmuyor.")
+
+
 def source_result(connection, unit, definition, step, *, result_kind: str, result_id: str, result_status: str):
     """Validate the exact durable source row and derive bounded receipt counters."""
     if result_kind not in RESULT_TABLES or result_status not in RESULT_STATUSES:
@@ -101,13 +136,29 @@ def source_result(connection, unit, definition, step, *, result_kind: str, resul
     history_uuid(result_id)
     expected_kind = {
         "scan": "scan_attempt", "discovery": "discovery_run", "ioc": "feed_run",
-        "username_watch": "username_run", "ransomware_refresh": f"{unit.source}_source_run",
+        "username_watch": "username_run", "public_notice": "public_notice_run", "ransomware_refresh": f"{unit.source}_source_run",
         "ransomware_watch": f"{unit.source}_watch_run",
-    }[unit.kind]
+    }.get(unit.kind)
     if result_kind != expected_kind:
         raise StorageError("Toplama kaynak sonucu seçilen birime ait değil.")
     row = _row(connection, RESULT_TABLES[result_kind], result_id)
-    if result_kind == "scan_attempt":
+    if result_kind == "public_notice_run":
+        _public_notice_unit(unit, definition, step)
+        from xti.adapters.sqlite_public_notices import read_public_notice_history
+        history = read_public_notice_history(connection)
+        run = next((item for item in history.runs if item.id == result_id), None)
+        if (run is None or run.status != result_status or run.status not in {"complete", "failed"}
+                or (history.source_name, history.source_url, history.attribution, history.license)
+                != (HIBP_SOURCE_NAME, HIBP_SOURCE_URL, HIBP_ATTRIBUTION, HIBP_LICENSE)
+                or step["started_at"] is None
+                or datetime.fromisoformat(run.started_at) < datetime.fromisoformat(canonical_time(step["started_at"]))):
+            raise StorageError("Toplama kamu kataloğu sonucu gerçek kaynak/süreç kanıtıyla uyuşmuyor.")
+        counters = {key: value for key, value in asdict(run).items() if key.endswith("_count")}
+        counters["is_baseline"] = int(run.status == "complete" and not any(
+            previous.status == "complete" and previous.sequence < run.sequence for previous in history.runs
+        ))
+        recorded_at = run.finished_at
+    elif result_kind == "scan_attempt":
         # Lazy import avoids a cycle: source adapters import this helper.
         from xti.adapters.sqlite_jobs import SQLiteJobRepository
         attempt = SQLiteJobRepository._get_attempt(connection, result_id)
@@ -186,6 +237,13 @@ def source_result(connection, unit, definition, step, *, result_kind: str, resul
     return recorded_at, tuple(sorted(counters.items()))
 
 
+def receipt_source_metadata(result_kind: str) -> dict[str, str]:
+    if result_kind != "public_notice_run":
+        return {}
+    return {"source_attribution": HIBP_ATTRIBUTION, "source_license": HIBP_LICENSE,
+            "source_scope": "global-catalog"}
+
+
 def summary_json(counters) -> str:
     return canonical_json({"version": 1, "counters": dict(counters)})
 
@@ -225,7 +283,8 @@ def record_collection_step_receipt(
             _row(connection, RESULT_TABLES[result_kind], result_id)["source_run_id"]
             if unit.kind == "ransomware_watch" else None
         )
-        return CollectionStepReceipt(step["id"], recorded_at, result_status, result_kind, result_id, counters, digest, source_run_id)
+        return CollectionStepReceipt(step["id"], recorded_at, result_status, result_kind, result_id, counters, digest, source_run_id,
+                                     **receipt_source_metadata(result_kind))
     except (ValueError, TypeError, KeyError, RecursionError) as error:
         raise StorageError("Toplama kaynak kanıtı doğrulanamadı; kaynak yazımı geri alınmalı.") from error
 

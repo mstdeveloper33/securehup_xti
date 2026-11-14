@@ -3,6 +3,7 @@
 from xti.domain.brand_username_watches import BrandUsernameWatchRunReport
 from xti.domain.collection import CollectionPlan, CollectionResult, CollectionStep
 from xti.interfaces.analysis import report_lines as analysis_lines
+from xti.interfaces.public_notices import public_notice_collection_lines
 from xti.interfaces.ransomlook_watches import run_lines as ransomlook_watch_lines
 from xti.interfaces.ransomware_watches import run_lines as ransomware_watch_lines
 from xti.interfaces.text import safe_text
@@ -181,6 +182,8 @@ def result_lines(result: CollectionResult) -> list[str]:
                 lines.append(f"  Hata: {safe_text(feed.error)}")
                 lines.append("  Liste alınamadı; sıfır gösterge bulunduğu anlamına gelmez.")
                 lines.append("  Varsa önceki geçerli yerel IOC kaydı analizde korunur.")
+        elif step.public_notices is not None:
+            lines.extend("  " + line for line in public_notice_collection_lines(step.public_notices))
         elif step.username is not None:
             lines.extend(_username_lines(step.username))
         elif step.ransomware is not None:

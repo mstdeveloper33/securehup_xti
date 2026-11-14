@@ -1,10 +1,31 @@
 # XTI — Güncel Uygulama Durumu
 
-**14 Kasım 2026 · 0.134.0 · Şema 60.**
+**14 Kasım 2026 · 0.135.0 · Şema 61.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `collect DOMAIN --task notices-hibp`: HIBP kamu kataloğunu açık seçimle
+  mevcut toplama oturumuna bağlama. Profilde saklanır, mevcut Linux zamanlama
+  akışı kullanır; kayıtlı domain gerekir. Varsayılan üç iş ve eski profil
+  seçimleri değişmez. `--task` tam seçimdir; önceki işleri örtük eklemez.
+- Kaynak çalışma/farkları ve toplama tamamlanma bağı aynı transaction içinde
+  kaydedilir. Hata da kendi kaynağıyla saklanır; son başarılı katalog korunur.
+  Kaynak commit'i sonrası üst işlem kesilirse devam başarılı HIBP'yi yeniden
+  indirmez. Yalnız eksik işler yeni yürütmede çalışır.
+- Önizleme, profil kaydı ve zamanlama hazırlığı ağsızdır. Seçilen bütün
+  depolar, kaynak isteğinden önce doğrulanır; kaynak yazımında işlem kimliği,
+  profil/oturum, kaynak sözleşmesi ve gerçek sonuç yeniden doğrulanır.
+- Katalog sayıları ortak kaynak kapsamıdır; domain veya kuruluş bulgu sayısı
+  değildir. İlk başarılı alım başlangıçtır; kaynak atfı/lisansı terminal,
+  JSON, geçmiş ve korunmuş sonuçlarda bulunur. Kuruluş dönem raporu yalnız
+  kaynakta tam domain eşleşen olayları ilgili kaynak kaydı olarak gösterir;
+  bu eşleşme tek başına doğrulanmış ihlal kararı değildir.
+- Şema 61 yalnız mevcut toplama adım ve tamamlanma tablolarını genişletir;
+  eski kimlikler/alanlar/özetler korunur, yeni kaynak bağlantısı eskilerde
+  boştur. Açık yedekli `migrate` gerekir. HIBP bildirimleri, vaka kanıtı ve
+  HTML rapor bu sürümde eklenmedi; [devam planındadır](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md).
 
 - `organizations report ID`: yalnız güncel etkin açık bağlantılardaki domain,
   dış yüzey, sosyal profil ve iki ransomware kaynağı; tam kayıtlar ve
@@ -26,7 +47,8 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
   olay metadata kataloğu. Kişi/e-posta/parola sorgusu yok; ilk başarılı alım
   başlangıç, sonraki ekleme/değişme/çıkarma ayrı. Kaynak hatası son başarıyı
   korur. Kaynak bayrakları, Have I Been Pwned atfı ve CC BY 4.0 lisansı
-  bütün metadata görünümlerinde bulunur. Yalnız açık `refresh` ağ kullanır.
+  bütün metadata görünümlerinde bulunur. `notices` grubunda yalnız açık
+  `refresh` ağ kullanır; toplamada ayrıca `notices-hibp` seçilebilir.
 - HIBP tam domain eşleşmeleri kuruluş ve dönem raporuna; ortak katalog
   durumu `sources status` içine katılır. Kaynak kataloğu `sources list`
   içinde erişim koşullarını açıklar. Canlı tek istekle 1.052 kayıt alınıp
@@ -1168,6 +1190,32 @@ R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin
 
 ## Son doğrulama
 
+0.135.0 tam paketi **1.777 testle 562,841 saniyede** tamamlandı: 1.776 geçti,
+yalnız Linux `systemd-analyze` kontrolü macOS üzerinde atlandı. Test boyunca
+756 uygulama/test/script dosyasının özetleri değişmedi. GitHub Actions
+sonucu bu yerel doğrulamanın sonucu olarak sunulmaz.
+
+0.135.0 hızlı kapısı **383 testle 166,578 saniyede** tamamlandı: 382 geçti,
+yalnız Linux `systemd-analyze` kontrolü macOS üzerinde atlandı. Shell
+sözdizimi ve Python derleme kontrolleri geçti. Yeni kabul; açık HIBP seçimi,
+eski profil özetleri, kaynak hatası, kesinti sonrası korunmuş sonuç, atomik
+geri alma, lisans/atıf, ilk katalog ve kuruluş kapsamını birlikte sınar.
+
+0.135.0 gerçek veri kopyasında şema 60→61 geçişi **129 tablonun 86.843
+satırını**, eski alanlarını ve rowid'lerini korudu. Yalnız iki toplama
+tablosunun tanımı genişledi; eski sonuçlarda yeni HIBP bağı boş kaldı.
+Benzersiz geçiş yedeği ayrı dosyaya geri yüklendi ve şema 60/veri eşitliği
+doğrulandı. Ağ kapalı gerçek CLI'de durum/geçmiş okumaları, yalnız kopyada
+HIBP profili, planı ve zamanlama dosyası üretimi geçti. Kopya kabulü boyunca
+asıl veritabanının dosya özeti, boyutu, inode'u ve değiştirilme zamanı aynıydı.
+Gerçek Linux hizmeti etkinleştirilmedi; canlı kaynak bu kabulde çağrılmadı.
+
+Tam kontrollerden sonra asıl yerel veritabanı da ortak kilit altında 60→61
+yükseltildi. 129 tablo ve 86.843 satırın eski alanları/rowid'leri korundu;
+benzersiz geçiş yedeği ve ayrı geçici dosyaya gerçek geri yükleme özgün
+şema 60/veriyle eşleşti. Kişisel profil veya kuruluş tanımı eklenmedi;
+katalog kendiliğinden indirilmedi. Yedek ve kabul kayıtları Git dışında kaldı.
+
 0.134.0 tam paketi **1.743 testle 509,592 saniyede** tamamlandı: 1.742 geçti,
 yalnız Linux `systemd-analyze` kontrolü macOS üzerinde atlandı. Tam paket
 çalışırken uygulama/test girdileri değişmedi. Sonraki yedi dosya sonu boş
@@ -1495,9 +1543,14 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
-14 Kasım 2026 onaylı sırada 1–2 yayımlandı, 3–7 ana projeye entegre edildi.
-Sıradaki teslim Linux zamanlaması ve bakımdır; bu belgede tamamlanmış
-sayılmamıştır. [Sıralı plan](roadmap/ORDERED_INTEGRATION_PLAN.md) kapsamı gösterir.
+14 Kasım 2026 onaylı sekiz teslim 0.131.0–0.133.0'da tamamlandı;
+Linux hizmetinin gerçek Linux üzerinde etkinleştirme kabulü ayrıca bekler.
+[Sıralı plan](roadmap/ORDERED_INTEGRATION_PLAN.md) bu ayrımı gösterir.
+Kuruluş birleşik raporu ve HIBP kamu kataloğu 0.134.0'da, kataloğun kayıtlı
+toplama/zamanlama akışına katılması 0.135.0'da eklendi. Sıradaki teslim
+kuruluşa bağlı kamu olaylarını izleme ve yerel bildirim kutusudur; ardından
+vaka kanıtı ve çevrimdışı HTML rapor gelir.
+[Kamu olayları devam planı](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md) kapsamı gösterir.
 
 13 Kasım 2026 kullanıcı yönlendirmesi: terminal menüsü yerine özellik
 geliştirmeye devam edilecek; React arayüzü ileride ayrı projeden bağlanacak.

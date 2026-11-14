@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock
+from uuid import uuid4
 
 from xti.application.collection import CollectionService
 from xti.domain.assets import ValidationError
@@ -16,8 +17,12 @@ from xti.domain.cti_feeds import CTI_FEED_POLICIES, CtiFeedRun
 from xti.domain.discovery import ScanResult
 from xti.domain.findings import ImportSummary
 from xti.domain.jobs import ScanAttempt, ScanJob
+from xti.domain.public_notices import (
+    PublicNoticeChange, PublicNoticeRefreshReport, PublicNoticeRun, PublicNoticeStatus, notice_sha256,
+)
 from xti.domain.surface import SurfaceDiscoveryResult
 from xti.ports.jobs import WorkerBusyError
+from tests.test_public_notices import feed as notice_feed, item as notice_item
 
 
 NOW = datetime(2026, 11, 13, 12, tzinfo=timezone.utc)
@@ -164,6 +169,46 @@ class FakeFeed:
         return result
 
 
+class FakePublicNotices:
+    def __init__(self, lock, mutations):
+        self.source = object()
+        self.lock, self.mutations = lock, mutations
+        self.preparations, self.results = [], []
+        self.error = None
+        self.outcome = "complete"
+        self.status_transform = lambda value: value
+        self.result_transform = lambda value: value
+
+    def status(self, *, run_limit):
+        self.preparations.append((run_limit, self.lock.active))
+        if self.error:
+            raise self.error
+        return self.status_transform(PublicNoticeStatus(None, None, (), 0))
+
+    def refresh(self):
+        assert self.lock.active
+        if isinstance(self.outcome, BaseException):
+            raise self.outcome
+        self.mutations.append(("public_notice", "hibp"))
+        complete = self.outcome == "complete"
+        identifier = str(uuid4())
+        records = notice_feed(notice_item(), notice_item("Other", "other.example")).notices
+        run = PublicNoticeRun(
+            sequence=len(self.results) + 1, id=identifier, status=self.outcome,
+            started_at=NOW.isoformat(), finished_at=NOW.isoformat(),
+            fetched_at=NOW.isoformat() if complete else None,
+            content_sha256="0" * 64 if complete else None,
+            snapshot_sha256="1" * 64 if complete else None,
+            notice_count=2 if complete else 0, added_count=2 if complete else 0,
+            updated_count=0, unchanged_count=0, removed_count=0,
+            error=None if complete else "Katalog alınamadı.",
+        )
+        changes = tuple(PublicNoticeChange(identifier, "added", value, notice_sha256(value)) for value in records) if complete else ()
+        result = PublicNoticeRefreshReport(run, changes, len(changes), complete)
+        self.results.append(result)
+        return self.result_transform(result)
+
+
 class FakeAnalysis:
     def __init__(self, mutations):
         self.mutations = mutations
@@ -194,8 +239,10 @@ class CollectionServiceTests(unittest.TestCase):
             for name in ("feodo", "certpl")
         }
         self.analysis = FakeAnalysis(self.mutations)
+        self.notices = FakePublicNotices(self.lock, self.mutations)
         self.service = CollectionService(
             self.jobs, self.discoveries, self.feeds, self.analysis, clock=lambda: NOW,
+            public_notices=self.notices,
         )
 
     def test_plan_is_read_only_and_defaults_do_not_prepare_optional_sources(self):
@@ -206,6 +253,7 @@ class CollectionServiceTests(unittest.TestCase):
         self.assertEqual(self.lock.entries, 0)
         self.assertEqual(self.discoveries["theharvester"].preparations, [])
         self.assertTrue(all(not feed.preparations for feed in self.feeds.values()))
+        self.assertEqual(self.notices.preparations, [])
 
     def test_defaults_use_one_lock_keep_run_ids_and_analyze_after_collection(self):
         result = self.service.run("EXAMPLE.COM", finding_limit=3, stale_after_hours=48)
@@ -247,9 +295,9 @@ class CollectionServiceTests(unittest.TestCase):
         self.assertEqual(result.status, "partial")
         self.assertEqual(
             tuple(step.status for step in result.steps),
-            ("failed", "complete", "complete", "partial", "failed", "complete"),
+            ("failed", "complete", "complete", "partial", "failed", "complete", "complete"),
         )
-        self.assertEqual(len(result.steps), 6)
+        self.assertEqual(len(result.steps), 7)
         self.assertIs(result.steps[4].feed, self.feeds["feodo"].results[0])
 
     def test_all_failed_is_failed_even_when_final_analysis_is_available(self):
@@ -259,6 +307,41 @@ class CollectionServiceTests(unittest.TestCase):
         self.assertEqual(result.status, "failed")
         self.assertEqual(len(result.steps), 3)
         self.assertEqual(result.analysis.asset_value, "example.com")
+
+    def test_explicit_public_catalog_preflights_twice_and_preserves_shared_source_result(self):
+        result = self.service.run("example.com", tasks=("notices-hibp",))
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(self.notices.preparations, [(1, False), (1, True)])
+        self.assertEqual(self.mutations, [("public_notice", "hibp")])
+        self.assertIs(result.steps[0].public_notices, self.notices.results[0])
+        self.assertTrue(any("domainin bulgu sayısı değildir" in note for note in result.plan.notes))
+        self.assertEqual(result.steps[0].public_notices.run.notice_count, 2)
+
+    def test_public_source_failure_keeps_result_failed_and_lock_released(self):
+        self.notices.outcome = "failed"
+        result = self.service.run("example.com", tasks=("notices-hibp",))
+        self.assertEqual((result.status, result.steps[0].status), ("failed", "failed"))
+        self.assertEqual(result.steps[0].public_notices.run.error, "Katalog alınamadı.")
+        self.assertFalse(self.lock.active)
+
+    def test_public_history_damage_prevents_earlier_independent_source_requests(self):
+        self.notices.error = ValidationError("Katalog geçmişi bozuk.")
+        with self.assertRaisesRegex(ValidationError, "Katalog geçmişi"):
+            self.service.run("example.com", tasks=("scan-crtsh", "notices-hibp"))
+        self.assertEqual((self.mutations, self.lock.entries), ([], 0))
+
+    def test_wrong_public_source_preflight_is_rejected_before_writes(self):
+        self.notices.status_transform = lambda value: replace(value, source_url="https://other.example")
+        with self.assertRaises(ValidationError):
+            self.service.run("example.com", tasks=("notices-hibp",))
+        self.assertEqual((self.mutations, self.lock.entries), ([], 0))
+
+    def test_wrong_public_result_contract_stops_following_sources(self):
+        self.notices.result_transform = lambda value: replace(value, license="unknown")
+        with self.assertRaisesRegex(ValidationError, "geçersiz toplama sonucu"):
+            self.service.run("example.com", tasks=("notices-hibp",))
+        self.assertEqual(len(self.notices.results), 1)
+        self.assertFalse(self.lock.active)
 
     def test_single_partial_source_is_not_complete(self):
         self.discoveries["theharvester"].outcome = "partial"

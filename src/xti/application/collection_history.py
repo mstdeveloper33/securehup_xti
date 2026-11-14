@@ -20,6 +20,7 @@ from xti.domain.collection_history import (
 from xti.domain.collection_profiles import (
     CollectionProfile, CollectionProfileDefinition, normalize_profile_definition,
 )
+from xti.domain.public_notices import HIBP_CONTRACT_VERSION
 from xti.ports.collection_history import CollectionHistoryRepository
 from xti.ports.jobs import ExecutionLock
 
@@ -69,6 +70,8 @@ class CollectionHistoryService:
             elif task.kind == "username_watch":
                 source = collection.watch_collection.username.sources[task.source]
                 contract = username_contract(source.source_version, source.integration_profile)
+            elif task.kind == "public_notice":
+                contract = HIBP_CONTRACT_VERSION
             else:
                 contract = f"collection-source-v1:{task.kind}:{task.source}"
             contracts[task.id] = contract
@@ -222,7 +225,7 @@ class CollectionHistoryService:
                 token = self.repository.start_step(session_id, stored_step.id, started_at=self._now())
                 if progress:
                     progress(f"Toplama: {unit.step_key}")
-                if unit.kind in {"scan", "discovery", "ioc"}:
+                if unit.kind in {"scan", "discovery", "ioc", "public_notice"}:
                     steps.append(collection._collect(tasks[unit.step_key], plan, progress, operation=token))
                 elif unit.kind == "username_watch":
                     task = tasks[unit.step_key]

@@ -13,6 +13,7 @@ from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.adapters.sqlite_public_notices import SQLitePublicNoticeRepository
 from xti.application.public_notices import PublicNoticeService
+from tests.collection_v60_fixture import collection_layout_v60
 
 
 def rows(path):
@@ -35,6 +36,7 @@ class PublicNoticeMigrationTests(unittest.TestCase):
             recorded_at="2026-11-14T15:00:00+00:00",
         )
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            collection_layout_v60(connection)
             connection.execute("DROP TABLE public_notice_changes")
             connection.execute("DROP TABLE public_notice_runs")
             connection.execute("PRAGMA user_version=59")

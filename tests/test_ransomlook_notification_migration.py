@@ -13,6 +13,7 @@ from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.adapters.sqlite_ransomlook_watches import SQLiteRansomLookWatchRepository
 from xti.domain.organizations import normalize_organization_target
 from tests import test_ransomlook_notifications as fixtures
+from tests.collection_v60_fixture import collection_layout_v60
 
 
 def snapshot(path):
@@ -37,6 +38,7 @@ class RansomLookNotificationMigrationTests(unittest.TestCase):
         org = organizations.add(name_key="example", display_name="Example", reason="Açık kuruluş seçimi.", recorded_at=fixtures.NOW.isoformat()).organization
         organizations.link(org.id, normalize_organization_target("domain", "example.com"), reason="Kullanıcı seçimi.", recorded_at=fixtures.NOW.isoformat())
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            collection_layout_v60(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE ransomlook_watch_notifications")
