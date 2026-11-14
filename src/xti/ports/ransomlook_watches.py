@@ -2,6 +2,7 @@
 
 from typing import Protocol
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.ransomlook_ransomware import RansomLookClaimSnapshot
 from xti.domain.ransomlook_watches import (
     RansomLookWatchDetails,
@@ -29,6 +30,7 @@ class RansomLookWatchRepository(Protocol):
     def run(
         self, watch_id: str, snapshot: RansomLookClaimSnapshot, *,
         executed_at: str, item_limit: int,
+        operation: CollectionOperationToken | None = None,
     ) -> RansomLookWatchRunReport: ...
 
     def run_details(

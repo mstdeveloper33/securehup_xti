@@ -7,6 +7,8 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.sqlite_collection_receipts import record_collection_step_receipt
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.ransomware_claims import (
     RANSOMWARE_ITEM_ACTIONS,
@@ -366,7 +368,7 @@ class SQLiteRansomwareClaimRepository:
 
     def apply(
         self, feed: RansomwareClaimFeed, *, started_at: str, finished_at: str,
-        item_limit: int,
+        item_limit: int, operation: CollectionOperationToken | None = None,
     ) -> RansomwareClaimRunReport:
         if type(item_limit) is not int or not 1 <= item_limit <= 500:
             raise ValidationError("Değişiklik görünüm sınırı 1–500 arasında olmalı.")
@@ -434,6 +436,10 @@ class SQLiteRansomwareClaimRepository:
                     unchanged_count=counts["unchanged"], removed_count=counts["removed"],
                     error=None,
                 )
+                record_collection_step_receipt(
+                    connection, operation, result_kind="threatcluster_source_run",
+                    result_id=run.id, result_status=run.status,
+                )
                 connection.commit()
                 return RansomwareClaimRunReport(
                     run=run, items=tuple(stored_items[:item_limit]),
@@ -446,6 +452,7 @@ class SQLiteRansomwareClaimRepository:
 
     def record_failure(
         self, *, started_at: str, finished_at: str, error: str,
+        operation: CollectionOperationToken | None = None,
     ) -> RansomwareClaimRun:
         started_at, finished_at = self._times(started_at, finished_at)
         try:
@@ -475,6 +482,10 @@ class SQLiteRansomwareClaimRepository:
                     generated_at=None, window_days=None, source_record_count=0,
                     claim_count=0, added_count=0, updated_count=0,
                     unchanged_count=0, removed_count=0, error=error,
+                )
+                record_collection_step_receipt(
+                    connection, operation, result_kind="threatcluster_source_run",
+                    result_id=run.id, result_status=run.status,
                 )
                 connection.commit()
                 return run

@@ -6,8 +6,8 @@
 | Sıra | Teslim | Durum | Kabul sonucu |
 | --- | --- | --- | --- |
 | 1 | Kayıtlı toplama profilleri | Tamamlandı (0.131.0) | Adla kaydetme, ağsız önizleme, çalıştırma; sürümlü tanım ve yedekli geçiş |
-| 2 | Birleşik çalışma geçmişi ve eksik adımları yeniden deneme | Hazırlanıyor; henüz kullanılabilir değil | Kaynak çalışmalarıyla bağlı oturum; kesinti ve kısmi sonucun korunması |
-| 3 | Açık kuruluş/marka bağlantıları | Bekliyor | Kullanıcının domain ve izlemeleri bağlaması; otomatik sahiplik çıkarımı olmaması |
+| 2 | Birleşik çalışma geçmişi ve eksik adımları yeniden deneme | Tamamlandı (0.132.0) | Kaynak çalışmalarıyla bağlı oturum; kesinti ve kısmi sonucun korunması |
+| 3 | Açık kuruluş/marka bağlantıları | Ayrı ortamda doğrulandı; ana projeye birleşim bekliyor | Kullanıcının domain ve izlemeleri bağlaması; otomatik sahiplik çıkarımı olmaması |
 | 4 | Günlük/haftalık değişim raporu | Bekliyor | Kaynaklı yeni/değişen kayıtlar ve kapsam boşlukları; tekrar sayımın açıklanması |
 | 5 | ATT&CK teknik/taktik kataloğu | Bekliyor | Resmî kimliklerle arama, ayrıntı ve kaynaklı ilişkiler |
 | 6 | Kaynak katkısını ölçme ve ücretsiz kaynak genişlemesi | Bekliyor | Ölçülen kapsam farkı, erişim sınırı ve hata ayrımı; doğrulanmış adaptör seçimi |

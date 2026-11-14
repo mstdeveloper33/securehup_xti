@@ -6,6 +6,7 @@ import unicodedata
 from collections.abc import Callable
 from datetime import datetime, timezone
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.ransomware_claims import (
     RansomwareClaim,
@@ -139,7 +140,9 @@ class RansomwareClaimHistoryService:
             raise ValidationError(f"{field} 1–{maximum} arasında olmalı.")
         return value
 
-    def refresh(self, *, item_limit: int = 100) -> RansomwareClaimRunReport:
+    def refresh(
+        self, *, item_limit: int = 100, operation: CollectionOperationToken | None = None,
+    ) -> RansomwareClaimRunReport:
         item_limit = self._limit(item_limit, maximum=500, field="Değişiklik görünüm sınırı")
         if self.source is None:
             raise ValidationError("Ransomware iddiası kaynağı yapılandırılmamış.")
@@ -149,6 +152,7 @@ class RansomwareClaimHistoryService:
         except SourceError as error:
             run = self.repository.record_failure(
                 started_at=started_at, finished_at=self._now(), error=str(error),
+                **({"operation": operation} if operation is not None else {}),
             )
             return RansomwareClaimRunReport(
                 run=run, items=(), total_item_count=0, is_baseline=False,
@@ -156,6 +160,7 @@ class RansomwareClaimHistoryService:
         return self.repository.apply(
             feed, started_at=started_at, finished_at=self._now(),
             item_limit=item_limit,
+            **({"operation": operation} if operation is not None else {}),
         )
 
     def status(self, *, run_limit: int = 10) -> RansomwareClaimHistoryStatus:

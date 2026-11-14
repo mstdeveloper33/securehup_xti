@@ -1,8 +1,18 @@
 # Yerel Uygulamanın Mimarisi
 
-**14 Kasım 2026 — 0.131.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**14 Kasım 2026 — 0.132.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
+
+`CollectionHistoryService`, mevcut toplama servislerini kaynak birimleriyle
+yürütür. Şema 56 oturum, adım ve gerçek kaynak sonucuna bağlı completion
+receipt tutar. İsteğe bağlı işlem kimliği küçük kaynak sözleşmelerinden
+geçer; SQLite yardımcı yordamı kaynak sonucu ile receipt'i aynı transaction'da
+yazar. Toplama scan işi sahipliği enqueue sırasında bağlanır. Genel kuyruk
+bu işleri sahiplenmez; oturum kurtarması tamamlanan receipt'leri korur.
+Yeni devam yürütmesi yalnız eksik üyeleri ve gereken taze ransomware
+yenilemesini çalıştırır. Final analiz günceldir; tarihî çıktı diye sunulmaz.
+[0132 kararı](decisions/0132-durable-collection-sessions.md) ayrıntıları açıklar.
 
 `CollectionProfileService`, küçük depo/kilit sözleşmeleri ve seçili toplama
 servisi fabrikası üzerinden adlandırılmış tanımları yönetir. Şema 55 güncel
@@ -18,8 +28,9 @@ ve `CtiFeedService` işlemlerini tek çalışma kilidi altında seri yürütür.
 Kaynak sonuçları kendi depolarında saklanır; son `UnifiedAnalysisService`
 görünümü bu kayıtlardan okunur. Donmuş plan/adım/sonuç modelleri terminal ve
 JSON tarafından kullanılır. Servis CLI, HTTP veya SQLite import etmez;
-ilerideki React/API katmanı aynı işlevi çağırabilir. Ayrı bir genel workflow
-motoru, birleşik çalışma tablosu veya otomatik kaldığı yerden sürdürme yoktur.
+ilerideki React/API katmanı aynı işlevi çağırabilir. Genel workflow motoru
+yoktur; CLI, 0.132.0'dan itibaren kalıcı oturum ve açık devam için bu çekirdeği
+`CollectionHistoryService` ile kullanır. Kendiliğinden tekrar başlatma yapılmaz.
 Ayrıntılar [0127 numaralı karardadır](decisions/0127-explicit-passive-collection.md).
 
 0.130.0, `CollectionWatchService` üzerinden açık kimlikle seçilen sosyal ve

@@ -126,6 +126,9 @@ def result_lines(result: CollectionResult) -> list[str]:
         f"Başlangıç: {safe_text(result.started_at)} | Bitiş: {safe_text(result.finished_at)}",
         "",
     ]
+    if result.session_id is not None:
+        lines.append(f"Toplama oturumu: {safe_text(result.session_id)}")
+        lines.append(f"Geçmiş: ./xti collections show {safe_text(result.session_id)}")
     for step in result.steps:
         lines.append(f"{safe_text(step.task.label)}: {_STATUS[step.status]}")
         if step.attempt is not None:

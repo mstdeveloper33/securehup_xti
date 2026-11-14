@@ -85,6 +85,9 @@ class JobMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+            connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+            connection.execute("DROP TABLE IF EXISTS collection_sessions")
             connection.execute("PRAGMA user_version=2")
             connection.execute("INSERT INTO assets VALUES ('asset-1', 'example.com', '2026-01-01')")
             connection.execute(
@@ -183,6 +186,9 @@ class JobMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+            connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+            connection.execute("DROP TABLE IF EXISTS collection_sessions")
             connection.execute("PRAGMA user_version=3")
             raise sqlite3.OperationalError("Injected migration failure")
 

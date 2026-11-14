@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import math
 import time
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import Asset, ValidationError, normalize_domain
 from xti.domain.discovery import SourceBatch
 from xti.domain.enrichment import ProbeResult
@@ -269,7 +270,9 @@ class SurfaceDiscoveryService:
             raise ValidationError("Pasif kaynağın kapsam özeti geçersiz; kayıt yapılmadı.")
         return documents
 
-    def discover(self, asset_value: str) -> SurfaceDiscoveryResult:
+    def discover(
+        self, asset_value: str, *, operation: CollectionOperationToken | None = None,
+    ) -> SurfaceDiscoveryResult:
         asset = self._asset(asset_value)
         if self.source is None:
             raise ValidationError("Pasif keşif kaynağı bu çalışma yolunda yapılandırılmadı.")
@@ -289,6 +292,7 @@ class SurfaceDiscoveryService:
                     "failed", source_url, started_at, finished_at,
                     0, 0, 0, (), 0, error, provider,
                 ),
+                **({"operation": operation} if operation is not None else {}),
             )
             return SurfaceDiscoveryResult(
                 asset.value, started_at, finished_at, "failed", source_url,
@@ -330,6 +334,7 @@ class SurfaceDiscoveryService:
                     "failed", source_url, started_at, finished_at,
                     0, 0, 0, (), 0, error, provider,
                 ),
+                **({"operation": operation} if operation is not None else {}),
             )
             return SurfaceDiscoveryResult(
                 asset.value, started_at, finished_at, "failed", source_url,
@@ -345,6 +350,7 @@ class SurfaceDiscoveryService:
                 batch.record_count, batch.skipped_names, ignored, batch.warnings,
                 len({item.domain for item in evidence}), None, provider,
             ),
+            **({"operation": operation} if operation is not None else {}),
         )
         return SurfaceDiscoveryResult(
             asset.value, started_at, finished_at, status, source_url,

@@ -10,7 +10,14 @@ from pathlib import Path
 from uuid import uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.sqlite_collection_receipts import (
+    assert_collection_scan_job_owner,
+    bind_collection_scan_job,
+    collection_scan_job_owned,
+    record_collection_step_receipt,
+)
 from xti.domain.assets import ValidationError
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.discovery import QueryResult, ScanResult
 from xti.domain.findings import ImportSummary
 from xti.domain.jobs import JOB_STATUSES, RETRYABLE_STATUSES, JobDetails, ScanAttempt, ScanJob
@@ -202,7 +209,10 @@ class SQLiteJobRepository:
             raise ValidationError("Çalışma kaydı bulunamadı.")
         return cls._attempt(row)
 
-    def create(self, targets: tuple[str, ...], typos: bool, provider: str, rule_version: str) -> ScanJob:
+    def create(
+        self, targets: tuple[str, ...], typos: bool, provider: str, rule_version: str, *,
+        operation: CollectionOperationToken | None = None,
+    ) -> ScanJob:
         try:
             targets = _strings(targets, minimum=1, maximum=5)
             if len(set(targets)) != len(targets) or type(typos) is not bool:
@@ -217,6 +227,7 @@ class SQLiteJobRepository:
                 "INSERT INTO scan_jobs (" + _JOB_COLUMNS + ") VALUES (?, ?, ?, ?, ?, 'queued', ?, ?, 0)",
                 (job_id, _dumps(targets), int(typos), provider, rule_version, now, now),
             )
+            bind_collection_scan_job(connection, operation, job_id)
             return self._get_job(connection, job_id)
 
     def list(self, status: str | None = None, limit: int = 20) -> list[ScanJob]:
@@ -271,21 +282,31 @@ class SQLiteJobRepository:
             raise ValidationError("Kurtarma gerekçesi gerekli.")
         with self._write() as connection:
             now = _now()
-            count = connection.execute(
-                "SELECT COUNT(*) FROM scan_jobs WHERE status = 'running'"
-            ).fetchone()[0]
-            connection.execute(
-                "UPDATE scan_attempts SET status = 'interrupted', finished_at = ?, error = ? "
-                "WHERE status = 'running'", (now, reason[:_MAX_TEXT]),
-            )
-            connection.execute(
-                "UPDATE scan_jobs SET status = 'interrupted', updated_at = ? WHERE status = 'running'", (now,),
-            )
-            return count
+            running_ids = tuple(row[0] for row in connection.execute(
+                "SELECT id FROM scan_jobs WHERE status = 'running'"
+            ))
+            recovered = 0
+            for job_id in running_ids:
+                # Collection recovery owns its steps and jobs as one operation.
+                if collection_scan_job_owned(connection, job_id):
+                    continue
+                connection.execute(
+                    "UPDATE scan_attempts SET status = 'interrupted', finished_at = ?, error = ? "
+                    "WHERE job_id = ? AND status = 'running'", (now, reason[:_MAX_TEXT], job_id),
+                )
+                connection.execute(
+                    "UPDATE scan_jobs SET status = 'interrupted', updated_at = ? "
+                    "WHERE id = ? AND status = 'running'", (now, job_id),
+                )
+                recovered += 1
+            return recovered
 
     def start(
         self, job_id: str | None = None, *, monitor_id: str | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> ScanAttempt | None:
+        if operation is not None and (job_id is None or monitor_id is not None):
+            raise ValidationError("Toplama çalıştırması için yalnız açık toplama işi gerekli.")
         if monitor_id is not None and (
             job_id is None or not isinstance(monitor_id, str) or not monitor_id
             or len(monitor_id) > 64 or not monitor_id.isprintable()
@@ -298,6 +319,8 @@ class SQLiteJobRepository:
                 row = connection.execute(
                     "SELECT j.id FROM scan_jobs j WHERE j.status = 'queued' "
                     "AND NOT EXISTS (SELECT 1 FROM monitor_jobs m WHERE m.job_id = j.id) "
+                    "AND NOT EXISTS (SELECT 1 FROM collection_session_steps c "
+                    "WHERE c.scan_job_id = j.id) "
                     "ORDER BY j.rowid LIMIT 1"
                 ).fetchone()
                 if row is None:
@@ -319,6 +342,7 @@ class SQLiteJobRepository:
                     )
             elif monitor_id is not None:
                 raise ValidationError("Bu iş belirtilen izleme denemesine ait değil.")
+            assert_collection_scan_job_owner(connection, job_id, operation)
             if job.status not in RETRYABLE_STATUSES | {"queued"}:
                 raise ValidationError("Bu iş yeniden çalıştırılamaz; yeni arama başlat.")
             now, attempt_id = _now(), str(uuid4())
@@ -362,6 +386,7 @@ class SQLiteJobRepository:
     def finish(
         self, attempt_id: str, status: str, *, result: ScanResult | None = None,
         error: str | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> ScanAttempt:
         if status not in _FINISHED_STATUSES:
             raise ValidationError("Geçersiz çalışma bitiş durumu.")
@@ -378,6 +403,7 @@ class SQLiteJobRepository:
         with self._write() as connection:
             attempt = self._get_attempt(connection, attempt_id)
             job = self._get_job(connection, attempt.job_id)
+            assert_collection_scan_job_owner(connection, job.id, operation)
             if attempt.status != "running" or job.status != "running":
                 raise ValidationError("Bu çalışma artık etkin değil; bitiş güncellemesi kabul edilmedi.")
             queries = attempt.queries
@@ -398,5 +424,9 @@ class SQLiteJobRepository:
             connection.execute(
                 "UPDATE scan_jobs SET status = ?, updated_at = ? WHERE id = ? AND status = 'running'",
                 (status, now, job.id),
+            )
+            record_collection_step_receipt(
+                connection, operation, result_kind="scan_attempt",
+                result_id=attempt_id, result_status=status,
             )
             return self._get_attempt(connection, attempt_id)

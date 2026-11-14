@@ -4,12 +4,56 @@ import sqlite3
 from uuid import uuid4
 
 
-SCHEMA_VERSION = 55
+SCHEMA_VERSION = 56
 APPLICATION_ID = 0x58544901
 
 
 class SchemaError(ValueError):
     """A database is not a supported XTI layout."""
+
+
+COLLECTION_HISTORY_DDL = ('CREATE TABLE collection_sessions (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT '
+ 'NOT NULL UNIQUE, root_id TEXT NOT NULL REFERENCES collection_sessions(id) ON DELETE RESTRICT, '
+ 'parent_id TEXT UNIQUE REFERENCES collection_sessions(id) ON DELETE RESTRICT, generation INTEGER '
+ 'NOT NULL CHECK (generation BETWEEN 1 AND 100), profile_event_id TEXT REFERENCES '
+ 'collection_profile_events(id) ON DELETE RESTRICT, definition_json TEXT NOT NULL, '
+ 'definition_sha256 TEXT NOT NULL, plan_json TEXT NOT NULL, plan_sha256 TEXT NOT NULL, '
+ 'executor_contract_version INTEGER NOT NULL CHECK (executor_contract_version=1), status TEXT NOT '
+ "NULL CHECK (status IN ('running', 'complete', 'partial', 'failed', 'interrupted')), started_at "
+ 'TEXT NOT NULL, finished_at TEXT, stop_reason TEXT, analysis_status TEXT NOT NULL CHECK '
+ "(analysis_status IN ('pending', 'complete', 'failed')), analysis_recorded_at TEXT, UNIQUE "
+ '(root_id, generation))',
+ 'CREATE TABLE collection_session_steps (id TEXT PRIMARY KEY NOT NULL, session_id TEXT NOT NULL '
+ 'REFERENCES collection_sessions(id) ON DELETE RESTRICT, ordinal INTEGER NOT NULL CHECK (ordinal '
+ "BETWEEN 1 AND 58), step_key TEXT NOT NULL, kind TEXT NOT NULL CHECK (kind IN ('scan', "
+ "'discovery', 'ioc', 'username_watch', 'ransomware_refresh', 'ransomware_watch')), source TEXT "
+ "NOT NULL CHECK (source IN ('crt.sh', 'urlscan', 'theharvester', 'feodo', 'certpl', 'maigret', "
+ "'sherlock', 'threatcluster', 'ransomlook')), watch_id TEXT, target_sha256 TEXT NOT NULL, "
+ 'depends_on_step_id TEXT REFERENCES collection_session_steps(id) ON DELETE RESTRICT, scan_job_id '
+ 'TEXT UNIQUE REFERENCES scan_jobs(id) ON DELETE RESTRICT, status TEXT NOT NULL CHECK (status IN '
+ "('pending', 'running', 'complete', 'partial', 'failed', 'interrupted', 'skipped')), started_at "
+ 'TEXT, finished_at TEXT, error_code TEXT, UNIQUE (session_id, ordinal), UNIQUE (session_id, '
+ 'step_key))',
+ 'CREATE TABLE collection_step_receipts (step_id TEXT PRIMARY KEY NOT NULL REFERENCES '
+ 'collection_session_steps(id) ON DELETE RESTRICT, recorded_at TEXT NOT NULL, result_status TEXT '
+ "NOT NULL CHECK (result_status IN ('complete', 'partial', 'failed', 'interrupted')), summary_json "
+ 'TEXT NOT NULL, summary_sha256 TEXT NOT NULL, scan_attempt_id TEXT UNIQUE REFERENCES '
+ 'scan_attempts(id) ON DELETE RESTRICT, discovery_run_id TEXT UNIQUE REFERENCES '
+ 'surface_discovery_runs(id) ON DELETE RESTRICT, feed_run_id TEXT UNIQUE REFERENCES '
+ 'cti_feed_runs(id) ON DELETE RESTRICT, username_run_id TEXT UNIQUE REFERENCES '
+ 'brand_username_watch_runs(id) ON DELETE RESTRICT, threatcluster_source_run_id TEXT UNIQUE '
+ 'REFERENCES ransomware_claim_runs(id) ON DELETE RESTRICT, ransomlook_source_run_id TEXT UNIQUE '
+ 'REFERENCES ransomlook_claim_runs(id) ON DELETE RESTRICT, threatcluster_watch_run_id TEXT UNIQUE '
+ 'REFERENCES ransomware_watch_runs(id) ON DELETE RESTRICT, ransomlook_watch_run_id TEXT UNIQUE '
+ 'REFERENCES ransomlook_watch_runs(id) ON DELETE RESTRICT, CHECK ((scan_attempt_id IS NOT NULL) + '
+ '(discovery_run_id IS NOT NULL) + (feed_run_id IS NOT NULL) + (username_run_id IS NOT NULL) + '
+ '(threatcluster_source_run_id IS NOT NULL) + (ransomlook_source_run_id IS NOT NULL) + '
+ '(threatcluster_watch_run_id IS NOT NULL) + (ransomlook_watch_run_id IS NOT NULL)=1))',
+ 'CREATE INDEX collection_sessions_status_sequence ON collection_sessions(status, sequence)',
+ 'CREATE INDEX collection_sessions_root_generation ON collection_sessions(root_id, generation)',
+ 'CREATE INDEX collection_session_steps_session_ordinal ON collection_session_steps(session_id, '
+ 'ordinal)',
+ 'CREATE INDEX collection_session_steps_scan_job ON collection_session_steps(scan_job_id)')
 
 
 ASSETS_DDL = (
@@ -1305,6 +1349,10 @@ VULNERABILITY_REMEDIATION_DDL = (
 
 # (column name, declared type, NOT NULL, primary-key position)
 TABLES = {
+    'collection_sessions': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('root_id', 'TEXT', 1, 0), ('parent_id', 'TEXT', 0, 0), ('generation', 'INTEGER', 1, 0), ('profile_event_id', 'TEXT', 0, 0), ('definition_json', 'TEXT', 1, 0), ('definition_sha256', 'TEXT', 1, 0), ('plan_json', 'TEXT', 1, 0), ('plan_sha256', 'TEXT', 1, 0), ('executor_contract_version', 'INTEGER', 1, 0), ('status', 'TEXT', 1, 0), ('started_at', 'TEXT', 1, 0), ('finished_at', 'TEXT', 0, 0), ('stop_reason', 'TEXT', 0, 0), ('analysis_status', 'TEXT', 1, 0), ('analysis_recorded_at', 'TEXT', 0, 0)],
+    'collection_session_steps': [('id', 'TEXT', 1, 1), ('session_id', 'TEXT', 1, 0), ('ordinal', 'INTEGER', 1, 0), ('step_key', 'TEXT', 1, 0), ('kind', 'TEXT', 1, 0), ('source', 'TEXT', 1, 0), ('watch_id', 'TEXT', 0, 0), ('target_sha256', 'TEXT', 1, 0), ('depends_on_step_id', 'TEXT', 0, 0), ('scan_job_id', 'TEXT', 0, 0), ('status', 'TEXT', 1, 0), ('started_at', 'TEXT', 0, 0), ('finished_at', 'TEXT', 0, 0), ('error_code', 'TEXT', 0, 0)],
+    'collection_step_receipts': [('step_id', 'TEXT', 1, 1), ('recorded_at', 'TEXT', 1, 0), ('result_status', 'TEXT', 1, 0), ('summary_json', 'TEXT', 1, 0), ('summary_sha256', 'TEXT', 1, 0), ('scan_attempt_id', 'TEXT', 0, 0), ('discovery_run_id', 'TEXT', 0, 0), ('feed_run_id', 'TEXT', 0, 0), ('username_run_id', 'TEXT', 0, 0), ('threatcluster_source_run_id', 'TEXT', 0, 0), ('ransomlook_source_run_id', 'TEXT', 0, 0), ('threatcluster_watch_run_id', 'TEXT', 0, 0), ('ransomlook_watch_run_id', 'TEXT', 0, 0)],
+
     "collection_profiles": [
         ("id", "TEXT", 1, 1), ("name_key", "TEXT", 1, 0),
         ("display_name", "TEXT", 1, 0), ("revision", "INTEGER", 1, 0),
@@ -2153,6 +2201,10 @@ ALLOWLIST_V8_TABLES = {
 }
 
 UNIQUE_KEYS = {
+    'collection_sessions': {('id',), ('parent_id',), ('root_id', 'generation')},
+    'collection_session_steps': {('session_id', 'ordinal'), ('session_id', 'step_key'), ('id',), ('scan_job_id',)},
+    'collection_step_receipts': {('threatcluster_watch_run_id',), ('username_run_id',), ('scan_attempt_id',), ('discovery_run_id',), ('ransomlook_source_run_id',), ('ransomlook_watch_run_id',), ('threatcluster_source_run_id',), ('step_id',), ('feed_run_id',)},
+
     "collection_profiles": {("id",), ("name_key",)},
     "collection_profile_events": {("id",), ("profile_id", "revision")},
     "assets": {("id",), ("value",)},
@@ -2306,6 +2358,11 @@ UNIQUE_KEYS = {
 }
 
 INDEXES = {
+    'collection_sessions_status_sequence': ('collection_sessions', ('status', 'sequence')),
+    'collection_sessions_root_generation': ('collection_sessions', ('root_id', 'generation')),
+    'collection_session_steps_session_ordinal': ('collection_session_steps', ('session_id', 'ordinal')),
+    'collection_session_steps_scan_job': ('collection_session_steps', ('scan_job_id',)),
+
     "collection_profiles_active_name": ("collection_profiles", ("active", "name_key")),
     "collection_profile_events_profile_sequence": (
         "collection_profile_events", ("profile_id", "sequence"),
@@ -2572,6 +2629,10 @@ INDEXES = {
 }
 
 FOREIGN_KEYS = {
+    'collection_sessions': {('collection_sessions', 'root_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_profile_events', 'profile_event_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_sessions', 'parent_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'collection_session_steps': {('collection_session_steps', 'depends_on_step_id', 'id', 'NO ACTION', 'RESTRICT'), ('scan_jobs', 'scan_job_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_sessions', 'session_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'collection_step_receipts': {('ransomware_watch_runs', 'threatcluster_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_watch_runs', 'ransomlook_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_claim_runs', 'ransomlook_source_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('brand_username_watch_runs', 'username_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_session_steps', 'step_id', 'id', 'NO ACTION', 'RESTRICT'), ('cti_feed_runs', 'feed_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('scan_attempts', 'scan_attempt_id', 'id', 'NO ACTION', 'RESTRICT'), ('surface_discovery_runs', 'discovery_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomware_claim_runs', 'threatcluster_source_run_id', 'id', 'NO ACTION', 'RESTRICT')},
+
     "collection_profiles": set(),
     "collection_profile_events": {
         ("collection_profiles", "profile_id", "id", "NO ACTION", "RESTRICT"),
@@ -3076,7 +3137,13 @@ VERSION_TABLES = {
     53: frozenset(TABLES),
     54: frozenset(TABLES),
     55: frozenset(TABLES),
+    56: frozenset(TABLES),
 }
+
+for _legacy_version in range(1, 56):
+    VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {
+        "collection_sessions", "collection_session_steps", "collection_step_receipts",
+    }
 
 for _legacy_version in range(1, 55):
     VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {
@@ -3243,6 +3310,11 @@ for _legacy_version in range(1, 39):
         "webhook_destinations", "webhook_destination_events",
         "webhook_deliveries", "webhook_delivery_attempts",
     }
+
+
+def create_collection_history_schema(connection: sqlite3.Connection) -> None:
+    for statement in COLLECTION_HISTORY_DDL:
+        connection.execute(statement)
 
 
 def create_collection_profile_schema(connection: sqlite3.Connection) -> None:
@@ -3671,6 +3743,15 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
     expected = {(name, "table") for name in tables} | {(name, "index") for name in indexes}
     if objects != expected:
         raise SchemaError("Veritabanının kayıt düzeni beklenen biçimde değil.")
+    if "collection_sessions" in tables:
+        for statement in COLLECTION_HISTORY_DDL:
+            words = statement.split()
+            object_type, name = words[1].lower(), words[2]
+            declaration = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE name=? AND type=?", (name, object_type),
+            ).fetchone()[0]
+            if " ".join(declaration.split()) != " ".join(statement.split()):
+                raise SchemaError("Toplama oturum kayıt düzeni beklenen biçimde değil.")
     if "collection_profiles" in tables:
         for name, statement in zip(
             (

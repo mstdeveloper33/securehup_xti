@@ -6,6 +6,8 @@ from uuid import UUID, uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_cti_indicators import SQLiteCtiIndicatorRepository
+from xti.adapters.sqlite_collection_receipts import record_collection_step_receipt
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.cti_feeds import (
     CtiFeedIndicator,
@@ -291,6 +293,7 @@ class SQLiteCtiFeedRepository:
 
     def apply(
         self, snapshot: CtiFeedSnapshot, *, started_at: str, finished_at: str,
+        operation: CollectionOperationToken | None = None,
     ) -> CtiFeedRun:
         started_at, finished_at = self._validate_times(started_at, finished_at)
         indicators = self._validate_snapshot(snapshot, finished_at=finished_at)
@@ -490,6 +493,10 @@ class SQLiteCtiFeedRepository:
                     f"SELECT {_RUN_SELECT} FROM cti_feed_runs WHERE id = ?", (run_id,),
                 ).fetchone()
                 result = self._run(row)
+                record_collection_step_receipt(
+                    connection, operation, result_kind="feed_run",
+                    result_id=result.id, result_status=result.status,
+                )
                 connection.commit()
                 return result
             except BaseException:
@@ -498,6 +505,7 @@ class SQLiteCtiFeedRepository:
 
     def record_failure(
         self, *, started_at: str, finished_at: str, error: str,
+        operation: CollectionOperationToken | None = None,
     ) -> CtiFeedRun:
         started_at, finished_at = self._validate_times(started_at, finished_at)
         try:
@@ -523,6 +531,10 @@ class SQLiteCtiFeedRepository:
                     f"SELECT {_RUN_SELECT} FROM cti_feed_runs WHERE id = ?", (run_id,),
                 ).fetchone()
                 result = self._run(row)
+                record_collection_step_receipt(
+                    connection, operation, result_kind="feed_run",
+                    result_id=result.id, result_status=result.status,
+                )
                 connection.commit()
                 return result
             except BaseException:

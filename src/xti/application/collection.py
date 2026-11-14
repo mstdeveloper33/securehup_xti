@@ -19,6 +19,7 @@ from xti.domain.collection import (
     CollectionTask,
 )
 from xti.domain.cti_feeds import CTI_FEED_POLICIES, CtiFeedRun
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.jobs import ScanAttempt
 from xti.domain.surface import SurfaceDiscoveryResult
 
@@ -53,7 +54,11 @@ class CollectionService:
         return value.astimezone(timezone.utc)
 
     @staticmethod
-    def _selection(tasks: Sequence[str] | None) -> tuple[CollectionTask, ...]:
+    def _selection(tasks: Sequence[str] | None, *, allow_empty_base: bool = False) -> tuple[CollectionTask, ...]:
+        if type(allow_empty_base) is not bool:
+            raise ValidationError("Toplama planı seçim türü geçersiz.")
+        if allow_empty_base and tasks == ():
+            return ()
         if tasks is None:
             tasks = DEFAULT_COLLECTION_TASKS
         if (
@@ -73,7 +78,7 @@ class CollectionService:
         username_watch_ids: Sequence[str] = (),
         ransomware_watch_ids: Sequence[str] = (),
         ransomlook_watch_ids: Sequence[str] = (),
-        watch_item_limit: int = 100,
+        watch_item_limit: int = 100, allow_empty_base: bool = False,
     ) -> CollectionPlan:
         username_ids, ransomware_ids, ransomlook_ids = CollectionWatchService.validate_selection(
             username_watch_ids=username_watch_ids,
@@ -81,7 +86,7 @@ class CollectionService:
             ransomlook_watch_ids=ransomlook_watch_ids,
             item_limit=watch_item_limit,
         )
-        selected = self._selection(tasks)
+        selected = self._selection(tasks, allow_empty_base=allow_empty_base)
         if type(typos) is not bool:
             raise ValidationError("Yazım varyasyonu seçimi doğru/yanlış olmalı.")
         if typos and not any(task.kind == "scan" for task in selected):
@@ -150,8 +155,12 @@ class CollectionService:
     def _collect(
         self, task: CollectionTask, plan: CollectionPlan,
         progress: Callable[[str], None] | None,
+        operation: CollectionOperationToken | None = None,
     ) -> CollectionStep:
+        kwargs = {"operation": operation} if operation is not None else {}
         if task.kind in {"username_watch", "ransomware"}:
+            if operation is not None:
+                raise ValidationError("İzleme oturumu tek kaynak birimiyle çalıştırılmalı.")
             result = self.watch_collection.run(task, item_limit=plan.watch_item_limit)
             if (
                 not isinstance(result, CollectionStep) or result.task != task
@@ -161,9 +170,9 @@ class CollectionService:
             return result
         if task.kind == "scan":
             job = self.jobs.enqueue(
-                (plan.asset_value,), typos=plan.typos, provider=task.source,
+                (plan.asset_value,), typos=plan.typos, provider=task.source, **kwargs,
             )
-            attempt = self.jobs.run_owned(job.id, progress=progress)
+            attempt = self.jobs.run_owned(job.id, progress=progress, **kwargs)
             if (
                 not isinstance(attempt, ScanAttempt) or attempt.job_id != job.id
                 or attempt.status not in {"complete", "partial", "failed"}
@@ -173,7 +182,7 @@ class CollectionService:
                 raise ValidationError("Marka araması geçersiz toplama sonucu üretti.")
             return CollectionStep(task=task, status=attempt.status, attempt=attempt)
         if task.kind == "discovery":
-            result = self.discoveries[task.source].discover(plan.asset_value)
+            result = self.discoveries[task.source].discover(plan.asset_value, **kwargs)
             if (
                 not isinstance(result, SurfaceDiscoveryResult)
                 or result.status not in {"complete", "partial", "failed"}
@@ -182,7 +191,7 @@ class CollectionService:
             ):
                 raise ValidationError("Pasif keşif geçersiz toplama sonucu üretti.")
             return CollectionStep(task=task, status=result.status, discovery=result)
-        result = self.feeds[task.source].sync()
+        result = self.feeds[task.source].sync(**kwargs)
         if (
             not isinstance(result, CtiFeedRun) or result.status not in {"complete", "failed"}
             or result.source_name != CTI_FEED_POLICIES[task.source].source_name

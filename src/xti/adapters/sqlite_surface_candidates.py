@@ -8,6 +8,8 @@ from uuid import uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_notification_sequence import next_notification_sequence
+from xti.adapters.sqlite_collection_receipts import record_collection_step_receipt
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.surface import (
     SurfaceCandidate,
@@ -398,7 +400,8 @@ class SQLiteSurfaceCandidateRepository:
 
     def record_discovery(
         self, asset_id: str, asset_value: str,
-        evidence: tuple[SurfaceCandidateEvidence, ...], request: SurfaceDiscoveryRunRequest,
+        evidence: tuple[SurfaceCandidateEvidence, ...], request: SurfaceDiscoveryRunRequest, *,
+        operation: CollectionOperationToken | None = None,
     ) -> tuple[SurfaceCandidateSaveSummary, SurfaceDiscoveryRun]:
         try:
             asset_id, asset_value, validated = self._validated_batch(
@@ -434,6 +437,10 @@ class SQLiteSurfaceCandidateRepository:
                     ),
                 )
                 run = self._run(self._run_row(connection, run_id))
+                record_collection_step_receipt(
+                    connection, operation, result_kind="discovery_run",
+                    result_id=run.id, result_status=run.status,
+                )
                 connection.commit()
             except BaseException:
                 connection.rollback()

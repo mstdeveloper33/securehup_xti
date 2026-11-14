@@ -1,6 +1,7 @@
 """Small persistence boundary for explicit saved collection recipes."""
 
 from typing import Protocol
+from xti.domain.collection import CollectionPlan, CollectionResult
 
 from xti.domain.collection_profiles import (
     CollectionProfile,
@@ -26,4 +27,14 @@ class CollectionProfileRepository(Protocol):
         ...
 
     def details(self, name: str, *, event_limit: int = 50) -> CollectionProfileDetails:
+        ...
+
+
+class ProfileCollectionRunner(Protocol):
+    """A runner accepts the frozen options and optional profile origin on run."""
+
+    def plan(self, domain: str, **options) -> CollectionPlan:
+        ...
+
+    def run(self, domain: str, **options) -> CollectionResult:
         ...

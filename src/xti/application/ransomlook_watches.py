@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from datetime import datetime, timezone
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.cti_indicators import normalize_assertion_reason
 from xti.domain.cti_knowledge import normalize_knowledge_id
@@ -85,6 +86,7 @@ class RansomLookWatchService:
     def run(
         self, watch_id: str, *, item_limit: int = 100,
         expected_source_run_id: str | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> RansomLookWatchRunReport:
         watch_id = normalize_knowledge_id(watch_id, field="RansomLook izleme kimliği")
         item_limit = self._limit(item_limit, field="Sonuç sınırı")
@@ -103,6 +105,7 @@ class RansomLookWatchService:
         return self.repository.run(
             watch_id, snapshot,
             executed_at=self._now(), item_limit=item_limit,
+            **({"operation": operation} if operation is not None else {}),
         )
 
     def show_run(

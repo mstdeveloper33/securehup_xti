@@ -90,6 +90,28 @@ gösterir. `profiles revoke gunluk --reason "Takibi duraklattım"` kaydı
 silmeden çalıştırmayı kapatır. Bir izleme sonradan geri çekilirse profil
 okunabilir kalır, fakat çalıştırma başlamaz. Profil kendi başına zamanlanmaz.
 
+Toplama çıktısındaki oturum kimliğiyle neyin tamamlandığını görebilirsin:
+
+```sh
+./xti collections list
+./xti collections show OTURUM_KIMLIGI
+./xti collections resume OTURUM_KIMLIGI --plan
+./xti collections resume OTURUM_KIMLIGI
+```
+
+Son iki komut yalnız eksik işleri seçer. Tamamlanan izleme tekrar çalışmaz;
+ransomware için eksik üyeler önce yeni kaynak yenilemesi ister. Kaynak
+yenilenemezse eski liste yeni sonuç olarak kullanılmaz. Devam, eski sonucu
+değiştirmeden yeni oturum oluşturur; bir sonraki denemede son oturum kimliğini
+kullan. Profil veya eksik izlemenin ayarı değişmişse güncel seçimle yeni
+`collect` başlat. Hiçbir sonuç sessizce yeni ayara uyarlanmaz.
+
+Elektrik kesintisi sonrası oturum çalışıyor görünüyorsa `collections recover`
+kayıtları kapatır; gerçek çalışan bir toplama varsa ortak kilit buna izin
+vermez. `show` geçmişi okur, yeni analiz üretmez. Devam sonunda gösterilen
+analiz bugünkü yerel kayıtlardandır. Eski sürümdeki toplamalar yeni birleşik
+geçmişe geriye dönük eklenmez; eski kaynak geçmişleri yerinde kalır.
+
 İşleri ayrı ayrı çalıştırmak da mümkündür:
 
 ```sh

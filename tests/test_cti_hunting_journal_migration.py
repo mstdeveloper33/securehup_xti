@@ -72,6 +72,9 @@ class CtiHuntingJournalMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+            connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+            connection.execute("DROP TABLE IF EXISTS collection_sessions")
             connection.execute("PRAGMA user_version=37")
             self.assertEqual(validate_schema(connection, allow_legacy=True), 37)
         return path

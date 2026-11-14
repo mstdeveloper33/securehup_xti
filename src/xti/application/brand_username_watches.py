@@ -3,6 +3,7 @@
 from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.brand_username import normalize_brand_username
 from xti.domain.brand_username import BRAND_USERNAME_SOURCE_NAMES
@@ -167,6 +168,7 @@ class BrandUsernameWatchService:
         *,
         request_timeout: int = 10,
         item_limit: int = 100,
+        operation: CollectionOperationToken | None = None,
     ) -> BrandUsernameWatchRunReport:
         watch = self.repository.get(self._watch_id(watch_id))
         if not watch.active:
@@ -197,6 +199,7 @@ class BrandUsernameWatchService:
                 integration_profile=source.integration_profile,
                 error=str(error),
                 recorded_at=self._now(),
+                **({"operation": operation} if operation is not None else {}),
             )
         return self.repository.record_preview(
             watch.id,
@@ -204,6 +207,7 @@ class BrandUsernameWatchService:
             preview=preview,
             recorded_at=self._now(),
             item_limit=item_limit,
+            **({"operation": operation} if operation is not None else {}),
         )
 
     def show_run(

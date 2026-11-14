@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.131.0 · **Tarih:** 14 Kasım 2026 · **Durum:** Toplama seçimlerini adla kaydetme ve çalıştırma.
+**Sürüm:** 0.132.0 · **Tarih:** 14 Kasım 2026 · **Durum:** Kayıtlı toplama profilleri, çalışma geçmişi ve eksik işleri yeniden deneme.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -42,8 +42,23 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 55 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 56 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz sonraki teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
+
+Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
+kalan işleri yeniden deneyebilirsin:
+
+```sh
+./xti collections list
+./xti collections show OTURUM_KIMLIGI
+./xti collections resume OTURUM_KIMLIGI --plan
+./xti collections resume OTURUM_KIMLIGI
+```
+
+Kimliği ilk komutun çıktısından al. Tamamlanan kaynak/izleme kayıtları
+korunur; eski kısmi sonuç değiştirilmeden yeni yürütme açılır. Bilgisayar
+kapanmış ve oturum hâlâ çalışıyor görünüyorsa `./xti collections recover`
+ile kesilmiş kayıtları kapatabilirsin. Bu komut internetten toplama yapmaz.
 
 ```sh
 ./xti sources status

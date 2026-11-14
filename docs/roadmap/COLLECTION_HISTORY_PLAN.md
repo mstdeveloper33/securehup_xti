@@ -1,6 +1,10 @@
 # Kalıcı toplama geçmişi ve kontrollü devam — Aşama 2
 
-**Durum: PLANLANDI — HENÜZ UYGULANMADI.**
+**Durum: 0.132.0 tesliminin tasarım dayanağı.** Kesin uygulanmış davranış
+[0132 kararında](../decisions/0132-durable-collection-sessions.md) ve
+[güncel durumda](../STATUS.md) izlenir. Aşağıdaki önerilen API ayrıntıları
+tarihî tasarım kaydıdır; terminalde `collections list/show/resume/recover`
+kullanılır.
 
 **Tarih: 14 Kasım 2026.** Tasarım, mevcut `CollectionService`,
 `CollectionWatchService` ve hazırlanan şema 55 profil sözleşmelerine dayanır.

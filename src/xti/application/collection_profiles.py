@@ -3,7 +3,6 @@
 from collections.abc import Callable
 from datetime import datetime, timezone
 
-from xti.application.collection import CollectionService
 from xti.domain.assets import ValidationError
 from xti.domain.collection import CollectionPlan, CollectionResult
 from xti.domain.collection_profiles import (
@@ -11,7 +10,7 @@ from xti.domain.collection_profiles import (
     CollectionProfileMutation, normalize_profile_definition,
     normalize_profile_name, normalize_profile_reason,
 )
-from xti.ports.collection_profiles import CollectionProfileRepository
+from xti.ports.collection_profiles import CollectionProfileRepository, ProfileCollectionRunner
 from xti.ports.jobs import ExecutionLock
 
 
@@ -32,7 +31,7 @@ def collection_options(definition: CollectionProfileDefinition) -> dict:
 class CollectionProfileService:
     def __init__(
         self, repository: CollectionProfileRepository,
-        collection_factory: Callable[[CollectionProfileDefinition], CollectionService],
+        collection_factory: Callable[[CollectionProfileDefinition], ProfileCollectionRunner],
         lock: ExecutionLock, *, clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.repository = repository
@@ -110,6 +109,6 @@ class CollectionProfileService:
 
         return self.collection_factory(profile.definition).run(
             profile.definition.asset_value,
-            progress=progress, preflight=unchanged,
+            progress=progress, preflight=unchanged, profile=profile,
             **collection_options(profile.definition),
         )

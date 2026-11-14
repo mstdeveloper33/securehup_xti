@@ -91,6 +91,9 @@ class BrandUsernameSourceMigrationTests(unittest.TestCase):
                 connection.execute("DROP TABLE IF EXISTS cases")
                 connection.execute("DROP TABLE IF EXISTS collection_profile_events")
                 connection.execute("DROP TABLE IF EXISTS collection_profiles")
+                connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+                connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+                connection.execute("DROP TABLE IF EXISTS collection_sessions")
                 connection.execute("PRAGMA user_version=49")
 
             result = SQLiteAssetRepository(path).migrate()
@@ -156,6 +159,9 @@ class BrandUsernameSourceMigrationTests(unittest.TestCase):
                 connection.execute("DROP TABLE IF EXISTS cases")
                 connection.execute("DROP TABLE IF EXISTS collection_profile_events")
                 connection.execute("DROP TABLE IF EXISTS collection_profiles")
+                connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+                connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+                connection.execute("DROP TABLE IF EXISTS collection_sessions")
                 connection.execute("PRAGMA user_version=49")
 
             with patch(

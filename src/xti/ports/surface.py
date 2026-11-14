@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.enrichment import ProbeResult
 from xti.domain.surface import SurfaceCheck, SurfaceDetails, SurfaceScope, SurfaceSummary
 from xti.domain.overview import SurfaceOverviewSnapshot
@@ -54,7 +55,8 @@ class SurfaceCandidateRepository(Protocol):
 
     def record_discovery(
         self, asset_id: str, asset_value: str,
-        evidence: tuple[SurfaceCandidateEvidence, ...], request: SurfaceDiscoveryRunRequest,
+        evidence: tuple[SurfaceCandidateEvidence, ...], request: SurfaceDiscoveryRunRequest, *,
+        operation: CollectionOperationToken | None = None,
     ) -> tuple[SurfaceCandidateSaveSummary, SurfaceDiscoveryRun]:
         ...
 

@@ -8,6 +8,8 @@ from uuid import UUID, uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
+from xti.adapters.sqlite_collection_receipts import record_collection_step_receipt
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.cti_indicators import normalize_assertion_reason, normalize_cti_timestamp
 from xti.domain.ransomlook_ransomware import RansomLookClaim, RansomLookClaimSnapshot
@@ -429,7 +431,10 @@ class SQLiteRansomLookWatchRepository:
             ),
         )
 
-    def run(self, watch_id, snapshot, *, executed_at, item_limit):
+    def run(
+        self, watch_id, snapshot, *, executed_at, item_limit,
+        operation: CollectionOperationToken | None = None,
+    ):
         if not isinstance(snapshot, RansomLookClaimSnapshot):
             raise ValidationError("RansomLook izleme snapshot'ı geçersiz.")
         try:
@@ -534,6 +539,10 @@ class SQLiteRansomLookWatchRepository:
                     previous.id if previous else None, executed_at, total,
                     counts["added"], counts["updated"], counts["unchanged"],
                     counts["removed"], result_sha,
+                )
+                record_collection_step_receipt(
+                    connection, operation, result_kind="ransomlook_watch_run",
+                    result_id=run.id, result_status="complete",
                 )
                 connection.commit()
                 attention = 0 if previous is None else run.added_count + run.updated_count

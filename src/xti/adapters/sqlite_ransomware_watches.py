@@ -9,6 +9,8 @@ from uuid import UUID, uuid4
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_notification_sequence import next_notification_sequence
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
+from xti.adapters.sqlite_collection_receipts import record_collection_step_receipt
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.cti_indicators import normalize_assertion_reason, normalize_cti_timestamp
 from xti.domain.ransomware_claims import RansomwareClaim, RansomwareClaimSnapshot
@@ -467,7 +469,10 @@ class SQLiteRansomwareWatchRepository:
              match.match_type, item.action, item.state_sha256),
         )
 
-    def run(self, watch_id, snapshot, *, executed_at, item_limit):
+    def run(
+        self, watch_id, snapshot, *, executed_at, item_limit,
+        operation: CollectionOperationToken | None = None,
+    ):
         if not isinstance(snapshot, RansomwareClaimSnapshot):
             raise ValidationError("Ransomware izleme snapshot'ı geçersiz.")
         try:
@@ -586,6 +591,10 @@ class SQLiteRansomwareWatchRepository:
                         (next_notification_sequence(connection), notification_id,
                          run.id, watch.id, executed_at),
                     )
+                record_collection_step_receipt(
+                    connection, operation, result_kind="threatcluster_watch_run",
+                    result_id=run.id, result_status="complete",
+                )
                 connection.commit()
                 return RansomwareWatchRunReport(
                     watch, run, tuple(items[:item_limit]), len(items), notification_id,

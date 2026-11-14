@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import AbstractContextManager
 from typing import Protocol
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.discovery import QueryResult, ScanResult
 from xti.domain.jobs import JobDetails, ScanAttempt, ScanJob
 
@@ -19,7 +20,10 @@ class ExecutionLock(Protocol):
 
 
 class JobRepository(Protocol):
-    def create(self, targets: tuple[str, ...], typos: bool, provider: str, rule_version: str) -> ScanJob:
+    def create(
+        self, targets: tuple[str, ...], typos: bool, provider: str, rule_version: str, *,
+        operation: CollectionOperationToken | None = None,
+    ) -> ScanJob:
         ...
 
     def list(self, status: str | None = None, limit: int = 20) -> list[ScanJob]:
@@ -38,6 +42,7 @@ class JobRepository(Protocol):
 
     def start(
         self, job_id: str | None = None, *, monitor_id: str | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> ScanAttempt | None:
         """Claim a queued job, or explicitly retry a failed/partial/interrupted job.
 
@@ -52,5 +57,6 @@ class JobRepository(Protocol):
     def finish(
         self, attempt_id: str, status: str, *, result: ScanResult | None = None,
         error: str | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> ScanAttempt:
         ...

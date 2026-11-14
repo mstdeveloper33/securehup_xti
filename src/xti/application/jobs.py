@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 
 from xti.application.discovery import DiscoveryService
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.discovery import QueryResult
 from xti.domain.jobs import JOB_STATUSES, JobDetails, ScanAttempt, ScanJob
@@ -35,13 +36,17 @@ class JobService:
     def enqueue(
         self, domains: Sequence[str] | None = None, *, typos: bool = False,
         provider: str | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> ScanJob:
         provider = provider or self.provider
         discovery = self.discoveries.get(provider)
         if discovery is None:
             raise ValidationError("Bu internet kaynağı desteklenmiyor.")
         targets = discovery.validate_targets(domains, typos=typos)
-        return self.jobs.create(targets, typos, provider, discovery.matcher.rule_version)
+        return self.jobs.create(
+            targets, typos, provider, discovery.matcher.rule_version,
+            **({"operation": operation} if operation is not None else {}),
+        )
 
     def list(self, status: str | None = None, limit: int = 20) -> list[ScanJob]:
         if status is not None and status not in JOB_STATUSES:
@@ -91,6 +96,7 @@ class JobService:
     def run_owned(
         self, job_id: str | None = None, *, monitor_id: str | None = None,
         progress: Callable[[str], None] | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> ScanAttempt | None:
         """Run work while the caller holds this service's execution lock.
 
@@ -103,9 +109,12 @@ class JobService:
             self._validate_id(monitor_id)
             if job_id is None:
                 raise ValidationError("İzleme çalıştırması için açık iş kimliği gerekli.")
+        if operation is not None and (job_id is None or monitor_id is not None):
+            raise ValidationError("Toplama çalıştırması için yalnız açık toplama işi gerekli.")
         self.jobs.recover_interrupted(RECOVERY_REASON)
+        operation_options = {"operation": operation} if operation is not None else {}
         attempt = (
-            self.jobs.start(job_id) if monitor_id is None
+            self.jobs.start(job_id, **operation_options) if monitor_id is None
             else self.jobs.start(job_id, monitor_id=monitor_id)
         )
         if attempt is None:
@@ -132,7 +141,9 @@ class JobService:
             result = discovery.scan(
                 job.targets, typos=job.typos, progress=update, on_query=record_query,
             )
-            return self.jobs.finish(attempt.id, result.status, result=result)
+            return self.jobs.finish(
+                attempt.id, result.status, result=result, **operation_options,
+            )
         except BaseException as exc:
             interrupted = isinstance(exc, (KeyboardInterrupt, SystemExit))
             # Do not put arbitrary exception text (which may carry secrets) in history.
@@ -146,6 +157,7 @@ class JobService:
             try:
                 self.jobs.finish(
                     attempt.id, "interrupted" if interrupted else "failed", error=message,
+                    **operation_options,
                 )
             except Exception:
                 # If storage itself is unavailable, the running record remains recoverable.

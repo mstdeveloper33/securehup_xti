@@ -8,6 +8,8 @@ from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.sqlite_collection_receipts import record_collection_step_receipt
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.brand_username import (
     ALL_PLATFORM_HOSTS,
@@ -727,6 +729,7 @@ class SQLiteBrandUsernameWatchRepository:
         preview,
         recorded_at,
         item_limit,
+        operation: CollectionOperationToken | None = None,
     ):
         if not isinstance(preview, BrandUsernamePreview):
             raise StorageError("Sosyal kullanıcı adı kaynak sonucu geçersiz.")
@@ -873,6 +876,10 @@ class SQLiteBrandUsernameWatchRepository:
                     result_sha,
                     None,
                 )
+                record_collection_step_receipt(
+                    connection, operation, result_kind="username_run",
+                    result_id=run.id, result_status=run.status,
+                )
                 connection.commit()
                 attention = (
                     0 if previous is None else
@@ -903,6 +910,7 @@ class SQLiteBrandUsernameWatchRepository:
         integration_profile,
         error,
         recorded_at,
+        operation: CollectionOperationToken | None = None,
     ):
         error = _visible_text(error, field="source error", maximum=500)
         source_name = _visible_text(source_name, field="source name", maximum=100)
@@ -978,6 +986,10 @@ class SQLiteBrandUsernameWatchRepository:
                     0,
                     None,
                     error,
+                )
+                record_collection_step_receipt(
+                    connection, operation, result_kind="username_run",
+                    result_id=run.id, result_status=run.status,
                 )
                 connection.commit()
                 return BrandUsernameWatchRunReport(

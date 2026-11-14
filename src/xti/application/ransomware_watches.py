@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from datetime import datetime, timezone
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.cti_indicators import normalize_assertion_reason
 from xti.domain.cti_knowledge import normalize_knowledge_id
@@ -94,6 +95,7 @@ class RansomwareWatchService:
     def run(
         self, watch_id: str, *, item_limit: int = 100,
         expected_source_run_id: str | None = None,
+        operation: CollectionOperationToken | None = None,
     ) -> RansomwareWatchRunReport:
         watch_id = normalize_knowledge_id(
             watch_id, field="ransomware izleme kimliği",
@@ -114,6 +116,7 @@ class RansomwareWatchService:
             )
         return self.repository.run(
             watch_id, snapshot, executed_at=self._now(), item_limit=item_limit,
+            **({"operation": operation} if operation is not None else {}),
         )
 
     def show_run(self, run_id: str, *, item_limit: int = 100) -> RansomwareWatchRunReport:

@@ -1,5 +1,26 @@
 # Değişiklik Kaydı
 
+## 0.132.0 — 14 Kasım 2026
+
+- `collect` ve profil çalıştırmaları artık kalıcı toplama oturumu üretir.
+  `collections list/show`, salt okunur `resume --plan`, eksik işleri yeni
+  yürütmede tekrar eden `resume` ve açık kesinti kurtarması `recover` eklendi.
+- Şema 56: dondurulmuş seçim/profil revizyonu, kaynak birimleri ve gerçek
+  kaynak çalışmasıyla aynı transaction'da yazılan tamamlanma bağlantıları.
+  Kaynak kaydı commit olup dış komut kapanamasa da başarı korunur.
+- Ransomware yenilemesi ve izleme üyeleri ayrı kaydedilir; tamamlanan üye
+  tekrar edilmez. Eksik üyeler yeni başarılı kaynak yenilemesine bağlanır;
+  hata halinde eski snapshot kullanılmaz. Eski kısmi sonuç yeniden yazılmaz.
+- Toplamaya ait scan işleri genel kuyruk/kurtarma işleminden ayrılır; yalnız
+  kendi oturumu çalıştırır/kapatır. Bağımsız kaynak komutları korunur.
+- Geçmiş okuması yeni analiz üretmez. Devam sonundaki güncel analiz açıkça
+  ayrılır; analiz hatasında kaynaklar korunur. Açık migration önce geri dönüş
+  yedeği alır, önceki kaynak kayıtlarından oturum geçmişi uydurmaz.
+- Tam kontrol 1.536/1.536 testle geçti. Gerçek veritabanı kopyasında 114 eski
+  tablonun içeriği geçişte korundu; kontrollü kaynak kesintisi sonrası yalnız
+  iki eksik iş tekrarlandı, diğer kaynağın başarılı çalışması yerinde kaldı.
+  Kabul denemesi ağsızdı; asıl veritabanını ve kaynak kayıtlarını değiştirmedi.
+
 ## 0.131.0 — 14 Kasım 2026
 
 - Toplama seçimlerini `profiles save AD DOMAIN` ile kaydetme, listeleme,

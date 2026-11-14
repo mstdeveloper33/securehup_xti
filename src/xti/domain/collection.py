@@ -82,3 +82,4 @@ class CollectionResult:
     status: str
     steps: tuple[CollectionStep, ...]
     analysis: UnifiedAnalysisReport
+    session_id: str | None = None

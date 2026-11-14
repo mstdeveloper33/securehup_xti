@@ -149,6 +149,13 @@ from xti.adapters.evaluation_dataset import EvaluationDataError, load_evaluation
 from xti.application.assets import AssetService
 from xti.application.analysis import UnifiedAnalysisRefreshService, UnifiedAnalysisService
 from xti.application.collection import CollectionService
+from xti.application.collection_history import CollectionHistoryService
+from xti.adapters.sqlite_collection_history import SQLiteCollectionHistoryRepository
+from xti.interfaces.collection_history import (
+    register_history_parser, page_lines as collection_history_page_lines,
+    detail_lines as collection_history_detail_lines,
+    resume_plan_lines, resume_result_lines,
+)
 from xti.application.collection_profiles import CollectionProfileService, collection_options
 from xti.adapters.sqlite_collection_profiles import SQLiteCollectionProfileRepository
 from xti.domain.collection_profiles import CollectionProfileDefinition
@@ -717,6 +724,7 @@ def build_parser() -> Parser:
     )
     add_collection_arguments(collect)
     register_profiles_parser(commands)
+    register_history_parser(commands)
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -3178,7 +3186,7 @@ def make_collection_service(
     )
 
 
-def make_profile_service(settings: Settings, repository: SQLiteAssetRepository) -> CollectionProfileService:
+def make_collection_history_service(settings: Settings, repository: SQLiteAssetRepository) -> CollectionHistoryService:
     def collection_factory(definition: CollectionProfileDefinition) -> CollectionService:
         return make_collection_service(
             settings, repository, definition.task_ids,
@@ -3187,9 +3195,16 @@ def make_profile_service(settings: Settings, repository: SQLiteAssetRepository) 
             ransomlook_watch_ids=definition.ransomlook_watch_ids,
             watch_item_limit=definition.watch_item_limit,
         )
+    return CollectionHistoryService(
+        SQLiteCollectionHistoryRepository(settings.database), collection_factory,
+        LocalExecutionLock(settings.database),
+    )
 
+
+def make_profile_service(settings: Settings, repository: SQLiteAssetRepository) -> CollectionProfileService:
     return CollectionProfileService(
-        SQLiteCollectionProfileRepository(settings.database), collection_factory,
+        SQLiteCollectionProfileRepository(settings.database),
+        lambda definition: make_collection_history_service(settings, repository),
         LocalExecutionLock(settings.database),
     )
 
@@ -3336,6 +3351,28 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "evaluate":
         report = EvaluationService(make_domain_matcher()).run(load_evaluation_dataset())
         emit(asdict(report), evaluation_lines(report), as_json=args.json)
+    elif args.command == "collections":
+        histories = make_collection_history_service(settings, repository)
+        if args.collection_action == "list":
+            page = histories.list(limit=args.limit, before=args.before)
+            emit(asdict(page), collection_history_page_lines(page), as_json=args.json)
+        elif args.collection_action == "show":
+            details = histories.show(args.session_id)
+            emit(asdict(details), collection_history_detail_lines(details), as_json=args.json)
+        elif args.collection_action == "recover":
+            recovered = histories.recover()
+            emit({"recovered_session_ids": recovered}, [f"Kapatılan kesilmiş çalışma: {len(recovered)}", *recovered], as_json=args.json)
+        elif args.plan:
+            plan = histories.resume_plan(args.session_id)
+            emit(asdict(plan), resume_plan_lines(plan), as_json=args.json)
+        else:
+            result = histories.resume(args.session_id, progress=terminal_progress(args.json))
+            if args.json:
+                print(json.dumps({"ok": result.history.session.status == "complete", "data": asdict(result)}, ensure_ascii=True))
+            else:
+                for line in resume_result_lines(result):
+                    print(line)
+            return 0 if result.history.session.status == "complete" else 3
     elif args.command == "profiles":
         profiles = make_profile_service(settings, repository)
         if args.profile_action == "save":
@@ -3364,13 +3401,7 @@ def run(args: argparse.Namespace) -> int | None:
             result = profiles.run(args.profile, progress=terminal_progress(args.json))
         else:
             definition = definition_from_arguments(args)
-            collection = make_collection_service(
-                settings, repository, definition.task_ids,
-                watch_item_limit=definition.watch_item_limit,
-                username_watch_ids=definition.username_watch_ids,
-                ransomware_watch_ids=definition.ransomware_watch_ids,
-                ransomlook_watch_ids=definition.ransomlook_watch_ids,
-            )
+            collection = make_collection_history_service(settings, repository)
             options = collection_options(definition)
             if args.plan:
                 plan = collection.plan(definition.asset_value, **options)

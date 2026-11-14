@@ -20,6 +20,7 @@ from xti.domain.collection import (
     CollectionRansomwareResult, CollectionStep, CollectionTask, CollectionWatchTarget,
 )
 from xti.domain.cti_knowledge import normalize_knowledge_id
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.ransomlook_ransomware import (
     RANSOMLOOK_SOURCE_NAME, RANSOMLOOK_SOURCE_URL, RansomLookClaimRunReport,
 )
@@ -180,59 +181,92 @@ class CollectionWatchService:
         if current != (task,):
             raise ValidationError("Toplama izleme tanımı plandan sonra değişti; çalışma başlatılmadı.")
 
-    def run(self, task: CollectionTask, *, item_limit: int = 100) -> CollectionStep:
+    def run_username(
+        self, task: CollectionTask, *, item_limit: int = 100,
+        operation: CollectionOperationToken | None = None,
+    ) -> BrandUsernameWatchRunReport:
         self._check_task(task, item_limit)
-        if task.kind == "username_watch":
-            target = task.watches[0]
-            report = self.username.run(target.watch_id, item_limit=item_limit)
-            if (
-                not isinstance(report, BrandUsernameWatchRunReport)
-                or self._username_target(report.watch) != target
-                or report.watch.source_key != task.source
-                or report.run.watch_id != target.watch_id
-                or report.run.username != target.query or report.run.platforms != target.platforms
-                or report.run.source_name != BRAND_USERNAME_SOURCE_NAMES[task.source]
-                or report.run.status not in {"complete", "failed"}
-            ):
-                raise ValidationError("Sosyal izleme geçersiz toplama sonucu üretti.")
-            normalize_knowledge_id(report.run.id, field="sosyal toplama çalışma kimliği")
-            return CollectionStep(task, report.run.status, username=report)
-
-        history = self.ransomware_histories[task.source]
-        watches = self.ransomware_watches[task.source]
-        refresh = history.refresh(item_limit=item_limit)
-        expected_report = RansomwareClaimRunReport if task.source == "threatcluster" else RansomLookClaimRunReport
-        expected_watch_report = RansomwareWatchRunReport if task.source == "threatcluster" else RansomLookWatchRunReport
+        if task.kind != "username_watch":
+            raise ValidationError("Sosyal toplama görevi gerekli.")
+        target = task.watches[0]
+        kwargs = {"operation": operation} if operation is not None else {}
+        report = self.username.run(target.watch_id, item_limit=item_limit, **kwargs)
         if (
-            not isinstance(refresh, expected_report)
+            not isinstance(report, BrandUsernameWatchRunReport)
+            or self._username_target(report.watch) != target
+            or report.watch.source_key != task.source
+            or report.run.watch_id != target.watch_id
+            or report.run.username != target.query or report.run.platforms != target.platforms
+            or report.run.source_name != BRAND_USERNAME_SOURCE_NAMES[task.source]
+            or report.run.status not in {"complete", "failed"}
+        ):
+            raise ValidationError("Sosyal izleme geçersiz toplama sonucu üretti.")
+        normalize_knowledge_id(report.run.id, field="sosyal toplama çalışma kimliği")
+        return report
+
+    def refresh(
+        self, task: CollectionTask, *, item_limit: int = 100,
+        operation: CollectionOperationToken | None = None,
+    ) -> RansomwareClaimRunReport | RansomLookClaimRunReport:
+        self._check_task(task, item_limit)
+        if task.kind != "ransomware":
+            raise ValidationError("Ransomware kaynak yenileme görevi gerekli.")
+        kwargs = {"operation": operation} if operation is not None else {}
+        refresh = self.ransomware_histories[task.source].refresh(item_limit=item_limit, **kwargs)
+        expected = RansomwareClaimRunReport if task.source == "threatcluster" else RansomLookClaimRunReport
+        if (
+            not isinstance(refresh, expected)
             or (refresh.run.source_name, refresh.run.source_url) != _RANSOMWARE[task.source]
             or refresh.run.status not in {"complete", "failed"}
         ):
             raise ValidationError("Ransomware kaynağı geçersiz toplama sonucu üretti.")
         normalize_knowledge_id(refresh.run.id, field="ransomware toplama kaynak çalışma kimliği")
+        return refresh
+
+    def run_ransomware_watch(
+        self, task: CollectionTask, target: CollectionWatchTarget, source_run_id: str, *,
+        item_limit: int = 100, operation: CollectionOperationToken | None = None,
+    ) -> RansomwareWatchRunReport | RansomLookWatchRunReport:
+        self._limit(item_limit)
+        if task.kind != "ransomware" or task.source not in _RANSOMWARE or target not in task.watches:
+            raise ValidationError("Ransomware izleme görevi ve hedefi uyuşmuyor.")
+        normalize_knowledge_id(source_run_id, field="ransomware kaynak çalışma kimliği")
+        watches = self.ransomware_watches[task.source]
+        current = watches.show(target.watch_id, event_limit=1, run_limit=1).watch
+        if self._ransomware_target(task.source, current) != target:
+            raise ValidationError("Ransomware izleme tanımı kaynak yenilenirken değişti.")
+        kwargs = {"operation": operation} if operation is not None else {}
+        report = watches.run(
+            target.watch_id, item_limit=item_limit, expected_source_run_id=source_run_id,
+            **kwargs,
+        )
+        expected = RansomwareWatchRunReport if task.source == "threatcluster" else RansomLookWatchRunReport
+        if (
+            not isinstance(report, expected)
+            or self._ransomware_target(task.source, report.watch) != target
+            or report.run.watch_id != target.watch_id
+            or report.run.source_run_id != source_run_id
+        ):
+            raise ValidationError("Ransomware izlemesi seçilen tanım ve kaynak yenilemesiyle uyuşmuyor.")
+        normalize_knowledge_id(report.run.id, field="ransomware toplama izleme çalışma kimliği")
+        return report
+
+    def run(self, task: CollectionTask, *, item_limit: int = 100) -> CollectionStep:
+        self._check_task(task, item_limit)
+        if task.kind == "username_watch":
+            report = self.run_username(task, item_limit=item_limit)
+            return CollectionStep(task, report.run.status, username=report)
+        refresh = self.refresh(task, item_limit=item_limit)
         if refresh.run.status == "failed":
             return CollectionStep(
                 task, "failed", ransomware=CollectionRansomwareResult(
                     refresh, (), tuple(item.watch_id for item in task.watches),
                 ),
             )
-        reports = []
-        for target in task.watches:
-            current = watches.show(target.watch_id, event_limit=1, run_limit=1).watch
-            if self._ransomware_target(task.source, current) != target:
-                raise ValidationError("Ransomware izleme tanımı kaynak yenilenirken değişti.")
-            report = watches.run(
-                target.watch_id, item_limit=item_limit, expected_source_run_id=refresh.run.id,
-            )
-            if (
-                not isinstance(report, expected_watch_report)
-                or self._ransomware_target(task.source, report.watch) != target
-                or report.run.watch_id != target.watch_id
-                or report.run.source_run_id != refresh.run.id
-            ):
-                raise ValidationError("Ransomware izlemesi seçilen tanım ve kaynak yenilemesiyle uyuşmuyor.")
-            normalize_knowledge_id(report.run.id, field="ransomware toplama izleme çalışma kimliği")
-            reports.append(report)
+        reports = tuple(
+            self.run_ransomware_watch(task, target, refresh.run.id, item_limit=item_limit)
+            for target in task.watches
+        )
         return CollectionStep(
-            task, "complete", ransomware=CollectionRansomwareResult(refresh, tuple(reports), ()),
+            task, "complete", ransomware=CollectionRansomwareResult(refresh, reports, ()),
         )

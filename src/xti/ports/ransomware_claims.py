@@ -2,6 +2,7 @@
 
 from typing import Protocol
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.ransomware_claims import (
     RansomwareClaimFeed,
     RansomwareClaimHistoryStatus,
@@ -20,12 +21,13 @@ class RansomwareClaimSource(Protocol):
 class RansomwareClaimRepository(Protocol):
     def apply(
         self, feed: RansomwareClaimFeed, *, started_at: str, finished_at: str,
-        item_limit: int,
+        item_limit: int, operation: CollectionOperationToken | None = None,
     ) -> RansomwareClaimRunReport:
         ...
 
     def record_failure(
         self, *, started_at: str, finished_at: str, error: str,
+        operation: CollectionOperationToken | None = None,
     ) -> RansomwareClaimRun:
         ...
 

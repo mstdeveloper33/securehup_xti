@@ -21,6 +21,7 @@ from xti.adapters.schema import (
     create_supplier_candidate_schema,
     create_case_schema,
     create_collection_profile_schema,
+    create_collection_history_schema,
     create_epss_schema,
     create_nvd_schema,
     create_nvd_window_schema,
@@ -163,6 +164,7 @@ class SQLiteAssetRepository:
                 create_supplier_candidate_schema(connection)
                 create_case_schema(connection)
                 create_collection_profile_schema(connection)
+                create_collection_history_schema(connection)
                 create_surface_change_notification_schema(connection)
                 create_vulnerability_schema(connection)
                 create_epss_schema(connection)
@@ -255,6 +257,9 @@ class SQLiteAssetRepository:
         with self._connection(readonly=True) as connection:
             self._check_integrity(connection)
             count = connection.execute("SELECT COUNT(*) FROM assets").fetchone()[0]
+            collection_sessions = connection.execute("SELECT COUNT(*) FROM collection_sessions").fetchone()[0]
+            collection_session_steps = connection.execute("SELECT COUNT(*) FROM collection_session_steps").fetchone()[0]
+            collection_step_receipts = connection.execute("SELECT COUNT(*) FROM collection_step_receipts").fetchone()[0]
             collection_profiles = connection.execute(
                 "SELECT COUNT(*) FROM collection_profiles"
             ).fetchone()[0]
@@ -664,6 +669,9 @@ class SQLiteAssetRepository:
             "supplier_candidate_evidence_count": supplier_candidate_evidence,
             "supplier_candidate_resolution_count": supplier_candidate_resolutions,
             "case_count": cases,
+            "collection_session_count": collection_sessions,
+            "collection_session_step_count": collection_session_steps,
+            "collection_step_receipt_count": collection_step_receipts,
             "collection_profile_count": collection_profiles,
             "active_collection_profile_count": active_collection_profiles,
             "collection_profile_event_count": collection_profile_events,
@@ -882,6 +890,8 @@ class SQLiteAssetRepository:
                     create_case_schema(connection)
                 if version < 55:
                     create_collection_profile_schema(connection)
+                if version < 56:
+                    create_collection_history_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

@@ -83,6 +83,9 @@ class InboxMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+            connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+            connection.execute("DROP TABLE IF EXISTS collection_sessions")
             connection.execute(f"PRAGMA user_version={version}")
             connection.execute("INSERT INTO assets VALUES ('asset-1', 'example.com', ?)",
                                (RECORDED_AT,))

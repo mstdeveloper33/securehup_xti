@@ -2,6 +2,7 @@
 
 from typing import Protocol
 
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.brand_username import BrandUsernamePreview
 from xti.domain.brand_username_watches import (
     BrandUsernameWatch,
@@ -37,6 +38,7 @@ class BrandUsernameWatchRepository(Protocol):
         preview: BrandUsernamePreview,
         recorded_at: str,
         item_limit: int,
+        operation: CollectionOperationToken | None = None,
     ) -> BrandUsernameWatchRunReport: ...
 
     def record_failure(
@@ -49,6 +51,7 @@ class BrandUsernameWatchRepository(Protocol):
         integration_profile: str,
         error: str,
         recorded_at: str,
+        operation: CollectionOperationToken | None = None,
     ) -> BrandUsernameWatchRunReport: ...
 
     def run_details(

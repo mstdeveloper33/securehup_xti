@@ -1,10 +1,26 @@
 # XTI — Güncel Uygulama Durumu
 
-**14 Kasım 2026 · 0.131.0 sürümü toplama seçimlerini adla kaydetme ve çalıştırmayı ekler**
+**14 Kasım 2026 · 0.132.0 sürümü kalıcı toplama geçmişini ve eksik işleri yeniden denemeyi ekler**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `collections list/show`, `collections resume ID [--plan]` ve
+  `collections recover`; yeni `collect` çalışmaları gerçek kaynak kayıtlarına
+  bağlı oturum kimliği üretir. Eski bağımsız kaynak kayıtlarından geriye dönük
+  oturum uydurulmaz. Şema 56 açık ve yedekli geçiş ister.
+- Kaynak sonucu ve tamamlanma bağı aynı transaction'da tutulur; üst komut
+  kayıttan hemen sonra kesilse de tamamlanan izleme kaybolmaz/tekrar edilmez.
+  Ransomware kaynak yenilemesi ile her üye ayrı adımdır. Eksik üyeler yeni
+  başarılı yenilemeye bağlanır; kaynak hatasında eski liste kullanılmaz.
+- Devam yeni yürütmedir; eski kısmi/başarısız sonuç korunur. Kaynak profil
+  revizyonu veya eksik işin tanımı/sürümü değişmişse yeni toplama gerekir.
+  Toplamaya ait scan işleri genel kuyruktan ayrılır. Kilitli kurtarma yalnız
+  kesilmiş açık işleri kapatır; kaynakları sorgulamaz.
+- Geçmiş/önizleme ağsız ve yazmasızdır. Geçmiş komutu analiz üretmez; devam
+  sonundaki güncel yerel analiz ayrıca gösterilir. Analiz hatasında kaynak
+  kayıtları korunur ve yalnız analiz için kaynaklara tekrar gidilmez.
 
 - `profiles save AD DOMAIN`, `profiles list/show/revoke` ve
   `collect --profile AD [--plan]`: domain, temel işler, seçili izlemeler ve
@@ -16,7 +32,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - Domain/izlemelerin ağ öncesi doğrulanması, ortak kilit altında profil
   revizyonunun yeniden kontrolü. Plan/liste/ayrıntı ağsız ve yazmasızdır.
   Profil gruplaması kuruluş veya sahiplik bağı sayılmaz. Açık yedekli
-  `migrate` gerekir. Birleşik oturum ve sürdürme henüz sonraki teslimdir.
+  `migrate` gerekir. Profil ve toplama oturumu ayrı kayıtlar olarak tutulur.
 - theHarvester kaynak kanıtı aynı hostname farklı zamanda tekrar gelince
   çakışmaz. Türetilmiş özet gözlem zamanını da kapsar; eski kanıtlar ve insan
   kararları korunur, aynı gözlemin tekrarında aday çoğaltılmaz. Bu düzeltme
@@ -49,8 +65,8 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
   durumu son birleşik analiz tarafından başarıya çevrilmez.
 - Ortak çalışma kilidi, kayıtlı hedef ve seçili depoların ağ öncesi
   doğrulaması; tekrarında mevcut tekilleştirme/insan kararlarını koruma.
-  Yeni şema veya kalıcı birleşik oturum oluşturulmaz. Terminalden bağımsız
-  servis ve JSON sonucu ilerideki React/API bağlantısına temel oluşturur.
+  Terminalden bağımsız servis ve JSON sonucu ilerideki React/API bağlantısına
+  temel oluşturur. 0.132.0 katmanı kalıcı birleşik oturumu ayrıca tutar.
 
 - Arşiv v3 işçisi, sabit theHarvester kurulumundan indeks/hostname/sayfa
   ayrıştırma yardımcılarını kullanır; upstream dosyalarını değiştirmez.

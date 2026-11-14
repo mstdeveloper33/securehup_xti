@@ -84,6 +84,9 @@ class NvdWindowMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+            connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+            connection.execute("DROP TABLE IF EXISTS collection_sessions")
             connection.execute("PRAGMA user_version=29")
 
     def test_v29_requires_explicit_migration_and_creates_empty_progress(self):
@@ -201,6 +204,9 @@ class NvdWindowRestartMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS collection_step_receipts")
+            connection.execute("DROP TABLE IF EXISTS collection_session_steps")
+            connection.execute("DROP TABLE IF EXISTS collection_sessions")
             connection.execute("PRAGMA user_version=30")
 
     def test_v30_migration_preserves_progress_and_adds_empty_restart_history(self):
