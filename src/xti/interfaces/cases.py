@@ -1,6 +1,9 @@
 """Safe terminal views for local case management."""
 
+import json
+
 from xti.domain.cases import (
+    CaseEvidence, PUBLIC_NOTICE_CASE_TYPES, validate_public_notice_case_payload,
     Case,
     CaseActivity,
     CaseDetails,
@@ -27,6 +30,8 @@ _EVIDENCE = {
     "ransomware_threatcluster": "ThreatCluster iddiası",
     "ransomware_ransomlook": "RansomLook iddiası",
     "supplier": "Tedarikçi inceleme kartı",
+    "public_notice": "HIBP tarihî kamu olay kaydı",
+    "public_notice_watch": "HIBP kuruluş izleme kanıtı",
 }
 _TASK = {"open": "Açık", "done": "Tamamlandı", "cancelled": "İptal edildi"}
 _ACTIVITY = {
@@ -90,7 +95,7 @@ def evidence_mutation_lines(result: CaseEvidenceMutation) -> list[str]:
         "unchanged": "Kanıt bağı değişmedi",
     }
     evidence = result.evidence
-    return [
+    lines = [
         labels[result.action],
         f"Bağ kimliği: {safe_text(evidence.id)}",
         f"Tür: {_EVIDENCE[evidence.evidence_type]} | Kaynak kimliği: "
@@ -98,6 +103,8 @@ def evidence_mutation_lines(result: CaseEvidenceMutation) -> list[str]:
         f"Özet: {safe_text(evidence.display_value)}",
         "Kaynak kayıt değiştirilmedi; vaka yalnız doğrulanmış yerel anlık görüntüye başvurur.",
     ]
+    lines.extend(_public_notice_evidence_lines(evidence))
+    return lines
 
 
 def task_mutation_lines(result: CaseTaskMutation) -> list[str]:
@@ -141,6 +148,8 @@ def detail_lines(details: CaseDetails) -> list[str]:
         lines.append(
             f"    {safe_text(item.display_value)} | kaynak {safe_text(item.evidence_id)}"
         )
+        lines.append(f"    Donmuş kanıt: ./xti cases evidence-show {safe_text(item.case_id)} {safe_text(item.id)}")
+        lines.extend(_public_notice_evidence_lines(item))
     if not details.evidence:
         lines.append("  Henüz kanıt bağlanmadı.")
     if details.total_evidence_count > len(details.evidence):
@@ -200,6 +209,7 @@ def report_lines(details: CaseDetails) -> list[str]:
             lines.append(
                 f"  - {_EVIDENCE[item.evidence_type]}: {safe_text(item.display_value)}"
             )
+            lines.extend(_public_notice_evidence_lines(item))
     if not any(item.active for item in details.evidence):
         lines.append("  - Etkin kanıt yok.")
     lines.append(
@@ -207,3 +217,68 @@ def report_lines(details: CaseDetails) -> list[str]:
     )
     return lines
 
+
+
+def _public_notice_evidence_lines(evidence: CaseEvidence) -> list[str]:
+    if evidence.evidence_type not in PUBLIC_NOTICE_CASE_TYPES:
+        return []
+    from xti.domain.public_notices import PublicNotice
+    from xti.domain.public_notice_watches import PublicNoticeWatchItem
+    from xti.interfaces.public_notice_watches import change_lines
+    payload = json.loads(evidence.snapshot_json)
+    validate_public_notice_case_payload(evidence.evidence_type, evidence.evidence_id, payload)
+    lines = [
+        'Vakaya bağlandığı biçimiyle tarihî kamu olay kanıtı:',
+        f"  Kaynak çalışması: {safe_text(payload['source_run']['id'])} | kayıt: {safe_text(payload['source_run']['finished_at'])}",
+        f"  Kanıt özeti: {safe_text(evidence.snapshot_sha256)}",
+    ]
+    if payload['previous_source_run']:
+        lines.append('  Önceki kaynak çalışması: ' + safe_text(payload['previous_source_run']['id']))
+    if payload['is_source_baseline']:
+        lines.append('  İlk tarihî kaynak kataloğu; bugün oluşmuş yeni ihlal sayılmaz.')
+    watch = payload['watch']
+    if watch:
+        scope = watch['scope']
+        lines.append(f"  Çalışma anındaki kuruluş: {safe_text(scope['organization_name'])} ({safe_text(watch['organization_id'])})")
+        lines.append('  İzleme çalışması: ' + safe_text(watch['run']['id']))
+        lines.append(f"  Seçili olaya ilişkin domain kapsamı: {safe_text(', '.join(member['domain'] for member in scope['members']) or 'boş')}")
+        lines.append(f"  Tam kapsam özeti: {safe_text(watch['scope_sha256'])}; toplam {watch['scope_member_count']} domain")
+        if not watch['scope_complete']:
+            lines.append('  Diğer domainler bu olayın kanıtına kopyalanmadı; tam kapsam tarihî izleme çalışmasında kayıtlıdır.')
+    for entry in payload['items']:
+        records = []
+        for raw in (entry['before'], entry['after']):
+            if raw is None:
+                records.append(None)
+            else:
+                record = dict(raw); record['data_classes'] = tuple(record['data_classes'])
+                records.append(PublicNotice(**record))
+        lines.extend(change_lines(PublicNoticeWatchItem(entry['notice_id'], entry['action'], entry['domain'] or 'domain belirtilmedi', *records)))
+    if evidence.evidence_type == 'public_notice':
+        lines.append('  Kaynak çalışma görünümü fark listesidir; değişmeyen kayıt listede bulunmayabilir. Tam seçili kanıt yukarıdadır.')
+    else:
+        lines.append('  Tarihî izleme görünümünde seçili kayıt ilk sayfada olmayabilir; tam seçili kanıt yukarıdadır.')
+    lines.append('  Tarihî çalışma: ./xti ' + safe_text(evidence.source_reference))
+    lines.append(safe_text(payload['source']['attribution']))
+    lines.append('Lisans: ' + safe_text(payload['source']['license']))
+    lines.extend(safe_text(note) for note in payload['limitations'])
+    return lines
+
+
+def evidence_detail_lines(evidence: CaseEvidence) -> list[str]:
+    lines = [
+        'Vaka kanıtı',
+        f"Vaka: {safe_text(evidence.case_id)} | bağ: {safe_text(evidence.id)}",
+        f"Tür: {_EVIDENCE[evidence.evidence_type]} | {'Etkin' if evidence.active else 'Çıkarıldı'}",
+        f"Kaynak kimliği: {safe_text(evidence.evidence_id)}",
+        f"Özet: {safe_text(evidence.display_value)}",
+        f"Bağlama zamanı: {safe_text(evidence.added_at)} | gerekçe: {safe_text(evidence.added_reason)}",
+        f"Kanıt özeti: {safe_text(evidence.snapshot_sha256)}",
+    ]
+    if evidence.removed_reason:
+        lines.append(f"Çıkarılma: {safe_text(evidence.removed_at)} | {safe_text(evidence.removed_reason)}")
+    lines.extend(_public_notice_evidence_lines(evidence))
+    if evidence.evidence_type not in PUBLIC_NOTICE_CASE_TYPES:
+        lines.append('Donmuş kaynak anlık görüntüsü:')
+        lines.append(safe_text(evidence.snapshot_json))
+    return lines

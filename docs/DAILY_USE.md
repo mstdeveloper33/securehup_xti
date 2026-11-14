@@ -1,7 +1,7 @@
 # XTI günlük kullanım
 
-Bu belge 0.136.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
-çalıştır; şema 62 geçişi önce geri dönüş yedeği alır.
+Bu belge 0.137.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
+çalıştır; şema 63 geçişi önce geri dönüş yedeği alır.
 
 Kuruluşa özel HIBP bildirimleri için `./xti notices watch enable KURULUS_KIMLIGI`
 ile açık izleme seçilir. Katalog yenilenince ilk ölçüm sessizdir; sonraki
@@ -462,3 +462,9 @@ görünümü yenileyebilirsin; önceki vaka hareketleri korunur.
 
 Bu rutin komutları çalıştırdığın zaman işler. Yerel veriler `.xti-data`
 klasöründedir; GitHub'a gönderilmez. Yedeği ayrıca başka bir diskte sakla.
+
+## Tarihî kanıtı vakaya bağla ve HTML raporu al
+
+`cases evidence-add` tam kaynak/izleme çalışma kimliği ve olay adını seçer.
+`organizations export KURULUS_KIMLIGI --output rapor.html` bütün kuruluş
+raporunu yeni bir dosyaya yazar. [Adım adım kullanım](PUBLIC_NOTICE_CASES_AND_EXPORT.md).

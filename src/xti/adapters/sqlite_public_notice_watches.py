@@ -304,6 +304,40 @@ def read_public_notice_watch_details(connection, organization_id, *, event_limit
     return _details(_audit(connection), organization_id, event_limit, run_limit, run_offset, event_offset)
 
 
+def _run_report(state, run, *, item_limit, offset=0):
+    comparison = _comparison(state, run)
+    previous = state.runs.get(run.previous_run_id)
+    watch = state.watches[run.watch_id]
+    event = state.events[run.watch_event_id]
+    historical_watch = replace(watch, active=True, revision=event.revision, updated_at=event.recorded_at)
+    return PublicNoticeWatchRunReport(historical_watch, run, state.scopes[run.id],
+        previous.source_run_id if previous else None, comparison.items[offset:offset + item_limit], len(comparison.items), offset,
+        next((key for key, value in state.notifications.items() if value == run.id), None),
+        comparison.baseline_domains, comparison.continuing_domains)
+
+
+def read_complete_public_notice_watch(connection, organization_id, *, maximum_records):
+    """All history for exactly one organization in the caller's read snapshot."""
+    normalize_organization_id(organization_id)
+    if type(maximum_records) is not int or maximum_records < 1:
+        raise ValidationError('Tam izleme raporu sınırı geçersiz.')
+    state = _audit(connection)
+    details = _details(state, organization_id, maximum_records, maximum_records)
+    if details is None:
+        return None, ()
+    count = details.total_event_count + details.total_run_count
+    if count > maximum_records:
+        raise ValidationError('Tam izleme geçmişi dışa aktarım sınırını aşıyor; dosya yazılmadı.')
+    reports = []
+    for run in details.runs:
+        report = _run_report(state, run, item_limit=maximum_records)
+        count += report.total_item_count + len(report.scope.members)
+        if count > maximum_records or report.total_item_count != len(report.items):
+            raise ValidationError('Tam izleme kanıtı dışa aktarım sınırını aşıyor; dosya yazılmadı.')
+        reports.append(report)
+    return details, tuple(reports)
+
+
 class SQLitePublicNoticeWatchRepository:
     def __init__(self, path: Path):
         self._storage = SQLiteAssetRepository(path)
@@ -382,15 +416,7 @@ class SQLitePublicNoticeWatchRepository:
             run = state.runs.get(run_id)
             if run is None:
                 raise ValidationError('Kamu olay izleme çalışması bulunamadı.')
-            comparison = _comparison(state, run)
-            previous = state.runs.get(run.previous_run_id)
-            watch = state.watches[run.watch_id]
-            event = state.events[run.watch_event_id]
-            historical_watch = replace(watch, active=True, revision=event.revision, updated_at=event.recorded_at)
-            return PublicNoticeWatchRunReport(historical_watch, run, state.scopes[run.id],
-                previous.source_run_id if previous else None, comparison.items[offset:offset + item_limit], len(comparison.items), offset,
-                next((key for key, value in state.notifications.items() if value == run.id), None),
-                comparison.baseline_domains, comparison.continuing_domains)
+            return _run_report(state, run, item_limit=item_limit, offset=offset)
 
     @staticmethod
     def notification_evidences(connection, notification_ids):

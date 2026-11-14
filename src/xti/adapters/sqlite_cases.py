@@ -10,6 +10,7 @@ from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.domain.assets import ValidationError
 from xti.domain.cases import (
     CASE_ACTIVITY_TYPES,
+    PUBLIC_NOTICE_CASE_TYPES, validate_public_notice_case_payload,
     Case,
     CaseActivity,
     CaseDetails,
@@ -127,8 +128,14 @@ class SQLiteCaseRepository:
                 or record.active == (record.removed_reason is not None)
             ):
                 raise ValueError("invalid evidence")
+            if record.evidence_type in PUBLIC_NOTICE_CASE_TYPES:
+                payload = json.loads(snapshot_json)
+                validate_public_notice_case_payload(record.evidence_type, record.evidence_id, payload)
+                command = 'notices watch-run-show' if record.evidence_type == 'public_notice_watch' else 'notices run-show'
+                if record.source_reference != f"{command} {payload['selection']['run_id']}":
+                    raise ValueError('Public notice source reference differs')
             return record
-        except (UnicodeError, TypeError, ValueError, ValidationError, json.JSONDecodeError) as error:
+        except (UnicodeError, TypeError, ValueError, KeyError, AttributeError, ValidationError, json.JSONDecodeError) as error:
             raise StorageError("Vaka kanıt bağı bozuk; işlem durduruldu.") from error
 
     @staticmethod
@@ -415,6 +422,12 @@ class SQLiteCaseRepository:
                 case = self._get_case(connection, case_id)
                 if case.status == "closed":
                     raise ValidationError("Kapalı vakaya kanıt eklemek için önce vakayı yeniden açın.")
+                read_case_evidence_links(connection)
+                if evidence_type in PUBLIC_NOTICE_CASE_TYPES:
+                    from xti.adapters.sqlite_case_evidence import read_public_notice_case_snapshot
+                    expected = read_public_notice_case_snapshot(connection, evidence_type, evidence_id)
+                    if expected != snapshot:
+                        raise ValidationError("Kamu olay vaka kanıtı seçili tarihî kaynakla uyuşmuyor.")
                 row = connection.execute(
                     "SELECT id, case_id, evidence_type, evidence_id, display_value, "
                     "source_reference, snapshot_json, snapshot_sha256, active, added_reason, "
@@ -474,6 +487,7 @@ class SQLiteCaseRepository:
                     },
                     recorded_at=recorded_at,
                 )
+                read_case_evidence_links(connection)
                 connection.commit()
             except BaseException:
                 connection.rollback()
@@ -491,6 +505,7 @@ class SQLiteCaseRepository:
             try:
                 connection.execute("BEGIN IMMEDIATE")
                 case = self._get_case(connection, case_id)
+                read_case_evidence_links(connection)
                 if case.status == "closed":
                     raise ValidationError("Kapalı vakadan kanıt çıkarmak için önce vakayı açın.")
                 row = self._evidence_row(connection, evidence_link_id)
@@ -521,6 +536,7 @@ class SQLiteCaseRepository:
                         }, recorded_at=recorded_at,
                     )
                     action, changed = "removed", True
+                read_case_evidence_links(connection)
                 connection.commit()
             except BaseException:
                 connection.rollback()
@@ -639,6 +655,18 @@ class SQLiteCaseRepository:
             ).fetchall()
         return tuple(self._case(row) for row in rows)
 
+    def evidence_show(self, case_id: str, evidence_link_id: str) -> CaseEvidence:
+        case_id = normalize_case_id(case_id)
+        evidence_link_id = normalize_case_evidence_link_id(evidence_link_id)
+        with self._storage._connection(readonly=True) as connection:
+            connection.execute("BEGIN")
+            self._get_case(connection, case_id)
+            links = read_case_evidence_links(connection)
+            result = next((link for link in links if link.id == evidence_link_id and link.case_id == case_id), None)
+            if result is None:
+                raise ValidationError("Bu vakaya ait kanıt bağı bulunamadı.")
+            return result
+
     def show(
         self, case_id: str, *, evidence_limit: int, task_limit: int,
         activity_limit: int,
@@ -653,6 +681,7 @@ class SQLiteCaseRepository:
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
             record = self._get_case(connection, case_id)
+            read_case_evidence_links(connection)
             evidence_count, active_evidence_count = connection.execute(
                 "SELECT COUNT(*), COALESCE(SUM(active), 0) FROM case_evidence WHERE case_id=?",
                 (case_id,),
@@ -719,4 +748,95 @@ class SQLiteCaseRepository:
             total_task_count=task_count, open_task_count=open_task_count,
             total_activity_count=activity_count,
         )
+
+
+
+def _case_evidence_rows(connection, query):
+    rows = connection.execute(query).fetchmany(50_001)
+    if len(rows) > 50_000:
+        raise StorageError("Vaka kanıt geçmişi güvenli okuma sınırını aşıyor.")
+    return rows
+
+
+_CASE_COLUMNS = 'id, case_id, evidence_type, evidence_id, display_value, source_reference, snapshot_json, snapshot_sha256, active, added_reason, added_at, updated_at, removed_reason, removed_at'
+
+
+def read_case_evidence_links(connection):
+    """Replay immutable link activities before any organization filtering.
+
+    A mutable evidence_id/case_id/active column cannot manufacture membership.
+    Private case contents are validated here but never copied to the report.
+    """
+    try:
+        links = {link.id: link for link in (
+            SQLiteCaseRepository._evidence(row)
+            for row in _case_evidence_rows(connection, f"SELECT {_CASE_COLUMNS} FROM case_evidence ORDER BY id")
+        )}
+        histories = {identifier: [] for identifier in links}
+        rows = _case_evidence_rows(connection,
+                     "SELECT sequence,id,case_id,activity_type,reference_id,summary,reason,"
+                     "snapshot_json,snapshot_sha256,recorded_at FROM case_activities "
+                     "WHERE activity_type IN ('evidence_added','evidence_refreshed',"
+                     "'evidence_reactivated','evidence_removed') ORDER BY sequence")
+        for row in rows:
+            activity = SQLiteCaseRepository._activity(row)
+            payload = json.loads(row[7])
+            if canonical_snapshot(payload)[0] != row[7]:
+                raise ValueError("Noncanonical evidence activity")
+            link = links.get(activity.reference_id)
+            action = activity.activity_type.removeprefix('evidence_')
+            keys = {'kind', 'action', 'link_id', 'evidence_type', 'evidence_id',
+                    'snapshot_json', 'snapshot_sha256'}
+            if action != 'removed':
+                keys.add('source_reference')
+            if (link is None or activity.case_id != link.case_id or set(payload) != keys
+                    or payload['kind'] != 'case_evidence' or payload['action'] != action
+                    or payload['link_id'] != link.id or payload['evidence_type'] != link.evidence_type
+                    or payload['evidence_id'] != link.evidence_id):
+                raise ValueError("Evidence activity identity mismatch")
+            frozen = json.loads(payload['snapshot_json'])
+            if not isinstance(frozen, dict) or canonical_snapshot(frozen) != (
+                payload['snapshot_json'], payload['snapshot_sha256'],
+            ):
+                raise ValueError("Evidence activity snapshot mismatch")
+            histories[link.id].append((activity, payload))
+        for identifier, link in links.items():
+            history = histories[identifier]
+            if not history or history[0][0].activity_type != 'evidence_added':
+                raise ValueError("Missing evidence addition")
+            active, last_payload, last_source, last_summary = False, None, None, None
+            added_reason, removed_reason, removed_at = None, None, None
+            first_at = history[0][0].recorded_at
+            updated_at = first_at
+            for index, (activity, payload) in enumerate(history):
+                action = payload['action']
+                if (action == 'added' and index != 0
+                        or action in {'refreshed', 'removed'} and not active
+                        or action == 'reactivated' and active):
+                    raise ValueError("Invalid evidence lifecycle transition")
+                if action == 'removed':
+                    if (payload['snapshot_json'] != last_payload['snapshot_json']
+                            or payload['snapshot_sha256'] != last_payload['snapshot_sha256']
+                            or activity.summary != last_summary):
+                        raise ValueError("Removal rewrites frozen evidence")
+                    active, removed_reason, removed_at = False, activity.reason, activity.recorded_at
+                else:
+                    if (action == 'refreshed'
+                            and payload['snapshot_sha256'] == last_payload['snapshot_sha256']):
+                        raise ValueError("Unchanged evidence cannot be refreshed")
+                    active, removed_reason, removed_at = True, None, None
+                    last_source, last_summary = payload['source_reference'], activity.summary
+                    added_reason = activity.reason
+                last_payload = payload
+                updated_at = max((updated_at, activity.recorded_at), key=datetime.fromisoformat)
+            if (link.active != active or link.snapshot_json != last_payload['snapshot_json']
+                    or link.snapshot_sha256 != last_payload['snapshot_sha256']
+                    or link.source_reference != last_source or link.display_value != last_summary
+                    or link.added_reason != added_reason or link.added_at != first_at
+                    or link.updated_at != updated_at or link.removed_reason != removed_reason
+                    or link.removed_at != removed_at):
+                raise ValueError("Evidence link differs from its activity history")
+        return tuple(links.values())
+    except (TypeError, ValueError, KeyError, OverflowError, RecursionError, ValidationError) as error:
+        raise StorageError("Vaka kanıt bağı zaman çizelgesiyle uyuşmuyor; kayıtlar değiştirilmedi.") from error
 

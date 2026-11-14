@@ -9,6 +9,7 @@ from xti.domain.cases import (
     Case,
     CaseActivity,
     CaseDetails,
+    CaseEvidence,
     CaseEvidenceMutation,
     CaseEvidenceSnapshot,
     CaseMutation,
@@ -161,6 +162,10 @@ class CaseService:
             case_id, snapshot=snapshot, reason=normalize_case_reason(reason),
             recorded_at=self._now(),
         )
+
+    def evidence_show(self, case_id: str, evidence_link_id: str) -> CaseEvidence:
+        return self.repository.evidence_show(normalize_case_id(case_id),
+                                             normalize_case_evidence_link_id(evidence_link_id))
 
     def remove_evidence(
         self, case_id: str, evidence_link_id: str, *, reason: str,

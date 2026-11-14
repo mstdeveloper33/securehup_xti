@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from xti.adapters.public_notice_watch_schema import PUBLIC_NOTICE_WATCH_DDL
+from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_DDL, CASE_EVIDENCE_V62_DDL
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, SchemaError, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_collection_profiles import SQLiteCollectionProfileRepository
@@ -19,6 +20,7 @@ from xti.domain.findings import DomainInput, ImportDocument, MatchCandidate
 from xti.domain.organizations import normalize_organization_target
 from xti.domain.public_notices import HIBP_CONTRACT_VERSION
 from tests import test_collection_public_notice_migration as collection_fixtures
+from tests.case_evidence_v62_fixture import case_evidence_layout_v62
 from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
 from tests.test_collection_history_storage import NOW, LATER
 from tests.test_public_notices import feed
@@ -33,13 +35,20 @@ NEW_TABLES = (
 def legacy_snapshot(path):
     """All old SQL, columns, rowids, values, indexes, and sequence counters."""
     with closing(sqlite3.connect(path)) as connection:
+        def declarations(table):
+            # Later schema63 intentionally widens only this existing CHECK.
+            # Keep this schema62 test focused on every other legacy declaration.
+            return [
+                (kind, name, CASE_EVIDENCE_V62_DDL if sql == CASE_EVIDENCE_DDL else sql)
+                for kind, name, sql in connection.execute(
+                    "SELECT type, name, sql FROM sqlite_schema WHERE tbl_name=? ORDER BY name", (table,),
+                )
+            ]
         result = {
             table: (
                 connection.execute(f"PRAGMA table_info({table})").fetchall(),
                 connection.execute(f"SELECT rowid, * FROM {table} ORDER BY rowid").fetchall(),
-                connection.execute(
-                    "SELECT type, name, sql FROM sqlite_schema WHERE tbl_name=? ORDER BY name", (table,),
-                ).fetchall(),
+                declarations(table),
             ) for table in sorted(VERSION_TABLES[61])
         }
         result["sqlite_sequence"] = connection.execute(
@@ -91,6 +100,7 @@ class PublicNoticeWatchMigrationTests(unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("UPDATE notifications SET read_at=?", (LATER,))
             connection.execute("PRAGMA foreign_keys=ON")
+            case_evidence_layout_v62(connection)
             remove_public_notice_watch_schema(connection)
             connection.execute("PRAGMA user_version=61")
             self.assertEqual(validate_schema(connection, allow_legacy=True), 61)

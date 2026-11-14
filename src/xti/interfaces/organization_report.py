@@ -5,6 +5,7 @@ from dataclasses import asdict
 import shlex
 
 from xti.application.organization_report import OrganizationReportService
+from xti.application.organization_export import OrganizationExportService
 from xti.domain.organization_report import OrganizationReport, OrganizationReportAttempt, ReportNavigation
 from xti.interfaces.cname import check_lines as cname_lines
 from xti.interfaces.mail import check_lines as mail_lines
@@ -29,6 +30,10 @@ def register_organization_report_parser(actions: _SubParsersAction) -> None:
     parser.add_argument("--item-offset", type=int, default=0)
     parser.add_argument("--item-limit", type=int, default=50)
     parser.add_argument("--stale-after-hours", type=int, default=24)
+    export = actions.add_parser("export", help="Kuruluş raporunun tamamını ağsız, yeni bir HTML dosyasına yaz.")
+    export.add_argument("organization_id")
+    export.add_argument("--output", required=True, help="Yeni .html dosyası; mevcut dosyanın üzerine yazılmaz.")
+    export.add_argument("--stale-after-hours", type=int, default=24)
 
 
 def _command(navigation: ReportNavigation, indent: str = "    ") -> str:
@@ -110,6 +115,15 @@ def organization_report_lines(report: OrganizationReport) -> list[str]:
     else:
         lines.append("Bu kuruluş için kamu olay izlemesi açılmamış.")
         lines.append("Açmak için: ./xti notices watch enable " + safe_text(organization.id))
+    if report.public_notice_case_links is not None:
+        page = report.public_notice_case_links
+        lines.append(f"Kamu olay vaka bağlantıları: toplam {page.total_count} | bu sayfa {len(page.items)}")
+        for record in page.items:
+            lines.append(f"  {safe_text(record.value)} | {safe_text(record.status)} | {safe_text(record.id)}")
+            lines.extend(f"    {safe_text(detail)}" for detail in record.details)
+            lines.extend(_command(link) for link in record.navigation)
+        if page.has_more:
+            lines.append(f"Kamu olay vaka bağlantılarının devamı: --item-offset {page.offset + len(page.items)} --item-limit {page.limit}")
     lines.extend(f"Not: {safe_text(note)}" for note in report.notes)
     return lines
 
@@ -119,3 +133,16 @@ def execute_organization_report_command(service: OrganizationReportService, args
                           item_offset=args.item_offset, item_limit=args.item_limit,
                           stale_after_hours=args.stale_after_hours)
     return asdict(result), organization_report_lines(result)
+
+
+def execute_organization_export_command(service: OrganizationExportService, args) -> tuple[dict, list[str]]:
+    result = service.export(args.organization_id, destination=args.output,
+                            stale_after_hours=args.stale_after_hours)
+    return asdict(result), [
+        "Kuruluşun tam HTML raporu oluşturuldu: " + safe_text(result.file.path),
+        f"Etkin hedef: {result.target_count} | kapsam/kanıt/geçmiş kaydı: {result.record_count}",
+        f"Kamu olay izleme çalışması: {result.public_notice_watch_run_count}",
+        f"Dosya: {result.file.byte_count} bayt | SHA-256: {result.file.sha256}",
+        "Dosyayı tarayıcıda çevrimdışı açabilir veya yazdırabilirsin. Veritabanı değiştirilmedi.",
+        "Yüzey bölümleri son kontrol kanıtlarını içerir; eski kontrollerin tüm geçmişi rapora dahil değildir.",
+    ]

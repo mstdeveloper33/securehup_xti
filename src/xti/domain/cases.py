@@ -1,6 +1,7 @@
 """Human-managed cases that reference source evidence without rewriting it."""
 
 from dataclasses import dataclass
+from datetime import datetime
 import hashlib
 import json
 import unicodedata
@@ -19,6 +20,8 @@ CASE_EVIDENCE_TYPES = frozenset({
     "ransomware_threatcluster",
     "ransomware_ransomlook",
     "supplier",
+    "public_notice",
+    "public_notice_watch",
 })
 CASE_ACTIVITY_TYPES = frozenset({
     "case_created", "case_updated", "status_changed", "note_added",
@@ -121,7 +124,7 @@ def normalize_case_evidence_type(value: str) -> str:
     if not isinstance(value, str) or value not in CASE_EVIDENCE_TYPES:
         raise ValidationError(
             "Kanıt türü finding, social_profile, ransomware_threatcluster, "
-            "ransomware_ransomlook veya supplier olmalı."
+            "ransomware_ransomlook, supplier, public_notice veya public_notice_watch olmalı."
         )
     return value
 
@@ -241,3 +244,120 @@ class CaseDetails:
     open_task_count: int
     total_activity_count: int
 
+
+
+PUBLIC_NOTICE_CASE_TYPES = frozenset({'public_notice', 'public_notice_watch'})
+
+
+def public_notice_case_evidence_id(run_id: str, notice_name: str) -> str:
+    from xti.domain.public_notices import notice_id
+    return f"{_uuid(run_id, 'kamu olay çalışması')}:{notice_id(notice_name)}"
+
+
+def parse_public_notice_case_evidence_id(value: str) -> tuple[str, str]:
+    if not isinstance(value, str) or ':' not in value:
+        raise ValidationError('Kamu olay kanıt kimliği ÇALIŞMA_UUID:OLAY_ADI biçiminde olmalı.')
+    run_id, name = value.split(':', 1)
+    if public_notice_case_evidence_id(run_id, name) != value:
+        raise ValidationError('Kamu olay kanıt kimliği kanonik olmalı.')
+    return run_id, name
+
+
+def _validate_public_notice_case_payload(evidence_type: str, evidence_id: str, payload: dict) -> None:
+    """Validate frozen identities and metadata without consulting today's source."""
+    from xti.domain.public_notices import (
+        HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_NAME, HIBP_SOURCE_URL,
+        PublicNotice, PublicNoticeRun, notice_sha256, notice_timestamp, validate_notice,
+    )
+    run_id, name = parse_public_notice_case_evidence_id(evidence_id)
+    keys = {'kind', 'version', 'selection', 'source', 'source_run', 'previous_source_run',
+            'is_source_baseline', 'items', 'watch', 'limitations'}
+    if (evidence_type not in PUBLIC_NOTICE_CASE_TYPES or not isinstance(payload, dict) or set(payload) != keys
+            or payload['kind'] != 'public_notice_historical_evidence' or type(payload['version']) is not int
+            or payload['version'] != 1 or payload['selection'] != {'evidence_type': evidence_type, 'run_id': run_id, 'notice_id': name}
+            or payload['source'] != {'name': HIBP_SOURCE_NAME, 'url': HIBP_SOURCE_URL,
+                                     'attribution': HIBP_ATTRIBUTION, 'license': HIBP_LICENSE}
+            or type(payload['is_source_baseline']) is not bool):
+        raise ValidationError('Kamu olay vaka kanıtı kimliği veya kaynak atfı geçersiz.')
+    sources = (payload['source_run'],) + ((payload['previous_source_run'],) if payload['previous_source_run'] is not None else ())
+    for source in sources:
+        if not isinstance(source, dict) or set(source) != set(PublicNoticeRun.__dataclass_fields__):
+            raise ValidationError('Kamu olay vaka kanıtının kaynak çalışma kaydı geçersiz.')
+        _uuid(source['id'], 'kamu olay çalışması')
+        for field in ('started_at', 'finished_at', 'fetched_at'):
+            notice_timestamp(source[field])
+        if source['status'] != 'complete' or type(source['sequence']) is not int or source['sequence'] < 1 or source['error'] is not None:
+            raise ValidationError('Kamu olay vaka kanıtı başarılı tarihî kaynak gerektirir.')
+        for field in ('content_sha256', 'snapshot_sha256'):
+            digest = source[field]
+            if not isinstance(digest, str) or len(digest) != 64 or any(char not in '0123456789abcdef' for char in digest):
+                raise ValidationError('Kamu olay kaynak özeti geçersiz.')
+        counts = ('notice_count', 'added_count', 'updated_count', 'unchanged_count', 'removed_count')
+        if (any(type(source[key]) is not int or not 0 <= source[key] <= 10_000 for key in counts)
+                or source['notice_count'] < 1 or source['notice_count'] != sum(source[key] for key in counts[1:4])
+                or datetime.fromisoformat(source['finished_at']) < datetime.fromisoformat(source['started_at'])):
+            raise ValidationError('Kamu olay kaynak çalışma sayıları veya zamanı geçersiz.')
+    source_run = payload['source_run']
+    if not isinstance(source_run, dict):
+        raise ValidationError('Kamu olay vaka kanıtının kaynak kaydı eksik.')
+    previous = payload['previous_source_run']
+    if previous and previous['sequence'] >= source_run['sequence']:
+        raise ValidationError('Kamu olay önceki kaynak sırası geçersiz.')
+    if evidence_type == 'public_notice':
+        if payload['watch'] is not None or source_run['id'] != run_id:
+            raise ValidationError('Kamu olay vaka kanıtının çalışma bağı geçersiz.')
+    else:
+        watch = payload['watch']
+        expected = {'id', 'organization_id', 'revision', 'enabled_event_id', 'run', 'scope',
+                    'scope_sha256', 'scope_member_count', 'scope_complete'}
+        if not isinstance(watch, dict) or set(watch) != expected:
+            raise ValidationError('Kuruluş izleme vaka kanıtının kapsamı eksik.')
+        for key in ('id', 'organization_id', 'enabled_event_id'):
+            _uuid(watch[key], 'izleme')
+        run = watch['run']
+        if (not isinstance(run, dict) or run.get('id') != run_id or run.get('watch_id') != watch['id']
+                or run.get('organization_id') != watch['organization_id'] or run.get('source_run_id') != source_run['id']
+                or run.get('watch_event_id') != watch['enabled_event_id'] or run.get('scope_sha256') != watch['scope_sha256']
+                or watch['scope'].get('organization_id') != watch['organization_id']
+                or type(watch['scope_member_count']) is not int or watch['scope_member_count'] < len(watch['scope']['members'])
+                or type(watch['scope_complete']) is not bool
+                or watch['scope_complete'] != (watch['scope_member_count'] == len(watch['scope']['members']))):
+            raise ValidationError('Kuruluş izleme vaka kanıtının kimlik bağı geçersiz.')
+    if not isinstance(payload['items'], (list, tuple)) or not 1 <= len(payload['items']) <= 2:
+        raise ValidationError('Seçili kamu olayı için bir veya iki kapsam etkisi gerekli.')
+    for entry in payload['items']:
+        if (not isinstance(entry, dict) or set(entry) != {'notice_id', 'action', 'domain', 'before', 'after'}
+                or entry['notice_id'] != name or entry['action'] not in {'baseline', 'added', 'updated', 'removed', 'unchanged'}):
+            raise ValidationError('Kamu olay vaka kanıtının seçili kaydı geçersiz.')
+        records = []
+        for value in (entry['before'], entry['after']):
+            if value is None:
+                records.append(None)
+                continue
+            if not isinstance(value, dict) or set(value) != set(PublicNotice.__dataclass_fields__):
+                raise ValidationError('Kamu olay vaka metadata alanları geçersiz.')
+            converted = dict(value)
+            if not isinstance(converted['data_classes'], (list, tuple)):
+                raise ValidationError('Kamu olay veri sınıfları geçersiz.')
+            converted['data_classes'] = tuple(converted['data_classes'])
+            record = validate_notice(PublicNotice(**converted))
+            if record.id != name:
+                raise ValidationError('Kamu olay vaka kaydı farklı olaya ait.')
+            records.append(record)
+        before, after = records
+        expected_domain = before.domain if entry['action'] == 'removed' and before else after.domain if after else None
+        if (entry['domain'] != expected_domain or before is None and after is None
+                or entry['action'] in {'baseline', 'added', 'updated', 'unchanged'} and after is None
+                or entry['action'] in {'updated', 'removed', 'unchanged'} and before is None
+                or entry['action'] == 'baseline' and before is not None
+                or entry['action'] == 'unchanged' and notice_sha256(before) != notice_sha256(after)):
+            raise ValidationError('Kamu olay vaka kanıtının önce/sonra ilişkisi geçersiz.')
+
+
+def validate_public_notice_case_payload(evidence_type: str, evidence_id: str, payload: dict) -> None:
+    try:
+        _validate_public_notice_case_payload(evidence_type, evidence_id, payload)
+    except ValidationError:
+        raise
+    except (TypeError, ValueError, KeyError, AttributeError, OverflowError, RecursionError) as error:
+        raise ValidationError('Kamu olay vaka kanıtının donmuş metadata yapısı geçersiz.') from error

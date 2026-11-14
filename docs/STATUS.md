@@ -1,10 +1,25 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.136.0 · Şema 62.**
+**15 Kasım 2026 · 0.137.0 · Şema 63.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `cases evidence-add --type public_notice|public_notice_watch` tam tarihî
+  çalışma ve olay kimliğini vakaya bağlar; önce/sonra metadata, kaynak
+  sınıfları, atıf/lisans ve ilgili tarihî kuruluş kapsamı dondurulur.
+  Kaynak sonradan değişse/çıkarılsa da kanıt korunur. `cases evidence-show`
+  tek kanıtı görünüm sınırından bağımsız açar; insan kararı değişmez.
+- `organizations export ID --output YENI.html` tek SQLite okuma kesitinden
+  bütün etkin hedefleri, bütün bölüm kayıtlarını ve kuruluşun kamu olay
+  izleme geçmişini çevrimdışı açılan tek HTML dosyasına aktarır. Yüzey
+  bölümü son kontrol kanıtı ve son başarılı çalışma durumudur; bütün eski
+  kontrol serisi değildir. Açık kapasite sınırı aşılırsa eksik rapor yazılmaz.
+  Dış betik/font/görsel yüklenmez; mevcut dosya üzerine yazılmaz.
+- Şema 63 yalnız vaka kanıtı tür kısıtını genişletir. Eski satır kimlikleri,
+  rowid, snapshot ve olay geçmişi yedekli geçişte korunur. Kullanım
+  [vaka ve HTML rehberindedir](PUBLIC_NOTICE_CASES_AND_EXPORT.md).
 
 - `notices watch enable/disable/list/show` kuruluş için açık HIBP izleme
   seçimini ve ağsız kapsam/geçmiş görünümünü sağlar. `watch-run-show` gerçek
@@ -45,7 +60,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - Şema 61 yalnız mevcut toplama adım ve tamamlanma tablolarını genişletir;
   eski kimlikler/alanlar/özetler korunur, yeni kaynak bağlantısı eskilerde
   boştur. Açık yedekli `migrate` gerekir. HIBP vaka kanıtı ve
-  HTML rapor [devam planındadır](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md).
+  HTML rapor 0.137.0 ile eklendi; [devam planı](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md).
 
 - `organizations report ID`: yalnız güncel etkin açık bağlantılardaki domain,
   dış yüzey, sosyal profil ve iki ransomware kaynağı; tam kayıtlar ve
@@ -1210,6 +1225,34 @@ R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin
 
 ## Son doğrulama
 
+0.137.0 tam paketi **1.863 test / 628,817 saniye** ile tamamlandı: 1.862 geçti,
+yalnız Linux `systemd-analyze` kontrolü macOS'ta atlandı. Testlerin başı ve
+sonunda 784 kod/test/script/konfigürasyon dosyasının özetleri aynıydı.
+Gerçek yerel veritabanı benzersiz yedekle 62→63 geçirildi; **133 tablo /
+86.843 satırın** kolon/rowid/değerleri ve sıra ayırıcıları birebir korundu.
+Bütünlük ve yabancı anahtar kontrolleri geçti; yeni olay veya izleme üretilmedi.
+
+0.137.0 hızlı kapısı **469 test / 222,752 saniye** ile tamamlandı: 468 geçti,
+yalnız gerçek Linux `systemd-analyze` kontrolü macOS'ta atlandı. Shell
+sözdizimi ve Python derleme kontrolleri de geçti. Bu yerel doğrulama GitHub
+Actions çalışmasının sonucu olarak sunulmaz.
+
+0.137.0 yeni vaka kanıtı, HTML dosyası, bütünleşik rapor ve geçiş davranışları
+35 yeni testle kapsandı. Kaynak sayfasının dışındaki 601. vaka kanıtı,
+510 öğelik tam rapor, 52 etkin hedef, tarihî kapsam/önce-sonra ve ortak
+vakanın kuruluş ayrımı doğrulandı. Hiçbir kabul internetten veri toplamadı.
+
+0.137.0 gerçek veri kopyasında 62→63 geçişi **133 tablo / 86.843 satırın**
+kolon, rowid ve değerlerini; sıra ayırıcılarını birebir korudu. Tek DDL
+farkı vaka kanıtı tür kısıtıdır. Benzersiz yedekten yeni konuma şema 62
+geri dönüşü ve tekrarlı geçişin değişiklik yapmaması doğrulandı.
+
+Son HTML çıktısı yerel Chrome'da 1440 ve 390 piksel genişliğinde açıldı;
+bölüm bağlantıları, kaynak boşlukları, yüzey kanıtları ve tarihî izleme
+bölümleri görsel olarak incelendi. Sayfa yatay taşmadı; harici betik,
+görsel veya stil dosyası yüklemedi. Örnek kayıtlar kullanıldı.
+
+
 0.136.0 tam paketi **1.828 test / 597,223 saniye** ile tamamlandı: 1.827 geçti,
 yalnız Linux `systemd-analyze` kontrolü macOS'ta atlandı. Testlerin başı ve
 sonunda 767 kod/test/script dosyasının özetleri aynıydı. Bu yerel sonuç,
@@ -1596,9 +1639,11 @@ Linux hizmetinin gerçek Linux üzerinde etkinleştirme kabulü ayrıca bekler.
 [Sıralı plan](roadmap/ORDERED_INTEGRATION_PLAN.md) bu ayrımı gösterir.
 Kuruluş birleşik raporu ve HIBP kamu kataloğu 0.134.0'da, kataloğun kayıtlı
 toplama/zamanlama akışına katılması 0.135.0'da eklendi. Kuruluşa bağlı kamu
-olaylarını izleme ve yerel bildirim kutusu 0.136.0'da eklendi. Sıradaki teslim
-bu kamu olaylarının tarihî kanıtını vakaya bağlamadır; ardından çevrimdışı
-HTML kuruluş raporu gelir.
+olaylarını izleme ve yerel bildirim kutusu 0.136.0'da eklendi. Tarihî kamu
+olayını vakaya bağlama ve çevrimdışı HTML kuruluş raporu 0.137.0'da eklendi.
+Önerilen sonraki teslim gerçek Linux üzerinde klonlama/kurulum, günlük
+çalıştırma, kesinti sonrası devam ve yedekten geri dönüş kabulüdür.
+Common Crawl dış indeks erişimi ayrı açık konu olarak takip edilir.
 [Kamu olayları devam planı](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md) kapsamı gösterir.
 
 13 Kasım 2026 kullanıcı yönlendirmesi: terminal menüsü yerine özellik

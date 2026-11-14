@@ -114,7 +114,8 @@ marka, LLM, React/API ve takım ürünü bu teslimle tamamlanmış sayılmaz.
 zamanlama akışına bağlar. Kesintide tamamlanan kaynak korunur; yalnız eksik
 işler tekrar edilir. 0.136.0 açık kuruluş HIBP izleme ve yerel bildirimlerini
 ekler; tarihî scope, kaynak ve önce/sonra metadata birlikte korunur. HIBP
-vaka bağları ve HTML rapor [sonraki ayrı adımlardır](PUBLIC_NOTICE_WORKFLOW_PLAN.md).
+vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN.md).
+Gerçek Linux hizmet kabulü ve Common Crawl dış erişimi ayrı açık konulardır.
 
 **Uzun vadeli hedef:** SOCRadar'ın kamuya açık ürün kapsamını karşılaştırma noktası olarak kullanan; kaynakları, tespitleri, kanıtları ve operasyonu ölçülebilen bir Extended Threat Intelligence platformu geliştirmek.
 

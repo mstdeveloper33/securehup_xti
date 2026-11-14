@@ -1,6 +1,6 @@
 # Kuruluş raporu: günlük kullanım
 
-0.136.0 · şema 62. Eski kurulumda önce `./xti migrate` çalıştır; komut
+0.137.0 · şema 63. Eski kurulumda önce `./xti migrate` çalıştır; komut
 geçişten önce benzersiz geri dönüş yedeği oluşturur.
 
 Raporda kuruluşa ait kamu olay izlemesinin tarihî bölümü de bulunur. Bu
@@ -143,7 +143,7 @@ korunur. `--plan`, profil kaydetme ve zamanlama hazırlığı kaynak sorgulamaz.
 HIBP ortak katalogdur; seçili domainin hedefte sorgulandığı anlamına gelmez.
 0.136.0'da bildirim için ayrıca `notices watch enable KURULUS_KIMLIGI`
 seçilebilir; açık izlemeler bu ortak yenilemede değerlendirilir. Kamu olayı
-vaka kanıtı ve HTML rapor ayrı gelecek işlerdir.
+vaka kanıtı ve HTML rapor 0.137.0 ile eklendi; [komutlar](PUBLIC_NOTICE_CASES_AND_EXPORT.md).
 
 ## 6. Bir göstergenin kayıtlı CTI ilişkilerini aç
 
@@ -165,3 +165,9 @@ verdiği risk puanı değildir. Geçmiş ve güncel satır uyuşmazsa komut duru
 Bu görünüm yeni aktör atfı veya dolaylı ilişki çıkarmaz. ATT&CK teknik/taktik
 kataloğu kendi `cti attack-search/show` komutlarıyla araştırılır. Kayıt
 bulunmaması “temiz” sonucu değildir.
+
+## Tarihî kanıtı vakaya bağla ve HTML raporu al
+
+`cases evidence-add` tam kaynak/izleme çalışma kimliği ve olay adını seçer.
+`organizations export KURULUS_KIMLIGI --output rapor.html` bütün kuruluş
+raporunu yeni bir dosyaya yazar. [Adım adım kullanım](PUBLIC_NOTICE_CASES_AND_EXPORT.md).

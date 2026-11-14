@@ -6,6 +6,7 @@ from xti.domain.cases import (
     Case,
     CaseActivity,
     CaseDetails,
+    CaseEvidence,
     CaseEvidenceMutation,
     CaseEvidenceSnapshot,
     CaseMutation,
@@ -19,6 +20,9 @@ class CaseEvidenceSourceRepository(Protocol):
 
 
 class CaseRepository(Protocol):
+    def evidence_show(self, case_id: str, evidence_link_id: str) -> CaseEvidence:
+        ...
+
     def create(
         self, *, title: str, summary: str, priority: str, reason: str, recorded_at: str,
     ) -> CaseMutation:

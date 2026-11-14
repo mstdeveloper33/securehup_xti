@@ -176,7 +176,11 @@ from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.interfaces.organizations import register_organizations_parser, execute_organization_command
 from xti.application.organization_report import OrganizationReportService
 from xti.adapters.sqlite_organization_report import SQLiteOrganizationReportRepository
-from xti.interfaces.organization_report import execute_organization_report_command
+from xti.interfaces.organization_report import execute_organization_report_command, execute_organization_export_command
+from xti.application.organization_export import OrganizationExportService
+from xti.domain.organization_export import OrganizationExportPublicationError
+from xti.adapters.html_report_writer import AtomicHtmlReportWriter
+from xti.interfaces.html_organization_report import HtmlOrganizationReportRenderer
 from xti.application.public_notices import PublicNoticeService
 from xti.application.public_notice_watches import PublicNoticeWatchService
 from xti.adapters.sqlite_public_notice_watches import SQLitePublicNoticeWatchRepository
@@ -598,6 +602,7 @@ from xti.interfaces.supplier_risk import (
 from xti.interfaces.cases import (
     detail_lines as case_detail_lines,
     evidence_mutation_lines as case_evidence_mutation_lines,
+    evidence_detail_lines as case_evidence_detail_lines,
     list_lines as case_list_lines,
     mutation_lines as case_mutation_lines,
     note_lines as case_note_lines,
@@ -1947,11 +1952,16 @@ def build_parser() -> Parser:
         "--type", required=True,
         choices=(
             "finding", "social_profile", "ransomware_threatcluster",
-            "ransomware_ransomlook", "supplier",
+            "ransomware_ransomlook", "supplier", "public_notice", "public_notice_watch",
         ),
     )
     case_evidence_add.add_argument("--evidence-id", required=True)
     case_evidence_add.add_argument("--reason", required=True)
+    case_evidence_show = case_actions.add_parser(
+        "evidence-show", help="Vakadaki tek kanıtın donmuş tarihî kaydını göster; ağa çıkmaz.",
+    )
+    case_evidence_show.add_argument("case_id")
+    case_evidence_show.add_argument("evidence_link_id")
     case_evidence_remove = case_actions.add_parser(
         "evidence-remove", help="Kanıtı silmeden etkin vaka bağından çıkar.",
     )
@@ -3479,6 +3489,13 @@ def run(args: argparse.Namespace) -> int | None:
         if args.organization_action == "report":
             data, lines = execute_organization_report_command(
                 OrganizationReportService(SQLiteOrganizationReportRepository(settings.database)), args,
+            )
+        elif args.organization_action == "export":
+            data, lines = execute_organization_export_command(
+                OrganizationExportService(
+                    SQLiteOrganizationReportRepository(settings.database),
+                    HtmlOrganizationReportRenderer(), AtomicHtmlReportWriter(),
+                ), args,
             )
         else:
             organization_service = OrganizationService(
@@ -5663,6 +5680,9 @@ def run(args: argparse.Namespace) -> int | None:
                 asdict(result), case_evidence_mutation_lines(result),
                 as_json=args.json,
             )
+        elif args.case_action == "evidence-show":
+            evidence = case_service.evidence_show(args.case_id, args.evidence_link_id)
+            emit(asdict(evidence), case_evidence_detail_lines(evidence), as_json=args.json)
         elif args.case_action == "evidence-remove":
             result = case_service.remove_evidence(
                 args.case_id, args.evidence_link_id, reason=args.reason,
@@ -6669,6 +6689,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     except SourceError as exc:
         report_error("source_error", str(exc), as_json=as_json)
         return 3
+    except OrganizationExportPublicationError as exc:
+        report_error("filesystem_error", str(exc), as_json=as_json)
+        return 1
     except OSError:
         report_error("filesystem_error", "Dosyaya erişilemedi. Konumu ve izinleri kontrol et.",
                      as_json=as_json)

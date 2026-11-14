@@ -112,3 +112,7 @@ hiçbir kuruluş kendiliğinden izlemeye alınmaz.
 Kaynak: [Have I Been Pwned](https://haveibeenpwned.com),
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 Ücretli API anahtarı gerekmez; dış kaynağın erişim koşulları geçerlidir.
+
+0.137.0 ile bir izleme çalışmasının tam tarihî olayını vakaya bağlayabilir
+ve kuruluş raporunu çevrimdışı HTML dosyasına alabilirsin.
+[Vaka kanıtı ve rapor komutları](PUBLIC_NOTICE_CASES_AND_EXPORT.md).

@@ -20,6 +20,7 @@ from xti.adapters.schema import (
     create_supplier_inventory_schema,
     create_supplier_candidate_schema,
     create_case_schema,
+    migrate_case_public_notice_schema,
     create_collection_profile_schema,
     create_collection_history_schema,
     migrate_collection_public_notice_schema,
@@ -951,6 +952,8 @@ class SQLiteAssetRepository:
                     migrate_collection_public_notice_schema(connection)
                 if version < 62:
                     create_public_notice_watch_schema(connection)
+                if 54 <= version < 63:
+                    migrate_case_public_notice_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

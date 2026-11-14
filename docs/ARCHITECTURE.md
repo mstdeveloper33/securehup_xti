@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.136.0, şema 62 ana proje yapısı.**
+**15 Kasım 2026 — 0.137.0, şema 63 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
@@ -24,6 +24,18 @@ kataloğu silmez. Kuruluş/dönem raporu aynı bağlantıdan tam domain eşleşm
 okur; kaynak sınıfları/atıf/lisans kaybolmaz. Readiness genel katalog
 durumunu, domain eşleşme sayısından ayırır. Harici kütüphane gerekmez.
 [0136 kararı](decisions/0136-public-breach-metadata.md).
+
+0.137.0 tarihî kamu olayını iki mevcut vaka kanıt türüyle bağlar:
+`public_notice` ve `public_notice_watch`; kimlik tam `RUN_UUID:Name` seçimidir.
+Kaynak geçmişinden önce/sonra kayıt yeniden oluşturulur, yazma işleminde
+tekrar doğrulanır ve vaka snapshot'ı dondurulur. Ortak kanıt yaşam döngüsü
+denetimi vaka ve kuruluş okumalarında kullanılır. Şema 63 yalnız kanıt türü
+CHECK kısıtını genişletir; rowid ve bütün eski alanlar korunur.
+`OrganizationExportService` küçük okuma/render/yazma portlarını kullanır.
+Tam rapor ve tarihî izleme öğeleri tek readonly transaction'dan alınır;
+terminal sayfalaması kullanılmaz. HTML renderer güvenilmeyen metni kaçırır,
+yeni dosya adaptörü aynı klasörde atomik no-overwrite yayınlar. Yeni paket
+gerekmez. [0139 kararı](decisions/0139-historical-public-notice-cases-and-html.md).
 
 0.136.0, `PublicNoticeWatchService` ve küçük depo/kilit portuyla kuruluş
 başına açık izleme ekler. Saf domain karşılaştırması etkinleştirme dönemini
@@ -272,6 +284,7 @@ Terminal değişikliği alan adı kurallarını değiştirmeyi gerektirmez. Depo
 - Şema 60: HIBP kamu metadata kataloğu çalışmaları ve kompakt fark geçmişi.
 - Şema 61: açık HIBP toplama birimi ve atomik, doğrudan kaynak sonuç bağı.
 - Şema 62: açık kuruluş kamu olay izlemesi, tarihî kapsam/sonuç ve yerel bildirim; dört ek tablo.
+- Şema 63: tarihî kamu olay kaynak/izleme kanıtını mevcut vaka tür kısıtına ekleme; tek tablo korunarak yeniden kurulur.
   Bu ek tablolar eski kayıtlardan tahminle doldurulmaz; mevcut kaynak kanıtları korunur.
 - 0.131.0 şema 55, 0.132.0 şema 56 kullanır; 0.133.0 şema 59, 0.134.0 şema 60, 0.135.0 şema 61, 0.136.0 şema 62'dir.
 - Şema 1–61 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.

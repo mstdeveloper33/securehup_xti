@@ -132,3 +132,4 @@ class OrganizationReport:
     notes: tuple[str, ...]
     schema_version: int
     public_notice_watch: PublicNoticeWatchDetails | None = None
+    public_notice_case_links: OrganizationReportPage | None = None

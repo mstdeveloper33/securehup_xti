@@ -3,6 +3,9 @@
 import sqlite3
 from uuid import uuid4
 
+from xti.adapters.case_public_notice_schema import (
+    CASE_EVIDENCE_DDL, CASE_EVIDENCE_V62_DDL, migrate_case_public_notice_schema,
+)
 from xti.adapters.public_notice_schema import PUBLIC_NOTICE_DDL
 from xti.adapters.public_notice_watch_schema import PUBLIC_NOTICE_WATCH_DDL
 from xti.adapters.collection_public_notice_schema import (
@@ -11,7 +14,7 @@ from xti.adapters.collection_public_notice_schema import (
 )
 
 
-SCHEMA_VERSION = 62
+SCHEMA_VERSION = 63
 
 ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
 APPLICATION_ID = 0x58544901
@@ -173,7 +176,7 @@ SUPPLIER_CANDIDATE_DDL = (
     "supplier_candidate_resolution_events(candidate_id, sequence)",
 )
 
-CASE_DDL = (
+CASE_V62_DDL = (
     "CREATE TABLE cases ("
     "id TEXT PRIMARY KEY NOT NULL, title TEXT NOT NULL, summary TEXT NOT NULL, "
     "status TEXT NOT NULL CHECK (status IN "
@@ -184,18 +187,7 @@ CASE_DDL = (
     "(status NOT IN ('resolved', 'closed') AND resolution IS NULL)), "
     "CHECK ((status = 'closed' AND closed_at IS NOT NULL) OR "
     "(status != 'closed' AND closed_at IS NULL)))",
-    "CREATE TABLE case_evidence ("
-    "id TEXT PRIMARY KEY NOT NULL, case_id TEXT NOT NULL REFERENCES cases(id) "
-    "ON DELETE RESTRICT, evidence_type TEXT NOT NULL CHECK (evidence_type IN "
-    "('finding', 'social_profile', 'ransomware_threatcluster', "
-    "'ransomware_ransomlook', 'supplier')), evidence_id TEXT NOT NULL, "
-    "display_value TEXT NOT NULL, source_reference TEXT NOT NULL, "
-    "snapshot_json TEXT NOT NULL, snapshot_sha256 TEXT NOT NULL, "
-    "active INTEGER NOT NULL CHECK (active IN (0, 1)), added_reason TEXT NOT NULL, "
-    "added_at TEXT NOT NULL, updated_at TEXT NOT NULL, removed_reason TEXT, removed_at TEXT, "
-    "UNIQUE(case_id, evidence_type, evidence_id), "
-    "CHECK ((active = 1 AND removed_reason IS NULL AND removed_at IS NULL) OR "
-    "(active = 0 AND removed_reason IS NOT NULL AND removed_at IS NOT NULL)))",
+    CASE_EVIDENCE_V62_DDL,
     "CREATE TABLE case_tasks ("
     "id TEXT PRIMARY KEY NOT NULL, case_id TEXT NOT NULL REFERENCES cases(id) "
     "ON DELETE RESTRICT, title TEXT NOT NULL, status TEXT NOT NULL CHECK "
@@ -218,6 +210,11 @@ CASE_DDL = (
     "case_tasks(case_id, status, due_at)",
     "CREATE INDEX case_activities_case_sequence ON "
     "case_activities(case_id, sequence)",
+)
+
+CASE_DDL = tuple(
+    CASE_EVIDENCE_DDL if statement == CASE_EVIDENCE_V62_DDL else statement
+    for statement in CASE_V62_DDL
 )
 
 FINDINGS_DDL = (
@@ -3227,6 +3224,7 @@ VERSION_TABLES = {
     60: frozenset(TABLES),
     61: frozenset(TABLES),
     62: frozenset(TABLES),
+    63: frozenset(TABLES),
 }
 
 for _legacy_version in range(1, 62):
@@ -4139,7 +4137,7 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
                 "cases_status_priority_updated", "case_evidence_case_active_updated",
                 "case_tasks_case_status_due", "case_activities_case_sequence",
             ),
-            CASE_DDL,
+            CASE_V62_DDL if version < 63 else CASE_DDL,
         ):
             object_type = "index" if statement.startswith("CREATE INDEX") else "table"
             declaration = connection.execute(

@@ -9,7 +9,7 @@ from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_brand_username_reviews import SQLiteBrandUsernameReviewRepository
 from xti.adapters.sqlite_brand_username_watches import SQLiteBrandUsernameWatchRepository
-from xti.adapters.sqlite_cases import SQLiteCaseRepository
+from xti.adapters.sqlite_cases import SQLiteCaseRepository, read_case_evidence_links
 from xti.adapters.sqlite_cname import SQLiteSurfaceCnameRepository
 from xti.adapters.sqlite_findings import SQLiteFindingRepository, _FINDING_COLUMNS
 from xti.adapters.sqlite_inbox import SQLiteInboxRepository, _COMBINED_NOTIFICATIONS
@@ -17,7 +17,9 @@ from xti.adapters.sqlite_jobs import SQLiteJobRepository
 from xti.adapters.sqlite_mail import SQLiteSurfaceMailRepository
 from xti.adapters.sqlite_organization_scope import read_organization_scope
 from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
-from xti.adapters.sqlite_public_notice_watches import read_public_notice_watch_details
+from xti.adapters.sqlite_public_notice_watches import (
+    read_public_notice_watch_details, read_complete_public_notice_watch,
+)
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomlook_watches import SQLiteRansomLookWatchRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
@@ -29,6 +31,10 @@ from xti.adapters.sqlite_surface_freshness import read_surface_freshness_snapsho
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.brand_username_reviews import brand_username_review_candidate_id
 from xti.domain.cases import canonical_snapshot
+from xti.domain.organization_export import (
+    MAX_EXPORT_TARGETS, MAX_EXPORT_RECORDS, OrganizationExportSnapshot,
+    validate_complete_export,
+)
 from xti.domain.organization_report import (
     OrganizationReport, OrganizationReportAttempt, OrganizationReportCoverage,
     OrganizationReportPage, OrganizationReportRecord, OrganizationReportTarget,
@@ -38,11 +44,6 @@ from xti.domain.organizations import normalize_organization_id
 
 
 _MAX_ROWS = 50_000
-_CASE_COLUMNS = (
-    "id, case_id, evidence_type, evidence_id, display_value, source_reference, "
-    "snapshot_json, snapshot_sha256, active, added_reason, added_at, updated_at, "
-    "removed_reason, removed_at"
-)
 
 
 def _navigation(label: str, *arguments: str) -> ReportNavigation:
@@ -67,83 +68,8 @@ def _rows(connection: sqlite3.Connection, query: str, values: tuple = ()) -> lis
 
 
 def _audited_case_links(connection: sqlite3.Connection):
-    """Replay immutable link activities before any organization filtering.
-
-    A mutable evidence_id/case_id/active column cannot manufacture membership.
-    Private case contents are validated here but never copied to the report.
-    """
-    try:
-        links = {link.id: link for link in (
-            SQLiteCaseRepository._evidence(row)
-            for row in _rows(connection, f"SELECT {_CASE_COLUMNS} FROM case_evidence ORDER BY id")
-        )}
-        histories = {identifier: [] for identifier in links}
-        rows = _rows(connection,
-                     "SELECT sequence,id,case_id,activity_type,reference_id,summary,reason,"
-                     "snapshot_json,snapshot_sha256,recorded_at FROM case_activities "
-                     "WHERE activity_type IN ('evidence_added','evidence_refreshed',"
-                     "'evidence_reactivated','evidence_removed') ORDER BY sequence")
-        for row in rows:
-            activity = SQLiteCaseRepository._activity(row)
-            payload = json.loads(row[7])
-            if canonical_snapshot(payload)[0] != row[7]:
-                raise ValueError("Noncanonical evidence activity")
-            link = links.get(activity.reference_id)
-            action = activity.activity_type.removeprefix('evidence_')
-            keys = {'kind', 'action', 'link_id', 'evidence_type', 'evidence_id',
-                    'snapshot_json', 'snapshot_sha256'}
-            if action != 'removed':
-                keys.add('source_reference')
-            if (link is None or activity.case_id != link.case_id or set(payload) != keys
-                    or payload['kind'] != 'case_evidence' or payload['action'] != action
-                    or payload['link_id'] != link.id or payload['evidence_type'] != link.evidence_type
-                    or payload['evidence_id'] != link.evidence_id):
-                raise ValueError("Evidence activity identity mismatch")
-            frozen = json.loads(payload['snapshot_json'])
-            if not isinstance(frozen, dict) or canonical_snapshot(frozen) != (
-                payload['snapshot_json'], payload['snapshot_sha256'],
-            ):
-                raise ValueError("Evidence activity snapshot mismatch")
-            histories[link.id].append((activity, payload))
-        for identifier, link in links.items():
-            history = histories[identifier]
-            if not history or history[0][0].activity_type != 'evidence_added':
-                raise ValueError("Missing evidence addition")
-            active, last_payload, last_source, last_summary = False, None, None, None
-            added_reason, removed_reason, removed_at = None, None, None
-            first_at = history[0][0].recorded_at
-            updated_at = first_at
-            for index, (activity, payload) in enumerate(history):
-                action = payload['action']
-                if (action == 'added' and index != 0
-                        or action in {'refreshed', 'removed'} and not active
-                        or action == 'reactivated' and active):
-                    raise ValueError("Invalid evidence lifecycle transition")
-                if action == 'removed':
-                    if (payload['snapshot_json'] != last_payload['snapshot_json']
-                            or payload['snapshot_sha256'] != last_payload['snapshot_sha256']
-                            or activity.summary != last_summary):
-                        raise ValueError("Removal rewrites frozen evidence")
-                    active, removed_reason, removed_at = False, activity.reason, activity.recorded_at
-                else:
-                    if (action == 'refreshed'
-                            and payload['snapshot_sha256'] == last_payload['snapshot_sha256']):
-                        raise ValueError("Unchanged evidence cannot be refreshed")
-                    active, removed_reason, removed_at = True, None, None
-                    last_source, last_summary = payload['source_reference'], activity.summary
-                    added_reason = activity.reason
-                last_payload = payload
-                updated_at = max((updated_at, activity.recorded_at), key=_time)
-            if (link.active != active or link.snapshot_json != last_payload['snapshot_json']
-                    or link.snapshot_sha256 != last_payload['snapshot_sha256']
-                    or link.source_reference != last_source or link.display_value != last_summary
-                    or link.added_reason != added_reason or link.added_at != first_at
-                    or link.updated_at != updated_at or link.removed_reason != removed_reason
-                    or link.removed_at != removed_at):
-                raise ValueError("Evidence link differs from its activity history")
-        return tuple(links.values())
-    except (TypeError, ValueError, KeyError, OverflowError, RecursionError, ValidationError) as error:
-        raise StorageError("Kuruluşun vaka kanıt bağı zaman çizelgesiyle uyuşmuyor; kayıtlar değiştirilmedi.") from error
+    # The same lifecycle validation protects case reads and organization views.
+    return read_case_evidence_links(connection)
 
 
 class _SnapshotReader:
@@ -239,6 +165,7 @@ class _SnapshotReader:
         coverage = self.domain_coverage(asset_id, domain, surface)
         public_notices, public_coverage = self.public_notices(domain)
         coverage.append(public_coverage)
+        case_keys.update(self.public_notice_case_keys(domain=domain))
         notices = self.domain_notices(asset_id, domain)
         return OrganizationReportTarget(
             membership, (("domain", domain),), tuple(coverage),
@@ -257,7 +184,7 @@ class _SnapshotReader:
             (
                 "Domain bağlantısı yalnız bu kayıtlı kökü seçer; alt adayların ayrı varlık kontrollerini otomatik dahil etmez.",
                 "Bulgu ve pasif aday listeleri insan kararlarıyla gösterilir; kesin kötü niyet veya sahiplik hükmü değildir.",
-                "Vaka bağlantıları bu domainin bulgularıyla aynı kanıt kimliğini taşıyan açık insan bağlantılarıdır.",
+                "Vaka bağlantıları bu domainin bulgularına veya tam domain eşleşen tarihî kamu kanıtına verilmiş açık insan bağlantılarıdır.",
             ), surface,
         )
 
@@ -504,6 +431,22 @@ class _SnapshotReader:
         identifiers = [row[0] for row in _rows(self.connection, query, (watch_id,))]
         return self.notification_records(identifiers, expected_watch=(kind, watch_id))
 
+    def public_notice_case_keys(self, *, domain=None, organization_id=None):
+        keys = set()
+        for link in self.cached("case-evidence", _audited_case_links):
+            if not link.active or link.evidence_type not in {"public_notice", "public_notice_watch"}:
+                continue
+            payload = json.loads(link.snapshot_json)
+            if link.evidence_type == "public_notice_watch":
+                if organization_id is not None and payload["watch"]["organization_id"] == organization_id:
+                    keys.add((link.evidence_type, link.evidence_id))
+            elif domain is not None and any(
+                item.get(side) is not None and item[side].get("domain") == domain
+                for item in payload["items"] for side in ("before", "after")
+            ):
+                keys.add((link.evidence_type, link.evidence_id))
+        return keys
+
     def case_links(self, evidence_keys):
         if not evidence_keys:
             return []
@@ -528,7 +471,10 @@ class _SnapshotReader:
             records.append(OrganizationReportRecord(
                 link.id, "case_link", case.id, case.status, link.updated_at,
                 "human-case-link", (f"Kanıt türü: {link.evidence_type}", f"Kanıt kimliği: {link.evidence_id}", f"Öncelik: {case.priority}"),
-                navigation=(_navigation("Bağlı vaka", "cases", "show", case.id),),
+                navigation=(
+                    _navigation("Bağlı vaka", "cases", "show", case.id),
+                    _navigation("Vakadaki donmuş kanıt", "cases", "evidence-show", case.id, link.id),
+                ),
             ))
         return records
 
@@ -539,6 +485,22 @@ class SQLiteOrganizationReportRepository:
 
     def read(self, organization_id: str, *, observed_at: str, stale_after_hours: int,
              target_offset: int, target_limit: int, item_offset: int, item_limit: int) -> OrganizationReport:
+        return self._read(
+            organization_id, observed_at=observed_at, stale_after_hours=stale_after_hours,
+            target_offset=target_offset, target_limit=target_limit,
+            item_offset=item_offset, item_limit=item_limit, complete=False,
+        )
+
+    def read_complete(self, organization_id: str, *, observed_at: str,
+                      stale_after_hours: int) -> OrganizationExportSnapshot:
+        return self._read(
+            organization_id, observed_at=observed_at, stale_after_hours=stale_after_hours,
+            target_offset=0, target_limit=MAX_EXPORT_TARGETS,
+            item_offset=0, item_limit=MAX_EXPORT_RECORDS, complete=True,
+        )
+
+    def _read(self, organization_id, *, observed_at, stale_after_hours,
+              target_offset, target_limit, item_offset, item_limit, complete):
         try:
             with self._storage._connection(readonly=True) as connection:
                 connection.execute("BEGIN")
@@ -549,7 +511,10 @@ class SQLiteOrganizationReportRepository:
                     item_offset=item_offset, item_limit=item_limit,
                 )
                 effective = scope.effective_links
+                if complete and len(effective) > MAX_EXPORT_TARGETS:
+                    raise ValidationError("Tam rapor 1.000 etkin hedef sınırını aşıyor; dosya yazılmadı.")
                 targets = []
+                record_count = len(scope.links)
                 for membership in effective[target_offset:target_offset + target_limit]:
                     if membership.link.target.kind == "domain":
                         targets.append(reader.domain(membership))
@@ -557,7 +522,19 @@ class SQLiteOrganizationReportRepository:
                         targets.append(reader.social(membership))
                     else:
                         targets.append(reader.ransomware(membership))
-                return OrganizationReport(
+                    record_count += sum(len(page.items) for page in targets[-1].sections)
+                    if complete and record_count > MAX_EXPORT_RECORDS:
+                        raise ValidationError("Tam rapor 50.000 kayıt sınırını aşıyor; dosya yazılmadı.")
+                if complete:
+                    watch, watch_runs = read_complete_public_notice_watch(
+                        connection, organization_id, maximum_records=MAX_EXPORT_RECORDS,
+                    )
+                else:
+                    watch = read_public_notice_watch_details(
+                        connection, organization_id, event_limit=item_limit, run_limit=item_limit,
+                        event_offset=item_offset, run_offset=item_offset,
+                    )
+                report = OrganizationReport(
                     scope, observed_at, True, stale_after_hours, tuple(targets), len(effective),
                     target_offset, target_limit, item_offset, item_limit,
                     target_offset + len(targets) < len(effective),
@@ -568,10 +545,19 @@ class SQLiteOrganizationReportRepository:
                         "Sayfa sınırları yalnız gösterimi etkiler; her bölüm toplamı ve devam bilgisi ayrı verilir.",
                         "Komutlar gezinme önerisidir; bu rapor onları çalıştırmaz, ağa çıkmaz ve bildirimleri okundu yapmaz.",
                     ), SCHEMA_VERSION,
-                    public_notice_watch=read_public_notice_watch_details(
-                        connection, organization_id, event_limit=item_limit, run_limit=item_limit,
-                        event_offset=item_offset, run_offset=item_offset,
-                    ),
+                    public_notice_watch=watch,
+                    public_notice_case_links=reader.page("public_notice_case_links", reader.case_links(
+                        reader.public_notice_case_keys(organization_id=organization_id),
+                    )),
                 )
+                if complete:
+                    result = OrganizationExportSnapshot(report, watch_runs)
+                    validate_complete_export(result, organization_id)
+                    return result
+                return report
+        except ValidationError as error:
+            if complete:
+                raise
+            raise StorageError("Kuruluş raporunun kaynak kanıtı doğrulanamadı; kayıtlar değiştirilmedi.") from error
         except (sqlite3.Error, ValueError, TypeError, KeyError, OverflowError) as error:
             raise StorageError("Kuruluş raporunun kaynak kanıtı doğrulanamadı; kayıtlar değiştirilmedi.") from error
