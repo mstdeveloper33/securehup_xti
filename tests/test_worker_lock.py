@@ -13,6 +13,11 @@ from xti.adapters.worker_lock import LocalExecutionLock
 from xti.ports.jobs import WorkerBusyError
 
 
+# Interpreter/import startup can be delayed on a loaded host. This is a
+# harness deadline, not a latency requirement for the nonblocking lock.
+PROCESS_TIMEOUT_SECONDS = 30
+
+
 _HOLD_LOCK = """
 from pathlib import Path
 import sys
@@ -42,12 +47,16 @@ class WorkerLockTests(unittest.TestCase):
         def cleanup():
             if child.poll() is None:
                 child.kill()
-            child.communicate(timeout=5)
+            child.communicate(timeout=PROCESS_TIMEOUT_SECONDS)
         self.addCleanup(cleanup)
         # select keeps a broken worker implementation from hanging the test.
         import select
-        ready, _, _ = select.select([child.stdout], [], [], 5)
-        self.assertTrue(ready, "Worker did not acquire the lock in time")
+        ready, _, _ = select.select([child.stdout], [], [], PROCESS_TIMEOUT_SECONDS)
+        self.assertTrue(
+            ready,
+            f"Worker did not signal readiness within {PROCESS_TIMEOUT_SECONDS}s "
+            f"(exit status: {child.poll()!r})",
+        )
         self.assertEqual(child.stdout.readline().strip(), "locked")
         return child
 
@@ -57,7 +66,7 @@ class WorkerLockTests(unittest.TestCase):
         with self.assertRaises(WorkerBusyError):
             with LocalExecutionLock(self.database).acquire():
                 self.fail("A second worker entered the critical section")
-        child.communicate(input="release", timeout=5)
+        child.communicate(input="release", timeout=PROCESS_TIMEOUT_SECONDS)
         self.assertEqual(child.returncode, 0)
         with LocalExecutionLock(self.database).acquire():
             self.assertEqual(self.path.stat().st_ino, inode)
@@ -67,7 +76,7 @@ class WorkerLockTests(unittest.TestCase):
         child = self.start_holder()
         inode = self.path.stat().st_ino
         child.kill()
-        child.communicate(timeout=5)
+        child.communicate(timeout=PROCESS_TIMEOUT_SECONDS)
         self.assertNotEqual(child.returncode, 0)
         with LocalExecutionLock(self.database).acquire():
             self.assertEqual(self.path.stat().st_ino, inode)

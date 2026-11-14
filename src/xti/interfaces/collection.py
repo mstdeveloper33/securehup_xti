@@ -1,11 +1,23 @@
 """Terminal views of passive collection; JSON uses the same domain models."""
 
-from xti.domain.collection import CollectionPlan, CollectionResult
+from xti.domain.brand_username_watches import BrandUsernameWatchRunReport
+from xti.domain.collection import CollectionPlan, CollectionResult, CollectionStep
 from xti.interfaces.analysis import report_lines as analysis_lines
+from xti.interfaces.ransomlook_watches import run_lines as ransomlook_watch_lines
+from xti.interfaces.ransomware_watches import run_lines as ransomware_watch_lines
 from xti.interfaces.text import safe_text
 
 
 _STATUS = {"complete": "Tamamlandı", "partial": "Kısmi", "failed": "Başarısız"}
+_SOCIAL_ACTIONS = {
+    "baseline_found": "başlangıçta bulundu, doğrulanmadı",
+    "baseline_unreported": "başlangıçta raporlanmadı",
+    "newly_found": "yeni bulundu, doğrulanmadı",
+    "changed": "profil adresi değişti",
+    "unchanged_found": "bulundu, değişmedi",
+    "no_longer_reported": "artık raporlanmadı",
+    "unchanged_unreported": "raporlanmadı, değişmedi",
+}
 
 
 def plan_lines(plan: CollectionPlan) -> list[str]:
@@ -15,11 +27,95 @@ def plan_lines(plan: CollectionPlan) -> list[str]:
         f"Ek yazım varyantları: {'açık' if plan.typos else 'kapalı'}",
         "",
     ]
-    lines.extend(
-        f"  {number}. {safe_text(task.label)} ({safe_text(task.id)})"
-        for number, task in enumerate(plan.tasks, start=1)
-    )
+    for number, task in enumerate(plan.tasks, start=1):
+        lines.append(f"  {number}. {safe_text(task.label)} ({safe_text(task.id)})")
+        for watch in task.watches:
+            lines.extend([
+                f"    İzleme: {safe_text(watch.display_name)} | {safe_text(watch.watch_id)}",
+                f"    Kaynak: {safe_text(task.source)} | tür: {safe_text(watch.kind)} | "
+                f"aranan: {safe_text(watch.query)} | eşleşme: {safe_text(watch.match_mode)}",
+            ])
+            if watch.platforms:
+                lines.append(f"    Platformlar: {safe_text(', '.join(watch.platforms))}")
+    if any(task.watches for task in plan.tasks):
+        lines.extend([
+            "",
+            f"Her izleme için gösterilecek kayıt sınırı: {plan.watch_item_limit}",
+            "İzlemeler açık seçimle eklenir; domainle otomatik sahiplik bağı kurulmaz.",
+        ])
     lines.extend(["", *(safe_text(note) for note in plan.notes)])
+    return lines
+
+
+def _username_lines(report: BrandUsernameWatchRunReport) -> list[str]:
+    run, watch = report.run, report.watch
+    lines = [
+        f"  İzleme: {safe_text(watch.display_name)} | {safe_text(watch.id)}",
+        f"  Kullanıcı adı: @{safe_text(watch.username)} | kaynak: {safe_text(watch.source_key)}",
+        f"  Çalışma: {safe_text(run.id)}",
+    ]
+    if run.status == "failed":
+        return [
+            *lines, f"  Hata: {safe_text(run.error or 'Bilinmeyen kaynak hatası')}",
+            "  Önceki başarılı ölçüm korunur; kaynak hatası hesabın bulunmadığı anlamına gelmez.",
+        ]
+    if report.is_baseline:
+        lines.append("  İlk başarılı ölçüm başlangıçtır; bulunan profiller yeni alarm sayılmaz.")
+    lines.extend([
+        f"  Platform: {run.platform_count} | bulunan: {run.found_count} | "
+        f"raporlanmayan: {run.unreported_count}",
+        f"  Yeni bulunan: {run.newly_found_count} | değişen: {run.changed_count} | "
+        f"artık raporlanmayan: {run.no_longer_reported_count} | "
+        f"bulunup değişmeyen: {run.unchanged_found_count}",
+        f"  Sonuç öğesi: {report.total_item_count}; {len(report.items)} gösteriliyor.",
+    ])
+    for item in report.items:
+        suffix = f" | {safe_text(item.profile_url)}" if item.profile_url else ""
+        lines.append(f"    {safe_text(item.platform)} | {_SOCIAL_ACTIONS[item.action]}{suffix}")
+    if report.total_item_count > len(report.items):
+        lines.append(f"  {report.total_item_count - len(report.items)} öğe görünüm sınırı dışında.")
+    lines.extend([
+        "  Raporlanmamak hesabın yokluğu/silinmesi; bulunmak sahiplik veya taklit kanıtı değildir.",
+        f"  Kayıt ve insan kararları: ./xti brand watch-run-show {safe_text(run.id)} --limit 500",
+    ])
+    return lines
+
+
+def _ransomware_lines(step: CollectionStep) -> list[str]:
+    result = step.ransomware
+    assert result is not None
+    source = result.refresh.run
+    lines = [
+        f"  Kaynak: {safe_text(step.task.source)} | yenileme kaydı: {safe_text(source.id)}",
+    ]
+    if source.status == "failed":
+        lines.extend([
+            f"  Hata: {safe_text(source.error or 'Bilinmeyen kaynak hatası')}",
+            "  Kaynak yenilenemedi; eski snapshot üzerinde izleme çalıştırılmadı.",
+        ])
+        labels = {watch.watch_id: watch.display_name for watch in step.task.watches}
+        for watch_id in result.skipped_watch_ids:
+            lines.append(
+                f"  Çalıştırılmadı: {safe_text(labels.get(watch_id, watch_id))} | {safe_text(watch_id)}"
+            )
+        return lines
+    lines.extend([
+        f"  Kaynak listesindeki iddia: {source.claim_count}",
+        "  Bu sayı kaynak listesine aittir; domainin bulgu sayısı değildir.",
+    ])
+    render = ransomlook_watch_lines if step.task.source == "ransomlook" else ransomware_watch_lines
+    for report in result.watches:
+        lines.extend([
+            f"  İzleme: {safe_text(report.watch.id)} | kaynak çalışması: {safe_text(report.run.source_run_id)}",
+        ])
+        if report.is_baseline:
+            lines.append("  Başlangıç ölçümü: aşağıdaki kayıtlar yeni olay veya alarm sayılmaz.")
+        lines.extend(f"  {line}" for line in render(report))
+        lines.append(
+            f"  Ayrıntı: ./xti ransomware watch-run-show {safe_text(report.run.id)} "
+            f"--source {safe_text(step.task.source)} --limit 500"
+        )
+    lines.append("  Aynı iddia birden fazla izlemede eşleşebilir; sayılar benzersiz toplam diye toplanmaz.")
     return lines
 
 
@@ -82,12 +178,18 @@ def result_lines(result: CollectionResult) -> list[str]:
                 lines.append(f"  Hata: {safe_text(feed.error)}")
                 lines.append("  Liste alınamadı; sıfır gösterge bulunduğu anlamına gelmez.")
                 lines.append("  Varsa önceki geçerli yerel IOC kaydı analizde korunur.")
+        elif step.username is not None:
+            lines.extend(_username_lines(step.username))
+        elif step.ransomware is not None:
+            lines.extend(_ransomware_lines(step))
         lines.append("")
     if result.status != "complete":
         lines.extend([
             "Toplama eksik kaldı; aşağıdaki kayıtlı analiz kaynak hatasını ortadan kaldırmaz.",
             "",
         ])
+    if any(step.task.watches for step in result.steps):
+        lines.append("Domain için kayıtlı analiz; seçilen izlemelerin sonuçları yukarıda ayrı gösterildi:")
     lines.extend(analysis_lines(result.analysis, after_collection=True))
     lines.extend(["", *(safe_text(note) for note in result.plan.notes)])
     return lines

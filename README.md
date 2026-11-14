@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.129.1 · **Tarih:** 13 Kasım 2026 · **Durum:** Common Crawl süre ve istek aralığı düzeltmesi.
+**Sürüm:** 0.130.0 · **Tarih:** 14 Kasım 2026 · **Durum:** Seçilen sosyal ve ransomware izlemelerini birlikte çalıştırma.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -93,9 +93,51 @@ tamamlanmış kayıtlar kendi geçmişlerinde kalır. Kısmi/başarısız toplam
 `ok:false`, terminal çıkışında `3` üretir; analiz üretilmesi toplama hatasını
 başarıya çevirmez.
 
-Komut hedef siteye DNS/TLS/HTTPS/port kontrolü göndermez. Sosyal izleme,
-ransomware, ATT&CK, dış bildirim ve otomatik takvim bu ilk toplama akışında
-yer almaz. Yeni bir birleşik oturum geçmişi veya otomatik devam kurulmaz;
+### Kayıtlı kullanıcı adı ve kuruluş izlemelerini ekle
+
+Önce çalıştırmak istediğin kayıtların kimliklerini mevcut listelerden al:
+
+```sh
+./xti brand watch-list
+./xti ransomware watch-list
+./xti ransomware watch-list --source ransomlook
+```
+
+Aşağıdaki büyük harfli yer tutucuları bu kimliklerle değiştir:
+
+```sh
+./xti collect example.com \
+  --username-watch SOSYAL_IZLEME_KIMLIGI \
+  --ransomware-watch THREATCLUSTER_IZLEME_KIMLIGI \
+  --ransomlook-watch RANSOMLOOK_IZLEME_KIMLIGI --plan
+```
+
+Planı çalıştırmak için aynı komuttan `--plan` seçeneğini çıkar. Üç izleme
+seçeneği de isteğe bağlıdır ve farklı kimlikler için tekrarlanabilir.
+**İzleme seçenekleri temel işlere eklenir**; `--task` verilmezse varsayılan
+üç domain işi de çalışır. `--task` yalnız bu temel işlerin seçimini değiştirir.
+Sherlock veya Maigret, seçtiğin sosyal kayıttaki kaynak ve platformlarla
+çalışır; domain adından kullanıcı adı/kuruluş tahmin edilmez. Seçilmeyen
+izlemeler çalıştırılmaz. Önizleme hangi kaynağın hangi adı arayacağını gösterir.
+
+Her ransomware kaynağı yalnız bir kez yenilenir; seçilen izlemeler tam o
+yenilemenin verisini kullanır. Kaynak yenilenemezse izlemeleri çalıştırılmaz;
+eski snapshot yeni sonuç gibi sunulmaz. Diğer kaynaklar devam eder.
+İlk ölçüm başlangıç kaydıdır; yeni olay veya doğrulanmış ihlal sayılmaz.
+Sonraki çalışmalarda yeni/değişen/raporlanmayan öğeler, profil adresleri,
+iddia adları ve çalışma kimlikleri gösterilir. Sosyal ve ransomware sonuçları
+domain analizinin yanında ayrı sunulur; domainle sahiplik bağı kurulmaz.
+
+Bir çalışmada toplam en fazla 50 izleme kimliği açıkça seçilebilir;
+taşmada işlem başlamadan hata verilir. `--watch-item-limit 1–500` yalnız
+her izleme sonucunda gösterilen öğe sayısını belirler (varsayılan 100);
+tam sonuç kalıcı geçmişte korunur. Çıktı gösterilmeyen öğe sayısını ve ayrıntı komutunu
+gösterir. Yinelenen, bulunamayan veya geri çekilmiş izleme ilk ağ isteğinden
+önce reddedilir. Araç/sunucu erişimi ise gerçek çalıştırmada belli olur.
+
+Komut hedef siteye DNS/TLS/HTTPS/port kontrolü göndermez. ATT&CK, dış bildirim
+ve otomatik takvim bu toplama akışında yer almaz.
+Yeni bir birleşik oturum geçmişi veya otomatik devam kurulmaz;
 mevcut `jobs`, `surface runs` ve `ioc status` geçmişleri korunur. Normal
 `analyze` komutu ağsız kalır. İş mantığı terminalden bağımsız uygulama
 servisindedir; ileride React için hazırlanacak API aynı servisi kullanabilir.
@@ -502,7 +544,7 @@ Varsayılan `recent`, ThreatCluster'ın anahtarsız açık JSON akışını bir 
 
 `ransomware refresh --source ransomlook`, aynı doğrulanmış yedi günlük tam snapshot'ı yalnız açık kullanıcı isteğiyle ayrı RansomLook geçmişine kaydeder. İlk başarılı kayıt başlangıç çizgisidir ve alarm değildir; sonraki çalışmalarda yeni, aynı ve pencereden çıkan kayıtlar ayrılır. Pencereden çıkış silinme, çözüm veya iddianın yanlışlığı anlamına gelmez. Kaynak hatası ayrı çalışma olarak saklanır ve son başarılı snapshot korunur. `ransomware status --source ransomlook` bu geçmişi internete çıkmadan gösterir. Bu tabloların ThreatCluster izleme, bildirim ve kimlik tablolarıyla bağlantısı yoktur.
 
-`watch-add ... --source ransomlook`, yalnız kaynağın gönderi/kuruluş başlığı alanı için kalıcı izleme tanımlar. Tam eşleşme varsayılandır; en az beş karakterli `--match contains` seçilebilir. RansomLook domain sağlamadığı için `--kind domain` ağ veya kayıt yazımı başlamadan reddedilir. `watch-run --source ransomlook`, son başarılı yerel snapshot üzerinde ağsız çalışır. İlk çalışma sessiz başlangıçtır; sonraki yeni eşleşmeler terminal/JSON sonucunda insan inceleme adayı olarak ayrılır. Yalnız pencereden çıkan kayıt dikkat adayı veya çözüm sayılmaz. Tanım değişirse yeni sessiz başlangıç yapılır; geri çekme geçmişi silmez. Bu dar sürüm RansomLook adaylarını ortak gelen kutusuna göndermez, toplu yenileme/monitor kurmaz ve ThreatCluster izlemeleriyle birleştirmez.
+`watch-add ... --source ransomlook`, yalnız kaynağın gönderi/kuruluş başlığı alanı için kalıcı izleme tanımlar. Tam eşleşme varsayılandır; en az beş karakterli `--match contains` seçilebilir. RansomLook domain sağlamadığı için `--kind domain` ağ veya kayıt yazımı başlamadan reddedilir. `watch-run --source ransomlook`, son başarılı yerel snapshot üzerinde ağsız çalışır. İlk çalışma sessiz başlangıçtır; sonraki yeni eşleşmeler terminal/JSON sonucunda insan inceleme adayı olarak ayrılır. Yalnız pencereden çıkan kayıt dikkat adayı veya çözüm sayılmaz. Tanım değişirse yeni sessiz başlangıç yapılır; geri çekme geçmişi silmez. RansomLook adayları ortak gelen kutusuna gönderilmez ve bağımsız monitor komutu yoktur. `collect --ransomlook-watch ID` seçilen izlemeleri tek kaynak yenilemesinden sonra çalıştırır; ThreatCluster kanıtlarıyla birleştirmez.
 
 `ransomware source-compare`, iki kaynağın ayrı tutulan son başarılı yerel snapshot'larını internete çıkmadan ve kayıt yazmadan karşılaştırır. Bir sonuç için kuruluş adının normalleştirilmiş biçimi iki kaynakta tam aynı olmalı; buna ek olarak grup adı veya kaynak keşif zamanı da aynı olmalıdır. Terminal ve JSON, iki özgün kayıt kimliğini, aynı alanları ve farklı ortak alanları birlikte gösterir. Yaklaşık isim benzerliği, domain, ülke veya kaynakta bulunmayan alanlar kullanılmaz. Sonuçlar kayıtları birleştirmez, alarm üretmez ve aynı olay ya da gerçekleşmiş ihlal kararı değildir.
 

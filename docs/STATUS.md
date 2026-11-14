@@ -1,10 +1,27 @@
 # XTI — Güncel Uygulama Durumu
 
-**13 Kasım 2026 · 0.129.1 sürümü Common Crawl süre bütçesini ve istek aralığını düzeltir**
+**14 Kasım 2026 · 0.130.0 sürümü seçilen sosyal ve ransomware izlemelerini toplama akışına ekler**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `collect DOMAIN --username-watch ID --ransomware-watch ID --ransomlook-watch ID`
+  ile kayıtlı sosyal/ThreatCluster/RansomLook izlemelerinin açık seçimi;
+  seçenekler isteğe bağlı ve tekrarlanabilir. Temel `--task` seçimine veya
+  varsayılan üç işe eklenir; domain adından kişi/kuruluş ilişkisi çıkarılmaz.
+- Önizlemede kaynak, ad, platformlar ve eşleşme türü; bütün seçili izlemelerde
+  ağ öncesi etkinlik/geçmiş doğrulaması ve aynı çalışma kilidi. Kimlik tekrarı,
+  bulunamayan/geri çekilmiş kayıt veya toplam 50 seçimin aşılması ağ öncesi
+  reddedilir. Seçilmeyen kaynak adaptörü ve izleme çalıştırılmaz.
+- Her ransomware kaynağını bir kez yenileme; yalnız seçilen izlemeleri tam o
+  yenilemenin kimliğiyle çalıştırma. Yenileme hatasında eski veriyle izleme
+  yazılmaz; diğer kaynakların tamamlanması hatalı kaynağı başarıya çevirmez.
+- Başlangıç ve sonraki farklar, profil adresleri, iddia satırları, çalışma
+  kimlikleri ve gösterilmeyen öğe sayısı terminal/JSON sonucunda ayrı kalır.
+  `--watch-item-limit` 1–500 arasında görünüm sınırıdır; kalıcı sonuç kesilmez.
+  İzleme sonuçları domain analizinden ayrı tutulur. Kaynak sınırları, mevcut
+  karar/bildirim kuralları ve şema 54 korunur.
 
 - `collect DOMAIN` ile kayıtlı domain için crt.sh/urlscan marka aramalarını
   ve crt.sh pasif alt alan adı keşfini tek uygulama servisinde çalıştırma.
@@ -233,7 +250,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - `ransomware watch-add AD SORGU --kind organization --source ransomlook` ile yalnız RansomLook gönderi/kuruluş başlığında tam veya sınırlı içerme eşleşmeli kalıcı izleme tanımlama. Kaynak domain vermediği için domain izlemesini ağ ve yazma öncesi reddetme.
 - `watch-list/show/revoke/run/run-show --source ransomlook` ile ayrı tanım, yaşam döngüsü, çalışma ve sonuç geçmişini yönetme. İlk çalışma ile tanım değişikliğini sessiz başlangıç sayma; sonraki yeni/değişen eşleşmeleri kalıcı çalışma içinde insan inceleme adayı olarak ayırma.
 - RansomLook izlemelerini yalnız son başarılı yerel snapshot üzerinde ağsız çalıştırma; kaynak penceresinden çıkan kaydı dikkat adayı, çözüm veya kapatma saymama. Geri çekilen tanımın geçmişini silmeme.
-- RansomLook izleme tablolarını kaynak snapshot'ına bağlama, fakat ThreatCluster izleme/bildirim/kimlik tablolarıyla bağlamama. Bu dilimde ortak gelen kutusu, toplu yenileme ve monitor üretmeme.
+- RansomLook izleme tablolarını kendi kaynak snapshot'ına bağlama; ThreatCluster izleme/bildirim/kimlik tablolarından ayrı tutma. `collect` açık seçilen kayıtları tek yenileme ardından çalıştırabilir; RansomLook için ortak gelen kutusu bildirimi ve bağımsız monitor komutu yoktur.
 - Şema 44→45 geçişini açık `migrate`, doğrulanmış yedek, boş dört yeni tablo ve hata halinde rollback ile yapma; geçmiş snapshot'lardan izleme sonucu uydurmama.
 - `ransomware refresh --source ransomlook` ile doğrulanmış yedi günlük tam snapshot'ı ThreatCluster'dan ayrı iki tabloya atomik kaydetme; ilk başarılı snapshot'ı alarm değil başlangıç çizgisi sayma.
 - Sonraki RansomLook çalışmalarında yeni, aynı ve kayan pencereden çıkan kayıtları ayırma; değişmeyen kayıtları her tur yeniden yazmadan sayaçta koruma. Pencereden çıkışı silinme, çözüm veya yanlış iddia hükmüne çevirmeme.
@@ -1041,6 +1058,32 @@ R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin
 
 ## Son doğrulama
 
+0.130.0 hızlı kapısı 198/198 testle 45,114 saniyede; son tam regresyonu
+1.476/1.476 testle 556,986 saniyede geçti. Yeni testler
+gerçek geçici SQLite üzerinde açık kimlik seçimini, ağ öncesi ve kilit içi
+ön doğrulamayı, kaynak başına tek yenilemeyi, tam kaynak kimliği bağını,
+kesintide eski snapshot'ı çalıştırmamayı, başlangıç/fark ayrımını, insan
+kararlarının korunmasını ve terminal/JSON görünüm sınırlarını sınar.
+Kaynak çağrıları testlerde sahtedir; doğrudan hedef ve gerçek ağ kapalıdır.
+
+İlk tam koşuda 1.476 testten ikisi yalnız süreç kilidi test yardımcısının
+5 saniyede hazır sinyali verememesi nedeniyle başarısız oldu. Aynı dokuz
+kilit testi tek başına 0,479 saniyede geçti; yeni alt süreç 0,127 saniyede
+başladı. Yüksek sistem yükü de ölçüldü; yeni testlerde kalan patch/ortam
+değişikliği veya import zinciri farkı bulunmadı. Testin sınırlı başlangıç/
+temizlik beklemesi 30 saniye yapıldı; ürün kilidi kodu değiştirilmedi.
+Değişiklik sonrası dokuz kilit testi 0,106 saniyede ve ardından tam paket
+1.476/1.476 testle geçti.
+
+14 Kasım 2026 yerel kabulü: kayıtlı domainin varsayılan üç işi ile açık
+seçilen iki sosyal, iki ThreatCluster ve bir RansomLook izlemesi önizlendi.
+İki ThreatCluster izlemesi tek yenileme görevi altında gruplandı; toplam
+yedi görev, beş izleme hedefi ve doğru Maigret/Sherlock kaynakları gösterildi.
+Gerçek terminal ve JSON önizlemesinde ağ bağlantısı engellendi; veritabanı
+SHA-256 özeti değişmedi. Bu kabul canlı kaynak taraması değildir; bu sürümde
+gerçek kaynak yenilemesi veya kişisel izleme çalışması başlatılmadı.
+Kabul çıktıları ve kişisel tanımlar Git dışındaki yerel veri alanında kalır.
+
 0.129.1 hızlı kapısı 172/172 testle 33,650 saniyede; tam regresyonu
 1.450/1.450 testle 290,234 saniyede geçti. Yeni testler
 Common Crawl yanıtı bittikten sonraki aralığı, 60 saniyelik bağlantı tekrarı,
@@ -1281,10 +1324,11 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
-13 Kasım 2026 son kullanıcı yönlendirmesi: terminal menüsü yerine özellik
+13 Kasım 2026 kullanıcı yönlendirmesi: terminal menüsü yerine özellik
 geliştirmeye devam edilecek; React arayüzü ileride ayrı projeden bağlanacak.
-0.129.0 seçilen pasif toplama işlerini birleştiren uygulama servisini teslim
-eder. React veya REST API henüz eklenmedi. Sonraki özellikler mevcut toplama,
+0.129.0 seçilen pasif toplama işlerini birleştirdi; 0.130.0 açık seçilen
+sosyal ve ransomware izlemelerini bu servise ekledi. React veya REST API
+henüz eklenmedi. Sonraki özellikler mevcut toplama,
 CTI, tedarikçi ve vaka zincirindeki somut boşluklara göre seçilecek; kaynak
 kapsamı, doğrulanmış katkı ve mevcut mimari sınırlar korunacak.
 

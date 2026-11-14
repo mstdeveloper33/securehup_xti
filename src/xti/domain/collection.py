@@ -3,9 +3,24 @@
 from dataclasses import dataclass
 
 from xti.domain.analysis import UnifiedAnalysisReport
+from xti.domain.brand_username_watches import BrandUsernameWatchRunReport
 from xti.domain.cti_feeds import CtiFeedRun
 from xti.domain.jobs import ScanAttempt
+from xti.domain.ransomlook_ransomware import RansomLookClaimRunReport
+from xti.domain.ransomlook_watches import RansomLookWatchRunReport
+from xti.domain.ransomware_claims import RansomwareClaimRunReport
+from xti.domain.ransomware_watches import RansomwareWatchRunReport
 from xti.domain.surface import SurfaceDiscoveryResult
+
+
+@dataclass(frozen=True, slots=True)
+class CollectionWatchTarget:
+    watch_id: str
+    display_name: str
+    query: str
+    kind: str
+    match_mode: str
+    platforms: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -14,6 +29,7 @@ class CollectionTask:
     kind: str
     source: str
     label: str
+    watches: tuple[CollectionWatchTarget, ...] = ()
 
 
 COLLECTION_TASKS = (
@@ -37,6 +53,14 @@ class CollectionPlan:
     typos: bool
     tasks: tuple[CollectionTask, ...]
     notes: tuple[str, ...]
+    watch_item_limit: int = 100
+
+
+@dataclass(frozen=True, slots=True)
+class CollectionRansomwareResult:
+    refresh: RansomwareClaimRunReport | RansomLookClaimRunReport
+    watches: tuple[RansomwareWatchRunReport | RansomLookWatchRunReport, ...]
+    skipped_watch_ids: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +70,8 @@ class CollectionStep:
     attempt: ScanAttempt | None = None
     discovery: SurfaceDiscoveryResult | None = None
     feed: CtiFeedRun | None = None
+    username: BrandUsernameWatchRunReport | None = None
+    ransomware: CollectionRansomwareResult | None = None
 
 
 @dataclass(frozen=True, slots=True)

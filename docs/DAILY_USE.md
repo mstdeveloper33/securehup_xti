@@ -45,6 +45,30 @@ Aynı akışta iki IOC listesini de yenilemek için bütün istediğin işleri b
 `--task` varsayılan listeye ekleme yapmaz, onun yerine geçer. Arşiv kaynağı
 isteğe bağlı `discover-theharvester` işidir ve ayrı kurulumu gerekir.
 
+Kayıtlı kullanıcı adı ve kuruluş izlemelerini de aynı çalışmaya ekleyebilirsin.
+Kimlikleri `./xti brand watch-list`, `./xti ransomware watch-list` ve
+`./xti ransomware watch-list --source ransomlook` çıktısından al. Sonra
+kullanmak istediğin seçenekleri ekle:
+
+```sh
+./xti collect example.com \
+  --username-watch SOSYAL_IZLEME_KIMLIGI \
+  --ransomware-watch THREATCLUSTER_IZLEME_KIMLIGI \
+  --ransomlook-watch RANSOMLOOK_IZLEME_KIMLIGI --plan
+```
+
+Büyük harfli yerleri gerçek kimliklerle değiştir; kullanmadığın seçenekleri
+çıkar. `--plan` kaldırıldığında çalışma başlar. Bu seçenekler temel domain
+işlerine eklenir ve birden fazla izleme için tekrarlanabilir. Domain adına
+bakarak başka kullanıcı adı veya kuruluş izlemesi otomatik seçilmez.
+
+Çıktı profil adreslerini, eşleşen iddiaları ve değişimlerini ayrı gösterir.
+İlk ölçüm bir başlangıç kaydıdır. Ransomware kaynağı yenilenemezse o kaynağın
+izlemeleri çalıştırılmaz; diğer işler devam eder. `--watch-item-limit 500`
+ile her izlemede gösterilen öğeleri artırabilir, çıktıda verilen ayrıntı
+komutuyla kayıtlı çalışmayı açabilirsin. Bu seçenek veri toplama sınırı değil,
+sonuç görüntüleme sınırıdır.
+
 İşleri ayrı ayrı çalıştırmak da mümkündür:
 
 ```sh

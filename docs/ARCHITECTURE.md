@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**13 Kasım 2026 — 0.129.1 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**14 Kasım 2026 — 0.130.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
@@ -12,6 +12,18 @@ JSON tarafından kullanılır. Servis CLI, HTTP veya SQLite import etmez;
 ilerideki React/API katmanı aynı işlevi çağırabilir. Ayrı bir genel workflow
 motoru, birleşik çalışma tablosu veya otomatik kaldığı yerden sürdürme yoktur.
 Ayrıntılar [0127 numaralı karardadır](decisions/0127-explicit-passive-collection.md).
+
+0.130.0, `CollectionWatchService` üzerinden açık kimlikle seçilen sosyal ve
+ransomware izlemelerini aynı kilit altında bu akışa ekler. Plan, kayıtlı
+kaynak/tanım/platformları taşır; domainle ilişki çıkarmaz. Bütün seçili
+depolar ağ öncesi ve kilit altında doğrulanır. Her ransomware sağlayıcısı
+bir kez yenilenir, seçilen izlemeler tam yenileme kimliğine bağlanır;
+yenileme hatasında eski snapshot üzerinde yeni izleme çalışması yazılmaz.
+RansomLook `run` servisi bu amaçla isteğe bağlı beklenen kaynak kimliğini
+yazmadan önce doğrular. İlk ölçüm/değişim ve mevcut insan karar zinciri
+korunur. İzleme raporları `CollectionStep` içinde kendi tür/kimlikleriyle
+taşınır; `UnifiedAnalysisReport` domain kapsamını korur. Şema ve dış kaynak
+bağımlılığı değişmez. Ayrıntılar [0129 numaralı karardadır](decisions/0129-explicit-collection-watches.md).
 
 `SourceReadinessService`, küçük `SourceReadinessRepository` sözleşmesinden
 yerel kurulum ve kayıt geçmişini alır. SQLite/kurulum adaptörü mevcut kayıt

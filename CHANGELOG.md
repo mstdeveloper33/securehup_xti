@@ -1,5 +1,31 @@
 # Değişiklik Kaydı
 
+## 0.130.0 — 14 Kasım 2026
+
+- `collect` komutuna tekrarlanabilir `--username-watch`, `--ransomware-watch`
+  ve `--ransomlook-watch` seçenekleri eklendi. Kayıtlı izlemeler açık kimlikle
+  seçilir; temel `--task` seçimine veya varsayılan üç işe eklenir. Domain
+  adından kullanıcı adı/kuruluş ilişkisi türetilmez.
+- Bütün seçili izlemeler ağ öncesi ve ortak kilit altında doğrulanır.
+  Her ransomware kaynağı bir kez yenilenir; yalnız seçilen izlemeler tam
+  yenileme kimliğine bağlanır. Yenileme başarısızsa izlemeler atlanır;
+  eski snapshot yeni sonuç gibi çalıştırılmaz, bağımsız kaynaklar devam eder.
+- RansomLook izleme servisi beklenen kaynak kimliğini yazmadan önce
+  doğrulayabilir. Mevcut başlangıç/fark, insan kararı ve bildirim davranışı
+  korunur; yeni şema, bağımlılık veya dış kaynak eklenmez.
+- Plan kaynak/ad/platformları, sonuçlar gerçek profil/iddia satırlarını,
+  başlangıç/değişim ayrımını ve çalışma kimliklerini gösterir. En fazla 50
+  izleme seçilebilir; `--watch-item-limit` 1–500 görünüm sınırıdır. Sonuçlar
+  domain analizinden ayrı kalır; örtüşen kayıtlar benzersiz toplam sayılmaz.
+- Yoğun makinede yardımcı Python işleminin geç başlaması nedeniyle iki
+  süreç kilidi testi 5 saniyelik hazırlık sınırına takıldı. Testin süreç
+  başlangıç/temizlik sınırı 30 saniyeye çıkarıldı; dışlama, serbest bırakma
+  ve süreç ölümü sonrası kurtarma denetimleri korunur.
+- Hızlı kontrol 198/198, son tam regresyon 1.476/1.476 testle geçti.
+  Kayıtlı beş izleme ve varsayılan üç domain işi ağsız terminal/JSON
+  önizlemesinde doğrulandı; veritabanı değişmedi. Çalıştırma, kesinti ve
+  tekrar senaryoları geçici veride sahte kaynaklarla sınandı.
+
 ## 0.129.1 — 13 Kasım 2026
 
 - Common Crawl'ın seçilen yıllık arşiv dönemleri için süre bütçesi 90'dan

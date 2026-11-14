@@ -5,10 +5,13 @@ from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 import unittest
+from unittest.mock import Mock
 
 from xti.application.collection import CollectionService
 from xti.domain.assets import ValidationError
-from xti.domain.collection import COLLECTION_TASK_IDS, DEFAULT_COLLECTION_TASKS
+from xti.domain.collection import (
+    COLLECTION_TASK_IDS, DEFAULT_COLLECTION_TASKS, CollectionTask, CollectionWatchTarget,
+)
 from xti.domain.cti_feeds import CTI_FEED_POLICIES, CtiFeedRun
 from xti.domain.discovery import ScanResult
 from xti.domain.findings import ImportSummary
@@ -271,6 +274,10 @@ class CollectionServiceTests(unittest.TestCase):
             {"finding_limit": True}, {"finding_limit": 0}, {"finding_limit": 51},
             {"stale_after_hours": False}, {"stale_after_hours": 0},
             {"stale_after_hours": 8761},
+            {"watch_item_limit": True}, {"watch_item_limit": 0},
+            {"watch_item_limit": 501}, {"username_watch_ids": "watch"},
+            {"ransomware_watch_ids": ("invalid id",)},
+            {"ransomlook_watch_ids": ("watch", "watch")},
         )
         for option in options:
             with self.subTest(option=option), self.assertRaises(ValidationError):
@@ -303,6 +310,66 @@ class CollectionServiceTests(unittest.TestCase):
         self.assertEqual(self.lock.entries, 1)
         self.assertFalse(self.lock.active)
         self.assertEqual(self.mutations, [])
+
+    def test_watch_preflight_failure_prevents_all_base_work(self):
+        watches = Mock()
+        watches.plan.side_effect = ValidationError("İzleme geri çekilmiş.")
+        self.service.watch_collection = watches
+        with self.assertRaisesRegex(ValidationError, "geri çekilmiş"):
+            self.service.run(
+                "example.com", username_watch_ids=("00000000-0000-4000-8000-000000000001",),
+            )
+        watches.run.assert_not_called()
+        self.assertEqual(self.mutations, [])
+        self.assertEqual(self.lock.entries, 0)
+
+    def test_selected_watch_is_revalidated_under_same_lock_before_first_write(self):
+        watch_id = "00000000-0000-4000-8000-000000000001"
+        task = CollectionTask(
+            f"username-watch:{watch_id}", "username_watch", "sherlock", "Sherlock izlemesi",
+            (CollectionWatchTarget(watch_id, "Örnek", "samplebrand", "username", "exact", ("GitHub",)),),
+        )
+        observations = []
+
+        def prepare(**options):
+            observations.append((self.lock.active, options))
+            if self.lock.active:
+                raise ValidationError("İzleme tanımı değişti.")
+            return (task,)
+
+        watches = Mock()
+        watches.plan.side_effect = prepare
+        self.service.watch_collection = watches
+        with self.assertRaisesRegex(ValidationError, "tanımı değişti"):
+            self.service.run("example.com", username_watch_ids=(watch_id,), watch_item_limit=7)
+        self.assertEqual([item[0] for item in observations], [False, True])
+        self.assertTrue(all(item[1]["username_watch_ids"] == (watch_id,) for item in observations))
+        self.assertTrue(all(item[1]["item_limit"] == 7 for item in observations))
+        watches.run.assert_not_called()
+        self.assertEqual(self.mutations, [])
+        self.assertFalse(self.lock.active)
+
+    def test_watch_storage_failure_keeps_finished_base_work_and_releases_lock(self):
+        watch_id = "00000000-0000-4000-8000-000000000001"
+        task = CollectionTask(
+            f"username-watch:{watch_id}", "username_watch", "maigret", "Maigret izlemesi",
+            (CollectionWatchTarget(watch_id, "Örnek", "samplebrand", "username", "exact", ("GitHub",)),),
+        )
+        watches = Mock()
+        watches.plan.return_value = (task,)
+
+        def fail(*args, **kwargs):
+            self.assertTrue(self.lock.active)
+            raise OSError("watch storage unavailable")
+
+        watches.run.side_effect = fail
+        self.service.watch_collection = watches
+        with self.assertRaisesRegex(OSError, "storage"):
+            self.service.run("example.com", username_watch_ids=(watch_id,))
+        self.assertEqual(len(self.jobs.results), 2)
+        self.assertEqual(len(self.discoveries["crt.sh"].results), 1)
+        self.assertEqual(self.lock.entries, 1)
+        self.assertFalse(self.lock.active)
 
     def test_busy_lock_does_not_create_queued_work(self):
         self.lock.busy = True

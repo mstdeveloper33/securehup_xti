@@ -4,6 +4,7 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 
 from xti.application.analysis import UnifiedAnalysisService
+from xti.application.collection_watches import CollectionWatchService
 from xti.application.cti_feeds import CtiFeedService
 from xti.application.jobs import JobService
 from xti.application.surface import SurfaceDiscoveryService
@@ -35,12 +36,14 @@ class CollectionService:
         discoveries: Mapping[str, SurfaceDiscoveryService],
         feeds: Mapping[str, CtiFeedService],
         analysis: UnifiedAnalysisService,
-        *, clock: Callable[[], datetime] | None = None,
+        *, watch_collection: CollectionWatchService | None = None,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.jobs = jobs
         self.discoveries = dict(discoveries)
         self.feeds = dict(feeds)
         self.analysis = analysis
+        self.watch_collection = watch_collection or CollectionWatchService()
         self.clock = clock or (lambda: datetime.now(timezone.utc))
 
     def _now(self) -> datetime:
@@ -67,7 +70,17 @@ class CollectionService:
     def plan(
         self, domain: str, *, tasks: Sequence[str] | None = None,
         typos: bool = False, stale_after_hours: int = 24, finding_limit: int = 10,
+        username_watch_ids: Sequence[str] = (),
+        ransomware_watch_ids: Sequence[str] = (),
+        ransomlook_watch_ids: Sequence[str] = (),
+        watch_item_limit: int = 100,
     ) -> CollectionPlan:
+        username_ids, ransomware_ids, ransomlook_ids = CollectionWatchService.validate_selection(
+            username_watch_ids=username_watch_ids,
+            ransomware_watch_ids=ransomware_watch_ids,
+            ransomlook_watch_ids=ransomlook_watch_ids,
+            item_limit=watch_item_limit,
+        )
         selected = self._selection(tasks)
         if type(typos) is not bool:
             raise ValidationError("Yazım varyasyonu seçimi doğru/yanlış olmalı.")
@@ -112,20 +125,40 @@ class CollectionService:
                 if status.source_name != CTI_FEED_POLICIES[task.source].source_name:
                     raise ValidationError("IOC kaynağı seçilen görevle uyuşmuyor.")
 
+        watch_tasks = self.watch_collection.plan(
+            username_watch_ids=username_ids,
+            ransomware_watch_ids=ransomware_ids,
+            ransomlook_watch_ids=ransomlook_ids,
+            item_limit=watch_item_limit,
+        )
         return CollectionPlan(
-            asset_value=value, typos=typos, tasks=selected,
+            asset_value=value, typos=typos, tasks=selected + watch_tasks,
+            watch_item_limit=watch_item_limit,
             notes=(
-                "Yalnız seçilen pasif arşivler ve açık IOC listeleri kullanılır; hedefe doğrudan bağlantı yapılmaz.",
+                "Seçilen arşivler, açık kaynak listeleri ve seçili kullanıcı adı platformları sorgulanır; hedefte aktif test yapılmaz.",
                 "IOC yenilemesi seçilirse liste tüm yerel IOC kataloğunda güncellenir; yalnız bu domaine ait değildir.",
                 "Kaynak hatası diğer kaynakların sonucunu silmez; başarısız veya kısmi toplama boş başarı sayılmaz.",
                 "Her adım kendi kalıcı geçmişini tutar; birleşik sonuç için ayrı oturum kaydı veya otomatik devam yoktur.",
-            ),
+            ) + ((
+                "İzlemeler açık kimlik seçiminizle çalışır; domainle sahiplik veya kuruluş ilişkisi otomatik kurulmaz.",
+                "Her ransomware kaynağı bir kez yenilenir; yenileme başarısızsa o kaynağın seçilen izlemeleri çalıştırılmaz.",
+                "İlk izleme ölçümü başlangıç kaydıdır; yeni tehdit veya doğrulanmış ihlal anlamına gelmez.",
+                "İzleme sonuçları aşağıdaki domain analizinden ayrıdır; kaynaklar ve örtüşen izlemeler tekil bulgu toplamına eklenmez.",
+            ) if watch_tasks else ()),
         )
 
     def _collect(
         self, task: CollectionTask, plan: CollectionPlan,
         progress: Callable[[str], None] | None,
     ) -> CollectionStep:
+        if task.kind in {"username_watch", "ransomware"}:
+            result = self.watch_collection.run(task, item_limit=plan.watch_item_limit)
+            if (
+                not isinstance(result, CollectionStep) or result.task != task
+                or result.status not in {"complete", "failed"}
+            ):
+                raise ValidationError("İzleme geçersiz toplama sonucu üretti.")
+            return result
         if task.kind == "scan":
             job = self.jobs.enqueue(
                 (plan.asset_value,), typos=plan.typos, provider=task.source,
@@ -160,19 +193,42 @@ class CollectionService:
     def run(
         self, domain: str, *, tasks: Sequence[str] | None = None,
         typos: bool = False, stale_after_hours: int = 24, finding_limit: int = 10,
+        username_watch_ids: Sequence[str] = (),
+        ransomware_watch_ids: Sequence[str] = (),
+        ransomlook_watch_ids: Sequence[str] = (),
+        watch_item_limit: int = 100,
         progress: Callable[[str], None] | None = None,
     ) -> CollectionResult:
         plan = self.plan(
             domain, tasks=tasks, typos=typos,
             stale_after_hours=stale_after_hours, finding_limit=finding_limit,
+            username_watch_ids=username_watch_ids,
+            ransomware_watch_ids=ransomware_watch_ids,
+            ransomlook_watch_ids=ransomlook_watch_ids,
+            watch_item_limit=watch_item_limit,
         )
         started = self._now()
         with self.jobs.lock.acquire():
             # Another writer may have changed local evidence since preflight.
             # Recheck under the shared lock before the first persistent action.
             plan = self.plan(
-                plan.asset_value, tasks=tuple(task.id for task in plan.tasks), typos=typos,
+                plan.asset_value,
+                tasks=tuple(task.id for task in plan.tasks if task.kind in {"scan", "discovery", "ioc"}),
+                typos=typos,
                 stale_after_hours=stale_after_hours, finding_limit=finding_limit,
+                username_watch_ids=tuple(
+                    watch.watch_id for task in plan.tasks if task.kind == "username_watch"
+                    for watch in task.watches
+                ),
+                ransomware_watch_ids=tuple(
+                    watch.watch_id for task in plan.tasks if task.kind == "ransomware"
+                    and task.source == "threatcluster" for watch in task.watches
+                ),
+                ransomlook_watch_ids=tuple(
+                    watch.watch_id for task in plan.tasks if task.kind == "ransomware"
+                    and task.source == "ransomlook" for watch in task.watches
+                ),
+                watch_item_limit=watch_item_limit,
             )
             steps: list[CollectionStep] = []
             for task in plan.tasks:

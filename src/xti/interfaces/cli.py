@@ -149,6 +149,7 @@ from xti.adapters.evaluation_dataset import EvaluationDataError, load_evaluation
 from xti.application.assets import AssetService
 from xti.application.analysis import UnifiedAnalysisRefreshService, UnifiedAnalysisService
 from xti.application.collection import CollectionService
+from xti.application.collection_watches import CollectionWatchService
 from xti.domain.collection import COLLECTION_TASK_IDS, DEFAULT_COLLECTION_TASKS
 from xti.interfaces.collection import (
     plan_lines as collection_plan_lines,
@@ -715,6 +716,22 @@ def build_parser() -> Parser:
     collect.add_argument("--typos", action="store_true", help="Marka aramasına sınırlı yazım varyantlarını ekle.")
     collect.add_argument("--stale-after-hours", type=int, default=24, help="Analiz güncellik eşiği (1–8760 saat).")
     collect.add_argument("--finding-limit", type=int, default=10, help="Analizde gösterilecek marka adayı (1–50).")
+    collect.add_argument(
+        "--username-watch", action="append", dest="username_watch_ids", metavar="ID",
+        help="Kayıtlı Maigret/Sherlock izlemesini seçilen işlere ekle; tekrarlanabilir.",
+    )
+    collect.add_argument(
+        "--ransomware-watch", action="append", dest="ransomware_watch_ids", metavar="ID",
+        help="ThreatCluster kaynağını yenile ve seçilen kayıtlı izlemeyi çalıştır; tekrarlanabilir.",
+    )
+    collect.add_argument(
+        "--ransomlook-watch", action="append", dest="ransomlook_watch_ids", metavar="ID",
+        help="RansomLook kaynağını yenile ve seçilen kayıtlı izlemeyi çalıştır; tekrarlanabilir.",
+    )
+    collect.add_argument(
+        "--watch-item-limit", type=int, default=100,
+        help="Her izleme sonucunda gösterilecek kayıt sınırı (1–500); izleme kapsamını daraltmaz.",
+    )
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -3104,7 +3121,17 @@ def make_analysis_service(settings: Settings, repository: SQLiteAssetRepository)
 
 def make_collection_service(
     settings: Settings, repository: SQLiteAssetRepository, tasks: list[str] | None,
+    *, username_watch_ids: Sequence[str] = (),
+    ransomware_watch_ids: Sequence[str] = (), ransomlook_watch_ids: Sequence[str] = (),
+    watch_item_limit: int = 100,
 ) -> CollectionService:
+    username_watch_ids, ransomware_watch_ids, ransomlook_watch_ids = (
+        CollectionWatchService.validate_selection(
+            username_watch_ids=username_watch_ids,
+            ransomware_watch_ids=ransomware_watch_ids,
+            ransomlook_watch_ids=ransomlook_watch_ids, item_limit=watch_item_limit,
+        )
+    )
     selected = DEFAULT_COLLECTION_TASKS if tasks is None else tasks
     discoveries = {}
     if "discover-crtsh" in selected:
@@ -3122,9 +3149,47 @@ def make_collection_service(
         if f"ioc-{name}" in selected:
             feed_repository, feed_source = make_cti_feed(settings, name)
             feeds[name] = CtiFeedService(feed_repository, feed_source)
+    watch_collection = None
+    if username_watch_ids or ransomware_watch_ids or ransomlook_watch_ids:
+        username = None
+        if username_watch_ids:
+            username_repository = SQLiteBrandUsernameWatchRepository(settings.database)
+            definitions = BrandUsernameWatchService(username_repository, {})
+            source_keys = {
+                definitions.show(watch_id, event_limit=1, run_limit=1).watch.source_key
+                for watch_id in username_watch_ids
+            }
+            sources = {}
+            if "maigret" in source_keys:
+                sources["maigret"] = MaigretUsernameSource()
+            if "sherlock" in source_keys:
+                sources["sherlock"] = SherlockUsernameSource()
+            username = BrandUsernameWatchService(username_repository, sources)
+        histories = {}
+        watches = {}
+        if ransomware_watch_ids:
+            claim_repository = SQLiteRansomwareClaimRepository(settings.database)
+            histories["threatcluster"] = RansomwareClaimHistoryService(
+                claim_repository, ThreatClusterRansomwareSource(),
+            )
+            watches["threatcluster"] = RansomwareWatchService(
+                SQLiteRansomwareWatchRepository(settings.database), claim_repository,
+            )
+        if ransomlook_watch_ids:
+            claim_repository = SQLiteRansomLookClaimRepository(settings.database)
+            histories["ransomlook"] = RansomLookClaimHistoryService(
+                claim_repository, RansomLookRansomwareSource(),
+            )
+            watches["ransomlook"] = RansomLookWatchService(
+                SQLiteRansomLookWatchRepository(settings.database), claim_repository,
+            )
+        watch_collection = CollectionWatchService(
+            username=username, ransomware_histories=histories, ransomware_watches=watches,
+        )
     return CollectionService(
         make_jobs(settings, repository), discoveries, feeds,
         make_analysis_service(settings, repository),
+        watch_collection=watch_collection,
     )
 
 
@@ -3271,11 +3336,21 @@ def run(args: argparse.Namespace) -> int | None:
         report = EvaluationService(make_domain_matcher()).run(load_evaluation_dataset())
         emit(asdict(report), evaluation_lines(report), as_json=args.json)
     elif args.command == "collect":
-        collection = make_collection_service(settings, repository, args.tasks)
+        watch_selection = {
+            "username_watch_ids": tuple(args.username_watch_ids or ()),
+            "ransomware_watch_ids": tuple(args.ransomware_watch_ids or ()),
+            "ransomlook_watch_ids": tuple(args.ransomlook_watch_ids or ()),
+        }
+        collection = make_collection_service(
+            settings, repository, args.tasks,
+            watch_item_limit=args.watch_item_limit, **watch_selection,
+        )
         options = {
             "tasks": args.tasks, "typos": args.typos,
             "stale_after_hours": args.stale_after_hours,
             "finding_limit": args.finding_limit,
+            "watch_item_limit": args.watch_item_limit,
+            **watch_selection,
         }
         if args.plan:
             plan = collection.plan(args.domain, **options)

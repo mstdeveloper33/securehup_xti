@@ -84,11 +84,24 @@ class RansomLookWatchService:
 
     def run(
         self, watch_id: str, *, item_limit: int = 100,
+        expected_source_run_id: str | None = None,
     ) -> RansomLookWatchRunReport:
         watch_id = normalize_knowledge_id(watch_id, field="RansomLook izleme kimliği")
         item_limit = self._limit(item_limit, field="Sonuç sınırı")
+        expected = (
+            normalize_knowledge_id(
+                expected_source_run_id, field="beklenen RansomLook kaynak çalışma kimliği",
+            )
+            if expected_source_run_id is not None else None
+        )
+        snapshot = self.claim_repository.latest_snapshot()
+        if expected is not None and snapshot.run.id != expected:
+            raise ValidationError(
+                "Son başarılı RansomLook kaynak snapshot'ı beklenen yenilemeyle "
+                "eşleşmiyor; izleme çalıştırılmadı."
+            )
         return self.repository.run(
-            watch_id, self.claim_repository.latest_snapshot(),
+            watch_id, snapshot,
             executed_at=self._now(), item_limit=item_limit,
         )
 
