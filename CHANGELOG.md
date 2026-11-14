@@ -1,5 +1,31 @@
 # Değişiklik Kaydı
 
+## 0.138.0 — 15 Kasım 2026
+
+- `search QUERY`: on tür yerel kaydı tek komuttan arama, tür filtresi,
+  tam/başlangıç/içerme sırası, kaynak durumu, sayfalama ve ayrıntıya geçiş.
+- Tedarikçi için ayrı ThreatCluster/RansomLook/HIBP izlemesi; sessiz
+  başlangıçtan sonra yeni/değişen eşleşmelerde yerel bildirim. Tarihî
+  tedarikçi, kaynak ve önce/sonra kanıtı korunur. Kaynak/izleme/bildirim ve
+  toplama bağı aynı işlemde kaydedilir.
+- `surface relations DOMAIN`: kayıtlı IP, sertifika, CNAME ve insan onaylı
+  tedarikçi ilişki geçmişi. Tek tek gözlemler, hatalar, boş kontroller,
+  ilk/son gözlem ve kanıt kimlikleri görünür.
+- Şema 64 dört boş tablo ekler; yedekli açık geçiş ve yeni dosyada geri
+  dönüş vardır. Yeni ücretli API veya paket bağımlılığı eklenmedi.
+- Tam paket: 1.918 test, 1.917 başarılı ve bir Linux kontrolü macOS'ta
+  atlandı. Hızlı kapı: 524 test, aynı tek atlama. 55 yeni test eklendi.
+- Kullanım: [arama, tedarikçi ve ilişki rehberi](docs/SEARCH_SUPPLIERS_AND_RELATIONS.md).
+
+## 0.137.0 — 15 Kasım 2026
+
+- Tarihî kamu olayı ve kuruluş izleme kanıtını vakaya bağlama; tek vaka
+  kanıtını görünüm sınırından bağımsız açma.
+- Kuruluş raporunun bütün kayıtlarını çevrimdışı, bağımsız HTML dosyasına
+  aktarma; mevcut dosyanın üzerine yazmama ve güvenli metin gösterimi.
+- Şema 63 vaka kanıtı tür kısıtını genişletir; eski rowid ve kanıtları korur.
+  Tam paket 1.863 testte 1.862 başarılı, Linux kontrolü macOS'ta atlandı.
+
 ## 0.136.0 — 15 Kasım 2026
 
 - Kuruluş başına açık HIBP izleme: açma/kapatma, tam domain kapsamı,

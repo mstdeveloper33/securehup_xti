@@ -1,10 +1,13 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.137.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 63.
+**Sürüm:** 0.138.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 Kuruluş birleşik raporu, kuruluşa özel değişim/kaynak görünümü, ayrıntılı
 önce/sonra kanıtı, CTI ilişki bağlamı ve ücretsiz kamu ihlal kataloğu kullanılabilir.
 Kamu olayının tarihî kanıtını vakaya bağlayabilir, kuruluş raporunu tek HTML
 dosyası olarak internetsiz açabilirsin: [kullanım rehberi](docs/PUBLIC_NOTICE_CASES_AND_EXPORT.md).
+
+Tek komutla yerel arama, tedarikçi değişim bildirimleri ve domainin IP/sertifika/
+CNAME/tedarikçi ilişki geçmişi de kullanılabilir: [yeni özellikler rehberi](docs/SEARCH_SUPPLIERS_AND_RELATIONS.md).
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -46,7 +49,7 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 63 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 64 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik

@@ -7,6 +7,8 @@ from xti.adapters.case_public_notice_schema import (
 
 def case_evidence_layout_v62(connection):
     """Refuse new types; preserve all old rows and identities in fixture setup."""
+    from tests.supplier_watch_legacy_fixture import remove_supplier_watch_schema
+    remove_supplier_watch_schema(connection)
     if not connection.in_transaction:
         connection.execute("BEGIN")
     if connection.execute(

@@ -3,6 +3,8 @@
 
 def remove_public_notice_watch_schema(connection):
     """Preserve legacy data and refuse to hide populated new-feature fixtures."""
+    from tests.supplier_watch_legacy_fixture import remove_supplier_watch_schema
+    remove_supplier_watch_schema(connection)
     tables = (
         "public_notice_watch_notifications",
         "public_notice_watch_runs",

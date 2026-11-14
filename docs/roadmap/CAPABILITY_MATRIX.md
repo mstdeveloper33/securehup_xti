@@ -1,6 +1,11 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
-**Güncel teslim tarihi:** 14 Kasım 2026 · **Sürüm:** 0.134.0.
+**Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.138.0.
+
+0.135–0.138: HIBP toplama ve kuruluş bildirimleri, tarihî kamu olayı vaka
+bağı, tam çevrimdışı HTML raporu, on türde yerel arama, tedarikçi kaynak
+değişim bildirimleri ve varlık ilişki geçmişi eklendi. Ayrıntılı çalışan
+kapsam ve doğrulama [STATUS](../STATUS.md) içindedir.
 
 0.128–0.134: profilli toplama ve kalıcı oturum/eksik adım tekrarı; açık
 kuruluş gruplaması ve birleşik raporu; kapsamlı dönem/kaynak katkısı;
@@ -49,7 +54,7 @@ Kamuya açık SOCRadar sayfaları yetenek ailelerini belirlemek için kullanıld
 | CAP-007 | Kalıcı iş yönetimi | Çökmede devam, retry, lease ve tekrar güvenli kayıt | FND-06 | R1 / B0 |
 | CAP-008 | Bulgu yaşam döngüsü | Yeni, görüldü, inceleniyor, ertelendi, kapandı ve tekrar açıldı | PHI-05 | R2 / B0 |
 | CAP-009 | Geri bildirim | Doğru/yanlış/bilinmiyor kararı ve gerekçe geçmişi | PHI-05 | R2 / B0 |
-| CAP-010 | Bildirim teslimi | Bulgu/adaya/değişime bağlı yerel kutu ve seçilen tek bildirim için manuel imzalı webhook var; otomatik abonelik/toplu worker, e-posta/SMS açık | PHI-06 | R2/R10 / B0 |
+| CAP-010 | Bildirim teslimi | Bulgu/adaya/değişime bağlı yerel kutu ve seçilen tek bildirim için manuel imzalı webhook var; kuruluş HIBP ve tedarikçi kaynak değişimleri yerel kutuya otomatik katılır; otomatik dış teslim/toplu worker, e-posta/SMS açık | PHI-06 | R2/R10 / B0 |
 | CAP-011 | Terminal deneyimi | Komut yardımı, açıklanabilir tablolar ve kararlı JSON | FND-02 | R1 / B0 |
 | CAP-012 | Etkileşimli terminal | Klavye ile filtre, inceleme ve kaynak/iş sağlığı | OPS-06 | R3 / B0 |
 
@@ -76,9 +81,9 @@ Referans kapsamı: dijital varlık keşfi, keşif ilişkileri, DNS/TLS, servis v
 | Kimlik | Yetenek | Bizim teslim hedefimiz | İş paketi | Faz / kaynak |
 |---|---|---|---|---|
 | CAP-022 | Domain/subdomain envanteri | Kaynaklı keşif ve izlenen kapsam ilişkisi | ASM-02 | R4 / B0→B1 |
-| CAP-023 | IP ve servis ilişkileri | DNS/IP/servis ilişkilerinin zamanlı saklanması; kesin IP'deki açık TCP kanıtı görünür, tam ilişki kapsamı açık | ASM-01 | R4 / B0 |
+| CAP-023 | IP ve servis ilişkileri | Kayıtlı DNS/IP, sertifika ve CNAME ilişkileri ilk/son gözlem ve tek tek kontrol geçmişiyle görünür; kesin IP TCP kanıtı ayrı, tam servis ilişkisi kapsamı açık | ASM-01 | R4 / B0 |
 | CAP-024 | Sahiplik doğrulaması | Kuruma ait/adayı/bilinmiyor; paylaşımlı altyapı ayrımı | ASM-01 | R4 / B0 |
-| CAP-025 | Keşif yolu ve tarihçe | Her varlığın hangi kanıtla bulunduğunu gösterme; son kanıt ilişkileri görünür, tam tarihçe açık | ASM-01 | R4 / B0 |
+| CAP-025 | Keşif yolu ve tarihçe | Kaynaklı keşif kanıtı ve kayıtlı DNS/TLS/CNAME/insan tedarikçi kararlarının tam serisi sayfalanır; kaydedilmemiş eski bağlar çıkarılmaz | ASM-01 | R4 / B0 |
 | CAP-026 | DNS değişiklikleri | Değişim, veri bayatlığı ve kaynak kesintisini ayırma | ASM-02 | R4 / B0→B1 |
 | CAP-027 | TLS sertifikaları | Süre, ad eşleşmesi ve doğrulama bulguları | ASM-03 | R4 / B0 |
 | CAP-028 | E-posta DNS yapılandırması | MX/SPF/DMARC değişimi; DKIM yalnız bilinen seçiciyle, kaynak ve sınır açıklaması | ASM-03 | R4 / B0 |
@@ -176,7 +181,7 @@ Referans kapsamı: tedarikçi izleme, risk analizi, raporlar ve farklı tehdit v
 |---|---|---|---|---|
 | CAP-077 | Tedarikçi envanteri | İnsan onaylı kuruluş adı, değiştirilemez ana domain, ilişki, iş kritiklik düzeyi ve eklemeli yaşam döngüsü; kayıtlı son CNAME'den ağsız teknik aday var | SUP-01 | R9 / B0 |
 | CAP-078 | Kuruluş çözümleme | Aynı isim/ortak altyapıyı otomatik birleştirmeyen; yalnız etkin kayıtlı tedarikçiye gerekçeli kabul, belirsiz, ret ve yeniden inceleme kararı var | SUP-01 | R9 / B0 |
-| CAP-079 | Tedarikçi tehdit olayları | ThreatCluster/RansomLook son yerel snapshot'larında tam ad/domain dayanaklı iddia görünümü, kaynak kimliği ve kesinti/eski veri ayrımı var; haber/teyit sınıfları ve daha geniş kaynak kapsamı açık | SUP-02 | R9 / B0→B2 |
+| CAP-079 | Tedarikçi tehdit olayları | ThreatCluster/RansomLook son yerel snapshot'larında tam ad/domain dayanaklı iddia görünümü, kaynak kimliği ve kesinti/eski veri ayrımı var; ayrı ThreatCluster/RansomLook/HIBP izlemelerinde yeni/değişen kayıt bildirimi ve tarihî önce/sonra kanıtı var; haber/teyit sınıfları ve daha geniş kapsam açık | SUP-02 | R9 / B0→B2 |
 | CAP-080 | Tedarikçi maruziyet görünümü | İnsan onaylı envanter, güncel kabul edilmiş CNAME bağı ve iki kaynaklı iddia adayı tek salt-okunur görünümde; daha geniş EASM/CTI kaynakları açık | SUP-02 | R9 / B0→B2 |
 | CAP-081 | Açıklanabilir risk kartı | İş önemi, domain/ad dayanağı, kaynak kapsamı, güncellik, eksik veri, neden ve insan sonraki adımları görünür; sayısal risk/ihlal hükmü yok | SUP-02 | R9 / B0→B2 |
 | CAP-082 | İlişki zinciri ve etki | Tedarikçi olayından kullanıcı etkisine açık varsayımlar | SUP-03 | R9 / B0→B2 |

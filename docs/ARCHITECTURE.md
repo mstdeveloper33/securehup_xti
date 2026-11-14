@@ -1,9 +1,19 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.137.0, şema 63 ana proje yapısı.**
+**15 Kasım 2026 — 0.138.0, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
+
+`GlobalSearchService` ve `AssetRelationsService` ayrı salt okunur portlar
+üzerinden mevcut kanıtları tek SQLite okuma kesitinde birleştirir. Veri
+kaynağı yenilemez, okuma için yeni tablo veya indeks kopyası tutmaz.
+`SupplierWatchService` açık tedarikçi/kaynak seçimini yönetir; başarılı kaynak
+uygulamasının aynı yazma işleminde izleme sonucu, yerel bildirim ve varsa
+toplama tamamlanma bağı kaydedilir. Tarihî tedarikçi olay sınırı ve gerçek
+kaynak çalışması öncesi/sonrası kanıtı doğrular. Şema 64 yalnız dört tablo
+ekler. Ortak bildirim sırası ve bağımsız okundu durumu korunur.
+[0140 kararı](decisions/0140-search-supplier-watches-and-relations.md).
 
 `OrganizationScope`, etkin açık kullanıcı bağlantısını ortak domain modeli
 olarak taşır. Kuruluş birleşik raporu, kuruluş katkı görünümü ve dönem

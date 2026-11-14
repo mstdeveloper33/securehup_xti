@@ -114,7 +114,7 @@ class PublicNoticeWatchMigrationTests(unittest.TestCase):
         self.assertEqual((result["from_version"], result["to_version"]), (61, SCHEMA_VERSION))
         self.assertEqual(legacy_snapshot(self.path), before)
         self.assertEqual(legacy_snapshot(result["backup"]), before)
-        self.assertEqual(len(VERSION_TABLES[SCHEMA_VERSION] - VERSION_TABLES[61]), 4)
+        self.assertEqual(VERSION_TABLES[62] - VERSION_TABLES[61], frozenset(NEW_TABLES))
         with closing(sqlite3.connect(self.path)) as connection:
             self.assertEqual(validate_schema(connection), SCHEMA_VERSION)
             self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])

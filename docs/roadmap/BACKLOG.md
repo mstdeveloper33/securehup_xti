@@ -8,7 +8,10 @@
 0.136.0 ikinci teslimi ekler: açık kuruluş HIBP izlemesi, domain başına
 sessiz başlangıç, atomik yerel bildirim ve tarihî kaynak/kapsam kanıtı.
 0.137.0 kamu olayı vaka bağını ve çevrimdışı tam HTML raporunu ekler.
-Sonraki öneri gerçek Linux kullanım kabulüdür.
+0.138.0 ilk üç yeni özelliği ekler: platform genelinde yerel arama, açık
+tedarikçi kaynak değişim bildirimleri ve kayıtlı varlık ilişki geçmişi.
+[Kullanım ve sınırlar](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML
+rapor arşivi henüz uygulanmadı; gerçek Linux kullanım kabulü de açıktır.
 Kuruluş raporu, kapsamlı dönem/kaynak katkısı, önce/sonra kanıtları,
 doğrudan CTI bağlamı ve HIBP kamu metadata kataloğu kullanılabilir.
 Aşağıdaki eski sürüm notları tarihî kapsamı açıklar; geniş roadmap'in

@@ -3,6 +3,7 @@
 from xti.domain.inbox import InboxDetails, InboxPage
 from xti.interfaces.text import safe_text
 from xti.interfaces.public_notice_watches import change_lines as public_notice_change_lines
+from xti.interfaces.supplier_watches import watch_run_lines as supplier_watch_run_lines
 
 
 ORIGIN_LABELS = {"new": "Yeni aday", "existing": "Önceki kayıttan"}
@@ -119,6 +120,19 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
                 f"  Yeni {evidence.added_count} | değişen {evidence.updated_count}",
                 f"  Çalışma zamanı: {safe_text(evidence.executed_at)}",
             ])
+        elif item.supplier_change is not None:
+            evidence = item.supplier_change
+            run = evidence.run
+            supplier = evidence.scope["supplier"]
+            lines.extend([
+                "",
+                f"{read_state} | Tedarikçi kaynak eşleşmeleri değişti | {safe_text(supplier['display_name'])}",
+                f"  Bildirim: {safe_text(notice.id)} | Tedarikçi: {safe_text(run.supplier_id)}",
+                f"  Yeni {run.added_count} | değişen {run.updated_count} | eşleşmeden çıkan {run.removed_count}",
+                f"  Çalışma zamanı: {safe_text(run.recorded_at)} | Kaynak: {safe_text(evidence.source.name)}",
+                f"  İzleme çalışması: {safe_text(run.id)} | Kaynak çalışması: {safe_text(run.source_run_id)}",
+                "  Çalışma anındaki tedarikçi tanımıdır; eşleşme doğrulanmış ihlal veya sana etki kararı değildir.",
+            ])
         elif item.public_notice_change is not None:
             evidence = item.public_notice_change
             lines.extend([
@@ -161,6 +175,14 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
 
 def detail_lines(item: InboxDetails) -> list[str]:
     notice = item.notification
+    if item.supplier_change is not None:
+        return [
+            f"Bildirim: {safe_text(notice.id)} | Tedarikçi kaynak eşleşmeleri değişti",
+            f"Kutuda oluşturulma: {safe_text(notice.created_at)}",
+            f"Okundu zamanı: {safe_text(notice.read_at or 'Henüz okunmadı')}",
+            *supplier_watch_run_lines(item.supplier_change),
+            "Ayrıntıya bakmak bildirimi okundu işaretlemez; tarihî kanıt değişmez.",
+        ]
     if item.public_notice_change is not None:
         evidence = item.public_notice_change
         lines = [

@@ -174,6 +174,15 @@ from xti.interfaces.periodic_changes import periodic_changes_lines
 from xti.application.organizations import OrganizationService
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.interfaces.organizations import register_organizations_parser, execute_organization_command
+from xti.application.global_search import GlobalSearchService
+from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
+from xti.interfaces.global_search import register_global_search_parser, execute_global_search_command
+from xti.application.asset_relations import AssetRelationsService
+from xti.adapters.sqlite_asset_relations import SQLiteAssetRelationsRepository
+from xti.interfaces.asset_relations import register_asset_relations_parser, execute_asset_relations_command
+from xti.application.supplier_watches import SupplierWatchService
+from xti.adapters.sqlite_supplier_watches import SQLiteSupplierWatchRepository
+from xti.interfaces.supplier_watches import register_supplier_watch_parser, execute_supplier_watch
 from xti.application.organization_report import OrganizationReportService
 from xti.adapters.sqlite_organization_report import SQLiteOrganizationReportRepository
 from xti.interfaces.organization_report import execute_organization_report_command, execute_organization_export_command
@@ -778,6 +787,7 @@ def build_parser() -> Parser:
     register_public_notice_parser(commands)
     register_history_parser(commands)
     register_organizations_parser(commands)
+    register_global_search_parser(commands)
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -1995,6 +2005,7 @@ def build_parser() -> Parser:
         "suppliers", help="İnsan onaylı yerel tedarikçi envanterini yönet.",
     )
     supplier_actions = suppliers.add_subparsers(dest="supplier_action", required=True)
+    register_supplier_watch_parser(supplier_actions)
     supplier_add = supplier_actions.add_parser(
         "add", help="Bir kuruluşu açıkça tedarikçi olarak kaydet.",
     )
@@ -2586,6 +2597,7 @@ def build_parser() -> Parser:
         "surface", help="Kayıtlı adreslerin pasif ve yetkili aktif dış yüzey kanıtlarını yönet.",
     )
     surface_actions = surface.add_subparsers(dest="surface_action", required=True)
+    register_asset_relations_parser(surface_actions)
     surface_actions.add_parser(
         "source-evaluation",
         help="Pasif kaynak adaptörlerinin sürümlü kabul kararını ağsız göster.",
@@ -3485,6 +3497,11 @@ def run(args: argparse.Namespace) -> int | None:
             result = scheduling.prepare(args.profile, keep=args.keep)
             lines = schedule_preparation_lines(result)
         emit(asdict(result), lines, as_json=args.json)
+    elif args.command == "search":
+        data, lines = execute_global_search_command(
+            GlobalSearchService(SQLiteGlobalSearchRepository(settings.database)), args,
+        )
+        emit(data, lines, as_json=args.json)
     elif args.command == "organizations":
         if args.organization_action == "report":
             data, lines = execute_organization_report_command(
@@ -5065,6 +5082,12 @@ def run(args: argparse.Namespace) -> int | None:
                 "Önceki bulgu ve kararlar değişmedi. Sonraki kaynak kaydı yeniden aday olabilir.",
             ], as_json=args.json)
     elif args.command == "surface":
+        if args.surface_action == "relations":
+            data, lines = execute_asset_relations_command(
+                AssetRelationsService(SQLiteAssetRelationsRepository(settings.database)), args,
+            )
+            emit(data, lines, as_json=args.json)
+            return None
         if args.surface_action == "source-evaluation":
             report = SurfaceSourceEvaluationService().report()
             emit(
@@ -5702,6 +5725,12 @@ def run(args: argparse.Namespace) -> int | None:
             )
             emit(asdict(result), case_task_mutation_lines(result), as_json=args.json)
     elif args.command == "suppliers":
+        if args.supplier_action in {"watch", "watch-run-show"}:
+            data, lines = execute_supplier_watch(args, SupplierWatchService(
+                SQLiteSupplierWatchRepository(settings.database), LocalExecutionLock(settings.database),
+            ))
+            emit(data, lines, as_json=args.json)
+            return None
         supplier_service = SupplierService(SQLiteSupplierRepository(settings.database))
         if args.supplier_action == "add":
             result = supplier_service.add(

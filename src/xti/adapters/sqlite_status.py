@@ -198,6 +198,10 @@ class SQLiteStatusRepository:
                     "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
                     "FROM public_notice_watch_notifications"
                 ).fetchone()
+                supplier_total, supplier_unread = connection.execute(
+                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
+                    "FROM supplier_watch_notifications"
+                ).fetchone()
                 brand_total, brand_unread = connection.execute(
                     "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
                     "FROM brand_username_review_notifications"
@@ -205,13 +209,13 @@ class SQLiteStatusRepository:
                 total = (
                     finding_total + candidate_total + change_total + vulnerability_total
                     + cti_total + ransomware_total + brand_total
-                    + ransomlook_total + public_notice_total
+                    + ransomlook_total + public_notice_total + supplier_total
                 )
                 unread = (
                     finding_unread + candidate_unread + change_unread
                     + vulnerability_unread + cti_unread + ransomware_unread
                     + brand_unread
-                    + ransomlook_unread + public_notice_unread
+                    + ransomlook_unread + public_notice_unread + supplier_unread
                 )
                 assets = self._assets(connection, domain, limit)
                 histories = self._histories(connection, assets, providers)

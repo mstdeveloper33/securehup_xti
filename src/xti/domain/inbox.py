@@ -8,6 +8,7 @@ from xti.domain.cti_saved_searches import CtiSavedSearchChangeEvidence
 from xti.domain.ransomware_watches import RansomwareWatchChangeEvidence
 from xti.domain.ransomlook_watches import RansomLookWatchChangeEvidence
 from xti.domain.public_notice_watches import PublicNoticeWatchChangeEvidence
+from xti.domain.supplier_watches import SupplierWatchRunReport
 from xti.domain.brand_username_reviews import (
     BrandUsernameReviewNotificationEvidence,
 )
@@ -31,6 +32,7 @@ class Notification:
     brand_candidate_id: str | None = None
     ransomlook_run_id: str | None = None
     public_notice_watch_run_id: str | None = None
+    supplier_watch_run_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,6 +82,7 @@ class InboxItem:
     brand_profile_review: BrandUsernameReviewNotificationEvidence | None = None
     ransomlook_change: RansomLookWatchChangeEvidence | None = None
     public_notice_change: PublicNoticeWatchChangeEvidence | None = None
+    supplier_change: SupplierWatchRunReport | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,6 +106,7 @@ class InboxDetails:
     brand_profile_review: BrandUsernameReviewNotificationEvidence | None = None
     ransomlook_change: RansomLookWatchChangeEvidence | None = None
     public_notice_change: PublicNoticeWatchChangeEvidence | None = None
+    supplier_change: SupplierWatchRunReport | None = None
 
 
 @dataclass(frozen=True, slots=True)

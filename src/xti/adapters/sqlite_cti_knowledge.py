@@ -1306,6 +1306,16 @@ class SQLiteCtiKnowledgeRepository:
         self, *, query, query_key, kind, entity_type, indicator_type,
         active_only, checked_at, limit,
     ):
+        with self._storage._connection(readonly=True) as connection:
+            connection.execute("BEGIN")
+            return self.search_snapshot(connection, query=query, query_key=query_key,
+                kind=kind, entity_type=entity_type, indicator_type=indicator_type,
+                active_only=active_only, checked_at=checked_at, limit=limit)
+
+    def search_snapshot(
+        self, connection, *, query, query_key, kind, entity_type, indicator_type,
+        active_only, checked_at, limit,
+    ):
         try:
             query = normalize_search_query(query)
             if query_key != search_query_key(query):
@@ -1330,100 +1340,97 @@ class SQLiteCtiKnowledgeRepository:
 
         results = []
         indicator_repository = SQLiteCtiIndicatorRepository(self._storage.path)
-        with self._storage._connection(readonly=True) as connection:
-            connection.execute("BEGIN")
-            if kind in {"all", "entity"}:
-                entity_values = [] if entity_type is None else [entity_type]
-                entity_where = "" if entity_type is None else " WHERE entity_type=?"
-                rows = connection.execute(
-                    f"SELECT {_ENTITY_SELECT} FROM cti_entities{entity_where} "
-                    "ORDER BY entity_type, name_key, id LIMIT ?",
-                    (*entity_values, _MAX_SEARCH_RECORDS + 1),
-                ).fetchall()
-                if len(rows) > _MAX_SEARCH_RECORDS:
-                    raise StorageError("CTI arama varlık kapsamı güvenli sınırı aşıyor.")
-                for row in rows:
-                    details = self._entity_details(
-                        connection, row[0], _MAX_ASSERTIONS, _MAX_EVENTS,
-                    )
-                    current = tuple(value for value in details.assertions if value.active)
-                    selected = current if active_only else details.assertions
-                    if not selected:
-                        continue
-                    aliases = {
-                        alias.casefold(): alias
-                        for assertion in selected for alias in assertion.aliases
-                    }
-                    fields = (("name", details.entity.display_name),) + tuple(
-                        ("alias", aliases[key]) for key in sorted(aliases)
-                    )
-                    match = self._search_match(query_key, fields)
-                    if match is None:
-                        continue
-                    rank, _, _, field, value, match_type = match
-                    results.append((
-                        rank, 0, details.entity.entity_type,
-                        details.entity.display_name.casefold(), details.entity.id,
-                        CtiSearchResult(
-                            kind="entity", record_id=details.entity.id,
-                            record_type=details.entity.entity_type,
-                            display_value=details.entity.display_name,
-                            matched_field=field, matched_value=value,
-                            match_type=match_type,
-                            current_assertion_count=len(current),
-                            total_assertion_count=details.total_assertion_count,
-                            max_current_confidence=max(
-                                (item.confidence for item in current), default=None,
-                            ),
+        if kind in {"all", "entity"}:
+            entity_values = [] if entity_type is None else [entity_type]
+            entity_where = "" if entity_type is None else " WHERE entity_type=?"
+            rows = connection.execute(
+                f"SELECT {_ENTITY_SELECT} FROM cti_entities{entity_where} "
+                "ORDER BY entity_type, name_key, id LIMIT ?",
+                (*entity_values, _MAX_SEARCH_RECORDS + 1),
+            ).fetchall()
+            if len(rows) > _MAX_SEARCH_RECORDS:
+                raise StorageError("CTI arama varlık kapsamı güvenli sınırı aşıyor.")
+            for row in rows:
+                details = self._entity_details(
+                    connection, row[0], _MAX_ASSERTIONS, _MAX_EVENTS,
+                )
+                current = tuple(value for value in details.assertions if value.active)
+                selected = current if active_only else details.assertions
+                if not selected:
+                    continue
+                aliases = {
+                    alias.casefold(): alias
+                    for assertion in selected for alias in assertion.aliases
+                }
+                fields = (("name", details.entity.display_name),) + tuple(
+                    ("alias", aliases[key]) for key in sorted(aliases)
+                )
+                match = self._search_match(query_key, fields)
+                if match is None:
+                    continue
+                rank, _, _, field, value, match_type = match
+                results.append((
+                    rank, 0, details.entity.entity_type,
+                    details.entity.display_name.casefold(), details.entity.id,
+                    CtiSearchResult(
+                        kind="entity", record_id=details.entity.id,
+                        record_type=details.entity.entity_type,
+                        display_value=details.entity.display_name,
+                        matched_field=field, matched_value=value,
+                        match_type=match_type,
+                        current_assertion_count=len(current),
+                        total_assertion_count=details.total_assertion_count,
+                        max_current_confidence=max(
+                            (item.confidence for item in current), default=None,
                         ),
-                    ))
+                    ),
+                ))
 
-            if kind in {"all", "indicator"}:
-                indicator_values = [] if indicator_type is None else [indicator_type]
-                indicator_where = "" if indicator_type is None else " WHERE indicator_type=?"
-                rows = connection.execute(
-                    "SELECT id, indicator_type, value, created_at, updated_at "
-                    f"FROM cti_indicators{indicator_where} "
-                    "ORDER BY indicator_type, value, id LIMIT ?",
-                    (*indicator_values, _MAX_SEARCH_RECORDS + 1),
-                ).fetchall()
-                if len(rows) > _MAX_SEARCH_RECORDS:
-                    raise StorageError("CTI arama IOC kapsamı güvenli sınırı aşıyor.")
-                for row in rows:
-                    details = indicator_repository._details(
-                        connection, row, assertion_limit=_MAX_ASSERTIONS,
-                        event_limit=_MAX_EVENTS,
-                    )
-                    current = tuple(
-                        value for value in details.assertions
-                        if indicator_repository._is_current(value, checked_at)
-                    )
-                    selected = current if active_only else details.assertions
-                    if not selected:
-                        continue
-                    match = self._search_match(
-                        query_key, (("value", details.indicator.value),),
-                    )
-                    if match is None:
-                        continue
-                    rank, _, _, field, value, match_type = match
-                    results.append((
-                        rank, 1, details.indicator.indicator_type,
-                        details.indicator.value.casefold(), details.indicator.id,
-                        CtiSearchResult(
-                            kind="indicator", record_id=details.indicator.id,
-                            record_type=details.indicator.indicator_type,
-                            display_value=details.indicator.value,
-                            matched_field=field, matched_value=value,
-                            match_type=match_type,
-                            current_assertion_count=len(current),
-                            total_assertion_count=details.total_assertion_count,
-                            max_current_confidence=max(
-                                (item.confidence for item in current), default=None,
-                            ),
+        if kind in {"all", "indicator"}:
+            indicator_values = [] if indicator_type is None else [indicator_type]
+            indicator_where = "" if indicator_type is None else " WHERE indicator_type=?"
+            rows = connection.execute(
+                "SELECT id, indicator_type, value, created_at, updated_at "
+                f"FROM cti_indicators{indicator_where} "
+                "ORDER BY indicator_type, value, id LIMIT ?",
+                (*indicator_values, _MAX_SEARCH_RECORDS + 1),
+            ).fetchall()
+            if len(rows) > _MAX_SEARCH_RECORDS:
+                raise StorageError("CTI arama IOC kapsamı güvenli sınırı aşıyor.")
+            for row in rows:
+                details = indicator_repository._details(
+                    connection, row, assertion_limit=_MAX_ASSERTIONS,
+                    event_limit=_MAX_EVENTS,
+                )
+                current = tuple(
+                    value for value in details.assertions
+                    if indicator_repository._is_current(value, checked_at)
+                )
+                selected = current if active_only else details.assertions
+                if not selected:
+                    continue
+                match = self._search_match(
+                    query_key, (("value", details.indicator.value),),
+                )
+                if match is None:
+                    continue
+                rank, _, _, field, value, match_type = match
+                results.append((
+                    rank, 1, details.indicator.indicator_type,
+                    details.indicator.value.casefold(), details.indicator.id,
+                    CtiSearchResult(
+                        kind="indicator", record_id=details.indicator.id,
+                        record_type=details.indicator.indicator_type,
+                        display_value=details.indicator.value,
+                        matched_field=field, matched_value=value,
+                        match_type=match_type,
+                        current_assertion_count=len(current),
+                        total_assertion_count=details.total_assertion_count,
+                        max_current_confidence=max(
+                            (item.confidence for item in current), default=None,
                         ),
-                    ))
-            connection.rollback()
+                    ),
+                ))
         results.sort(key=lambda value: value[:-1])
         return CtiSearchReport(
             query=query, kind=kind, entity_type=entity_type,

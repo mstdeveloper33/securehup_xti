@@ -338,6 +338,8 @@ class SQLiteRansomLookClaimRepository:
         with self._storage._connection() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
+                from xti.adapters.sqlite_supplier_watches import preflight_supplier_watches
+                preflight_supplier_watches(connection)
                 runs, all_items = self._audit(connection)
                 previous = next(
                     (run for run in reversed(runs) if run.status == "complete"), None
@@ -398,6 +400,8 @@ class SQLiteRansomLookClaimRepository:
                     updated_count=counts["updated"], unchanged_count=counts["unchanged"],
                     removed_count=counts["removed"], error=None,
                 )
+                from xti.adapters.sqlite_supplier_watches import process_supplier_watches
+                process_supplier_watches(connection, "ransomlook", run.id)
                 record_collection_step_receipt(
                     connection, operation, result_kind="ransomlook_source_run",
                     result_id=run.id, result_status=run.status,
@@ -423,6 +427,8 @@ class SQLiteRansomLookClaimRepository:
         with self._storage._connection() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
+                from xti.adapters.sqlite_supplier_watches import preflight_supplier_watches
+                preflight_supplier_watches(connection)
                 self._audit(connection)
                 run_id = str(uuid4())
                 cursor = connection.execute(
@@ -459,6 +465,9 @@ class SQLiteRansomLookClaimRepository:
         if type(run_limit) is not int or not 1 <= run_limit <= 100:
             raise ValidationError("RansomLook geçmiş sınırı 1–100 arasında olmalı.")
         with self._storage._connection(readonly=True) as connection:
+            connection.execute("BEGIN")
+            from xti.adapters.sqlite_supplier_watches import preflight_supplier_watches
+            preflight_supplier_watches(connection)
             runs, _ = self._audit(connection)
         latest = runs[-1] if runs else None
         complete = next((run for run in reversed(runs) if run.status == "complete"), None)

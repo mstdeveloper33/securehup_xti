@@ -1,10 +1,28 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.137.0 · Şema 63.**
+**15 Kasım 2026 · 0.138.0 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `search QUERY` on tür yerel kaydı tek salt okunur kesitte arar; tam/başlangıç/
+  içerme sırası, tür filtresi, toplamlar, sayfalama ve ayrıntı komutları vardır.
+  `--all` etkin olmayan/çıkarılmış kayıtların son bilinen halini de gösterir;
+  tüm sürüm arşivi değildir. Kaynak hatası ve son başarı ayrıca görünür.
+- `suppliers watch` ThreatCluster, RansomLook ve HIBP için ayrı açık izleme
+  seçer. Başarılı kaynak yenilemesiyle aynı işlemde karşılaştırma ve yerel
+  bildirim kaydedilir. İlk ölçüm/yeniden açma/kimlik değişimi sessizdir;
+  yeni/değişen eşleşmeler bildirilir. Kaynak hatası, tekrar ve yalnız
+  çıkarılma bildirim üretmez. Tarihî tedarikçi ve önce/sonra kaynak kanıtı
+  korunur; ad belirsizliği ihlal hükmüne dönüştürülmez.
+- `surface relations DOMAIN` kayıtlı DNS/IP, TLS sertifikası, CNAME ve insan
+  tedarikçi kararlarını ilk/son gözlemle birleştirir. `--history` başarısız ve
+  boş kontroller dahil tek tek kanıtları sayfalar. Gözlemlerden kesintisiz
+  geçerlilik, sahiplik veya kaydedilmemiş eski kanıt bağı çıkarılmaz.
+- Şema 64 dört boş tedarikçi izleme tablosu ekler; açık yedekli geçiş gerekir.
+  Üç özellik yeni paket veya ücretli API eklemez. Kullanım:
+  [arama, tedarikçi ve ilişki rehberi](SEARCH_SUPPLIERS_AND_RELATIONS.md).
 
 - `cases evidence-add --type public_notice|public_notice_watch` tam tarihî
   çalışma ve olay kimliğini vakaya bağlar; önce/sonra metadata, kaynak
@@ -1224,6 +1242,30 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. 0.133.0 kayıtlı profil için Linux zamanlama dosyalarını ve doğrulanmış yedek bakımını ekler; genel olay aboneliği ve dağıtık servis değildir. Runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.138.0 tam paket **1.918 test / 673,814 saniye**: 1.917 başarılı, yalnız
+Linux `systemd-analyze` kontrolü macOS'ta atlandı. Hızlı kapı **524 test /
+250,402 saniye**: 523 başarılı ve aynı tek atlama. Shell sözdizimi ve
+Python derlemesi de geçti. Çalışmalar boyunca 808 kod/test/script/
+konfigürasyon dosyasının özetleri değişmedi. Bunlar yerel doğrulamalardır;
+GitHub Actions sonucu olarak sunulmaz.
+
+55 yeni test; on arama ailesi, gerçek toplam/sayfalama, geçerli gezinme
+komutları, tek okuma kesiti, tarihî tedarikçi/insan kararı, sessiz başlangıç,
+üç kaynak ayrımı, gizli bozuk geçmiş, ağ öncesi ret ve bildirim okundu
+bağımsızlığını kapsar. Kaynak/izleme/bildirim yazıldıktan sonra enjekte edilen
+hata ve collection receipt hatasında bütün yazımların geri alındığı görüldü.
+Bozuk tedarikçi yaşam döngüsü arama ve ilişki ekranında aynı ortak okuyucuyla
+reddedilir. 216 eski geçiş testi ayrıca geçti; örnek 42 komut ayrıştırıldı.
+
+0.138.0 gerçek verinin kopyasında 63→64 geçişi **133 eski tablo / 86.843
+satırın** kolon, rowid, değer ve SQL tanımlarını; sıra sayaçlarını birebir
+korudu. Dört yeni tablo boştu. Benzersiz yedekten yeni dosyaya geri dönüş,
+tekrarlı migrate ve ağsız yeni komutların veriyi değiştirmemesi doğrulandı.
+Asıl yerel veritabanı da benzersiz yedekle 63→64 geçirildi; aynı 86.843
+satır ve tüm eski tanımlar korundu. Toplam 137 tablo var; yeni dört tablo
+boş. Bütünlük ve yabancı anahtar kontrolleri geçti; kişisel izleme açılmadı.
+
 
 0.137.0 tam paketi **1.863 test / 628,817 saniye** ile tamamlandı: 1.862 geçti,
 yalnız Linux `systemd-analyze` kontrolü macOS'ta atlandı. Testlerin başı ve

@@ -12,6 +12,7 @@ from xti.adapters.case_public_notice_schema import (
     migrate_case_public_notice_schema,
 )
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, SchemaError, validate_schema
+from xti.adapters.supplier_watch_schema import SUPPLIER_WATCH_DDL
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from tests import test_cases as fixtures
 from tests.case_evidence_v62_fixture import case_evidence_layout_v62
@@ -130,8 +131,20 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
         before = declarations(self.path)
         self.storage.migrate()
         after = declarations(self.path)
-        changed = {key for key in before.keys() | after.keys() if before.get(key) != after.get(key)}
+        self.assertTrue(before.keys() <= after.keys())
+        changed = {key for key in before if before[key] != after.get(key)}
         self.assertEqual(changed, {("table", "case_evidence")})
+        added = {key: value for key, value in after.items() if key not in before}
+        # Include SQLite's constraint auto-indexes as well as named declarations.
+        with closing(sqlite3.connect(":memory:")) as expected_connection:
+            for statement in SUPPLIER_WATCH_DDL:
+                expected_connection.execute(statement)
+            expected_added = {
+                (kind, name): declaration for kind, name, declaration in expected_connection.execute(
+                    "SELECT type,name,sql FROM sqlite_schema ORDER BY type,name"
+                ) if (kind, name) not in before
+            }
+        self.assertEqual(added, expected_added)
         self.assertEqual(before[("table", "case_evidence")], CASE_EVIDENCE_V62_DDL)
         self.assertEqual(after[("table", "case_evidence")], CASE_EVIDENCE_DDL)
         with closing(sqlite3.connect(self.path)) as connection:
