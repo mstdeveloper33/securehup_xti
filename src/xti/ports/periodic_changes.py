@@ -11,5 +11,6 @@ class PeriodicChangesRepository(Protocol):
         scope: PeriodicScope,
         *,
         limit_per_section: int,
+        offset: int = 0,
     ) -> PeriodicChangesSnapshot:
         ...

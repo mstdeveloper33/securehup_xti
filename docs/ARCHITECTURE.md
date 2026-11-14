@@ -1,9 +1,29 @@
 # Yerel Uygulamanın Mimarisi
 
-**14 Kasım 2026 — 0.133.0, şema 59 ana proje yapısı.**
+**14 Kasım 2026 — 0.134.0, şema 60 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
+
+`OrganizationScope`, etkin açık kullanıcı bağlantısını ortak domain modeli
+olarak taşır. Kuruluş birleşik raporu, kuruluş katkı görünümü ve dönem
+raporu ayrı küçük okuma portları üzerinden kendi içinde tek SQLite okuma
+kesiti kullanır. Tazelik ve katkı okumalarının bağlantı alan yardımcıları
+mevcut dış arayüzleri değiştirmez. Vaka bağlantısı tam kanıt ve yaşam döngüsü
+üzerinden doğrulanır; rapora yalnız kimlik/durum/ilgili bağ yansıtılır.
+`CtiContextService` tam gösterge/varlık kimliğinden doğrudan ilişkileri,
+güncel iddia ile olay geçmişini karşılaştırarak gösterir. Kaynak iddiaları
+ve bağımsız geçerlilik durumları korunur; dolaylı atıf yapılmaz.
+[0135 kararı](decisions/0135-composed-organization-evidence.md).
+
+`PublicNoticeService`, küçük kaynak/depo portlarını kullanır; HTTP adaptörü
+yalnız sabit HIBP kamu katalog yolunu çağırır. CLI yenilemede ortak kilidi
+alır; depo ağ öncesi doğrulanır. Şema 60 çalışma ve kompakt fark tabloları
+ekler. Son başarılı katalog doğrulanan geçmişten oluşturulur; hata önceki
+kataloğu silmez. Kuruluş/dönem raporu aynı bağlantıdan tam domain eşleşmeleri
+okur; kaynak sınıfları/atıf/lisans kaybolmaz. Readiness genel katalog
+durumunu, domain eşleşme sayısından ayırır. Harici kütüphane gerekmez.
+[0136 kararı](decisions/0136-public-breach-metadata.md).
 
 `SchedulingService`, profil/plan, ortak kilit, kurtarma, dosya üretimi ve
 yedek portlarını birleştirir. `SystemdScheduleWriter` yalnız yeni dosya
@@ -26,8 +46,10 @@ verisini kopyalamaz, sahiplik veya toplama kapsamı çıkarmaz; hedef geri
 `PeriodicChangesService`, 1/7 günlük UTC penceresini bir kez belirler.
 `SQLitePeriodicChangesRepository` bütün aileleri tek salt okunur transaction
 ile okur; yerel kayıt zamanı ile kaynak gözlem zamanı ayrı tutulur. Başlangıç,
-değişim ve hata satırları ayrı sayılır. Domain filtresi yalnız marka ve dış
-yüzeyi kapsar; kuruluş filtresi uygulanmadı. Yeni rapor tablosu veya ağ çağrısı
+değişim ve hata satırları ayrı sayılır. Domain filtresi marka, dış yüzey ve
+kamu olaylarını kapsar; kuruluş filtresi güncel etkin açık üyeliği kullanır.
+Kaydedilmiş kontrol değerleri son başarılı ölçümle karşılaştırılır; hatalar
+boş değer değişimi sayılmaz. Yeni rapor tablosu veya ağ çağrısı
 bulunmaz. Tarihî sorgu/ad eksikse güncel tanımdan tahmin edilmez.
 
 `SourceContributionService`, açık provider ve gerçek iş/aday kanıtlarından
@@ -35,7 +57,7 @@ tekil domain kümeleri ile kayıtlı deneme oranlarını hesaplar. SQLite portu
 tek salt okunur kesit verir; marka adaylarında tek hedef + kural + typos
 sınırı korunur. Serbest kaynak metninden sağlayıcı atfı yapılmaz; çok hedefli
 ve sonuçsuz denemeler görünür biçimde ayrılır. Gösterim sayfalaması toplamları
-etkilemez. Bu teslim yeni sağlayıcı seçmez; ölçüm ve
+etkilemez. Bu karşılaştırma yeni domain keşif sağlayıcısı seçmez; ölçüm ve
 [karar notu](roadmap/SOURCE_PROVIDER_EVALUATION.md) ekler.
 
 `AttackCatalogService` yerel kimlikli ATT&CK kataloğunu okur. Resmî yanıt tek
@@ -227,9 +249,10 @@ Terminal değişikliği alan adı kurallarını değiştirmeyi gerektirmez. Depo
 - Şema 57: açık kuruluş grupları, hedef bağlantıları ve revizyon olayları.
 - Şema 58: STIX kimlikli ATT&CK kataloğu, başarılı senkron ve değişim geçmişi.
 - Şema 59: ayrı RansomLook izleme bildirimi, ortak kutu sırası ve okundu durumu.
+- Şema 60: HIBP kamu metadata kataloğu çalışmaları ve kompakt fark geçmişi.
   Bu ek tablolar eski kayıtlardan tahminle doldurulmaz; mevcut kaynak kanıtları korunur.
-- 0.131.0 şema 55, 0.132.0 şema 56 kullanır; 0.133.0 şema 59'dur.
-- Şema 1–58 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.
+- 0.131.0 şema 55, 0.132.0 şema 56 kullanır; 0.133.0 şema 59, 0.134.0 şema 60'tır.
+- Şema 1–59 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.
 - Domain tekilliği uygulama normalleştirmesi ve veritabanı kısıtıyla korunur.
 - Biçim işareti application_id=0x58544901; bu bir güven/özgünlük imzası değildir.
 - Eski şemadan geçiş açık migrate komutuyla yapılır. Yazma kilidi altında önce özgün sürümün yedeği alınır. Gerekli ara tablolar ve şema 17'nin zafiyet tabloları tek transaction içinde oluşturulur; yalnız şema 1–5'ten geçişte önceki bulguların bildirimleri oluşturulur. Hata geri alınır; bilinmeyen şema değiştirilmez. Önceki sürümlerin tablo kümeleri sabittir.

@@ -261,9 +261,9 @@ class PeriodicChangesTests(unittest.TestCase):
         watch = service.add('example.com', 'samplebrand', platforms=('GitHub',)).watch
         service.run(watch.id)
         report = self.report(domain='EXAMPLE.COM.')
-        self.assertEqual([section.family for section in report.sections], ['brand', 'surface'])
+        self.assertEqual([section.family for section in report.sections], ['brand', 'surface', 'notices'])
         self.assertEqual(report.sections[0].total_change_count, 1)
-        self.assertTrue(all((item.scope_id == 'example.com' for item in report.coverage)))
+        self.assertTrue(all((item.scope_id == 'example.com' for item in report.coverage if item.scope_kind == 'domain')))
         with self.assertRaises(ValidationError):
             self.report(domain='missing.example')
 

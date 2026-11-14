@@ -5,6 +5,7 @@ from dataclasses import asdict
 from xti.application.organizations import OrganizationService
 from xti.domain.organizations import ORGANIZATION_TARGET_KINDS, organization_link_effective
 from xti.interfaces.text import safe_text
+from xti.interfaces.organization_report import register_organization_report_parser
 
 _ACTIONS = {"added": "Kaydedildi", "renamed": "Ad değişti", "reactivated": "Yeniden etkin",
             "revoked": "Geri çekildi", "unchanged": "Değişmedi", "linked": "Bağlandı", "updated": "Güncellendi"}
@@ -15,6 +16,7 @@ _KINDS = {"domain": "Domain", "username-watch": "Sosyal izleme",
 def register_organizations_parser(commands) -> None:
     parser = commands.add_parser("organizations", help="Domain ve izlemeleri açık seçimle kuruluş altında grupla.")
     actions = parser.add_subparsers(dest="organization_action", required=True)
+    register_organization_report_parser(actions)
     add = actions.add_parser("add", help="Yerel kuruluş grubu oluştur; veri toplamaz.")
     add.add_argument("name")
     add.add_argument("--reason", default="Terminalden kuruluş grubu oluşturuldu.", help="İsteğe bağlı açıklama.")

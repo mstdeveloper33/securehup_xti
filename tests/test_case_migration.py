@@ -39,6 +39,8 @@ class CaseMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS public_notice_changes")
+            connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")
             connection.execute("DROP TABLE IF EXISTS attack_catalog_changes")
             connection.execute("DROP TABLE IF EXISTS attack_catalog_phases")

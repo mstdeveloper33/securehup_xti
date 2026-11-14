@@ -52,6 +52,8 @@ class OrganizationMigrationTests(unittest.TestCase):
             ))
             SQLiteCollectionHistoryRepository(path).begin(plan, started_at=NOW)
         with closing(sqlite3.connect(path)) as connection, connection:
+            connection.execute("DROP TABLE IF EXISTS public_notice_changes")
+            connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")
             for table in ORGANIZATION_TABLES:
                 connection.execute(f"DROP TABLE {table}")

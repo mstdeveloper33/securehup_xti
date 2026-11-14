@@ -37,6 +37,8 @@ class RansomLookNotificationMigrationTests(unittest.TestCase):
         org = organizations.add(name_key="example", display_name="Example", reason="Açık kuruluş seçimi.", recorded_at=fixtures.NOW.isoformat()).organization
         organizations.link(org.id, normalize_organization_target("domain", "example.com"), reason="Kullanıcı seçimi.", recorded_at=fixtures.NOW.isoformat())
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            connection.execute("DROP TABLE IF EXISTS public_notice_changes")
+            connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE ransomlook_watch_notifications")
             connection.execute("PRAGMA user_version=58")
             self.assertEqual(validate_schema(connection, allow_legacy=True), 58)

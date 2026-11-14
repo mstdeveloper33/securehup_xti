@@ -1,8 +1,8 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.133.0 · **Tarih:** 14 Kasım 2026 · **Şema:** 59.
-Kuruluş gruplama, dönem raporu, kaynak katkısı, ATT&CK kataloğu,
-RansomLook bildirimleri ve Linux zamanlama dosyaları kullanılabilir.
+**Sürüm:** 0.134.0 · **Tarih:** 14 Kasım 2026 · **Şema:** 60.
+Kuruluş birleşik raporu, kuruluşa özel değişim/kaynak görünümü, ayrıntılı
+önce/sonra kanıtı, CTI ilişki bağlamı ve ücretsiz kamu ihlal kataloğu kullanılabilir.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -44,7 +44,7 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 59 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 60 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
@@ -68,7 +68,7 @@ ile kesilmiş kayıtları kapatabilirsin. Bu komut internetten toplama yapmaz.
 ./xti sources status --domain example.com --details
 ```
 
-Bu ekran 11 kaynak/iş akışının kurulumunu, son çalışma sonucunu, son başarılı
+Bu ekran kaynak/iş akışlarının kurulumunu, son çalışma sonucunu, son başarılı
 yerel kaydın güncelliğini ve önerilen sonraki komutu birlikte gösterir.
 Tarama ile alt alan adı keşfi ayrı satırlardır. `--domain` bu iki işlemi seçilen
 domaine daraltır; sosyal izlemeler ve genel beslemeler kendi kapsamını korur.
@@ -115,6 +115,21 @@ listeler; `unlink`, `rename`, `revoke` ve `reactivate` değişiklik geçmişini 
 Gruplama sahiplik veya ihlal doğrulaması değildir; toplama başlatmaz ve
 profillerin seçimini değiştirmez. Aynı kayıt birden çok grupta bulunabilir.
 
+Kuruluşun bütün bağlı domain ve izlemelerinin kayıtlarını birlikte aç:
+
+```sh
+./xti organizations report KURULUS_KIMLIGI
+./xti changes --organization KURULUS_KIMLIGI --days 7
+./xti sources contribution --organization KURULUS_KIMLIGI
+```
+
+Raporda gerçek adresler, profil/iddia kayıtları, son deneme ve son başarı,
+eski/eksik veriler, bildirimler ve ilgili mevcut vakalara geçiş bulunur.
+Geri çekilmiş bağlantılar rapor kapsamına girmez. `--target-offset/--target-limit`
+hedefleri, `--item-offset/--item-limit` her bölümdeki kayıtları sayfalar;
+toplamlar değişmez. Bu bir yerel gruplamadır, müşteri erişim yalıtımı değildir.
+[Kuruluş raporu rehberi](docs/ORGANIZATION_REPORT.md) bütün komutları açıklar.
+
 ## Son bir günde veya bir haftada ne değişti?
 
 ```sh
@@ -126,13 +141,17 @@ profillerin seçimini değiştirmez. Aynı kayıt birden çok grupta bulunabilir
 
 Rapor son 24/168 saatte **yerelde kaydedilen** yenilikleri, değişimleri,
 ilk ölçümleri ve kaynak hatalarını ayrı gösterir. Varsayılan bütün yerel
-marka, dış yüzey, sosyal ve iki ransomware kaynağıdır. Domain filtresi
-**yalnız marka ve dış yüzey** bölümlerini kapsar; kuruluş bağlantıları bu
-filtreye izlemeleri kendiliğinden katmaz. Kuruluş filtresi henüz yoktur.
+marka, dış yüzey, sosyal, iki ransomware kaynağı, toplama oturumları ve kamu
+olay kataloğudur. Domain filtresi marka, dış yüzey ve katalogdaki tam domain
+eşleşmelerini kapsar. `--organization` yalnız kuruluşun güncel etkin
+bağlantılarını seçer; geçmişte sahiplik varmış gibi yorumlanmaz.
 
 Her satırın kayıt/izleme/çalışma kimliği bulunur. Aynı iddianın farklı
 kaynaklardaki satırları tek doğrulanmış olay sayılmaz. `--limit 200` bölüm
-başına gösterimi artırır; toplam ve gösterilmeyen sayı ayrıca verilir.
+başına gösterimi artırır; `--offset 200` sonraki sayfayı açar. Toplam ve
+gösterilmeyen sayı ayrıca verilir. DNS/TLS/web/posta/servis/CNAME satırlarında
+saklanmış önce/sonra değerleri ve önceki kayıt kimlikleri bulunur. Başarısız
+kontrol boş değerle karşılaştırılmaz; son başarılı ölçüm korunur.
 Komut internete çıkmaz, yeni analiz veya bildirim oluşturmaz.
 
 ## Hangi kaynak hangi adresleri getirdi?
@@ -153,11 +172,36 @@ tamamlanan kayıtlı denemelerin toplam bitmiş denemelere oranıdır; doğruluk
 veya internet kapsama oranı değildir. Hiç veri yoksa oran bilinmiyor kalır.
 
 Bu rapor ağsız ve yazmasızdır. Kaynaklarda görülen bir alt alan adı otomatik
-olarak sana ait sayılmaz; mevcut inceleme kararı ayrıca gösterilir. Yeni
-sağlayıcı eklenmedi: bağımsız katkı ve erişim/lisans koşulları doğrulanmadan
+olarak sana ait sayılmaz; mevcut inceleme kararı ayrıca gösterilir. Bu
+karşılaştırmaya yeni domain keşif sağlayıcısı eklenmedi: katkı ve erişim koşulları doğrulanmadan
 adaptör seçilmeyecek. Common Crawl'ın dış erişim sorunu açık kalıyor;
 ücretsiz erişim, sınırsız sorgu veya kesintisiz hizmet garantisi değildir.
 [Karar dayanağı](docs/roadmap/SOURCE_PROVIDER_EVALUATION.md) ayrıntıları açıklar.
+
+## Ücretsiz kamu ihlal kataloğu ve CTI ilişkileri
+
+```sh
+./xti notices refresh
+./xti notices search --domain example.com
+./xti notices search "kuruluş adı"
+./xti notices status
+./xti cti context --type domain --value example.com
+./xti cti context --entity CTI_VARLIK_KIMLIGI
+```
+
+`notices refresh`, [Have I Been Pwned](https://haveibeenpwned.com) kamu
+olay kataloğunu tek istekle alır; API anahtarı veya ücretli abonelik gerekmez.
+Diğer komutlar yerel kayıtları okur. Katalog olay adı, domain, tarih ve
+kaynak sınıfları içerir; e-posta/hesap/parola sorgusu yapmaz. İlk alım
+başlangıç ölçümüdür. Hata son başarılı veriyi silmez; tam domain eşleşmeleri
+kuruluş ve dönem raporuna girer. Kaynak atfı ve CC BY 4.0 lisansı korunur.
+[Erişim ve kapsam doğrulaması](docs/PUBLIC_NOTICE_SOURCE_ACCEPTANCE.md).
+
+`cti context`, tam IOC değerinden veya kayıtlı varlık kimliğinden bir adım
+uzaktaki mevcut aktör/kampanya/malware/rapor ilişkilerini dayanaklarıyla açar.
+İlişkiyi sistem kendisi çıkarmaz; kaynağın iddiasını ve etkinlik durumunu
+gösterir. Kayıt bulunmaması güvenli olduğu anlamına gelmez. Ayrıntı ve
+sayfalama [kuruluş rehberinde](docs/ORGANIZATION_REPORT.md) yer alır.
 
 ## Bir domain için kaynakları birlikte çalıştır
 

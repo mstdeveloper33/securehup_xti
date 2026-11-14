@@ -45,7 +45,8 @@ class SourceContributionService:
         )
         return (ordered[0], ordered[-1])
 
-    def _group(self, snapshot, family, rule_version, typos, offset, limit):
+    @classmethod
+    def _group(cls, snapshot, family, rule_version, typos, offset, limit):
         providers = PROVIDERS[family]
         all_attempts = tuple((attempt for attempt in snapshot.attempts if attempt.family == family and (family == 'surface' or (attempt.rule_version, attempt.typos) == (rule_version, typos))))
         memberships = {provider: defaultdict(list) for provider in providers}
@@ -102,8 +103,8 @@ class SourceContributionService:
             excluded = tuple((attempt for attempt in selected if attempt.targets != (snapshot.asset_value,)))
             other_domains = set().union(*(sets[other] for other in providers if other != provider))
             evidence_times = [evidence.recorded_at for values in memberships[provider].values() for evidence in values] if family == 'surface' else [attempt.finished_at for attempt in eligible if attempt.result_available and attempt.finished_at]
-            evidence_first, evidence_last = self._range(evidence_times)
-            attempt_first, attempt_last = self._range([attempt.started_at for attempt in eligible])
+            evidence_first, evidence_last = cls._range(evidence_times)
+            attempt_first, attempt_last = cls._range([attempt.started_at for attempt in eligible])
             reviews = tuple(((
                 status,
                 sum((status in record.review_statuses for record in by_provider[provider].values())),
@@ -111,9 +112,9 @@ class SourceContributionService:
             queued = sum((job.provider == provider and job.targets == (snapshot.asset_value,) and ((job.rule_version, job.typos) == (rule_version, typos)) for job in snapshot.queued_jobs)) if family == 'brand' else 0
             sources.append(ProviderContribution(
                 provider,
-                self._page(sets[provider], by_provider[provider], offset, limit),
-                self._page(sets[provider] & other_domains, by_provider[provider], offset, limit),
-                self._page(sets[provider] - other_domains, by_provider[provider], offset, limit),
+                cls._page(sets[provider], by_provider[provider], offset, limit),
+                cls._page(sets[provider] & other_domains, by_provider[provider], offset, limit),
+                cls._page(sets[provider] - other_domains, by_provider[provider], offset, limit),
                 outcome_counts(eligible),
                 outcome_counts(excluded),
                 len(excluded),
@@ -150,8 +151,8 @@ class SourceContributionService:
             rule_version,
             typos,
             tuple(sources),
-            self._page(union, combined, offset, limit),
-            tuple((ContributionPairOverlap(a, b, self._page(sets[a] & sets[b], combined, offset, limit)) for a, b in combinations(providers, 2))),
+            cls._page(union, combined, offset, limit),
+            tuple((ContributionPairOverlap(a, b, cls._page(sets[a] & sets[b], combined, offset, limit)) for a, b in combinations(providers, 2))),
             'local_comparison' if comparable else 'insufficient_history',
             notes,
         )
@@ -167,14 +168,20 @@ class SourceContributionService:
         snapshot = self.repository.snapshot(domain, family=family)
         if snapshot.asset_value != domain:
             raise ValidationError('Kaynak katkısı seçilen domainle uyuşmuyor.')
+        return self.describe(snapshot, family=family, detail_offset=detail_offset, detail_limit=detail_limit)
+
+    @classmethod
+    def describe(cls, snapshot, *, family, detail_offset, detail_limit):
+        """Format a captured snapshot without opening another read transaction."""
+        domain = snapshot.asset_value
         groups = []
         if family in {'all', 'surface'}:
-            groups.append(self._group(snapshot, 'surface', None, None, detail_offset, detail_limit))
+            groups.append(cls._group(snapshot, 'surface', None, None, detail_offset, detail_limit))
         if family in {'all', 'brand'}:
             selections = {(attempt.rule_version, attempt.typos) for attempt in snapshot.attempts if attempt.family == 'brand'}
             selections.update(((job.rule_version, job.typos) for job in snapshot.queued_jobs))
             for rule, typos in sorted(selections):
-                groups.append(self._group(
+                groups.append(cls._group(
                     snapshot,
                     'brand',
                     rule,
@@ -196,5 +203,5 @@ class SourceContributionService:
             tuple(groups),
             snapshot.schema_version,
             notes,
-            'Yeni sağlayıcı seçilmedi. Mevcut yerel kapsam, bağımsız bir ücretsiz kaynağı eklemeyi tek başına gerekçelendirmez; ölçülen boşluk ve resmî erişim koşulları ayrıca doğrulanmalı.',
+            'Domain keşfi/marka araması için yeni sağlayıcı seçilmedi. Mevcut yerel kapsam, bağımsız bir ücretsiz kaynağı eklemeyi tek başına gerekçelendirmez; ölçülen boşluk ve resmî erişim koşulları ayrıca doğrulanmalı.',
         )

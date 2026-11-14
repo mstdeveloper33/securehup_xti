@@ -1,5 +1,36 @@
 # Değişiklik Kaydı
 
+## 0.134.0 — 14 Kasım 2026
+
+- `organizations report ID`: etkin açık domain/izleme bağlantılarına göre
+  birleşik yerel kanıt; gerçek kayıtlar, sayfalama, son deneme/son başarı,
+  eski/eksik veri ayrımı ve ilgili bildirim/vakalara geçiş.
+- `changes --organization ID`: günlük/haftalık dönem ve karma oturumlarda
+  yalnız ilgili adımlar. DNS/TLS/web/posta/servis/CNAME ve sosyal değişimlerde
+  kayıtlı önce/sonra değerleri; başarısız sorgu boş başarı sayılmaz.
+  `--offset` ile kategori ve kapsama sayfaları; toplamlar korunur.
+- `sources contribution --organization ID`: domain/kural/kaynak bazında
+  bağımsız kanıtlar ve gerçek deneme pay/paydasını tek okuma anında gösterme.
+- `cti context`: tam domain/IP/URL/hash veya CTI varlık kimliğinin doğrudan
+  kayıtlı ilişkileri; kaynak, geçerlilik, geri çekilme ve sayfalama. Kaynaksız
+  veya dolaylı atıf yoktur; güncel iddialar geçmişleriyle doğrulanır.
+- HIBP kamu ihlal metadata kataloğu: anahtarsız tek yenileme, yerel
+  arama/ayrıntı, başlangıç/fark ve hata geçmişi. Kaynak bayrakları, atıf ve
+  lisans görünür. E-posta/hesap/parola veya ham sızıntı içeriği sorgulanmaz.
+  Kuruluş/dönem raporunda tam domain eşleşmeleri, kaynak durumunda genel
+  katalog görünür. Canlı kabulde 1.052 kayıt ve yerel `adobe.com` araması geçti.
+- Şema 59→60 iki tablo ekler; benzersiz geçiş yedeği ve açık migration.
+  Üyelik, insan kararı veya bildirim geçmişi eski veriden türetilmez.
+- Bağımsız incelemede bulunan güncel CTI iddiası/geçmiş ve vaka kanıt
+  bağı/geçmiş tutarsızlıkları artık açık hata verir; yanıltıcı etkinlik veya
+  kuruluş ilişkisi gösterilmez. Raporlar ağsız, yazmasız, terminalden bağımsız
+  servisler üzerinden çalışır. Ücretli API veya yeni paket bağımlılığı yoktur.
+- Tam paket: 1.743 test / 509,592 saniye; 1.742 başarılı, bir Linux kontrolü
+  macOS'ta atlandı. Hızlı kapı: 349 test / 131,370 saniye, aynı tek atlama.
+  Gerçek veri kopyasında ve asıl verinin yedekli yükseltmesinde 127 eski tablo,
+  86.843 satır korundu; geri dönüş yedeği yeni dosyaya kurtarılarak doğrulandı.
+  Mevcut CTI kaynakları ve dört hedefli özel test kuruluşu gerçek CLI'de geçti.
+
 ## 0.133.0 — 14 Kasım 2026
 
 - `organizations` ile kayıtlı domain ve seçili izlemeleri açık kullanıcı

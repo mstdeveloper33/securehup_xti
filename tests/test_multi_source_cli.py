@@ -222,7 +222,7 @@ class MultiSourceCLITests(unittest.TestCase):
                 "crt.sh", "theharvester-archives", "urlscan", "google-public-dns",
                 "explicit-https-head", "explicit-tcp-connect", "feodo-tracker",
                 "certpl-warning-list", "threatcluster-ransomware-claims",
-                "ransomlook-ransomware-posts",
+                "ransomlook-ransomware-posts", "hibp-public-breach-catalog",
                 "mitre-attack-enterprise", "cisa-kev",
                 "first-epss", "nist-nvd-cve", "osv-dev", "canonical-ubuntu-osv",
                 "redhat-csaf-vex", "suse-csaf-vex",

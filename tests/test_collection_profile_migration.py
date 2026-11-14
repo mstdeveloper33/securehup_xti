@@ -23,6 +23,8 @@ class CollectionProfileMigrationTests(unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("DROP TABLE collection_profile_events")
             connection.execute("DROP TABLE collection_profiles")
+            connection.execute("DROP TABLE IF EXISTS public_notice_changes")
+            connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")
             connection.execute("DROP TABLE IF EXISTS attack_catalog_changes")
             connection.execute("DROP TABLE IF EXISTS attack_catalog_phases")

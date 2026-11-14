@@ -184,7 +184,7 @@ class CrossFeatureWorkflowCLITests(unittest.TestCase):
             failures = [item for section in report["sections"] for item in section["failures"]]
             self.assertIn(failed["result_id"], {item["run_id"] for item in failures})
         scoped = self.result("changes", "--domain", "example.com", "--days", "7")
-        self.assertEqual({section["family"] for section in scoped["sections"]}, {"brand", "surface"})
+        self.assertEqual({section["family"] for section in scoped["sections"]}, {"brand", "surface", "notices"})
 
     def check_source_contribution(self, baseline, resumed):
         report = self.result("sources", "contribution", "example.com")

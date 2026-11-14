@@ -41,6 +41,9 @@ Yalnız sana ait olan veya izleme iznin bulunan domaini ekle:
 Kurulum ve veri durumunu tek ekranda görmek için `./xti sources status --domain
 example.com` çalıştır. `--details` kaynak kapsamını ve zamanlarını açar.
 Sonraki kullanım adımları [günlük kullanım rehberinde](DAILY_USE.md) bulunur.
+Birden fazla domain/izlemeyi birlikte görmek için
+[kuruluş raporu rehberini](ORGANIZATION_REPORT.md) kullanabilirsin; ücretsiz
+kamu ihlal kataloğu ve doğrudan CTI ilişkileri de aynı rehberdedir.
 Kayıtlı profili Linux'ta günlük/haftalık çalıştırmak için
 [zamanlama rehberini](LINUX_SCHEDULING.md) kullanabilirsin; kurulum kendi
 başına arka plan hizmeti etkinleştirmez.

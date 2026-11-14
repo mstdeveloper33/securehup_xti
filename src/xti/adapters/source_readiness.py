@@ -26,6 +26,7 @@ from xti.adapters.sqlite_cooldowns import SQLiteCooldownRepository
 from xti.adapters.sqlite_cti_feeds import SQLiteCtiFeedRepository, _RUN_SELECT as FEED_RUN_SELECT
 from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_jobs import SQLiteJobRepository
+from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
@@ -33,6 +34,7 @@ from xti.adapters.theharvester_archive import TheHarvesterArchiveSource
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.cti_attack import ATTACK_SOURCE_NAME
 from xti.domain.cti_feeds import CTI_FEED_POLICIES
+from xti.domain.public_notices import HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_URL
 from xti.domain.source_readiness import SourceReadinessEvidence, SourceReadinessSnapshot
 from xti.ports.discovery import SourceError
 
@@ -171,6 +173,16 @@ class SQLiteSourceReadinessRepository:
                  f"./xti ransomware refresh --source {key}")
             for key, label in (("threatcluster", "ThreatCluster"), ("ransomlook", "RansomLook"))
         )
+        rows.append(_row(
+            "notices:hibp", "Have I Been Pwned kamu olay kataloğu",
+            "Ortak kamu olay kataloğu; domain filtresinden bağımsız", "./xti notices refresh",
+            notes=(
+                HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_URL,
+                "Anahtarsız kamu metadata kataloğu; e-posta, parola veya sızıntı içeriği sorgusu değildir.",
+                "Kayıt sayısı son başarılı kataloğun toplamıdır; bu domainin eşleşme sayısı değildir.",
+                "Kaynak hatası önceki başarılı kataloğu silmez; bu ekran internet erişimini denemez.",
+            ),
+        ))
         rows.append(replace(_row(
             "cti:attack", "MITRE ATT&CK", "Son kayıtlı CTI kanıtı",
             "./xti cti attack-sync", notes=(
@@ -221,6 +233,7 @@ class SQLiteSourceReadinessRepository:
             self._surface_rows(connection, rows, domain)
             self._social_rows(connection, rows)
             self._claim_rows(connection, rows)
+            self._public_notice_row(connection, rows)
             self._attack_row(connection, rows)
             for item in connection.execute(
                 "SELECT provider, not_before, recorded_at, reason FROM provider_cooldowns"
@@ -357,3 +370,9 @@ class SQLiteSourceReadinessRepository:
         ).fetchone()[0]
         rows["cti:attack"] = replace(rows["cti:attack"], last_success_at=event[0] if event else None,
                                       record_count=count if event else None)
+
+    def _public_notice_row(self, connection, rows):
+        snapshot = read_public_notice_snapshot(connection)
+        complete = snapshot.latest_complete_run
+        row = self._record(rows["notices:hibp"], snapshot.latest_run, complete)
+        rows["notices:hibp"] = replace(row, record_count=complete.notice_count if complete else None)

@@ -186,6 +186,32 @@ _CATALOG = (
         reference_url="https://cert.pl/lista-ostrzezen/",
     ),
     SourceCatalogEntry(
+        identifier="hibp-public-breach-catalog",
+        label="Have I Been Pwned Public Breach Catalog",
+        kind="public_incident_metadata_catalog",
+        purpose="Yayımlanmış olayların başlık, domain, tarih, veri kategorisi ve kaynak sınıflarını araştırır.",
+        access=(
+            "Yalnız açık 'notices refresh' komutuyla anahtarsız kamu kataloğu okunur; "
+            "ücretli servis yoktur. Kota veya erişim sınırı uygulanabilir."
+        ),
+        credential_required=False,
+        paid_dependency=False,
+        contacts_monitored_target=False,
+        commands=(
+            "notices refresh", "notices status", "notices search KURULUS",
+            "notices search --domain ALAN_ADI", "notices show KAYNAK_KIMLIGI",
+            "notices run-show CALISMA_KIMLIGI",
+        ),
+        limits=(
+            "Yalnız https://haveibeenpwned.com/api/v3/breaches okunur; hedef domain veya kişilere istek gönderilmez.",
+            "E-posta, hesap, parola ve stealer-log içerik sorguları bu entegrasyonda yoktur.",
+            "Kaynağın doğrulama ve diğer sınıfları korunur; XTI ihlal kararı üretmez. Domain filtresi birebir, metin araması adaydır.",
+            "Kaynak verisi CC BY 4.0 ile Have I Been Pwned — https://haveibeenpwned.com atfıyla gösterilir.",
+            "16 MiB ve 10.000 kayıt sınırı vardır; hata son başarılı kataloğu silmez. Kalan komutlar yerel kopyada çalışır.",
+        ),
+        reference_url="https://haveibeenpwned.com/API/v3",
+    ),
+    SourceCatalogEntry(
         identifier="threatcluster-ransomware-claims",
         label="ThreatCluster Public Ransomware Victim Feed",
         kind="public_ransomware_claim_feed",

@@ -1,10 +1,41 @@
 # XTI — Güncel Uygulama Durumu
 
-**14 Kasım 2026 · 0.133.0 · Şema 59.**
+**14 Kasım 2026 · 0.134.0 · Şema 60.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `organizations report ID`: yalnız güncel etkin açık bağlantılardaki domain,
+  dış yüzey, sosyal profil ve iki ransomware kaynağı; tam kayıtlar ve
+  sayfalama, son deneme/son başarı, eski/eksik veri, bildirim/vaka gezinmesi.
+  Kuruluş, hedef ve bütün kanıtlar tek salt okunur kesitten okunur. Başka
+  kuruluşun vaka içeriği rapora katılmaz; kanıt bağı geçmişi doğrulanır.
+- `changes --organization ID --days 1|7`: güncel üyelikle seçilen dönem;
+  geçmiş sahiplik çıkarılmaz. Karma oturumda yalnız ilgili adımlar görünür.
+  `--offset` bütün kategorilere ve kapsama listesine sayfa başlangıcı verir.
+  DNS/TLS/web/posta/servis/CNAME ve sosyal değişimlerinde gerçek önce/sonra
+  değerleri, önceki kanıt ve çalışma kimlikleri korunur; hata boş başarı sayılmaz.
+- `sources contribution --organization ID`: her domain/kural/kaynak için
+  ayrı gerçek katkı ve deneme pay/paydasını tek okuma anında gösterir.
+- `cti context --type domain --value DOMAIN` veya `--entity ID`: kayıtlı
+  doğrudan varlık/IOC ilişkileri, bağımsız kaynak iddiaları, geçerlilik ve
+  geri çekilme, sayfalama ve sonraki varlığa geçiş. Aynı isimden veya dolaylı
+  bağdan yeni atıf üretilmez; güncel kayıt olay geçmişiyle doğrulanır.
+- `notices refresh/status/search/show/run-show`: HIBP'nin anahtarsız kamu
+  olay metadata kataloğu. Kişi/e-posta/parola sorgusu yok; ilk başarılı alım
+  başlangıç, sonraki ekleme/değişme/çıkarma ayrı. Kaynak hatası son başarıyı
+  korur. Kaynak bayrakları, Have I Been Pwned atfı ve CC BY 4.0 lisansı
+  bütün metadata görünümlerinde bulunur. Yalnız açık `refresh` ağ kullanır.
+- HIBP tam domain eşleşmeleri kuruluş ve dönem raporuna; ortak katalog
+  durumu `sources status` içine katılır. Kaynak kataloğu `sources list`
+  içinde erişim koşullarını açıklar. Canlı tek istekle 1.052 kayıt alınıp
+  geçici SQLite'a yazıldı; `adobe.com → Adobe` yerel araması doğrulandı.
+  Bu tarihli kabul ölçümüdür; gelecekteki kapsam/güncellik garantisi değildir.
+- Şema 59→60 yalnız `public_notice_runs` ve `public_notice_changes` tablolarını
+  ekler; açık `migrate` benzersiz yedek alır. Eski kayıtlar yeniden yazılmaz.
+  Kullanım [kuruluş rehberinde](ORGANIZATION_REPORT.md), kaynak kabulü
+  [ayrı kayıttadır](PUBLIC_NOTICE_SOURCE_ACCEPTANCE.md).
 
 - `schedule generate` kayıtlı profil için Linux kullanıcı hizmeti/zamanlayıcısı
   ve tam kurulum komutlarını yeni klasöre üretir; kendisi etkinleştirmez.
@@ -25,8 +56,8 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
   bağlantılarını korur. Gruplama sahiplik/olay hükmü veya toplama seçimi değildir.
 - `changes --days 1|7`: son 24/168 saatin yerel yeni/değişen kayıtları,
   başlangıç ölçümleri ve kaynak hataları; her satırda dayanak kimlikleri.
-  Varsayılan tüm yerel aileler; `--domain` yalnız marka/dış yüzey. Kuruluş
-  filtresi uygulanmadı. Komut ağsız, yazmasız ve tek okuma anına dayanır;
+  Varsayılan tüm yerel aileler; `--domain` marka/dış yüzey/kamu olayları,
+  `--organization` etkin bağlı hedeflerdir. Komut ağsız, yazmasız ve tek okuma anına dayanır;
   bölümlerin toplamı “benzersiz tehdit” sayısı diye sunulmaz.
 - `cti attack-status/search/show`: şema 58'de kesin STIX/ATT&CK kimlikli
   grup, kampanya, malware, teknik, alt teknik ve taktik kataloğu. Aynı adlı
@@ -40,7 +71,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
   grupları ayrı kalır. Çok hedefli veya sonucu eksik denemeden domain atfı
   uydurulmaz. Ayrıntı sayfası toplamları değiştirmez; insan kararları korunur.
 - Kaynak ölçümü ve [sağlayıcı değerlendirmesi](roadmap/SOURCE_PROVIDER_EVALUATION.md)
-  tamamlandı; bağımsız katkı kanıtlanmadığı için yeni adaptör eklenmedi.
+  tamamlandı; bağımsız katkı kanıtlanmadığı için yeni domain keşif adaptörü eklenmedi.
   Common Crawl'ın dış erişim sorunu açık. Ücretsiz kaynaklara sınırsız veya
   kesintisiz erişim taahhüt edilmez.
 - RansomLook izleme farkları şema 59'daki ayrı kaynak tablosuyla yerel
@@ -1136,6 +1167,43 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. 0.133.0 kayıtlı profil için Linux zamanlama dosyalarını ve doğrulanmış yedek bakımını ekler; genel olay aboneliği ve dağıtık servis değildir. Runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.134.0 tam paketi **1.743 testle 509,592 saniyede** tamamlandı: 1.742 geçti,
+yalnız Linux `systemd-analyze` kontrolü macOS üzerinde atlandı. Tam paket
+çalışırken uygulama/test girdileri değişmedi. Sonraki yedi dosya sonu boş
+satır temizliğinin Python sözdizim ağacını değiştirmediği ayrıca doğrulandı.
+GitHub üzerindeki CI sonucu bu yerel sonuçla doğrulanmış sayılmaz.
+
+0.134.0 hızlı kapısı **349 testle 131,370 saniyede** tamamlandı: 348 geçti,
+yalnız gerçek Linux `systemd-analyze` kontrolü macOS üzerinde atlandı.
+Yeni kullanım rehberi/CLI seçenekleri bağımsız olarak karşılaştırıldı;
+kapsam ve sayfalama açıklamaları çalışan davranışla eşleşti.
+
+0.134.0 gerçek veri kopyasında şema 59→60 geçişi **127 tablonun 86.843
+satırını ve eski tablo tanımlarını aynen korudu**. İki yeni tablo boş
+başladı. Otomatik geçiş yedeği yeni dosyaya geri yüklendi; özgün şema 59
+ve bütün eski tablo içerikleri eşleşti. Ana veritabanı bu kopya denemesinde
+değişmedi. Ağ engelliyken yeni katalog durumu, kuruluş listesi, depolama
+hazırlığı ve mevcut bir IOC için CTI bağlamı gerçek CLI üzerinden geçti.
+Mevcut Feodo kaynağının kaynak zamanı/ilk görülme aralığı da yeni geçmiş
+denetimiyle uyumlu doğrulandı; eski kayıt yeniden yazılmadı.
+Ek olarak mevcut MITRE aktör/kampanya/malware kökleri ve CERT Polska IOC
+kaydı gerçek CLI'de açıldı. Kaynaklı ilişkiler korundu; ilişkisiz IOC için
+yeni bağ uydurulmadı. Ana/kopya dosya özetleri değişmedi.
+Yeni ayrı özel kopyada dört açık hedefli bir test kuruluşu oluşturuldu;
+kuruluş raporu, yedi günlük değişimler ve kaynak katkısı gerçek eski
+kayıtlarla geçti. Kaynak hataları başarılı kanıtlardan ayrı kaldı; raporlar
+veritabanını değiştirmedi. Bu test grubu asıl veritabanına eklenmedi.
+
+Tam kontrollerden sonra asıl yerel veritabanı da ortak kilit altında 59→60
+yükseltildi. 127 eski tablo/86.843 satır korundu; benzersiz geçiş yedeği ve
+ayrı geçici dosyaya geri yükleme eski verilerle eşleşti. Yeni katalog tabloları
+boş başladı; kendiliğinden kaynak yenilemesi veya üyelik oluşturulmadı.
+
+Yeni kaynağın ayrı canlı kabulünde 1.052 kamu metadata kaydı alındı;
+anahtarsız erişim, gerçek geçici SQLite ve çevrimdışı domain araması
+[kaynak kabul notunda](PUBLIC_NOTICE_SOURCE_ACCEPTANCE.md) kayıtlıdır.
+Kuruluş raporu/geçiş testleri canlı hedef veya saldırı çalıştırmaz.
 
 0.133.0 tam paketi **1.649 testle 456,994 saniyede** tamamlandı: 1.648 test
 geçti, yalnız Linux `systemd-analyze` testi bu macOS ortamında atlandı.

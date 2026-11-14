@@ -11,7 +11,7 @@ class SourceCatalogTests(unittest.TestCase):
             [
                 "crt.sh", "theharvester-archives", "urlscan", "google-public-dns",
                 "explicit-https-head", "explicit-tcp-connect", "feodo-tracker",
-                "certpl-warning-list", "threatcluster-ransomware-claims",
+                "certpl-warning-list", "hibp-public-breach-catalog", "threatcluster-ransomware-claims",
                 "ransomlook-ransomware-posts",
                 "mitre-attack-enterprise", "cisa-kev",
                 "first-epss", "nist-nvd-cve", "osv-dev", "canonical-ubuntu-osv",

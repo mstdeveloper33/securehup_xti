@@ -1,6 +1,11 @@
 # Yeni kaynak değerlendirme notu
 
-**14 Kasım 2026 — yeni sağlayıcı/adaptör seçilmedi.**
+**14 Kasım 2026 — domain keşfi/marka aramasına yeni sağlayıcı seçilmedi.**
+
+0.134.0, ayrı bir veri ailesi olarak HIBP kamu ihlal metadata kataloğunu
+ekler. Bunun erişim/lisans ve canlı katkı doğrulaması
+[ayrı kabul kaydındadır](../PUBLIC_NOTICE_SOURCE_ACCEPTANCE.md). Aşağıdaki
+karar domain sağlayıcılarını ilgilendirir; bu kaynağı yok saymaz.
 
 Bu dilim kayıtlı domain için eldeki yerel kaynak kanıtını ölçer. Yeni kaynak
 isteği, anahtar/kota/lisans araştırması veya aktif hedef bağlantısı yapılmaz.

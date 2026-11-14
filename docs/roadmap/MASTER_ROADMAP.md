@@ -101,6 +101,13 @@ ortamında canlı Linux çalışması doğrulanmış değildir. Sekiz teslimin k
 [sıralı plandadır](ORDERED_INTEGRATION_PLAN.md); bütün uzun vadeli roadmap'in
 bittiği anlamına gelmez.
 
+0.134.0, [kuruluş raporu ve ücretsiz devam dilimini](ORGANIZATION_WORKFLOW_PLAN.md)
+tamamlar: kuruluş birleşik görünümü, kapsamlı dönem/kaynak katkısı, kayıtlı
+önce/sonra kanıtları, bildirim/vaka gezinmesi, doğrudan CTI ilişki bağlamı ve
+HIBP kamu olay metadata kataloğu. Üyelikten sahiplik veya kaynak iddiasından
+ihlal kararı üretilmez. HIBP hesap/parola sorgusu içermez; geniş dark web,
+marka, LLM, React/API ve takım ürünü bu teslimle tamamlanmış sayılmaz.
+
 **Başlangıç koşulları:** Kişisel kullanım, ücretli hizmet bütçesi yok, Python öncelikli geliştirme, terminalden kullanım, sınırlı veritabanı deneyimi. Donanım ve haftalık çalışma süresi henüz bilinmiyor.
 
 **Uzun vadeli hedef:** SOCRadar'ın kamuya açık ürün kapsamını karşılaştırma noktası olarak kullanan; kaynakları, tespitleri, kanıtları ve operasyonu ölçülebilen bir Extended Threat Intelligence platformu geliştirmek.

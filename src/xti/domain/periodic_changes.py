@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from xti.domain.assets import ValidationError
-FAMILIES = ('brand', 'surface', 'username', 'threatcluster', 'ransomlook', 'collection')
+from xti.domain.organization_scope import OrganizationScope
+FAMILIES = ('brand', 'surface', 'username', 'threatcluster', 'ransomlook', 'collection', 'notices')
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,6 +16,16 @@ class PeriodicWindow:
 @dataclass(frozen=True, slots=True)
 class PeriodicScope:
     domain: str | None =  None
+    organization_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PeriodicValueChange:
+    """Stored before/after values; None means no corresponding observation."""
+
+    field: str
+    before: str | int | bool | tuple[str, ...] | None
+    after: str | int | bool | tuple[str, ...] | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,6 +48,15 @@ class PeriodicChangeEvidence:
     is_baseline: bool =  False
     rule_version: str | None =  None
     target_record_id: str | None =  None
+    previous_record_id: str | None = None
+    evidence_type: str | None = None
+    value_changes: tuple[PeriodicValueChange, ...] = ()
+    commands: tuple[tuple[str, ...], ...] = ()
+    shared_scope: bool = False
+    evidence_note: str | None = None
+    source_classification: tuple[tuple[str, bool], ...] = ()
+    source_attribution: str | None = None
+    source_license: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +69,7 @@ class PeriodicSection:
     total_baseline_count: int
     total_failure_count: int
     omitted_count: int
+    offset: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,6 +99,8 @@ class PeriodicChangesSnapshot:
     notes: tuple[str, ...] =  ()
     coverage_total_count: int =  0
     coverage_omitted_count: int =  0
+    organization_scope: OrganizationScope | None = None
+    offset: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,6 +114,8 @@ class PeriodicChangesReport:
     schema_version: int
     coverage_total_count: int =  0
     coverage_omitted_count: int =  0
+    organization_scope: OrganizationScope | None = None
+    offset: int = 0
 
 
 def periodic_time(value: str) -> datetime:

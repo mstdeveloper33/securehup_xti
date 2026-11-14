@@ -1,12 +1,15 @@
 # XTI — Uygulanabilir İş Listesi
 
-14 Kasım 2026 güncel teslim sırası [sekiz adımlı planda](ORDERED_INTEGRATION_PLAN.md)
-izlenir. Kayıtlı toplama profilleri ve kalıcı birleşik çalışma geçmişi /
-eksik adımları tekrar deneme tamamlandı; sıradaki teslim açık kuruluş
-bağlantılarıdır. Aşağıdaki eski sürüm
-notları tarihî kapsamı açıklar; gelecekteki işleri tamamlanmış saymaz.
+14 Kasım 2026: [sekiz adımlı plan](ORDERED_INTEGRATION_PLAN.md) 0.133.0,
+[kuruluş raporu ve ücretsiz devam dilimi](ORGANIZATION_WORKFLOW_PLAN.md)
+0.134.0 ile uygulandı. Güncel sonuçlar [STATUS](../STATUS.md) içindedir.
+Kuruluş raporu, kapsamlı dönem/kaynak katkısı, önce/sonra kanıtları,
+doğrudan CTI bağlamı ve HIBP kamu metadata kataloğu kullanılabilir.
+Aşağıdaki eski sürüm notları tarihî kapsamı açıklar; geniş roadmap'in
+tamamlandığı anlamına gelmez. Common Crawl dış indeks erişimi ve gerçek
+Linux hizmet kabulü açıktır; web/API, LLM ve geniş marka ayrı teslimlerdir.
 
-**Sürüm:** 0.130 · **Tarih:** 14 Kasım 2026 · **İş durumu:** SUP-01/SUP-02 ve INT-01'in kişisel yerel çekirdeği tamamlandı. Birleşik kaynak durumu tarama, keşif, sosyal araç, IOC, ransomware ve ATT&CK kayıtlarını kapsıyor; günlük toplama–inceleme–vaka–tekrar rehberi ve bütünleşik testleri mevcut. Sıradaki iş gerçek kullanımda görülen kapsam boşluklarını ölçmek ve katkısı kanıtlanan açık kaynak adaptörlerini değerlendirmektir. Yerel API ile STIX/TAXII kullanıcı kararıyla beklemededir. Atama/rol/SLA takım ürününde; otomatik tedarikçi aboneliği/markalı rapor SUP-03 altında kalır. Sunucu envanteri, ürün/sürüm çıkarımı, paket takibi ve zafiyet eşleştirmesi aktif backlog değildir.
+**Tarihî özet (0.130, 14 Kasım 2026):** SUP-01/SUP-02 ve INT-01'in kişisel yerel çekirdeği tamamlandı. Birleşik kaynak durumu tarama, keşif, sosyal araç, IOC, ransomware ve ATT&CK kayıtlarını kapsıyor; günlük toplama–inceleme–vaka–tekrar rehberi ve bütünleşik testleri mevcut. Sıradaki iş gerçek kullanımda görülen kapsam boşluklarını ölçmek ve katkısı kanıtlanan açık kaynak adaptörlerini değerlendirmektir. Yerel API ile STIX/TAXII kullanıcı kararıyla beklemededir. Atama/rol/SLA takım ürününde; otomatik tedarikçi aboneliği/markalı rapor SUP-03 altında kalır. Sunucu envanteri, ürün/sürüm çıkarımı, paket takibi ve zafiyet eşleştirmesi aktif backlog değildir.
 
 0.90.0, kayıtlı kanıtı değiştirmeden birleştiren `analyze DOMAIN` görünümünün ilk dilimidir. Yeni ağ işi başlatmaz; marka adayını, alt alan adı keşif durumunu, dış yüzey güncelliğini ve adaylarını, ayrıca güncel katalog varsa kesin domain/IP IOC eşleşmesini tek sonuçta gösterir.
 

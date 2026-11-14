@@ -196,26 +196,30 @@ class SQLiteSourceContributionRepository:
             raise ValidationError('Katkı ailesi all, surface veya brand olmalı.')
         with self._storage._connection(readonly=True) as connection:
             connection.execute('BEGIN')
-            row = connection.execute(
-                'SELECT id,value FROM assets WHERE value=?',
-                (asset_value,),
-            ).fetchone()
-            if row is None:
-                raise ValidationError('Kaynak katkısı için domain önceden kaydedilmeli.')
-            asset_id, stored_value = row
-            if stored_value != asset_value:
-                raise StorageError('Kaynak katkısı varlık kaydı uyuşmuyor.')
-            evidence, attempts, queued = ((), (), ())
-            if family in {'all', 'surface'}:
-                evidence, attempts = self._surface(connection, asset_id, asset_value)
-            if family in {'all', 'brand'}:
-                brand, queued = self._brand(connection, asset_value)
-                attempts += brand
-            return SourceContributionSnapshot(
-                asset_id,
-                asset_value,
-                evidence,
-                attempts,
-                queued,
-                SCHEMA_VERSION,
-            )
+            return self.snapshot_on_connection(connection, asset_value, family=family)
+
+    def snapshot_on_connection(self, connection, asset_value: str, *, family: str):
+        """Read an already validated selection under the caller's transaction."""
+        row = connection.execute(
+            'SELECT id,value FROM assets WHERE value=?',
+            (asset_value,),
+        ).fetchone()
+        if row is None:
+            raise ValidationError('Kaynak katkısı için domain önceden kaydedilmeli.')
+        asset_id, stored_value = row
+        if stored_value != asset_value:
+            raise StorageError('Kaynak katkısı varlık kaydı uyuşmuyor.')
+        evidence, attempts, queued = ((), (), ())
+        if family in {'all', 'surface'}:
+            evidence, attempts = self._surface(connection, asset_id, asset_value)
+        if family in {'all', 'brand'}:
+            brand, queued = self._brand(connection, asset_value)
+            attempts += brand
+        return SourceContributionSnapshot(
+            asset_id,
+            asset_value,
+            evidence,
+            attempts,
+            queued,
+            SCHEMA_VERSION,
+        )

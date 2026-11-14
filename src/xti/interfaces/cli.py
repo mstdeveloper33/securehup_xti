@@ -157,17 +157,33 @@ from xti.interfaces.scheduling import (
     preparation_lines as schedule_preparation_lines,
 )
 from xti.application.attack_catalog import AttackCatalogService
+from xti.application.cti_context import CtiContextService
+from xti.adapters.sqlite_cti_context import SQLiteCtiContextRepository
+from xti.interfaces.cti_context import register_cti_context_parser, cti_context_lines
 from xti.adapters.sqlite_attack_catalog import SQLiteAttackCatalogRepository
 from xti.interfaces.attack_catalog import register_attack_catalog_parsers, run_attack_catalog_command
 from xti.application.source_contribution import SourceContributionService
 from xti.adapters.sqlite_source_contribution import SQLiteSourceContributionRepository
 from xti.interfaces.source_contribution import source_contribution_lines
+from xti.application.organization_contribution import OrganizationContributionService
+from xti.adapters.sqlite_organization_contribution import SQLiteOrganizationContributionRepository
+from xti.interfaces.organization_contribution import organization_contribution_lines
 from xti.application.periodic_changes import PeriodicChangesService
 from xti.adapters.sqlite_periodic_changes import SQLitePeriodicChangesRepository
 from xti.interfaces.periodic_changes import periodic_changes_lines
 from xti.application.organizations import OrganizationService
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.interfaces.organizations import register_organizations_parser, execute_organization_command
+from xti.application.organization_report import OrganizationReportService
+from xti.adapters.sqlite_organization_report import SQLiteOrganizationReportRepository
+from xti.interfaces.organization_report import execute_organization_report_command
+from xti.application.public_notices import PublicNoticeService
+from xti.adapters.sqlite_public_notices import SQLitePublicNoticeRepository
+from xti.adapters.hibp_public_notices import HibpPublicNoticeSource
+from xti.interfaces.public_notices import (
+    register_public_notice_parser, public_notice_status_lines,
+    public_notice_refresh_lines, public_notice_search_lines, public_notice_detail_lines,
+)
 from xti.application.collection_history import CollectionHistoryService
 from xti.adapters.sqlite_collection_history import SQLiteCollectionHistoryRepository
 from xti.interfaces.collection_history import (
@@ -746,8 +762,12 @@ def build_parser() -> Parser:
     register_schedule_commands(commands)
     changes = commands.add_parser("changes", help="Son gün veya haftadaki kayıtlı değişiklikleri ve kaynak boşluklarını göster.")
     changes.add_argument("--days", type=int, choices=(1, 7), default=1)
-    changes.add_argument("--domain", help="Yalnız bu domainin marka/dış yüzey kayıtları; izlemelerden sahiplik çıkarılmaz.")
+    change_scope = changes.add_mutually_exclusive_group()
+    change_scope.add_argument("--domain", help="Yalnız bu domainin marka, dış yüzey ve kamu olay kayıtları.")
+    change_scope.add_argument("--organization", help="Kuruluşun güncel etkin bağlantılarındaki kayıtları göster.")
     changes.add_argument("--limit", type=int, default=100, help="Bölüm başına görünüm sınırı (1–500).")
+    changes.add_argument("--offset", type=int, default=0, help="Her bölümdeki ilk gösterilecek kayıt.")
+    register_public_notice_parser(commands)
     register_history_parser(commands)
     register_organizations_parser(commands)
     brand = commands.add_parser(
@@ -2203,6 +2223,7 @@ def build_parser() -> Parser:
     )
     cti_actions = cti.add_subparsers(dest="cti_action", required=True)
     register_attack_catalog_parsers(cti_actions)
+    register_cti_context_parser(cti_actions)
     cti_search = cti_actions.add_parser(
         "search", help="Yerel CTI varlık ve IOC kayıtlarında ağsız arama yap.",
     )
@@ -2854,7 +2875,10 @@ def build_parser() -> Parser:
     )
     source_actions = sources.add_subparsers(dest="source_action")
     contribution = source_actions.add_parser("contribution", help="Kayıtlı kaynakların tekil/ortak domain katkısını ve çalışma sonuçlarını karşılaştır.")
-    contribution.add_argument("domain")
+    contribution.add_argument("domain", nargs="?")
+    contribution.add_argument("--organization", help="Açık kuruluş bağlantılarındaki domainleri ayrı karşılaştır.")
+    contribution.add_argument("--offset", type=int, help="Kuruluş domain sayfası başlangıcı.")
+    contribution.add_argument("--limit", type=int, help="Kuruluşta gösterilecek domain sayısı (1–50).")
     contribution.add_argument("--family", choices=("all", "surface", "brand"), default="all")
     contribution.add_argument("--detail-offset", type=int, default=0)
     contribution.add_argument("--detail-limit", type=int, default=100)
@@ -2983,9 +3007,9 @@ def build_parser() -> Parser:
     return parser
 
 
-def emit(data: dict[str, Any], lines: list[str], *, as_json: bool) -> None:
+def emit(data: dict[str, Any], lines: list[str], *, as_json: bool, ok: bool = True) -> None:
     if as_json:
-        print(json.dumps({"ok": True, "data": data}, ensure_ascii=True))
+        print(json.dumps({"ok": ok, "data": data}, ensure_ascii=True))
     else:
         for line in lines:
             print(line)
@@ -3398,9 +3422,34 @@ def run(args: argparse.Namespace) -> int | None:
         emit(asdict(report), evaluation_lines(report), as_json=args.json)
     elif args.command == "changes":
         report = PeriodicChangesService(SQLitePeriodicChangesRepository(settings.database)).show(
-            days=args.days, domain=args.domain, limit=args.limit,
+            days=args.days, domain=args.domain, organization_id=args.organization,
+            limit=args.limit, offset=args.offset,
         )
         emit(asdict(report), periodic_changes_lines(report), as_json=args.json)
+    elif args.command == "notices":
+        notices = PublicNoticeService(
+            SQLitePublicNoticeRepository(settings.database),
+            HibpPublicNoticeSource() if args.notice_action == "refresh" else None,
+        )
+        if args.notice_action == "refresh":
+            with LocalExecutionLock(settings.database).acquire():
+                result = notices.refresh(item_limit=args.limit)
+            emit(asdict(result), public_notice_refresh_lines(result), as_json=args.json,
+                 ok=result.run.status == "complete")
+            return 0 if result.run.status == "complete" else 3
+        if args.notice_action == "status":
+            result = notices.status(run_limit=args.limit, offset=args.offset)
+            lines = public_notice_status_lines(result)
+        elif args.notice_action == "search":
+            result = notices.search(args.query, domain=args.domain, limit=args.limit, offset=args.offset)
+            lines = public_notice_search_lines(result)
+        elif args.notice_action == "run-show":
+            result = notices.run_show(args.run_id, item_limit=args.limit, offset=args.offset)
+            lines = public_notice_refresh_lines(result)
+        else:
+            result = notices.show(args.notice_id)
+            lines = public_notice_detail_lines(result)
+        emit(asdict(result), lines, as_json=args.json)
     elif args.command == "schedule":
         scheduling = make_scheduling_service(settings, repository)
         if args.schedule_command == "generate":
@@ -3414,10 +3463,15 @@ def run(args: argparse.Namespace) -> int | None:
             lines = schedule_preparation_lines(result)
         emit(asdict(result), lines, as_json=args.json)
     elif args.command == "organizations":
-        organization_service = OrganizationService(
-            SQLiteOrganizationRepository(settings.database), LocalExecutionLock(settings.database),
-        )
-        data, lines = execute_organization_command(organization_service, args)
+        if args.organization_action == "report":
+            data, lines = execute_organization_report_command(
+                OrganizationReportService(SQLiteOrganizationReportRepository(settings.database)), args,
+            )
+        else:
+            organization_service = OrganizationService(
+                SQLiteOrganizationRepository(settings.database), LocalExecutionLock(settings.database),
+            )
+            data, lines = execute_organization_command(organization_service, args)
         emit(data, lines, as_json=args.json)
     elif args.command == "collections":
         histories = make_collection_history_service(settings, repository)
@@ -5846,7 +5900,14 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "cti":
         knowledge_repository = SQLiteCtiKnowledgeRepository(settings.database)
         service = CtiKnowledgeService(knowledge_repository)
-        if args.cti_action in {"attack-status", "attack-search", "attack-show"}:
+        if args.cti_action == "context":
+            result = CtiContextService(SQLiteCtiContextRepository(settings.database)).show(
+                indicator_type=args.indicator_type, value=args.value, entity_id=args.entity,
+                include_inactive=args.include_inactive, offset=args.offset, limit=args.limit,
+                source_offset=args.source_offset, source_limit=args.source_limit,
+            )
+            emit(asdict(result), cti_context_lines(result), as_json=args.json)
+        elif args.cti_action in {"attack-status", "attack-search", "attack-show"}:
             result, lines = run_attack_catalog_command(
                 args, AttackCatalogService(SQLiteAttackCatalogRepository(settings.database)),
             )
@@ -6340,10 +6401,24 @@ def run(args: argparse.Namespace) -> int | None:
         provider = jobs.show(attempt.job_id).job.provider if attempt is not None else "crt.sh"
         return emit_attempt(attempt, as_json=args.json, provider=provider)
     elif args.command == "sources" and args.source_action == "contribution":
-        report = SourceContributionService(SQLiteSourceContributionRepository(settings.database)).show(
-            args.domain, family=args.family, detail_offset=args.detail_offset, detail_limit=args.detail_limit,
-        )
-        emit(asdict(report), source_contribution_lines(report), as_json=args.json)
+        if (args.domain is None) == (args.organization is None):
+            raise ValidationError("Kaynak katkısı için yalnız domain veya --organization seçin.")
+        if args.organization is not None:
+            report = OrganizationContributionService(SQLiteOrganizationContributionRepository(settings.database)).show(
+                args.organization, family=args.family,
+                offset=args.offset if args.offset is not None else 0,
+                limit=args.limit if args.limit is not None else 20,
+                detail_offset=args.detail_offset, detail_limit=args.detail_limit,
+            )
+            lines = organization_contribution_lines(report)
+        else:
+            if args.offset is not None or args.limit is not None:
+                raise ValidationError("Domain ayrıntısı için --detail-offset/--detail-limit kullanın; --offset/--limit kuruluş içindir.")
+            report = SourceContributionService(SQLiteSourceContributionRepository(settings.database)).show(
+                args.domain, family=args.family, detail_offset=args.detail_offset, detail_limit=args.detail_limit,
+            )
+            lines = source_contribution_lines(report)
+        emit(asdict(report), lines, as_json=args.json)
     elif args.command == "sources" and args.source_action == "status":
         report = SourceReadinessService(
             SQLiteSourceReadinessRepository(settings.database),

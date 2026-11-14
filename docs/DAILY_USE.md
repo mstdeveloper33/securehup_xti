@@ -1,7 +1,7 @@
 # XTI günlük kullanım
 
-Bu belge 0.133.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
-çalıştır; şema 59 geçişi önce geri dönüş yedeği alır.
+Bu belge 0.134.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
+çalıştır; şema 60 geçişi önce geri dönüş yedeği alır.
 
 Bu örneklerde `example.com` yerine izleyeceğin domaini, `markam` yerine marka
 kullanıcı adını yaz. Komutları proje klasöründe çalıştır. İlk kez kullanıyorsan
@@ -35,6 +35,30 @@ Kuruluş kimliğini `add`, izleme kimliğini ilgili `watch-list` çıktısından
 Yalnız önceden kaydedilmiş domain ve izlemeleri bağlayabilirsin. Gruplama
 internet sorgusu başlatmaz; sahiplik veya doğrulanmış ihlal anlamına gelmez.
 Toplama için aşağıdaki profili ayrıca seçersin.
+
+Grupladıktan sonra kayıtlı sonuçlarını birlikte görmek için:
+
+```sh
+./xti organizations report KURULUS_KIMLIGI
+./xti changes --organization KURULUS_KIMLIGI --days 7
+./xti sources contribution --organization KURULUS_KIMLIGI
+```
+
+İlk komut adresleri, profilleri, iddiaları, kaynak hatalarını ve ilgili vaka
+bağlantılarını açar. İkinci komut haftalık önce/sonra değişimleri, üçüncü
+komut domain bazında kaynak katkısını gösterir. Hiçbiri internet sorgulamaz.
+
+Ücretsiz HIBP kamu olay kataloğunu ayrıca yenileyebilirsin:
+
+```sh
+./xti notices refresh
+./xti notices search --domain example.com
+```
+
+Yalnız ilk komut internete çıkar. Olay metadata kayıtları tam domain
+eşleşmesiyle kuruluş raporuna katılır; e-posta/parola sorgulanmaz.
+İlk alımdaki tarihî olaylar yeni yaşanmış ihlaller değildir. Kullanım,
+sayfalama ve CTI ilişkilerine geçiş [kuruluş rehberindedir](ORGANIZATION_REPORT.md).
 
 ## 2. Domain için veri topla
 
@@ -346,8 +370,9 @@ tamamlanan aramada eşleşme bulunmaması aynı anlama gelmez.
 
 İlk iki komut bütün yerel izlemelerin son 24/168 saatte kaydedilen
 başlangıçlarını, değişimlerini ve kaynak hatalarını ayrı gösterir. Domain
-filtresi yalnız marka ve dış yüzeyi seçer; kuruluş altına bağlanan sosyal
-ve ransomware izlemelerini kendiliğinden katmaz. Kuruluş filtresi henüz yok.
+filtresi marka, dış yüzey ve tam domain eşleşmeli kamu olaylarını seçer.
+`--organization KURULUS_KIMLIGI` güncel etkin domain ve izlemeleri birlikte
+seçer. `--offset` ile sonraki sayfaya ulaşabilirsin.
 
 Katkı görünümü sayaçların yanında gerçek ortak/ayrı domainleri ve kanıt
 kimliklerini verir. `--family brand` veya `--family surface` bir alanı seçer.
@@ -355,8 +380,9 @@ Yüzde, kayıtlı denemelerin tamamlanmasıdır; kaynağın doğruluğu veya int
 kapsanma oranı değildir. Sayfalar toplamı değiştirmez. Bu komutların tamamı
 internetsiz ve yazmasızdır; insan inceleme kararları korunur.
 
-Bu aşamada yeni kaynak eklenmedi. Mevcut ölçümler bağımsız katkı göstermeden
-sağlayıcı seçilmeyecek. Common Crawl'ın dış erişim sorunu açık kalır;
+Domain keşfi/marka aramasına yeni sağlayıcı eklenmedi; HIBP ayrı bir kamu
+olay kataloğudur. Mevcut ölçümler bağımsız katkı göstermeden yeni domain
+sağlayıcısı seçilmeyecek. Common Crawl'ın dış erişim sorunu açık kalır;
 kaynak hatası, hiç adres bulunmadığı anlamına gelmez.
 
 ## 6. Takip edeceğin gerçek adayı vakaya ekle

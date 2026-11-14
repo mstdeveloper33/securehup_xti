@@ -25,6 +25,7 @@ from xti.adapters.schema import (
     create_organization_schema,
     create_ransomlook_notification_schema,
     create_attack_catalog_schema,
+    create_public_notice_schema,
     create_epss_schema,
     create_nvd_schema,
     create_nvd_window_schema,
@@ -171,6 +172,7 @@ class SQLiteAssetRepository:
                 create_organization_schema(connection)
                 create_ransomlook_notification_schema(connection)
                 create_attack_catalog_schema(connection)
+                create_public_notice_schema(connection)
                 create_surface_change_notification_schema(connection)
                 create_vulnerability_schema(connection)
                 create_epss_schema(connection)
@@ -918,6 +920,8 @@ class SQLiteAssetRepository:
                     create_attack_catalog_schema(connection)
                 if version < 59:
                     create_ransomlook_notification_schema(connection)
+                if version < 60:
+                    create_public_notice_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

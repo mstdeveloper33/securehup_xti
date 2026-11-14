@@ -248,7 +248,7 @@ class SourceContributionTests(unittest.TestCase):
         with patch('socket.create_connection', side_effect=AssertionError('network called')):
             report = self.service.show('example.com')
         self.assertEqual(before, self.path.read_bytes())
-        self.assertIn('Yeni sağlayıcı seçilmedi', report.provider_evaluation)
+        self.assertIn('Domain keşfi/marka araması için yeni sağlayıcı seçilmedi', report.provider_evaluation)
         self.assertFalse((self.path.parent / 'backups').exists())
 
     def test_cross_family_snapshot_does_not_mix_concurrent_new_scan(self):

@@ -31,6 +31,8 @@ class AttackCatalogMigrationTests(unittest.TestCase):
         self.storage.add('example.com')
         SQLiteCtiKnowledgeRepository(self.path).sync_attack_snapshot(replace(parsed(), catalog=None), recorded_at=NOW.isoformat())
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            connection.execute("DROP TABLE IF EXISTS public_notice_changes")
+            connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")
             for table in CATALOG_TABLES:
                 connection.execute(f'DROP TABLE {table}')

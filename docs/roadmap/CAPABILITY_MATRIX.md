@@ -1,6 +1,15 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
-**Karşılaştırma tarihi:** 13 Kasım 2026 · **Sürüm:** 0.127.
+**Güncel teslim tarihi:** 14 Kasım 2026 · **Sürüm:** 0.134.0.
+
+0.128–0.134: profilli toplama ve kalıcı oturum/eksik adım tekrarı; açık
+kuruluş gruplaması ve birleşik raporu; kapsamlı dönem/kaynak katkısı;
+önce/sonra kanıtları; ATT&CK teknik/taktik kataloğu ve doğrudan CTI bağlamı;
+RansomLook yerel bildirimleri, Linux zamanlama dosyaları/doğrulanmış yedek
+bakımı ve ücretsiz HIBP kamu ihlal metadata kaynağı eklendi. Canlı Linux
+hizmeti ve Common Crawl erişimi açık konulardır. Ayrıntılı kabul durumu
+[STATUS](../STATUS.md) içindedir; aşağıdaki hedef satırlarının bütünü
+tamamlanmış sayılmaz.
 
 0.127.0: Kaynak durumu tarama, keşif, sosyal araç, IOC, ransomware ve ATT&CK
 akışlarını tek ağsız görünümde birleştirir; günlük kullanım rehberi ve
