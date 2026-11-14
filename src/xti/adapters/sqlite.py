@@ -22,6 +22,9 @@ from xti.adapters.schema import (
     create_case_schema,
     create_collection_profile_schema,
     create_collection_history_schema,
+    create_organization_schema,
+    create_ransomlook_notification_schema,
+    create_attack_catalog_schema,
     create_epss_schema,
     create_nvd_schema,
     create_nvd_window_schema,
@@ -165,6 +168,9 @@ class SQLiteAssetRepository:
                 create_case_schema(connection)
                 create_collection_profile_schema(connection)
                 create_collection_history_schema(connection)
+                create_organization_schema(connection)
+                create_ransomlook_notification_schema(connection)
+                create_attack_catalog_schema(connection)
                 create_surface_change_notification_schema(connection)
                 create_vulnerability_schema(connection)
                 create_epss_schema(connection)
@@ -257,6 +263,9 @@ class SQLiteAssetRepository:
         with self._connection(readonly=True) as connection:
             self._check_integrity(connection)
             count = connection.execute("SELECT COUNT(*) FROM assets").fetchone()[0]
+            organization_count = connection.execute("SELECT COUNT(*) FROM organizations").fetchone()[0]
+            organization_link_count = connection.execute("SELECT COUNT(*) FROM organization_links").fetchone()[0]
+            active_organization_count = connection.execute("SELECT COUNT(*) FROM organizations WHERE active=1").fetchone()[0]
             collection_sessions = connection.execute("SELECT COUNT(*) FROM collection_sessions").fetchone()[0]
             collection_session_steps = connection.execute("SELECT COUNT(*) FROM collection_session_steps").fetchone()[0]
             collection_step_receipts = connection.execute("SELECT COUNT(*) FROM collection_step_receipts").fetchone()[0]
@@ -508,6 +517,12 @@ class SQLiteAssetRepository:
             ransomware_watch_runs = connection.execute(
                 "SELECT COUNT(*) FROM ransomware_watch_runs"
             ).fetchone()[0]
+            ransomlook_watch_notifications = connection.execute(
+                "SELECT COUNT(*) FROM ransomlook_watch_notifications"
+            ).fetchone()[0]
+            unread_ransomlook_watch_notifications = connection.execute(
+                "SELECT COUNT(*) FROM ransomlook_watch_notifications WHERE read_at IS NULL"
+            ).fetchone()[0]
             ransomware_watch_notifications = connection.execute(
                 "SELECT COUNT(*) FROM ransomware_watch_notifications"
             ).fetchone()[0]
@@ -599,6 +614,9 @@ class SQLiteAssetRepository:
             ).fetchall())
         return {
             "schema_version": SCHEMA_VERSION,
+            "organization_count": organization_count,
+            "active_organization_count": active_organization_count,
+            "organization_link_count": organization_link_count,
             "asset_count": count,
             "observation_count": observations,
             "finding_count": findings,
@@ -611,7 +629,7 @@ class SQLiteAssetRepository:
             "notification_count": (
                 notifications + candidate_notifications + surface_change_notifications
                 + vulnerability_change_notifications + cti_saved_search_notifications
-                + ransomware_watch_notifications
+                + ransomware_watch_notifications + ransomlook_watch_notifications
                 + brand_username_review_notifications
             ),
             "unread_notification_count": (
@@ -619,7 +637,7 @@ class SQLiteAssetRepository:
                 + unread_surface_change_notifications
                 + unread_vulnerability_change_notifications
                 + unread_cti_saved_search_notifications
-                + unread_ransomware_watch_notifications
+                + unread_ransomware_watch_notifications + unread_ransomlook_watch_notifications
                 + unread_brand_username_review_notifications
             ),
             "surface_change_notification_count": surface_change_notifications,
@@ -706,6 +724,8 @@ class SQLiteAssetRepository:
             "ransomware_watch_count": ransomware_watches,
             "active_ransomware_watch_count": active_ransomware_watches,
             "ransomware_watch_run_count": ransomware_watch_runs,
+            "ransomlook_watch_notification_count": ransomlook_watch_notifications,
+            "unread_ransomlook_watch_notification_count": unread_ransomlook_watch_notifications,
             "ransomware_watch_notification_count": ransomware_watch_notifications,
             "unread_ransomware_watch_notification_count": (
                 unread_ransomware_watch_notifications
@@ -892,6 +912,12 @@ class SQLiteAssetRepository:
                     create_collection_profile_schema(connection)
                 if version < 56:
                     create_collection_history_schema(connection)
+                if version < 57:
+                    create_organization_schema(connection)
+                if version < 58:
+                    create_attack_catalog_schema(connection)
+                if version < 59:
+                    create_ransomlook_notification_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

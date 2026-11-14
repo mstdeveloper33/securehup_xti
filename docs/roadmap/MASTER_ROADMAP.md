@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Sürüm:** 0.127 · **Hazırlanma tarihi:** 13 Kasım 2026 · **Durum:** Aktif hedef planı domain/marka koruması, dış yüzey kanıtı, IOC/CTI, dark web ve ransomware iddiaları, geniş marka koruması, tedarikçi riski, vaka/entegrasyon ve insan onaylı takedown kapsamıdır. Birleşik kaynak durumu 11 kaynak/iş akışının kurulum ve kayıt kanıtını tek terminal ekranında gösterir. Günlük toplama, inceleme, vaka ve tekrar kullanım rehberi ile bütünleşik testler tamamdır. Sonraki geliştirmeler gerçek kullanımda görülen kapsam açığına ve açık kaynak adaptör kabul ölçütlerine göre seçilecektir. Yerel API ve STIX/TAXII kullanıcı kararıyla beklemededir. Sunucu içi envanter, ürün/sürüm çıkarımı, paket takibi ve CVE/KEV/EPSS eşleştirmesi aktif plandan çıkarılmıştır. Gerçek ilerleme [STATUS.md](../STATUS.md) içinde izlenir.
+**Sürüm:** 0.133 · **Güncelleme tarihi:** 14 Kasım 2026 · **Durum:** Aktif hedef planı domain/marka koruması, dış yüzey kanıtı, IOC/CTI, dark web ve ransomware iddiaları, geniş marka koruması, tedarikçi riski, vaka/entegrasyon ve insan onaylı takedown kapsamıdır. Birleşik kaynak durumu 11 kaynak/iş akışının kurulum ve kayıt kanıtını tek terminal ekranında gösterir. Günlük toplama, inceleme, vaka ve tekrar kullanım rehberi ile bütünleşik testler tamamdır. Sonraki geliştirmeler gerçek kullanımda görülen kapsam açığına ve açık kaynak adaptör kabul ölçütlerine göre seçilecektir. Yerel API ve STIX/TAXII kullanıcı kararıyla beklemededir. Sunucu içi envanter, ürün/sürüm çıkarımı, paket takibi ve CVE/KEV/EPSS eşleştirmesi aktif plandan çıkarılmıştır. Gerçek ilerleme [STATUS.md](../STATUS.md) içinde izlenir.
 
 0.88.0, güncel yerel IOC kaynak iddialarını yedi gösterge türünde STIX 2.1 Indicator Bundle dosyasına ağsız, salt-okunur ve atomik çıkarır. CTI nesne/ilişki kapsamı, TLP, içe aktarma ve TAXII ile kalıcı sistem zamanlaması/dış kanal aboneliği açık kalır.
 
@@ -86,6 +86,20 @@
 birleştirir. Kısa tablo, ayrıntı, domain filtresi, kayıt yaşı ve sonraki komut
 mevcuttur. Günlük kullanım rehberi ile toplama, inceleme, vaka ve tekrar
 akışı test edilir. Yeni kaynak kapsamı veya arka plan zamanlayıcısı eklenmez.
+
+0.128–0.132, arşiv taşıması ve süre/hata ayrımını, açık kaynak/izleme
+seçimli birleşik toplamayı, sürümlü profilleri ve kesintide tamamlanan kanıtı
+koruyan kalıcı oturum/eksik adım tekrarını ekler. Common Crawl'ın dış indeks
+erişim sorunu açık kalır.
+
+0.133.0, açık kuruluş bağlantılarını, günlük/haftalık değişim raporunu,
+ATT&CK teknik/taktik kataloğunu, kaynakların gerçek katkı karşılaştırmasını,
+RansomLook yerel bildirimlerini ve Linux profil zamanlama dosyalarıyla
+doğrulanmış yedek/saklama bakımını tamamlar. Yeni sağlayıcı eklemek katkı
+kanıtına bağlı kalır. Linux hizmeti açık etkinleştirme ister; bu macOS
+ortamında canlı Linux çalışması doğrulanmış değildir. Sekiz teslimin kapsamı
+[sıralı plandadır](ORDERED_INTEGRATION_PLAN.md); bütün uzun vadeli roadmap'in
+bittiği anlamına gelmez.
 
 **Başlangıç koşulları:** Kişisel kullanım, ücretli hizmet bütçesi yok, Python öncelikli geliştirme, terminalden kullanım, sınırlı veritabanı deneyimi. Donanım ve haftalık çalışma süresi henüz bilinmiyor.
 

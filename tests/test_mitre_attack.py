@@ -258,7 +258,8 @@ class MitreAttackLifecycleTests(unittest.TestCase):
             source_reference="local:case", confidence=70, aliases=("Local Alias",),
             description="Analist tarafından eklenen bağımsız ve korunacak kaynak iddiası.",
         )
-        original = snapshot()
+        # This test exercises the legacy projection independently of the new catalog.
+        original = replace(snapshot(), catalog=None)
         first = self.sync(original)
         self.assertEqual(
             (first.entity_added, first.relationship_added, first.entity_revoked), (3, 2, 0),

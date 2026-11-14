@@ -1,5 +1,8 @@
 # XTI günlük kullanım
 
+Bu belge 0.133.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
+çalıştır; şema 59 geçişi önce geri dönüş yedeği alır.
+
 Bu örneklerde `example.com` yerine izleyeceğin domaini, `markam` yerine marka
 kullanıcı adını yaz. Komutları proje klasöründe çalıştır. İlk kez kullanıyorsan
 önce `./setup`, ardından şu komut yeterlidir:
@@ -18,6 +21,20 @@ Ekran, hangi aracın kurulu olduğunu ve eldeki kayıtların durumunu gösterir.
 Hiç çalıştırılmamış kaynak, hata veren kaynak ve tamamlanmış boş arama ayrı
 görünür. Satırdaki sonraki komut, eksik kurulumu veya veri yenilemeyi başlatmak
 içindir. Durum ekranını açmak yeni arama başlatmaz.
+
+### İstersen kayıtlarını kuruluş altında grupla
+
+```sh
+./xti organizations add "Markam"
+./xti organizations link KURULUS_KIMLIGI --kind domain --value example.com
+./xti organizations link KURULUS_KIMLIGI --kind ransomlook-watch --value IZLEME_KIMLIGI
+./xti organizations show KURULUS_KIMLIGI
+```
+
+Kuruluş kimliğini `add`, izleme kimliğini ilgili `watch-list` çıktısından al.
+Yalnız önceden kaydedilmiş domain ve izlemeleri bağlayabilirsin. Gruplama
+internet sorgusu başlatmaz; sahiplik veya doğrulanmış ihlal anlamına gelmez.
+Toplama için aşağıdaki profili ayrıca seçersin.
 
 ## 2. Domain için veri topla
 
@@ -89,6 +106,9 @@ veya seçenek verilmez; ayarı değiştirmek için profili yeniden kaydet.
 gösterir. `profiles revoke gunluk --reason "Takibi duraklattım"` kaydı
 silmeden çalıştırmayı kapatır. Bir izleme sonradan geri çekilirse profil
 okunabilir kalır, fakat çalıştırma başlamaz. Profil kendi başına zamanlanmaz.
+Linux'ta günlük/haftalık çalışma için `schedule generate` ile dosya üretip
+açıkça etkinleştirebilirsin; yedek ve kurtarma adımları
+[Linux zamanlama rehberindedir](LINUX_SCHEDULING.md).
 
 Toplama çıktısındaki oturum kimliğiyle neyin tamamlandığını görebilirsin:
 
@@ -222,12 +242,30 @@ son yedi günlük kapsamı dışında sonuç çıkarılmaz. Eşleşme bulunmamas
 sınırlı kapsamda sonuç olmadığını söyler; güvenli olunduğunu kanıtlamaz.
 Bulunanlar kaynak iddialarıdır; doğrulanmış ihlal değildir.
 
+İlk RansomLook ölçümünden sonraki yeni/değişen eşleşmeler yerel kutuda
+çalışma başına tek bildirim oluşturur:
+
+```sh
+./xti inbox
+./xti inbox show BILDIRIM_KIMLIGI
+./xti ransomware watch-run-show CALISMA_KIMLIGI --source ransomlook
+./xti inbox read BILDIRIM_KIMLIGI
+```
+
+İlk ölçüm, değişmeyen tekrar, yalnız pencereden çıkış ve kaynak hatası
+bildirim üretmez. Okundu işareti iddiayı doğrulamaz; kaynakların kimlikleri
+ayrı kalır. Eski çalışmalara geriye dönük bildirim eklenmez.
+
 ### MITRE tehdit bilgi tabanı
 
-Tehdit grubu, kampanya ve zararlı yazılım kayıtlarını araştırmak için:
+Tehdit grubu, kampanya, zararlı yazılım, teknik ve taktik kayıtlarını araştırmak için:
 
 ```sh
 ./xti cti attack-sync
+./xti cti attack-status
+./xti cti attack-search "DNS"
+./xti cti attack-show T1059.001
+./xti cti attack-show T1105 --relationship-limit 500 --relationship-offset 500
 ./xti cti search "APT29" --kind entity
 ./xti cti entity-list --type threat-actor --limit 20
 ```
@@ -242,8 +280,10 @@ internete çıkmaz. Bir kaydın bağlantılarını görmek için arama veya list
 ./xti cti relation-list --entity VARLIK_KIMLIGI --limit 20
 ```
 
-Bu sürüm etkin grup, kampanya, zararlı yazılım ve seçili ilişkileri alır;
-ATT&CK teknikleri/taktikleri ve bütün veri türleri dahil değildir. Bir grubun
+Teknikler, alt teknikler ve taktikler kesin ATT&CK kimlikleriyle ayrı
+katalogda saklanır; aynı adlı kayıtlar karışmaz. `attack-search DNS --limit 50 --offset 50` arama sayfasını, `--relationship-offset` ilişki sayfasını ilerletir.
+Teknik–taktik alan bağı, kaynakta verilen STIX ilişkisinden ayrı gösterilir.
+Bütün STIX veri türleri bu kapsamda değildir. Bir grubun
 katalogda bulunması domainine saldırdığı anlamına gelmez. Senkron yalnız
 komutu çalıştırdığında yapılır; otomatik zamanlama veya sürüm yükseltme yoktur.
 
@@ -292,6 +332,32 @@ list` içindeki “İzlenen” alanına bak.
 
 Hiç aday görünmüyorsa kaynak durumunu kontrol et. Başarısız arama ile
 tamamlanan aramada eşleşme bulunmaması aynı anlama gelmez.
+
+### Günlük değişimi ve kaynak katkısını gör
+
+```sh
+./xti changes --days 1
+./xti changes --days 7
+./xti changes --days 7 --domain example.com
+./xti sources contribution example.com
+./xti sources contribution example.com --detail-limit 50 --detail-offset 50
+./xti --json sources contribution example.com
+```
+
+İlk iki komut bütün yerel izlemelerin son 24/168 saatte kaydedilen
+başlangıçlarını, değişimlerini ve kaynak hatalarını ayrı gösterir. Domain
+filtresi yalnız marka ve dış yüzeyi seçer; kuruluş altına bağlanan sosyal
+ve ransomware izlemelerini kendiliğinden katmaz. Kuruluş filtresi henüz yok.
+
+Katkı görünümü sayaçların yanında gerçek ortak/ayrı domainleri ve kanıt
+kimliklerini verir. `--family brand` veya `--family surface` bir alanı seçer.
+Yüzde, kayıtlı denemelerin tamamlanmasıdır; kaynağın doğruluğu veya internetin
+kapsanma oranı değildir. Sayfalar toplamı değiştirmez. Bu komutların tamamı
+internetsiz ve yazmasızdır; insan inceleme kararları korunur.
+
+Bu aşamada yeni kaynak eklenmedi. Mevcut ölçümler bağımsız katkı göstermeden
+sağlayıcı seçilmeyecek. Common Crawl'ın dış erişim sorunu açık kalır;
+kaynak hatası, hiç adres bulunmadığı anlamına gelmez.
 
 ## 6. Takip edeceğin gerçek adayı vakaya ekle
 

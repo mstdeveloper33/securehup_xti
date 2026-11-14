@@ -4,8 +4,59 @@ import sqlite3
 from uuid import uuid4
 
 
-SCHEMA_VERSION = 56
+SCHEMA_VERSION = 59
+
+ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
 APPLICATION_ID = 0x58544901
+
+
+ORGANIZATION_DDL = (
+    "CREATE TABLE organizations (id TEXT PRIMARY KEY NOT NULL, name_key TEXT NOT NULL UNIQUE, "
+    "display_name TEXT NOT NULL, revision INTEGER NOT NULL CHECK (revision > 0), "
+    "active INTEGER NOT NULL CHECK (active IN (0, 1)), created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+    "CREATE TABLE organization_events (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+    "id TEXT NOT NULL UNIQUE, organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE RESTRICT, "
+    "action TEXT NOT NULL CHECK (action IN ('added', 'renamed', 'reactivated', 'revoked')), "
+    "revision INTEGER NOT NULL CHECK (revision > 0), name_key TEXT NOT NULL, display_name TEXT NOT NULL, "
+    "reason TEXT NOT NULL, recorded_at TEXT NOT NULL, UNIQUE (organization_id, revision))",
+    "CREATE TABLE organization_links (id TEXT PRIMARY KEY NOT NULL, "
+    "organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE RESTRICT, "
+    "target_kind TEXT NOT NULL CHECK (target_kind IN ('domain', 'username-watch', 'ransomware-watch', 'ransomlook-watch')), "
+    "target_value TEXT NOT NULL, asset_id TEXT REFERENCES assets(id) ON DELETE RESTRICT, "
+    "username_watch_id TEXT REFERENCES brand_username_watches(id) ON DELETE RESTRICT, "
+    "ransomware_watch_id TEXT REFERENCES ransomware_watches(id) ON DELETE RESTRICT, "
+    "ransomlook_watch_id TEXT REFERENCES ransomlook_watches(id) ON DELETE RESTRICT, "
+    "revision INTEGER NOT NULL CHECK (revision > 0), active INTEGER NOT NULL CHECK (active IN (0, 1)), "
+    "reason TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, "
+    "UNIQUE (organization_id, target_kind, target_value), CHECK ("
+    "(target_kind='domain' AND asset_id IS NOT NULL AND username_watch_id IS NULL AND ransomware_watch_id IS NULL AND ransomlook_watch_id IS NULL) OR "
+    "(target_kind='username-watch' AND asset_id IS NULL AND username_watch_id=target_value AND username_watch_id IS NOT NULL AND ransomware_watch_id IS NULL AND ransomlook_watch_id IS NULL) OR "
+    "(target_kind='ransomware-watch' AND asset_id IS NULL AND username_watch_id IS NULL AND ransomware_watch_id=target_value AND ransomware_watch_id IS NOT NULL AND ransomlook_watch_id IS NULL) OR "
+    "(target_kind='ransomlook-watch' AND asset_id IS NULL AND username_watch_id IS NULL AND ransomware_watch_id IS NULL AND ransomlook_watch_id=target_value AND ransomlook_watch_id IS NOT NULL)))",
+    "CREATE TABLE organization_link_events (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+    "id TEXT NOT NULL UNIQUE, link_id TEXT NOT NULL REFERENCES organization_links(id) ON DELETE RESTRICT, "
+    "organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE RESTRICT, "
+    "action TEXT NOT NULL CHECK (action IN ('linked', 'updated', 'reactivated', 'revoked')), "
+    "revision INTEGER NOT NULL CHECK (revision > 0), target_kind TEXT NOT NULL CHECK "
+    "(target_kind IN ('domain', 'username-watch', 'ransomware-watch', 'ransomlook-watch')), "
+    "target_value TEXT NOT NULL, reason TEXT NOT NULL, recorded_at TEXT NOT NULL, UNIQUE (link_id, revision))",
+    "CREATE INDEX organizations_active_name ON organizations(active, name_key)",
+    "CREATE INDEX organization_events_organization_sequence ON organization_events(organization_id, sequence)",
+    "CREATE INDEX organization_links_organization_active_target ON organization_links(organization_id, active, target_kind, target_value)",
+    "CREATE INDEX organization_link_events_link_sequence ON organization_link_events(link_id, sequence)",
+)
+
+
+RANSOMLOOK_NOTIFICATION_DDL = (
+    "CREATE TABLE ransomlook_watch_notifications ("
+    "sequence INTEGER PRIMARY KEY NOT NULL CHECK (sequence > 0), id TEXT NOT NULL UNIQUE, "
+    "run_id TEXT NOT NULL UNIQUE REFERENCES ransomlook_watch_runs(id) ON DELETE RESTRICT, "
+    "watch_id TEXT NOT NULL REFERENCES ransomlook_watches(id) ON DELETE RESTRICT, "
+    "event_type TEXT NOT NULL CHECK (event_type = 'ransomlook_watch_changed'), "
+    "origin TEXT NOT NULL CHECK (origin = 'new'), created_at TEXT NOT NULL, read_at TEXT)",
+    "CREATE INDEX ransomlook_watch_notifications_read_sequence ON "
+    "ransomlook_watch_notifications(read_at, sequence)",
+)
 
 
 class SchemaError(ValueError):
@@ -1349,6 +1400,17 @@ VULNERABILITY_REMEDIATION_DDL = (
 
 # (column name, declared type, NOT NULL, primary-key position)
 TABLES = {
+    'ransomlook_watch_notifications': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('run_id', 'TEXT', 1, 0), ('watch_id', 'TEXT', 1, 0), ('event_type', 'TEXT', 1, 0), ('origin', 'TEXT', 1, 0), ('created_at', 'TEXT', 1, 0), ('read_at', 'TEXT', 0, 0)],
+    'attack_catalog_runs': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('version', 'TEXT', 1, 0), ('source_url', 'TEXT', 1, 0), ('content_sha256', 'TEXT', 1, 0), ('source_object_count', 'INTEGER', 1, 0), ('fetched_at', 'TEXT', 1, 0), ('recorded_at', 'TEXT', 1, 0), ('entity_count', 'INTEGER', 1, 0), ('relationship_count', 'INTEGER', 1, 0), ('phase_count', 'INTEGER', 1, 0), ('added_count', 'INTEGER', 1, 0), ('updated_count', 'INTEGER', 1, 0), ('reactivated_count', 'INTEGER', 1, 0), ('revoked_count', 'INTEGER', 1, 0), ('unchanged_count', 'INTEGER', 1, 0), ('chain_sha256', 'TEXT', 1, 0)],
+    'attack_catalog_entities': [('stix_id', 'TEXT', 1, 1), ('external_id', 'TEXT', 1, 0), ('record_json', 'TEXT', 1, 0), ('state_sha256', 'TEXT', 1, 0), ('active', 'INTEGER', 1, 0), ('first_run_id', 'TEXT', 1, 0), ('last_run_id', 'TEXT', 1, 0)],
+    'attack_catalog_relationships': [('stix_id', 'TEXT', 1, 1), ('source_stix_id', 'TEXT', 1, 0), ('target_stix_id', 'TEXT', 1, 0), ('relationship_type', 'TEXT', 1, 0), ('record_json', 'TEXT', 1, 0), ('state_sha256', 'TEXT', 1, 0), ('active', 'INTEGER', 1, 0), ('first_run_id', 'TEXT', 1, 0), ('last_run_id', 'TEXT', 1, 0)],
+    'attack_catalog_phases': [('id', 'TEXT', 1, 1), ('technique_stix_id', 'TEXT', 1, 0), ('tactic_stix_id', 'TEXT', 1, 0), ('record_json', 'TEXT', 1, 0), ('state_sha256', 'TEXT', 1, 0), ('active', 'INTEGER', 1, 0), ('first_run_id', 'TEXT', 1, 0), ('last_run_id', 'TEXT', 1, 0)],
+    'attack_catalog_changes': [('sequence', 'INTEGER', 1, 1), ('run_id', 'TEXT', 1, 0), ('record_kind', 'TEXT', 1, 0), ('record_key', 'TEXT', 1, 0), ('action', 'TEXT', 1, 0), ('record_json', 'TEXT', 1, 0), ('state_sha256', 'TEXT', 1, 0)],
+
+    'organizations': [('id', 'TEXT', 1, 1), ('name_key', 'TEXT', 1, 0), ('display_name', 'TEXT', 1, 0), ('revision', 'INTEGER', 1, 0), ('active', 'INTEGER', 1, 0), ('created_at', 'TEXT', 1, 0), ('updated_at', 'TEXT', 1, 0)],
+    'organization_events': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('action', 'TEXT', 1, 0), ('revision', 'INTEGER', 1, 0), ('name_key', 'TEXT', 1, 0), ('display_name', 'TEXT', 1, 0), ('reason', 'TEXT', 1, 0), ('recorded_at', 'TEXT', 1, 0)],
+    'organization_links': [('id', 'TEXT', 1, 1), ('organization_id', 'TEXT', 1, 0), ('target_kind', 'TEXT', 1, 0), ('target_value', 'TEXT', 1, 0), ('asset_id', 'TEXT', 0, 0), ('username_watch_id', 'TEXT', 0, 0), ('ransomware_watch_id', 'TEXT', 0, 0), ('ransomlook_watch_id', 'TEXT', 0, 0), ('revision', 'INTEGER', 1, 0), ('active', 'INTEGER', 1, 0), ('reason', 'TEXT', 1, 0), ('created_at', 'TEXT', 1, 0), ('updated_at', 'TEXT', 1, 0)],
+    'organization_link_events': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('link_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('action', 'TEXT', 1, 0), ('revision', 'INTEGER', 1, 0), ('target_kind', 'TEXT', 1, 0), ('target_value', 'TEXT', 1, 0), ('reason', 'TEXT', 1, 0), ('recorded_at', 'TEXT', 1, 0)],
     'collection_sessions': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('root_id', 'TEXT', 1, 0), ('parent_id', 'TEXT', 0, 0), ('generation', 'INTEGER', 1, 0), ('profile_event_id', 'TEXT', 0, 0), ('definition_json', 'TEXT', 1, 0), ('definition_sha256', 'TEXT', 1, 0), ('plan_json', 'TEXT', 1, 0), ('plan_sha256', 'TEXT', 1, 0), ('executor_contract_version', 'INTEGER', 1, 0), ('status', 'TEXT', 1, 0), ('started_at', 'TEXT', 1, 0), ('finished_at', 'TEXT', 0, 0), ('stop_reason', 'TEXT', 0, 0), ('analysis_status', 'TEXT', 1, 0), ('analysis_recorded_at', 'TEXT', 0, 0)],
     'collection_session_steps': [('id', 'TEXT', 1, 1), ('session_id', 'TEXT', 1, 0), ('ordinal', 'INTEGER', 1, 0), ('step_key', 'TEXT', 1, 0), ('kind', 'TEXT', 1, 0), ('source', 'TEXT', 1, 0), ('watch_id', 'TEXT', 0, 0), ('target_sha256', 'TEXT', 1, 0), ('depends_on_step_id', 'TEXT', 0, 0), ('scan_job_id', 'TEXT', 0, 0), ('status', 'TEXT', 1, 0), ('started_at', 'TEXT', 0, 0), ('finished_at', 'TEXT', 0, 0), ('error_code', 'TEXT', 0, 0)],
     'collection_step_receipts': [('step_id', 'TEXT', 1, 1), ('recorded_at', 'TEXT', 1, 0), ('result_status', 'TEXT', 1, 0), ('summary_json', 'TEXT', 1, 0), ('summary_sha256', 'TEXT', 1, 0), ('scan_attempt_id', 'TEXT', 0, 0), ('discovery_run_id', 'TEXT', 0, 0), ('feed_run_id', 'TEXT', 0, 0), ('username_run_id', 'TEXT', 0, 0), ('threatcluster_source_run_id', 'TEXT', 0, 0), ('ransomlook_source_run_id', 'TEXT', 0, 0), ('threatcluster_watch_run_id', 'TEXT', 0, 0), ('ransomlook_watch_run_id', 'TEXT', 0, 0)],
@@ -2201,6 +2263,17 @@ ALLOWLIST_V8_TABLES = {
 }
 
 UNIQUE_KEYS = {
+    'ransomlook_watch_notifications': {('run_id',), ('id',)},
+    'attack_catalog_runs': {('id',)},
+    'attack_catalog_entities': {('stix_id',), ('external_id',)},
+    'attack_catalog_relationships': {('stix_id',)},
+    'attack_catalog_phases': {('id',), ('technique_stix_id', 'tactic_stix_id')},
+    'attack_catalog_changes': {('run_id', 'record_kind', 'record_key')},
+
+    'organizations': {('name_key',), ('id',)},
+    'organization_events': {('id',), ('organization_id', 'revision')},
+    'organization_links': {('id',), ('organization_id', 'target_kind', 'target_value')},
+    'organization_link_events': {('id',), ('link_id', 'revision')},
     'collection_sessions': {('id',), ('parent_id',), ('root_id', 'generation')},
     'collection_session_steps': {('session_id', 'ordinal'), ('session_id', 'step_key'), ('id',), ('scan_job_id',)},
     'collection_step_receipts': {('threatcluster_watch_run_id',), ('username_run_id',), ('scan_attempt_id',), ('discovery_run_id',), ('ransomlook_source_run_id',), ('ransomlook_watch_run_id',), ('threatcluster_source_run_id',), ('step_id',), ('feed_run_id',)},
@@ -2358,6 +2431,17 @@ UNIQUE_KEYS = {
 }
 
 INDEXES = {
+    'ransomlook_watch_notifications_read_sequence': ('ransomlook_watch_notifications', ('read_at', 'sequence')),
+    'attack_catalog_entities_active_external': ('attack_catalog_entities', ('active', 'external_id')),
+    'attack_catalog_relationships_target': ('attack_catalog_relationships', ('target_stix_id', 'active')),
+    'attack_catalog_relationships_source': ('attack_catalog_relationships', ('source_stix_id', 'active')),
+    'attack_catalog_changes_run_sequence': ('attack_catalog_changes', ('run_id', 'sequence')),
+    'attack_catalog_changes_record_sequence': ('attack_catalog_changes', ('record_kind', 'record_key', 'sequence')),
+
+    'organizations_active_name': ('organizations', ('active', 'name_key')),
+    'organization_events_organization_sequence': ('organization_events', ('organization_id', 'sequence')),
+    'organization_links_organization_active_target': ('organization_links', ('organization_id', 'active', 'target_kind', 'target_value')),
+    'organization_link_events_link_sequence': ('organization_link_events', ('link_id', 'sequence')),
     'collection_sessions_status_sequence': ('collection_sessions', ('status', 'sequence')),
     'collection_sessions_root_generation': ('collection_sessions', ('root_id', 'generation')),
     'collection_session_steps_session_ordinal': ('collection_session_steps', ('session_id', 'ordinal')),
@@ -2629,6 +2713,17 @@ INDEXES = {
 }
 
 FOREIGN_KEYS = {
+    'ransomlook_watch_notifications': {('ransomlook_watch_runs', 'run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_watches', 'watch_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'attack_catalog_runs': set(),
+    'attack_catalog_entities': {('attack_catalog_runs', 'last_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('attack_catalog_runs', 'first_run_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'attack_catalog_relationships': {('attack_catalog_entities', 'source_stix_id', 'stix_id', 'NO ACTION', 'RESTRICT'), ('attack_catalog_entities', 'target_stix_id', 'stix_id', 'NO ACTION', 'RESTRICT'), ('attack_catalog_runs', 'last_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('attack_catalog_runs', 'first_run_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'attack_catalog_phases': {('attack_catalog_entities', 'technique_stix_id', 'stix_id', 'NO ACTION', 'RESTRICT'), ('attack_catalog_entities', 'tactic_stix_id', 'stix_id', 'NO ACTION', 'RESTRICT'), ('attack_catalog_runs', 'last_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('attack_catalog_runs', 'first_run_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'attack_catalog_changes': {('attack_catalog_runs', 'run_id', 'id', 'NO ACTION', 'RESTRICT')},
+
+    'organizations': set(),
+    'organization_events': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'organization_links': {('ransomlook_watches', 'ransomlook_watch_id', 'id', 'NO ACTION', 'RESTRICT'), ('brand_username_watches', 'username_watch_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomware_watches', 'ransomware_watch_id', 'id', 'NO ACTION', 'RESTRICT'), ('assets', 'asset_id', 'id', 'NO ACTION', 'RESTRICT'), ('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT')},
+    'organization_link_events': {('organization_links', 'link_id', 'id', 'NO ACTION', 'RESTRICT'), ('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT')},
     'collection_sessions': {('collection_sessions', 'root_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_profile_events', 'profile_event_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_sessions', 'parent_id', 'id', 'NO ACTION', 'RESTRICT')},
     'collection_session_steps': {('collection_session_steps', 'depends_on_step_id', 'id', 'NO ACTION', 'RESTRICT'), ('scan_jobs', 'scan_job_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_sessions', 'session_id', 'id', 'NO ACTION', 'RESTRICT')},
     'collection_step_receipts': {('ransomware_watch_runs', 'threatcluster_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_watch_runs', 'ransomlook_watch_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomlook_claim_runs', 'ransomlook_source_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('brand_username_watch_runs', 'username_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('collection_session_steps', 'step_id', 'id', 'NO ACTION', 'RESTRICT'), ('cti_feed_runs', 'feed_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('scan_attempts', 'scan_attempt_id', 'id', 'NO ACTION', 'RESTRICT'), ('surface_discovery_runs', 'discovery_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('ransomware_claim_runs', 'threatcluster_source_run_id', 'id', 'NO ACTION', 'RESTRICT')},
@@ -3138,7 +3233,21 @@ VERSION_TABLES = {
     54: frozenset(TABLES),
     55: frozenset(TABLES),
     56: frozenset(TABLES),
+    57: frozenset(TABLES),
+    58: frozenset(TABLES),
+    59: frozenset(TABLES),
 }
+
+for _legacy_version in range(1, 59):
+    VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {"ransomlook_watch_notifications"}
+
+for _legacy_version in range(1, 58):
+    VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {'attack_catalog_runs', 'attack_catalog_relationships', 'attack_catalog_changes', 'attack_catalog_phases', 'attack_catalog_entities'}
+
+for _legacy_version in range(1, 57):
+    VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {
+        "organizations", "organization_events", "organization_links", "organization_link_events",
+    }
 
 for _legacy_version in range(1, 56):
     VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {
@@ -3310,6 +3419,21 @@ for _legacy_version in range(1, 39):
         "webhook_destinations", "webhook_destination_events",
         "webhook_deliveries", "webhook_delivery_attempts",
     }
+
+
+def create_attack_catalog_schema(connection: sqlite3.Connection) -> None:
+    for statement in ATTACK_CATALOG_DDL:
+        connection.execute(statement)
+
+
+def create_ransomlook_notification_schema(connection: sqlite3.Connection) -> None:
+    for statement in RANSOMLOOK_NOTIFICATION_DDL:
+        connection.execute(statement)
+
+
+def create_organization_schema(connection: sqlite3.Connection) -> None:
+    for statement in ORGANIZATION_DDL:
+        connection.execute(statement)
 
 
 def create_collection_history_schema(connection: sqlite3.Connection) -> None:
@@ -3743,6 +3867,30 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
     expected = {(name, "table") for name in tables} | {(name, "index") for name in indexes}
     if objects != expected:
         raise SchemaError("Veritabanının kayıt düzeni beklenen biçimde değil.")
+    if "attack_catalog_runs" in tables:
+        for name, statement in zip(('attack_catalog_runs', 'attack_catalog_entities', 'attack_catalog_relationships', 'attack_catalog_phases', 'attack_catalog_changes', 'attack_catalog_entities_active_external', 'attack_catalog_relationships_source', 'attack_catalog_relationships_target', 'attack_catalog_changes_record_sequence', 'attack_catalog_changes_run_sequence'), ATTACK_CATALOG_DDL):
+            object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+            declaration = connection.execute("SELECT sql FROM sqlite_schema WHERE name=? AND type=?", (name, object_type)).fetchone()[0]
+            if " ".join(declaration.split()) != " ".join(statement.split()):
+                raise SchemaError("ATT&CK katalog kayıt düzeni beklenen biçimde değil.")
+    if "ransomlook_watch_notifications" in tables:
+        for statement in RANSOMLOOK_NOTIFICATION_DDL:
+            object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+            name = statement.split()[2]
+            declaration = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE name=? AND type=?", (name, object_type),
+            ).fetchone()
+            if declaration is None or " ".join(declaration[0].split()) != " ".join(statement.split()):
+                raise SchemaError("RansomLook bildirim düzeni beklenen biçimde değil.")
+    if "organizations" in tables:
+        for statement in ORGANIZATION_DDL:
+            object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+            name = statement.split()[2]
+            declaration = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE name=? AND type=?", (name, object_type),
+            ).fetchone()
+            if declaration is None or " ".join(declaration[0].split()) != " ".join(statement.split()):
+                raise SchemaError("Kuruluş kayıt düzeni beklenen biçimde değil.")
     if "collection_sessions" in tables:
         for statement in COLLECTION_HISTORY_DDL:
             words = statement.split()

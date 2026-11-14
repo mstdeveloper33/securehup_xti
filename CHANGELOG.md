@@ -1,5 +1,38 @@
 # Değişiklik Kaydı
 
+## 0.133.0 — 14 Kasım 2026
+
+- `organizations` ile kayıtlı domain ve seçili izlemeleri açık kullanıcı
+  kararıyla gruplama; tam değişiklik geçmişi ve kaynak bağlantıları.
+- `changes --days 1|7` ile başlangıç ölçümleri, gerçek değişimler, kaynak
+  hataları ve kapsama boşlukları. Domain filtresi yalnız marka/dış yüzeydir;
+  kaynak kimlikleri ve gösterilmeyen kayıt sayıları görünür kalır.
+- Aynı MITRE indirmesinden eski CTI ve kesin kimlikli ATT&CK teknik/alt
+  teknik/taktik kataloğunu atomik kaydetme. `cti attack-status/search/show`,
+  ilişki sayfalaması, kaynak açıklamaları ve yaşam döngüsü geçmişi eklendi.
+- `sources contribution DOMAIN` gerçek ortak/ayrı adresleri, kanıtları ve
+  deneme oranlarını gösterir. Ölçülmüş ek katkı bulunmadan yeni sağlayıcı
+  seçilmedi; ücretli API eklenmedi. Common Crawl dış erişim sorunu açık kalır.
+- RansomLook yeni/değişen izleme eşleşmeleri tek yerel bildirim oluşturur;
+  başlangıç, tekrar ve hata sessiz kalır. Bildirim, izleme ve toplama bağı
+  aynı transaction'da kaydedilir; dış gönderim kendiliğinden başlamaz.
+- `schedule generate/prepare`: Linux kullanıcı zamanlaması dosyaları,
+  açık etkinleştirme, ortak kilit, kesilmiş oturum kurtarması, disk payı,
+  benzersiz yedek ve yeni dosyaya geri yükleme doğrulaması. Yalnız sahipliği
+  doğrulanan yönetilen yedeklerde saklama; yarıda kalan yayın/silme toparlanır.
+  Özel karakterli yollar ve kaynak/kilit hata kodları korunur. Gerçek Linux
+  hizmeti macOS üzerinde etkinleştirilmedi; Linux'a özel kontrol burada atlanır.
+- Şema 56→59 yalnız 10 tablo ekler. Gerçek veritabanı kopyasında önceki 117
+  tablonun bütün satırları korundu; yeni tablolar boş kaldı, geri dönüş yedeği
+  ve yeniden kurtarma doğrulandı. Eski kanıttan yeni ilişki/bildirim türetilmez.
+- Birleşik CLI kabulü kuruluş→profil→kaynak hatası→tek bildirim→yalnız eksik
+  işi tekrar etme→dönem/kaynak raporu→ATT&CK ayrıntı zincirini ağsız sınar.
+  Hızlı CI sınırı 10, büyüyen tam paket sınırı 30 dakikadır.
+- Tam paket 1.649 testle 456,994 saniyede tamamlandı: 1.648 geçti, yalnız
+  Linux systemd ayrıştırıcı testi bu macOS ortamında atlandı. Gerçek veri
+  kopyasında 18 terminal komutu ve yedekten dönüş geçti; 15 salt okunur
+  komut veritabanını değiştirmedi. Ağ/hizmet çağrısı yapılmadı.
+
 ## 0.132.0 — 14 Kasım 2026
 
 - `collect` ve profil çalıştırmaları artık kalıcı toplama oturumu üretir.

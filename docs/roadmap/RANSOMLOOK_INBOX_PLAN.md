@@ -1,96 +1,65 @@
-# RansomLook bildirim kutusu planı — Aşama 7
+# RansomLook bildirim kutusu — Aşama 7
 
-**Durum: PLANLANDI — HENÜZ UYGULANMADI.**
-**Tarih: 14 Kasım 2026.** Bu belge uygulanmış özellik beyanı değildir.
-İnceleme dayanağı 0.130.0 kodudur; önceki aşamaların şema değişiklikleriyle
-birlikte yeniden değerlendirilmelidir.
+**Durum: TAMAMLANDI — 0.133.0.**
+**Tarih: 14 Kasım 2026.** Şema 59 ayrı RansomLook izleme bildirimini ekler.
+Güncel kapsam [STATUS](../STATUS.md) dosyasındadır; uygulama sürümü 0.133.0’dır.
 
-## Kullanıcıya sağlayacağı sonuç
+## Kullanıcının gördüğü sonuç
 
-RansomLook kuruluş izlemesinde ilk ölçümden sonra bulunan yeni veya değişen
-eşleşmeler mevcut yerel `inbox` içinde görülecek. Kaynak adı, izleme,
-çalışma kimliği ve fark sayıları gösterilecek; tüm kayıtların ayrıntısına
-`ransomware watch-run-show ID --source ransomlook` ile ulaşılacak.
+RansomLook kuruluş izlemesinde sessiz başlangıçtan sonra bulunan yeni veya
+değişen eşleşmeler yerel `inbox` içinde çalışma başına tek bildirim oluşturur.
+Kaynak adı, bugünkü izleme etiketi, tarihî tanım özeti, kaynak yenileme ve
+izleme çalışması kimlikleri, fark sayıları gösterilir. Tam sonuç:
 
-İlk ölçüm, tanım değişikliğinden sonraki ilk ölçüm, değişmeyen sonuç ve yalnız
-kaynak penceresinden çıkan kayıtlar bildirim üretmeyecek. Çıkış, çözüm kanıtı
-sayılmayacak. Okundu bilgisi iddianın doğruluğu veya insan kararı olmayacak.
-ThreatCluster ve RansomLook ortak kutuda ayrı kaynak kayıtları olarak kalacak;
-kuruluş adı benzerliğinden aynı olay veya doğrulanmış ihlal sonucu çıkarılmayacak.
+```sh
+./xti inbox
+./xti inbox show BILDIRIM_KIMLIGI
+./xti ransomware watch-run-show CALISMA_KIMLIGI --source ransomlook
+./xti inbox read BILDIRIM_KIMLIGI
+```
 
-## Uygulama sınırı
+İlk ölçüm, tanım değişikliğinden sonraki ilk ölçüm, değişmeyen sonuç, yalnız
+kaynak penceresinden çıkış ve kaynak hatası bildirim üretmez. Çıkış çözüm
+kanıtı değildir; okundu bilgisi de iddianın doğruluğu veya insan kararı
+sayılmaz. ThreatCluster ve RansomLook ortak kutuda ayrı kaynaklar kalır;
+aynen görünen kuruluş adı onları tek doğrulanmış olay yapmaz.
 
-- Mevcut `attention_count` hesabı korunacak: sessiz başlangıç dışında
-  `added_count + updated_count`. Bildirim bununla aynı koşulda üretilecek.
-- Ayrı `ransomlook_watch_notifications` tablosunda global `sequence`, benzersiz
-  `id`, benzersiz `run_id`, `watch_id`, sabit
-  `event_type='ransomlook_watch_changed'`, `origin='new'`, `created_at` ve
-  nullable `read_at` tutulacak. Run/watch ilişkileri doğrulanacak.
-- Çalışma, sonuç öğeleri ve bildirim aynı SQLite transaction içinde yazılacak.
-  Başarısız bildirim yazımı kısmi çalışma bırakmayacak.
-- Ayrı `RansomLookWatchChangeEvidence` modeli ve inbox kaynak alanı eklenecek.
-  Run raporuna sondan varsayılan `notification_id=None` eklenmesi mevcut
-  positional kurucuların korunmasını sağlayabilir.
-- Domain ve uygulama servisleri terminal, SQLite veya dış sağlayıcıya
-  bağlanmayacak. Yeni dış kaynak veya ücretli hizmet gerekmeyecek.
-- Yeni bildirimler mevcut açık webhook kuyruğa alma yoluyla paketlenebilir;
-  kendiliğinden dışarı gönderim eklenmeyecek.
+## Kalıcılık ve sınırlar
 
-Başlıca değişiklik noktaları: `domain/ransomlook_watches.py`, `domain/inbox.py`,
-`adapters/sqlite_ransomlook_watches.py`, `adapters/sqlite_inbox.py`,
-`adapters/sqlite_notification_sequence.py`, `adapters/schema.py`,
-`adapters/sqlite.py`, `interfaces/inbox.py`, `interfaces/ransomlook_watches.py`.
-Kullanım, durum, mimari ve ayrı mimari karar belgesi de güncellenecek.
+- `attention_count`, sessiz başlangıç dışında `added_count + updated_count`
+  olarak korunur. Mevcut iddia kimliği alanları değişince ayrı iddia oluştuğu
+  için güncel kaynak sözleşmesinde `updated_count` fiilen sıfır kalabilir.
+- Ayrı `ransomlook_watch_notifications` tablosu global sıra, benzersiz
+  bildirim ve çalışma kimliği, izleme bağı, sabit olay türü, oluşturma ve
+  okundu zamanı tutar. Yanlış kaynak/izleme bağı okumada reddedilir.
+- Çalışma, sonuç öğeleri, bildirim ve varsa toplama receipt'i aynı SQLite
+  transaction içinde yazılır. Başarısız bildirim yazımı yarım sonuç bırakmaz.
+  Üst toplama kesilse de kaydedilmiş sonuç ve bildirim tekrar oluşturulmaz.
+- `RansomLookWatchChangeEvidence` ayrı modeldir. `notification_id` çalışma
+  raporunda isteğe bağlı alandır; eski kurucu ve denetim sözleşmeleri korunur.
+- Liste/ayrıntı okuma ağsız ve yazmasızdır; otomatik okundu veya migration
+  yapmaz. Ortak sıra, toplam/okunmamış sayıları ve sayfalama diğer bildirim
+  türleriyle birlikte çalışır.
+- Yeni tablo boş başlar. Açık `./xti migrate` önce benzersiz geri dönüş
+  yedeği alır; eski bildirim/okundu bilgileri korunur. Geçmiş sonuçlara
+  bildirim eklenmez. Hatalı geçiş geri alınır; restore mevcut dosyanın üzerine
+  yazmaz. Şema 58 ve önceki sürümlerin tablo kümeleri değişmez.
+- Bu teslim yeni kaynak, ücretli hizmet, otomatik dış gönderim veya bağımsız
+  RansomLook monitor komutu eklemez. `collect` içindeki açık seçim desteklenir.
 
-## Şema ve veri koruma koşulları
+## Doğrulanan kabul kapsamı
 
-1. Yeni bildirim DDL'si mevcut `RANSOMLOOK_WATCH_DDL` içine eklenmeyecek.
-   Eski sürümler mevcut DDL ile doğrulanıyor; ayrı DDL, oluşturma fonksiyonu ve
-   migration sürüm kapısı kullanılacak. Sürüm önceki aşamalardan sonra seçilecek.
-2. TABLES, kolon, unique, index, foreign key ve SQL düzeni denetimleri birlikte
-   genişletilecek. `VERSION_TABLES` içinde yeni tablo bütün eski sürümlerden
-   çıkarılacak. Eski şema fixture'ları da yeni tabloyu kaldıracak.
-3. Geçiş mevcut doğrulanmış, benzersiz geri dönüş yedeği akışını kullanacak.
-   Eski DB, bildirim sıraları ve okundu zamanları korunacak. Hata transaction'ı
-   geri alacak; yedek silinmeyecek. Restore mevcut DB üzerine yapılmayacak.
-4. Yeni tablo boş başlayacak; geçmiş sonuçlardan bildirim türetilmeyecek.
-   Var olan dikkat sayıları değişmeyecek.
-5. Global sıra için tek `next_notification_sequence` yardımcısının tablo listesi,
-   inbox union/sıra çakışması denetimi ve `inspect` toplam/okunmamış sayaçları
-   birlikte güncellenecek. Kaynak başına ayrı sıra verilerek çakışma yaratılmayacak.
-6. Listeleme ve ayrıntı okuma bildirim oluşturmayacak, okundu işaretlemeyecek
-   veya eski şemayı kendiliğinden yükseltmeyecek.
+Sessiz başlangıç, fark bildirimi, kaynak hatası, tekrar ve yalnız çıkarılma;
+bildirim/receipt sınırında rollback, yanlış kaynak bağının reddi, ortak sıra,
+okundu işlemi, yedek/restore ve şema 58→59 geçişi testlidir. Çapraz özellik
+CLI testi profil toplaması içinde değişen iddia ile bağımsız kaynak hatasını
+birleştirir: devam yalnız eksik kaynağı çalıştırır, bildirim ve insan kararı
+korunur. Ağ erişimi bu testlerde kapalıdır. Tam sürüm kontrolü ve yayın
+ayrıca takip edilir; Linux'ta yapılmayan kontrol yapılmış sayılmaz.
 
-## Kabul ölçütleri
+## Aşama 8 — Linux zamanlaması
 
-- Sessiz başlangıç sonrası eklenen/değişen sonuç bir okunmamış bildirim üretir.
-  Tekrar çalışma, yeni sessiz başlangıç, yalnız çıkarılma ve kaynak hatası
-  fazladan bildirim üretmez.
-- Bildirim ekleme hatasında run ve öğeler de geri alınır; yanlış watch/run
-  bağlantısı okumada reddedilir.
-- Diğer bildirim türleriyle global sıra, saat geri gitse de kararlı sayfalama,
-  idempotent okundu ve çoklu mark işleminin tümden geri alınması doğrulanır.
-- Yedek/restore bildirim ve okundu zamanını korur. Migration geçmişe bildirim
-  üretmez; DDL hatasında eski DB ve geçerli yedek korunur.
-- Terminal kaynağı ve ayrıntı komutunu doğru gösterir; dış metin güvenli
-  gösterilir. JSON, collect raporu ve açık webhook kuyruğu kaynak ayrımını korur.
-- İlgili kalıcılık, migration, inbox ve CLI testleri ile `./scripts/check`
-  tamamlanır. Linux'ta çalıştırılmayan bir kontrol yapılmış gibi raporlanmaz.
-
-## Aşama 8 için kısa önkoşullar — Linux zamanlama
-
-Bu bölüm de plan durumundadır. Kayıtlı toplama profilleri ve kalıcı çalışma
-geçmişi tamamlandıktan sonra tek profil çalıştıran kullanıcı düzeyinde Linux
-service/timer hazırlanabilir. Mevcut `./xti`, mutlak `--data-dir` ve ortak
-`LocalExecutionLock` kullanılacak; ikinci bir paralellik kilidi gerekmiyor.
-
-Mutlak proje/veri yolu ve açık profil kimliği kullanılmalı; shell komut
-birleştirme yapılmamalı. Birim dosyalarında `%`, `$` ve tırnak kaçışları ayrıca
-doğrulanmalı. Kurulum kendiliğinden tarama veya hizmet etkinleştirme yapmamalı.
-Kısmi kaynak hatası, kilit doluluğu ve yapılandırma hatası ayrı görünmeli;
-hızlı yeniden deneme döngüsü oluşmamalı.
-
-Mevcut `backup`, `restore`, `doctor`, `storage readiness` ve kontrollü cleanup
-yeniden kullanılabilir. Salt okunur hazırlık raporu otomatik yedek, disk kotası
-veya restore tatbikatı sayılmayacak. Birimler Linux ortamında doğrulanmalı;
-macOS üzerinden dosya üretmek gerçek Linux hizmet testi yerine geçmez.
+0.133.0, kayıtlı profil için dosya üretimi ve doğrulanmış yedek/kurtarma
+bakımını ekler. Hizmet kendiliğinden etkinleştirilmez; macOS üzerinde gerçek
+Linux çalışması yapılmış sayılmaz. Güncel kullanım [Linux rehberinde](../LINUX_SCHEDULING.md),
+kesinti ve saklama sözleşmesi [0134 kararında](../decisions/0134-linux-scheduling-and-owned-backups.md) anlatılır.

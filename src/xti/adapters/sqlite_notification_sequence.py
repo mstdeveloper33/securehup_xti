@@ -26,6 +26,7 @@ def next_notification_sequence(connection: sqlite3.Connection) -> int:
             "vulnerability_change_notifications",
             "cti_saved_search_notifications",
             "ransomware_watch_notifications",
+            "ransomlook_watch_notifications",
             "brand_username_review_notifications",
         )
     )

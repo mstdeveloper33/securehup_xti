@@ -1,10 +1,10 @@
 # Açık Kuruluş ve Marka Bağlantıları
 
-**PLANLANDI — UYGULANMADI (PLANNED — NOT IMPLEMENTED).** 14 Kasım 2026.
-Bu belge 3. aşamanın önerilen sözleşmesidir. Çekirdek domain/port/uygulama
-taslağı ayrı geçici çalışma alanında hazırlanmıştır; ana projeye CLI,
-veritabanı veya çalışan özellik olarak entegre edilmemiştir. Önce 2. aşama
-tamamlanır. Gerçek çalışan kapsam [STATUS](../STATUS.md) dosyasındadır.
+**Durum: TAMAMLANDI — 0.133.0.**
+14 Kasım 2026. Şema 57 kuruluş ve açık bağlantı geçmişini ekler; güncel
+birleşik şema 59'dur. CLI, depolama, geçiş ve hata senaryoları testlidir.
+Bu belge uygulanan 3. aşamanın sözleşmesidir; uygulama sürümü 0.133.0’dır.
+Çalışan kapsam [STATUS](../STATUS.md) dosyasındadır.
 
 ## Kullanıcının yapacağı şey
 
@@ -61,7 +61,7 @@ kendiliğinden kuruluş kapsamına genişletilmez; toplama seçimi açık kalır
 
 ## Domain, port ve uygulama sınırı
 
-Taslak `domain/organizations.py`, donmuş kuruluş/bağlantı/olay/görünüm
+`domain/organizations.py`, donmuş kuruluş/bağlantı/olay/görünüm
 modellerini ve iki saf yaşam döngüsü kuralını içerir:
 `decide_organization_change`, `decide_organization_link_change`.
 `organization_link_effective` üç etkinlik durumunu ve kesin kimlik
@@ -81,13 +81,13 @@ sınırını yönetir. Bütün yazımlar kilit altında ilgili repository işlem
 transaction'ı içinde** geçmişi, kuruluş/hedef etkinliğini ve tekilliği tekrar
 doğrulamak zorundadır. Servisin önceden okuduğu duruma güvenerek yazamaz.
 Terminal kökü somut adaptörü/kilidi bağlar; gelecekte React aynı uygulama
-servisinden yararlanabilir. Yeni REST endpoint bu taslağın parçası değildir.
+servisinden yararlanabilir. Yeni REST endpoint bu teslimin parçası değildir.
 
-## Önerilen kalıcılık ve şema geçişi
+## Kalıcılık ve şema geçişi
 
-2. aşama şema 56'yı tamamladığında sonraki şema 57 için dört ek tablo
-öngörülür: `organizations`, `organization_events`, `organization_links`,
-`organization_link_events`. Kesin DDL ve audit uygulaması ayrı teslimdir.
+Şema 57 dört ek tablo getirir: `organizations`, `organization_events`,
+`organization_links`, `organization_link_events`. DDL ve geçmiş denetimi
+SQLite adaptöründe uygulanmıştır.
 
 Bağlantının mevcut tabloya gerçek yabancı anahtarı olmalı: domain için
 `asset_id`, diğer türlerde ilgili watch ID'si. Tür kontrolüyle tam bir hedef
@@ -102,7 +102,7 @@ Revision artışı ve zaman sırası denetlenir. Silme/cascade ile geçmiş veya
 mevcut kullanıcı kaydı kaldırılmaz. Ad çakışması ve işlem ortası hata bütün
 mutation'ı geri alır.
 
-Geçiş açık `storage migrate`, benzersiz yedek ve rollback kullanır.
+Geçiş açık `./xti migrate`, benzersiz yedek ve rollback kullanır.
 Mevcut domain, izleme, profil ve çalışma verileri değiştirilmez. Yeni
 kuruluş veya bağlantılar mevcut kayıtlardan otomatik üretilmez. Salt okunur
 görünümler şemayı kendiliğinden yükseltmez; tek SQLite snapshot içinde
@@ -112,8 +112,7 @@ kuruluş, bağlantı ve hedef durumunu tutarlı okur.
 
 1. **İzole çekirdek:** Normalleştirme, kuruluş/bağlantı yaşam döngüsü,
    açık yeniden etkinleştirme, üçlü etkinlik ve servis kilit sınırının
-   küçük birim testleri. Bu taslakta 9 test geçmiştir; kalıcılık kabulü
-   veya özelliğin uygulandığı iddiası değildir.
+   birim testleri; kalıcılık, CLI ve yedekli geçiş testleriyle birlikte uygulanmıştır.
 2. **Kalıcılık:** Şema 56→57 yedekli geçiş; eski verinin korunması; aynı
    hedefin iki kuruluşa bağlanması; aynı kuruluşta tekrarsız bağ; gerekçe
    güncelleme; isim çakışması ve tam revision/olay zinciri denetimi.
@@ -125,8 +124,8 @@ kuruluş, bağlantı ve hedef durumunu tutarlı okur.
    açılınca durumun asıl kayıttan gelmesi; veri kopyalanmaması; sayfalama
    toplamları; salt okunur/tek-snapshot davranışı; yedekten yeni dosyaya
    dönüşte aynı kuruluş ve bağlantı geçmişinin korunması.
-5. **Terminal:** Ana çalışma tamamlandığında açık add/rename/link/unlink/
+5. **Terminal:** Açık add/rename/link/unlink/
    revoke/reactivate ve liste/ayrıntı komutları; domain ve kaynak/izleme
    kimliklerinin tek tek gösterilmesi; JSON tutarlılığı; ağ veya toplama
-   çağrısı yapılmaması. Kullanım, mimari ve STATUS ancak bütün kabul
-   kontrolleri tamamlanınca güncellenir.
+   çağrısı yapılmaması. Kullanım, mimari ve STATUS bu kapsamla güncellenmiştir;
+   sürümün yayımlanması ayrıca takip edilir.

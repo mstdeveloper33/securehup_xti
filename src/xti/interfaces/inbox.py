@@ -108,6 +108,16 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
                 f"  Yeni {evidence.added_count} | değişen {evidence.updated_count}",
                 f"  Çalışma zamanı: {safe_text(evidence.executed_at)}",
             ])
+        elif item.ransomlook_change is not None:
+            evidence = item.ransomlook_change
+            lines.extend([
+                "",
+                f"{read_state} | RansomLook iddia eşleşmesi değişti | "
+                f"{safe_text(evidence.current_watch_name)}",
+                f"  Bildirim: {safe_text(notice.id)} | Kaynak: RansomLook",
+                f"  Yeni {evidence.added_count} | değişen {evidence.updated_count}",
+                f"  Çalışma zamanı: {safe_text(evidence.executed_at)}",
+            ])
         else:
             evidence = item.brand_profile_review
             lines.extend([
@@ -133,6 +143,24 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
 
 def detail_lines(item: InboxDetails) -> list[str]:
     notice = item.notification
+    if item.ransomlook_change is not None:
+        evidence = item.ransomlook_change
+        return [
+            f"Bildirim: {safe_text(notice.id)} | RansomLook iddia eşleşmesi değişti",
+            "Kaynak: RansomLook kamuya açık gönderi akışı",
+            f"Kutuda oluşturulma: {safe_text(notice.created_at)}",
+            f"Okundu zamanı: {safe_text(notice.read_at or 'Henüz okunmadı')}",
+            f"İzlemenin güncel adı: {safe_text(evidence.current_watch_name)}",
+            f"İzleme kimliği: {safe_text(evidence.watch_id)}",
+            f"Kaynak çalışması: {safe_text(evidence.source_run_id)}",
+            f"Çalışmadaki tanım özeti: {safe_text(evidence.definition_sha256)}",
+            f"Yeni: {evidence.added_count} | değişen: {evidence.updated_count} | "
+            f"aynı: {evidence.unchanged_count} | kaynak penceresinden çıkan: {evidence.removed_count}",
+            f"Çalışma: ./xti ransomware watch-run-show {safe_text(evidence.run_id)} --source ransomlook",
+            "Bu kayıt kamuya açık grup iddiasıdır; doğrulanmış ihlal değildir.",
+            "Kaynak penceresinden çıkmak kapatma veya güvenli durum anlamına gelmez.",
+            "Ayrıntıya bakmak bildirimi okundu işaretlemez.",
+        ]
     if item.brand_profile_review is not None:
         evidence = item.brand_profile_review
         current_labels = {

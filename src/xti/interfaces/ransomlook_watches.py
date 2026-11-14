@@ -77,7 +77,7 @@ def run_lines(report: RansomLookWatchRunReport) -> list[str]:
     run = report.run
     lines = [
         f"RansomLook kuruluş izleme çalışması: {safe_text(report.watch.display_name)}",
-        f"Toplam {run.total_count} | yeni {run.added_count} | aynı "
+        f"Toplam {run.total_count} | yeni {run.added_count} | değişen {run.updated_count} | aynı "
         f"{run.unchanged_count} | pencereden çıkan {run.removed_count}",
         f"Sonuç kaydı: {report.total_item_count}; {len(report.items)} gösteriliyor | "
         f"çalışma {safe_text(run.id)}",
@@ -94,6 +94,8 @@ def run_lines(report: RansomLookWatchRunReport) -> list[str]:
         lines.append(
             "Yalnız kaynak penceresinden çıkış var; bu çözüm veya kapatma kanıtı değildir."
         )
+    if report.notification_id is not None:
+        lines.append(f"Yerel bildirim: ./xti inbox show {safe_text(report.notification_id)}")
     for item in report.items:
         claim = item.match.claim
         lines.extend([
@@ -111,6 +113,6 @@ def run_lines(report: RansomLookWatchRunReport) -> list[str]:
         )
     lines.extend([
         "Kayıtlar doğrulanmış ihlal değil, kamuya açık grup iddialarıdır.",
-        "Bu sonuç ThreatCluster izleme veya bildirim geçmişiyle birleştirilmez.",
+        "RansomLook kaynak kimliği korunur; ThreatCluster ile aynı olay olduğu varsayılmaz.",
     ])
     return lines

@@ -46,6 +46,11 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_collection_history_migration.py \
     tests/test_collection_source_receipts.py \
     tests/test_collection_job_ownership.py \
+    tests/test_cross_feature_workflow_cli.py \
+    tests/test_attack_catalog.py \
+    tests/test_scheduling.py \
+    tests/test_scheduled_backups.py \
+    tests/test_scheduling_cli.py \
     tests/test_ci_configuration.py \
     tests/test_cli.py \
     tests/test_storage.py \

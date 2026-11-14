@@ -1,8 +1,57 @@
 # Yerel Uygulamanın Mimarisi
 
-**14 Kasım 2026 — 0.132.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**14 Kasım 2026 — 0.133.0, şema 59 ana proje yapısı.**
+Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
+
+`SchedulingService`, profil/plan, ortak kilit, kurtarma, dosya üretimi ve
+yedek portlarını birleştirir. `SystemdScheduleWriter` yalnız yeni dosya
+üretir; etkinleştirmez. Sabit `/bin/sh` mevcut başlatıcıyı ayrı argv ile
+çağırır; üretilmiş shell ifadesi yoktur. Yedek adaptörü ayrı yönetilen
+havuzda UUID/boyut/özet ve oluşturuluyor/tutuluyor/emekli durumlarıyla kesinti
+kurtarması yapar. Geri yükleme doğrulanmadan ve manifest/dizin kalıcı
+yazılmadan eski yedek silinmez. Şema değişmez. [0134 kararı](decisions/0134-linux-scheduling-and-owned-backups.md).
+
+Kuruluş/rapor/katalog/kaynak katkısı/bildirim sınırları
+[0133 kararında](decisions/0133-evidence-preserving-personal-workflow.md) açıklanır.
+
+`OrganizationService`, açık kullanıcı gruplamasını küçük kuruluş deposu ve
+ortak yürütme kilidiyle yönetir. Şema 57 kuruluş/bağlantı durumunu ve tam
+revizyon geçmişini tutar; domain/watch hedefleri gerçek yabancı anahtarlardır.
+Yazma anında hedef ve geçmiş aynı işlemde denetlenir. Kuruluş ilişkisi kaynak
+verisini kopyalamaz, sahiplik veya toplama kapsamı çıkarmaz; hedef geri
+çekildiğinde bağlantı geçmişi okunabilir kalır.
+
+`PeriodicChangesService`, 1/7 günlük UTC penceresini bir kez belirler.
+`SQLitePeriodicChangesRepository` bütün aileleri tek salt okunur transaction
+ile okur; yerel kayıt zamanı ile kaynak gözlem zamanı ayrı tutulur. Başlangıç,
+değişim ve hata satırları ayrı sayılır. Domain filtresi yalnız marka ve dış
+yüzeyi kapsar; kuruluş filtresi uygulanmadı. Yeni rapor tablosu veya ağ çağrısı
+bulunmaz. Tarihî sorgu/ad eksikse güncel tanımdan tahmin edilmez.
+
+`SourceContributionService`, açık provider ve gerçek iş/aday kanıtlarından
+tekil domain kümeleri ile kayıtlı deneme oranlarını hesaplar. SQLite portu
+tek salt okunur kesit verir; marka adaylarında tek hedef + kural + typos
+sınırı korunur. Serbest kaynak metninden sağlayıcı atfı yapılmaz; çok hedefli
+ve sonuçsuz denemeler görünür biçimde ayrılır. Gösterim sayfalaması toplamları
+etkilemez. Bu teslim yeni sağlayıcı seçmez; ölçüm ve
+[karar notu](roadmap/SOURCE_PROVIDER_EVALUATION.md) ekler.
+
+`AttackCatalogService` yerel kimlikli ATT&CK kataloğunu okur. Resmî yanıt tek
+kez alınır/ayrıştırılır; ek katalog ile eski CTI kaynak iddiaları aynı SQLite
+transaction içinde güncellenir. Şema 58 kanonik STIX/dış kimlik, kaynak metni,
+ilişkiler, alan kaynaklı teknik–taktik üyelikleri ve denetlenebilir değişim
+geçmişi tutar. Aynı adlı teknikler ayrıdır; eski CTI satırları yeniden
+biçimlendirilmez. Ayrıntıda eski CTI bağı verilecekse o kanıt da aynı okuma
+kesitinde doğrulanır. Görünüm servisleri ağ veya somut depoya bağımlı değildir.
+
+Şema 59 `ransomlook_watch_notifications` tablosunu ekler. RansomLook çalışma,
+sonuç öğeleri, bildirimi ve varsa toplama receipt'i aynı transaction'dadır.
+İlk ölçüm sessizdir; sonraki `added + updated > 0` tek çalışma bildirimi verir.
+Kaynak kimliği ThreatCluster'dan ayrı kalır; iki kaynak ortak kutunun sırasını
+paylaşır. Aynı çalışmanın tekrarı veya yalnız çıkarılma bildirim oluşturmaz;
+geçmiş çalışmalara geriye dönük bildirim eklenmez.
 
 `CollectionHistoryService`, mevcut toplama servislerini kaynak birimleriyle
 yürütür. Şema 56 oturum, adım ve gerçek kaynak sonucuna bağlı completion
@@ -173,7 +222,14 @@ Terminal değişikliği alan adı kurallarını değiştirmeyi gerektirmez. Depo
 - Şema 53: şema 52'ye kayıtlı son CNAME kanıtından türetilen tedarikçi adayını, kaynak kanıt zincirini ve geri alınabilir insan çözümleme kararlarını ekler. Eski CNAME kayıtlarından migration sırasında aday üretilmez; tablolar boş başlar ve yalnız açık `candidate-refresh` ile dolar.
 - Şema 54: şema 53'e vaka güncel durumu, dondurulmuş kaynak kanıt bağı, takip görevi ve tek sıralı eklemeli aktivite tablolarını ekler. Eski bulgu, profil, ransomware veya tedarikçi kayıtlarından vaka üretilmez; tablolar boş başlar.
 - 0.89.0–0.95.0 şema 39'u, 0.96.0 şema 40'ı, 0.97.0–0.99.0 şema 41'i, 0.100.0–0.102.0 şema 42'yi, 0.103.0–0.104.0 şema 43'ü, 0.105.0 şema 44'ü, 0.106.0–0.107.0 şema 45'i, 0.108.0–0.110.0 şema 46'yı, 0.111.0 şema 47'yi, 0.112.0 şema 48'i, 0.113.0–0.117.0 şema 49'u, 0.118.0 şema 50'yi, 0.119.0 şema 51'i, 0.120.0 şema 52'yi, 0.121.0–0.123.0 şema 53'ü ve 0.124.0–0.126.0 şema 54'ü kullanır. 0.122.0 tedarikçi iddia görünümü, 0.123.0 inceleme kartı, 0.124.1 klonla-çalıştır başlangıcı, 0.125.0 sosyal araç kurulumu/profilleri ve 0.126.0 pasif kaynak sağlık/kabul görünümü migration gerektirmez. Her dış yüzey değişiklik bildirimi tam olarak bir değişmiş web/posta/servis kanıtına yabancı anahtarla bağlıdır; kanıt ve bildirim aynı transaction içinde yazılır. İlk CNAME dilimi bildirim üretmez.
-- Şema 1–53 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.
+- Şema 55: tam sürümlü toplama profilleri ve değişmez tanım geçmişi.
+- Şema 56: toplama oturumu, adımları ve gerçek kaynak sonuçlarına bağlı receipt kayıtları.
+- Şema 57: açık kuruluş grupları, hedef bağlantıları ve revizyon olayları.
+- Şema 58: STIX kimlikli ATT&CK kataloğu, başarılı senkron ve değişim geçmişi.
+- Şema 59: ayrı RansomLook izleme bildirimi, ortak kutu sırası ve okundu durumu.
+  Bu ek tablolar eski kayıtlardan tahminle doldurulmaz; mevcut kaynak kanıtları korunur.
+- 0.131.0 şema 55, 0.132.0 şema 56 kullanır; 0.133.0 şema 59'dur.
+- Şema 1–58 kayıtları açık `migrate` gerektirir. Önceki aramalardan geriye dönük vaka, tedarikçi veya tedarikçi adayı, izleme oturumu, sosyal kullanıcı adı izlemesi, profil kararı veya sosyal profil bildirimi, istisna, dış yüzey onayı/kontrolü, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS/servis/CNAME kontrolü, KEV/EPSS/NVD, doğrulanmış ürün, insan maruziyet kararı, düzeltme planı, süreli bastırma, iş önemi, yeniden değerlendirme çalışması, zafiyet değişiklik bildirimi, NVD pencere ilerlemesi, yeniden başlatma olayı, IOC, IOC besleme çalışması, CTI varlık/ilişkisi, kayıtlı CTI sorgusu, CTI arama bildirimi, avcılık etiketi, analist notu, webhook hedefi/teslimi, ransomware iddia snapshot'ı, ransomware izlemesi, monitor oturumu, kimlik kararı veya kaynaklar arası karar üretilmez. Şema 6/7'den geçişte bulgu bildirimleri yeniden oluşturulmaz; kimlik ve okundu bilgileri korunur. Şema 8'in kalıcı istisnaları güncel düzende kalıcı kalır.
 - Domain tekilliği uygulama normalleştirmesi ve veritabanı kısıtıyla korunur.
 - Biçim işareti application_id=0x58544901; bu bir güven/özgünlük imzası değildir.
 - Eski şemadan geçiş açık migrate komutuyla yapılır. Yazma kilidi altında önce özgün sürümün yedeği alınır. Gerekli ara tablolar ve şema 17'nin zafiyet tabloları tek transaction içinde oluşturulur; yalnız şema 1–5'ten geçişte önceki bulguların bildirimleri oluşturulur. Hata geri alınır; bilinmeyen şema değiştirilmez. Önceki sürümlerin tablo kümeleri sabittir.
@@ -306,7 +362,7 @@ kararındadır](decisions/0113-bounded-foreground-social-watch.md).
 
 RansomLook için ayrı domain modeli ve port kullanılır. Çünkü kaynak ThreatCluster kimliğini, ilan durumunu, ülke/sektörü veya domaini sağlamaz; ortak modele zorlamak yanlış kanıt üretirdi. `ransomware recent --source ransomlook` yazmasız canlı önizlemedir. `refresh --source ransomlook` ise yalnız açık çağrıda ayrı `ransomlook_claim_runs` ve `ransomlook_claim_run_items` tablolarına atomik fark geçmişi yazar; ilk snapshot başlangıç çizgisidir, değişmeyen kayıtlar tekrar yazılmaz ve kaynak hatası son başarılı durumu silmez. Yedi günlük pencereden çıkış yalnız kaynak görünürlüğü değişimidir. RansomLook tablolarının ThreatCluster snapshot, izleme, bildirim veya kimlik tablolarına yabancı anahtarı yoktur. Hiçbir akış Tor/leak-site adresine bağlanmaz veya ham içerik indirmez. Ayrıntılar [ikinci kaynak önizleme kararında](decisions/0102-ransomlook-second-source-preview.md) ve [kalıcı geçmiş kararında](decisions/0103-ransomlook-source-isolated-history.md) bulunur.
 
-`RansomLookWatchService`, yalnız `organization` türünü ve kaynak başlığında `exact/contains` eşleşmesini kabul eder. Tanım, eklemeli yaşam döngüsü, çalışma ve sonuçlar `ransomlook_watch_*` tablolarında tutulur. Her çalışma son başarılı RansomLook snapshot kimliğine bağlıdır ve yazma anında tam snapshot kanıtı yeniden doğrulanır. Aynı tanımın ilk çalışması sessiz başlangıçtır; sonraki yeni/değişen kayıtlar `attention_count` içinde insan inceleme adayıdır. Çıkarılma yalnız kayan kaynak penceresidir. Bu tablolardan ThreatCluster izleme/bildirim/kimlik tablolarına bağ yoktur; ortak inbox ve otomatik karşılaştırma bu dilimde yoktur. Ayrıntılar [RansomLook izleme kararında](decisions/0104-ransomlook-organization-watch.md) bulunur.
+`RansomLookWatchService`, yalnız `organization` türünü ve kaynak başlığında `exact/contains` eşleşmesini kabul eder. Tanım, eklemeli yaşam döngüsü, çalışma ve sonuçlar `ransomlook_watch_*` tablolarında tutulur. Her çalışma son başarılı RansomLook snapshot kimliğine bağlıdır ve yazma anında tam snapshot kanıtı yeniden doğrulanır. Aynı tanımın ilk çalışması sessiz başlangıçtır; sonraki yeni/değişen kayıtlar `attention_count` içinde insan inceleme adayıdır. Çıkarılma yalnız kayan kaynak penceresidir. Bu tablolardan ThreatCluster izleme/bildirim/kimlik tablolarına bağ yoktur; ortak inbox şema 59 ile ayrı RansomLook bildirimi okur; iki kaynak otomatik tek olaya dönüştürülmez. Ayrıntılar [RansomLook izleme kararında](decisions/0104-ransomlook-organization-watch.md) bulunur.
 
 `RansomwareSourceComparisonService`, iki ayrı repository portundan son başarılı yerel snapshot'ları alır. Domain katmanı NFKC+casefold+boşluk normalleştirmesi sonrası kuruluş adının tam eşitliğini ve ayrıca grup adı veya kanonik keşif zamanından en az birinin eşitliğini ister. Aynı kuruluş+grup+zaman, kuruluş+grup ve kuruluş+zaman sonuçları ayrı açıklama temelleridir; yalnız kuruluş, yalnız grup/zaman ve yaklaşık metin benzerliği elenir. Sonuç her iki özgün claim'i ve kararlı çift kimliğini taşır; ağ, yazma, alarm, inbox veya kimlik birleştirme yoktur. Şema 45 değişmez. Ayrıntılar [kaynak karşılaştırma kararında](decisions/0105-explainable-ransomware-source-comparison.md) bulunur.
 
@@ -498,7 +554,7 @@ Aynı servis bütün kalıcı pencereleri durum filtresiyle listeler, tam kimli�
 
 `CtiKnowledgeService`, CTI varlık türünü/adını, alternatif adları, kaynak iddiasını ve varlık/IOC hedefli ilişkiyi domain kurallarıyla doğrulayıp `CtiKnowledgeRepository` portuna iletir. SQLite adaptörü kanonik tür+ad varlığını kaynak iddialarından; kaynak–ilişki–hedef kenarını ilişki iddialarından ayırır. Her iddia ilk/son gözlem ve `added/observed/updated/reactivated/revoked` olay geçmişi taşır; bir kaynağın geri çekilmesi diğerini etkilemez. Çelişen atıflar ayrı kenarlar olarak korunur, alternatif adlar otomatik birleşim anahtarı olmaz. Liste/ayrıntı/arama ağsız ve salt okunurdur; bozuk gizli geçmişte kısmi sonuç verilmez. Şema 34→35 doğrulanmış yedekten sonra altı tabloyu boş oluşturur. Ayrıntılar [kaynakları koruyan yerel CTI bilgi grafiği kararındadır](decisions/0081-source-preserving-cti-knowledge-graph.md).
 
-`AttackSyncService`, `AttackSource` ve `AttackSyncRepository` portlarını bağlar. Önce yönetilen kaynak geçmişini salt-okunur denetler; böylece bozuk yerel geçmiş ağdan yeni veriyle örtülmez. `MitreAttackSource`, yalnız sürümü sabitlenmiş Enterprise v20.0 tam STIX paketini sabit HTTPS adresinden alır ve boyut, nesne sayısı, koleksiyon dizini, kimlik, zaman, resmî başvuru, tür ve ilişki yönünü doğrular. Yalnız etkin grup/kampanya/malware ile seçili `uses`/`attributed-to` ilişkileri ortak CTI modellerine çevrilir. SQLite adaptörü tüm ekleme/güncelleme/geri çekmeleri tek transaction'da uygular ve işlem sonunda yönetilen geçmişi yeniden denetler. Kaynak hatası yazma başlatmaz; ayrı senkron çalışma tablosu olmadığı için başarısız istek kalıcı durum olarak tutulmaz. Şema 41'deki diğer kaynak iddiaları korunur. Ayrıntılar [sürüme sabit MITRE ATT&CK kararı](decisions/0091-pinned-mitre-attack-cti-subset.md) içindedir.
+`AttackSyncService`, `AttackSource` ve `AttackSyncRepository` portlarını bağlar. Önce yönetilen kaynak geçmişini salt-okunur denetler; böylece bozuk yerel geçmiş ağdan yeni veriyle örtülmez. `MitreAttackSource`, yalnız sürümü sabitlenmiş Enterprise v20.0 tam STIX paketini sabit HTTPS adresinden alır ve boyut, nesne sayısı, koleksiyon dizini, kimlik, zaman, resmî başvuru, tür ve ilişki yönünü doğrular. Yalnız etkin grup/kampanya/malware ile seçili `uses`/`attributed-to` ilişkileri ortak CTI modellerine çevrilir. SQLite adaptörü tüm ekleme/güncelleme/geri çekmeleri tek transaction'da uygular ve işlem sonunda yönetilen geçmişi yeniden denetler. Ek teknik/taktik katalog aynı yanıttan üretilir ve eski CTI ile birlikte kaydedilir. Katalog başarılı senkron geçmişini tutar; başarısız indirme ayrı kalıcı çalışma olarak tutulmaz. Şema 41'deki diğer kaynak iddiaları korunur. Ayrıntılar [sürüme sabit MITRE ATT&CK kararı](decisions/0091-pinned-mitre-attack-cti-subset.md) içindedir.
 
 Birleşik CTI arama yolu aynı depo portunun salt-okunur işlevidir. NFKC/casefold sorgu anahtarını CTI ana adı, seçili kaynak iddialarının alternatif adları ve IOC kanonik değeriyle karşılaştırır; tam/başlangıç/içerme derecesini hesapladıktan sonra kararlı biçimde sıralar. Etkin kapsam IOC geçerlilik penceresini enjekte edilen UTC sorgu zamanında değerlendirir. Sonuç limiti yalnız gösterimi keser; en fazla 50.000 CTI varlığı ve 50.000 IOC ana kaydının bütün iddia/olay geçmişi önce doğrulanır. Arama indeksi veya yeni tablo yoktur; kişisel ölçekte güvenli tam tarama kullanılır ve şema 35 değişmez. Ayrıntılar [birleşik yerel CTI arama kararındadır](decisions/0082-unified-local-cti-search.md); güncel sınır [çok kaynaklı IOC kararında](decisions/0090-bounded-multi-source-ioc-feeds.md) belirlenmiştir.
 

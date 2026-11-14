@@ -262,12 +262,17 @@ def parse_attack_response(content: bytes, *, fetched_at: datetime) -> AttackSnap
             observed_at=modified,
         ))
 
+    from xti.adapters.mitre_attack_catalog import catalog_from_objects
+    catalog = catalog_from_objects(
+        objects, content_times, content_sha256=hashlib.sha256(content).hexdigest(), fetched_at=fetched_at,
+    )
     snapshot = AttackSnapshot(
         version=ATTACK_VERSION, source_url=ATTACK_SOURCE_URL,
         content_sha256=hashlib.sha256(content).hexdigest(),
         source_object_count=len(objects),
         entities=tuple(sorted(selected.values(), key=lambda value: value.stix_id)),
         relationships=tuple(sorted(relationships, key=lambda value: value.stix_id)),
+        catalog=catalog,
     )
     try:
         return validate_attack_snapshot(snapshot)

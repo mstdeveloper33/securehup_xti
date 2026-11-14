@@ -163,4 +163,23 @@ class RansomLookWatchRunReport:
     total_item_count: int
     attention_count: int
     is_baseline: bool
+    notification_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RansomLookWatchChangeEvidence:
+    """Historical run evidence; the watch name is its current editable label."""
+
+    watch_id: str
+    current_watch_name: str
+    run_id: str
+    source_run_id: str
+    definition_sha256: str
+    executed_at: str
+    total_count: int
+    added_count: int
+    updated_count: int
+    unchanged_count: int
+    removed_count: int
+    source: str = "ransomlook"
 

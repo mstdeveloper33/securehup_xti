@@ -1,8 +1,12 @@
 # Kaynak Katkısı ve Ücretsiz Kaynak Genişlemesi
 
-**PLANLANDI — UYGULANMADI (PLANNED — NOT IMPLEMENTED).** 14 Kasım 2026.
-Bu belge 6. aşamanın tasarımıdır. Yeni komut, adaptör veya şema teslimi
-değildir; çalışan kapsam [STATUS](../STATUS.md) dosyasındadır.
+**Durum: ÖLÇÜM VE KARAR NOTU TAMAMLANDI — 0.133.0.**
+14 Kasım 2026. `sources contribution DOMAIN` terminal/JSON görünümü ve
+salt okunur servis uygulanmıştır; yeni şema veya zorunlu ücretli API yoktur.
+**Yeni sağlayıcı eklenmedi:** bağımsız katkı ve erişim/lisans koşulları
+kanıtlanmadan adaptör seçilmedi. [Değerlendirme notu](SOURCE_PROVIDER_EVALUATION.md)
+bu koşullu kararı açıklar. Common Crawl dış erişim sorunu açık kalır.
+Çalışan kapsam [STATUS](../STATUS.md) dosyasındadır.
 
 ## İlk somut teslim
 
@@ -10,7 +14,7 @@ Kayıtlı bir domain için, **yalnız eldeki yerel kanıtı** okuyarak şunları
 göstermek: her kaynağın getirdiği farklı aday adresleri, başka kaynaklarda
 da görülen adresleri, yalnız o kaynakta kayıtlı adresleri ve kaydedilmiş
 çalışmaların tamamlanma durumları. Ayrıntıda adresler ve dayanak kayıt
-kimlikleri bulunacak; yalnız sayaç gösterilmeyecek.
+kimlikleri bulunur; yalnız sayaç gösterilmez.
 
 Alt alan adı keşfi ile benzer marka/domain araması ayrı kalır. Bu rapor
 internetin yüzde kaçının tarandığını, kaynağın kaçırdığı gerçek tehditleri,
@@ -26,7 +30,7 @@ bir kaynağın doğruluk oranını veya tek başına kaldırılabileceğini öl�
 | [sqlite_jobs.py](../../src/xti/adapters/sqlite_jobs.py), `ScanJob`/`ScanAttempt` ve `ScanResult` | İşteki provider, hedefler, typos, kural sürümü; deneme durumu ve sonuçtaki `candidate_domains`. | Birden fazla hedefli sonuç adayları hedef bazında ayırmaz. Sonucu olmayan kesilmiş denemede daha önce yazılmış adayları denemeye kesin bağlayan anahtar yoktur. |
 | `observations` / `finding_observations` | Kaynak başvurusu ve bulgu kanıtı ayrıntıları. | `observations` tablosunda provider veya attempt yabancı anahtarı yoktur; yalnız serbest `source_name` önekinden güvenilir çalıştırıcı atfı yapılmaz. Bağlantısız gözlemler bakımda temizlenebilir. |
 | [theharvester_archive.py](../../src/xti/adapters/theharvester_archive.py), `parse_theharvester_jsonl` | Kaynak adı `theHarvester:commoncrawl@COMMIT` / `theHarvester:waybackarchive@COMMIT` olarak korunur. | Kaynak başına tamamlanma kayıtları yapısal alt çalışma olarak saklanmaz; uyarı metni ayrıştırılarak ayrı başarı oranı üretilmez. |
-| ATT&CK kaynak iddiaları | Saklanan bilgi sayıları. | Mevcut sürüm başarısız deneme/tam senkron geçmişini tutmaz; bundan başarı oranı çıkarılamaz. |
+| ATT&CK kaynak iddiaları | Saklanan bilgi sayıları. | Ek katalog başarılı senkronları tutar; başarısız indirme geçmişi olmadığından bundan başarı oranı çıkarılmaz. ATT&CK bu domain katkısı ölçümünün dışındadır. |
 
 ## Ölçüm kuralları
 
@@ -88,9 +92,9 @@ değildir. Yerel kesinti de bir denemeyi etkileyebilir.
 filtrelenmiş “yeniden keşif” iddiası eklenmez. Kaynak tarihi `observed_at`,
 yerel kayıt tarihi ve deneme zamanı birbirinin yerine kullanılmaz.
 
-## Şemasız mimari ve servis sözleşmesi önerisi
+## Şemasız mimari ve servis sözleşmesi
 
-Önerilen adlar henüz uygulanmamıştır:
+Uygulanan sözleşmeler:
 
 ```python
 SourceContributionRepository.snapshot(asset_value, *, family) -> SourceContributionSnapshot
@@ -113,13 +117,13 @@ aşılmasında eksik veriden kesin oran veya örtüşme sonucu üretilmez. Ayrı
 sayfalaması hesaplanan toplamları etkilemez; kararlı sıralama, offset,
 gösterilen/toplam adet ve `has_more` taşır.
 
-Önerilen terminal yolu `sources contribution DOMAIN` ve `--family
+Terminal yolu `sources contribution DOMAIN` ve `--family
 surface|brand|all` seçimi; JSON aynı rapor modelinden üretilir. Komut
 kaynağı çalıştırmaz, araç kurmaz, çalışma kilidi oluşturmaz veya migration
 başlatmaz. Eksik veritabanı/kayıtsız kök açıklayıcı hata verir. İleride React
 bağlantısı aynı uygulama servisini kullanabilir; REST teslimi bu aşamada yok.
 
-## Ön koşul: tekrar toplama bütünlüğü
+## Önceden giderilen tekrar toplama sorunu
 
 14 Kasım 2026 incelemesinde geçici SQLite ve sentetik theHarvester çıktısıyla
 mevcut bir tekrar sorunu doğrulandı: aynı hostname/kaynak için digest aynı
@@ -127,12 +131,13 @@ kalırken parser `observed_at` alanına yeni `completed_at` yazıyor.
 [sqlite_surface_candidates.py](../../src/xti/adapters/sqlite_surface_candidates.py),
 `_save_validated` bunu aynı özet altında çelişen kanıt olarak reddediyor.
 İlk çalışma iki aday/üç kanıtla kaydoldu; bir saat sonraki eşdeğer çalışma
-reddedildi ve ikinci çalışma satırı oluşmadı. Kod bu incelemede değiştirilmedi.
+reddedildi ve ikinci çalışma satırı oluşmadı. Bu ilk incelemeden sonra
+0.131.0 düzeltmesi gözlem zamanını kaynak özetine dahil etti; eski kanıtlar
+ve insan kararları korundu. Bu modül düzeltmeyi tekrar uygulamaz.
 
-Canlı katkı kabulünden önce bu kusur ayrı düzeltmeyle giderilmeli;
-eski kanıt korunmalı ve genel çelişki denetimi gevşetilmemeli. Tekrar edilen
-hostname'in farklı çalışma zamanı, ayrı gerçek arşiv gözlemi ve aday sayısı
-arasındaki sözleşme açıkça belirlenmeli.
+Tekrar edilen hostname yeni zamanda ayrı kaynak kanıtı olabilir; aday
+kimliği ve tekil domain sayısı çoğalmaz. Genel çelişki denetimi korunur.
+Bu yerel düzeltme, Common Crawl dış erişim sorununu çözmüş sayılmaz.
 
 ## Yeni ücretsiz kaynak kararı
 

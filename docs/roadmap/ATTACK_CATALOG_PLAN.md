@@ -1,17 +1,25 @@
 # MITRE ATT&CK Teknik ve Taktik Kataloğu
 
-**PLANLANDI — UYGULANMADI (PLANNED — NOT IMPLEMENTED).** 14 Kasım 2026.
-Bu belge 5. aşamanın tasarım ve kaynak ölçümüdür; yeni komut, şema veya
-çalışan özellik teslim edildiği anlamına gelmez. Önce 1–4. aşamalar
-tamamlanacak. Çalışan kapsamın kaynağı [STATUS](../STATUS.md) dosyasıdır.
+**Durum: TAMAMLANDI — 0.133.0.**
+14 Kasım 2026. Şema 58 ek STIX kimlikli kataloğu ve başarılı senkron/değişim
+geçmişini getirir. Eski CTI ile ek katalog tek indirme ve tek transaction
+kullanır; eski kaynak kanıtları korunur. Güncel birleşik şema 59'dur.
+Çalışan komutlar `cti attack-status`, `attack-search`, `attack-show`; veri
+alma komutu `cti attack-sync` olarak kalır. [STATUS](../STATUS.md) güncel kapsamdır.
+
+İlk resmî paket kabulünde 1.703 katalog varlığı, 18.055 STIX ilişkisi ve
+881 alan kaynaklı teknik/taktik bağı kaydedilip okunabildi. Eski CTI
+982/809 kapsamı korundu. Kabul geçici veritabanındadır; kullanıcının
+kayıtları veya başka kaynak iddiaları yeniden yazılmadı. Aşağıdaki ölçüm
+ve ilk tasarım notları kararın dayanağı olarak korunur.
 
 ## Kullanıcıya sağlayacağı şey
 
 Mevcut `cti attack-sync` indirmesinden teknik, alt teknik ve taktik
 bilgisini de saklamak; ATT&CK kimliği veya adla çevrimdışı aratmak;
 üst teknik, taktik ve kaynakta belirtilen grup/kampanya/malware kullanım
-ilişkilerini kaynaklarıyla göstermek. Komut adları uygulama sırasında
-kesinleştirilecek. Bu katalog bir domainin saldırıya uğradığını veya belli
+ilişkilerini kaynaklarıyla göstermek. Arama `--limit/--offset`, ilişki
+ayrıntısı `--relationship-limit/--relationship-offset` ile sayfalanır. Bu katalog bir domainin saldırıya uğradığını veya belli
 bir gruba ait olduğunu söylemez; saldırı, istismar veya CVE eşlemesi yapmaz.
 
 ## Resmî paket üzerinde ölçülen kanıt
@@ -78,22 +86,21 @@ alanları mevcut. Tüm etkin taktiklerde `x_mitre_shortname`,
 Alt teknik `T1059.001` bağlantısı `/techniques/T1059/001`; taktik
 `TA0002` bağlantısı `/tactics/TA0002` biçimindedir.
 
-## Uygulamadan önce çözülmesi gerekenler
+## Uygulama öncesi ölçülen sorunlar ve çözüm dayanağı
 
 | Mevcut kanıt | Tasarıma etkisi |
 | --- | --- |
 | [schema.py](../../src/xti/adapters/schema.py), `CTI_KNOWLEDGE_DDL`: `UNIQUE(entity_type, name_key)`; [cti_attack.py](../../src/xti/domain/cti_attack.py), `validate_attack_snapshot`: tür/ad tekilliği | Teknikleri yalnız adla kimliklendirmek yanlış. Ölçümde **23 aynı-ad grubu, 48 teknik kaydı** var; örneğin `DNS`: `T1590.002` ve `T1071.004`. |
-| [mitre_attack.py](../../src/xti/adapters/mitre_attack.py), `_TYPE_MAP`, `_external_reference`, ilişki seçimi | Yeni STIX türleri, `Txxxx.xxx`/`TAxxxx` kimlikleri, URL biçimleri ve `subtechnique-of` henüz desteklenmiyor. |
+| [mitre_attack.py](../../src/xti/adapters/mitre_attack.py), `_TYPE_MAP`, `_external_reference`, ilişki seçimi | Eski alt kümenin sınırlı sözleşmesi korunur; yeni türler, kimlikler ve `subtechnique-of` ek katalog ayrıştırıcısında doğrulanır. |
 | [cti_attack.py](../../src/xti/domain/cti_attack.py), `ATTACK_RELATIONSHIP_LIMIT`; [sqlite_cti_knowledge.py](../../src/xti/adapters/sqlite_cti_knowledge.py), `_audit_attack_source` | **2.000 ilişki sınırı 18.055 kayda yetmiyor.** Sınırlar parser/domain/depo denetimlerinde birlikte gözden geçirilmeli; sınırsız yapılmamalı. |
 | Aynı domain ve SQLite denetimlerinde sabit açıklama, URL ve ilişki yönü politikaları | Yalnız parser değişikliği mevcut geçmiş denetimini bozar. Eski iddiaların biçimi korunmalı. |
 | `AttackEntityRecord.description` 2.000 karakter sınırı; mevcut açıklama gerçek kaynak metni değil | **118 teknik açıklaması 2.000 karakteri aşıyor**, en uzunu 4.680; ayrı katalog alanı ve açık uzunluk politikası gerekir. Taktik açıklaması en çok 769 karakter. |
 | `ATTACK_SOURCE_URL` sürüm adlı dosyayı `master` üzerinden okuyor | Sürüm sabit, içerik commit'e sabit değil. Yukarıdaki hash ölçüm kanıtıdır; uygulama şu anda bu hash'i zorunlu tutmaz. Güncelleme ve içerik değişikliği politikası ayrıca karara bağlanmalı. |
 
-## Önerilen mimari ve veri koruma
+## Uygulanan mimari ve veri koruma
 
 Genel CTI varlık türlerini doğrudan genişletmek yerine **STIX kimliğiyle
-tanımlanan ek ATT&CK katalog tabloları** öneriliyor. Bu henüz mimari karar
-olarak kabul edilmiş uygulama değildir. Mevcut CTI kaynak iddiaları ve
+tanımlanan ek ATT&CK katalog tabloları** kullanılır. Mevcut CTI kaynak iddiaları ve
 geçmişleri korunur; yeni katalog ad değişse de aynı kaynak kimliğini tutar.
 
 - Nesne: STIX kimliği, dış ATT&CK kimliği, tür, ad, açıklama, kaynak URL'si,
@@ -107,13 +114,13 @@ geçmişleri korunur; yeni katalog ad değişse de aynı kaynak kimliğini tutar
   kesin kimliği/başvurusuyla kurulur. Salt okunur katalog servisi küçük bir
   port kullanır; domain ve uygulama katmanları SQLite/terminal bilmez.
 
-Şema numarası 1–4. aşamalar bittikten sonra belirlenecek. Ek tablolar için
-açık migration, mevcut benzersiz yedekleme ve rollback yolu kullanılacak.
+Ek tablolar şema 58 ile eklenmiştir. Açık migration, mevcut benzersiz
+yedekleme ve rollback yolu kullanılır.
 Eski kullanıcı verileri yeniden adlandırılmayacak veya silinmeyecek;
 salt okunur komut migration başlatmayacak. Normalleştirilmiş ad, arama alanı
 olacak; kimlik yerine kullanılmayacak.
 
-## Sıralı kabul kapıları
+## Kabul kapsamı
 
 1. **Sözleşme ve örnekler:** Bu ölçümlerden küçük sentetik fixture'lar;
    ad çakışması/yeniden adlandırma, ana/alt teknik ve çok taktik bağı;
@@ -130,8 +137,8 @@ olacak; kimlik yerine kullanılmayacak.
 4. **Kullanıcı akışı:** `T1059`, `T1059.001`, `TA0002` ve ada göre arama;
    birden fazla aynı adı ayrı kimlikle gösterme; ilişkiler, kaynak ve
    görünümde atlanan satır sayısının terminal/JSON tutarlılığı.
-   Başarılı resmî paket kabulü ve `./scripts/check` sonrasında kullanım,
-   mimari ve STATUS güncellenir; ancak o zaman uygulanmış sayılır.
+   Resmî paket ve odaklı test kabulü tamamlandı. Kullanım/mimari güncellendi;
+   sürümün tam regresyonu ve yayını ayrıca izlenir.
 
 ## Erişim ve lisans
 

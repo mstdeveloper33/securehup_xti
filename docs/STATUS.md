@@ -1,10 +1,57 @@
 # XTI — Güncel Uygulama Durumu
 
-**14 Kasım 2026 · 0.132.0 sürümü kalıcı toplama geçmişini ve eksik işleri yeniden denemeyi ekler**
+**14 Kasım 2026 · 0.133.0 · Şema 59.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `schedule generate` kayıtlı profil için Linux kullanıcı hizmeti/zamanlayıcısı
+  ve tam kurulum komutlarını yeni klasöre üretir; kendisi etkinleştirmez.
+  Günlük/haftalık saat, saat dilimi ve son 1–30 yönetilen yedek seçilebilir.
+- `schedule prepare` ortak kilit altında güncel plan, disk ve kesinti kontrolü;
+  benzersiz SQLite yedeği ve yeni dosyaya gerçek kurtarma doğrulaması yapar.
+  Saklama aynı veritabanının bütün profillerce paylaşılan yönetilen havuzuna
+  uygulanır; elle/geçiş yedekleri silinmez. Bozuk sahiplik veya değişmiş yedek
+  işlemden önce durdurur. Yarım yayın/silme kayıtları sonraki hazırlıkta toparlanır.
+- Hizmet kısmi/busy çıkışlarını saklar; peş peşe yeniden başlatmaz. Profil
+  değişirse sonraki tur güncel seçimi kullanır. macOS'ta dosya üretimi, argüman
+  iletimi ve bakım sınandı; gerçek Linux hizmeti etkinleştirilmedi. Linux'a özel
+  ayrıştırıcı testi burada atlanır. [Kullanım](LINUX_SCHEDULING.md).
+
+- `organizations add/list/show/link/unlink/rename/revoke/reactivate`:
+  kayıtlı domain ve sosyal/ThreatCluster/RansomLook izlemelerini kullanıcının
+  açık seçimiyle gruplama. Şema 57 tam değişiklik geçmişini ve gerçek kaynak
+  bağlantılarını korur. Gruplama sahiplik/olay hükmü veya toplama seçimi değildir.
+- `changes --days 1|7`: son 24/168 saatin yerel yeni/değişen kayıtları,
+  başlangıç ölçümleri ve kaynak hataları; her satırda dayanak kimlikleri.
+  Varsayılan tüm yerel aileler; `--domain` yalnız marka/dış yüzey. Kuruluş
+  filtresi uygulanmadı. Komut ağsız, yazmasız ve tek okuma anına dayanır;
+  bölümlerin toplamı “benzersiz tehdit” sayısı diye sunulmaz.
+- `cti attack-status/search/show`: şema 58'de kesin STIX/ATT&CK kimlikli
+  grup, kampanya, malware, teknik, alt teknik ve taktik kataloğu. Aynı adlı
+  teknikler ayrı kalır. `attack-sync` tek resmî indirmeden eski CTI ve ek
+  kataloğu birlikte kaydeder; bir hata ikisini de geri alır. Başarılı senkron
+  ve değişim geçmişi tutulur; teknik/taktik alan bağı STIX ilişkisinden ayrıdır.
+  Arama ve ilişkiler sayfalanır; eski CTI kanıtı yeniden biçimlendirilmez.
+- `sources contribution DOMAIN`: kaynakların gerçek ortak/ayrı domain
+  listeleri, kanıt/deneme kimlikleri ve tamamlanma pay/paydasını ağsız gösterir.
+  Alt alan keşfi ve marka araması; marka tarafında kural/yazım varyantı
+  grupları ayrı kalır. Çok hedefli veya sonucu eksik denemeden domain atfı
+  uydurulmaz. Ayrıntı sayfası toplamları değiştirmez; insan kararları korunur.
+- Kaynak ölçümü ve [sağlayıcı değerlendirmesi](roadmap/SOURCE_PROVIDER_EVALUATION.md)
+  tamamlandı; bağımsız katkı kanıtlanmadığı için yeni adaptör eklenmedi.
+  Common Crawl'ın dış erişim sorunu açık. Ücretsiz kaynaklara sınırsız veya
+  kesintisiz erişim taahhüt edilmez.
+- RansomLook izleme farkları şema 59'daki ayrı kaynak tablosuyla yerel
+  `inbox` içine gelir. Sessiz başlangıç sonrası yeni/değişen eşleşmeli çalışma
+  tek bildirim oluşturur; tekrar, yalnız çıkarılma ve kaynak hatası oluşturmaz.
+  Çalışma, öğeler, bildirim ve toplama sonucu aynı işlemde saklanır. Bildirimde tam
+  izleme ve kaynak çalışma kimliği görünür; okundu ve insan kararı ayrıdır.
+- Şema 57–59 için açık `migrate` ve geçiş öncesi benzersiz yedek gerekir.
+  Eski kayıtlardan kuruluş, ATT&CK katalog geçmişi veya RansomLook bildirimi
+  türetilmez. Gerçek veritabanı kopyasında 117 eski tablonun bütün satırları
+  korundu; 10 yeni tablo boş başladı, yedekten geri dönüş aynı veriyi verdi.
 
 - `collections list/show`, `collections resume ID [--plan]` ve
   `collections recover`; yeni `collect` çalışmaları gerçek kaynak kayıtlarına
@@ -282,7 +329,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - `ransomware watch-add AD SORGU --kind organization --source ransomlook` ile yalnız RansomLook gönderi/kuruluş başlığında tam veya sınırlı içerme eşleşmeli kalıcı izleme tanımlama. Kaynak domain vermediği için domain izlemesini ağ ve yazma öncesi reddetme.
 - `watch-list/show/revoke/run/run-show --source ransomlook` ile ayrı tanım, yaşam döngüsü, çalışma ve sonuç geçmişini yönetme. İlk çalışma ile tanım değişikliğini sessiz başlangıç sayma; sonraki yeni/değişen eşleşmeleri kalıcı çalışma içinde insan inceleme adayı olarak ayırma.
 - RansomLook izlemelerini yalnız son başarılı yerel snapshot üzerinde ağsız çalıştırma; kaynak penceresinden çıkan kaydı dikkat adayı, çözüm veya kapatma saymama. Geri çekilen tanımın geçmişini silmeme.
-- RansomLook izleme tablolarını kendi kaynak snapshot'ına bağlama; ThreatCluster izleme/bildirim/kimlik tablolarından ayrı tutma. `collect` açık seçilen kayıtları tek yenileme ardından çalıştırabilir; RansomLook için ortak gelen kutusu bildirimi ve bağımsız monitor komutu yoktur.
+- RansomLook izleme tablolarını kendi kaynak snapshot'ına bağlama; ThreatCluster izleme/bildirim/kimlik tablolarından ayrı tutma. `collect` açık seçilen kayıtları tek yenileme ardından çalıştırabilir; RansomLook yeni/değişen izleme sonuçları ortak yerel kutuda ayrı kaynak bildirimi oluşturur; bağımsız RansomLook monitor komutu yoktur.
 - Şema 44→45 geçişini açık `migrate`, doğrulanmış yedek, boş dört yeni tablo ve hata halinde rollback ile yapma; geçmiş snapshot'lardan izleme sonucu uydurmama.
 - `ransomware refresh --source ransomlook` ile doğrulanmış yedi günlük tam snapshot'ı ThreatCluster'dan ayrı iki tabloya atomik kaydetme; ilk başarılı snapshot'ı alarm değil başlangıç çizgisi sayma.
 - Sonraki RansomLook çalışmalarında yeni, aynı ve kayan pencereden çıkan kayıtları ayırma; değişmeyen kayıtları her tur yeniden yazmadan sayaçta koruma. Pencereden çıkışı silinme, çözüm veya yanlış iddia hükmüne çevirmeme.
@@ -335,7 +382,7 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 - `cti attack-sync` ile resmî MITRE ATT&CK Enterprise v20.0 STIX 2.1 paketindeki etkin grup, kampanya, malware ve bunların `uses`/`attributed-to` ilişkilerini açık kullanıcı komutuyla ücretsiz alma.
 - Sabit sürüm/adres, yönlendirmesiz ve sıkıştırmasız HTTPS, 60 saniye, 64 MiB ve 30.000 nesne sınırı; kanonik STIX kimlik/zamanı, koleksiyon sürümü/dizini, resmî ATT&CK başvurusu ve ilişki yönünü tam snapshot yazılmadan doğrulama.
 - ATT&CK kaynak iddialarını tek transaction'da ekleme, gözlemleme, güncelleme, geri çekme ve yeniden etkinleştirme; aynı veriyi çoğaltmama, manuel/başka kaynak iddialarını koruma ve bozuk yönetilen geçmişte ağ isteğinden önce güvenli durma.
-- ATT&CK `intrusion-set` nesnesini yerel `threat-actor` araştırma etiketiyle tutma; kaynak iddiasını otomatik atıf veya tehdit hükmüne çevirmeme. Teknik/taktik/savunma nesnesi, TAXII, otomatik zamanlama ve ayrı başarısız çalışma geçmişi bu dilimde yoktur.
+- ATT&CK `intrusion-set` nesnesini yerel `threat-actor` araştırma etiketiyle tutma; kaynak iddiasını otomatik atıf veya tehdit hükmüne çevirmeme. Teknik/alt teknik/taktik ayrı kimlikli katalogdadır; savunma nesneleri, TAXII ve ayrı başarısız indirme geçmişi bu kapsamda yoktur. ATT&CK kendiliğinden yenilenmez.
 
 - `analyze DOMAIN` ile kayıtlı marka/domain adaylarını, pasif alt alan adı keşif durumunu, DNS/TLS/HTTPS, e-posta ve sınırlı servis kanıtını, güncellik/boşlukları ve açıklanabilir dış yüzey adaylarını tek ağsız, salt-okunur görünümde birleştirme.
 - Güncel yerel IOC kataloğu varsa kök domaini, o köke bağlı kayıtlı bütün marka/domain adaylarını ve son kayıtlı web/servis IP'lerini tam değer üzerinden eşleştirme; bulgu görünüm sınırını IOC kapsamına uygulamama. Katalog boşluğunu “eşleşme yok” sonucundan ayırma ve IOC eşleşmesini zararlılık veya etkilenme hükmüne çevirmeme.
@@ -1086,9 +1133,33 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 
 İzlenen köklerin altındaki adresler dış taklit kontrolünde atlanır. Kaynaktaki desteklenmeyen adlar sayılarak elenir; dosyada ise hatalı satır tüm importu reddeder. Önceki 0.1–0.25 kayıtları için `./xti migrate` gerekir; eski JSON geçmişi korunarak okunur. Şema 6'daki bulgu bildirim kutusu yeniden oluşturulmaz, okundu bilgisi değişmez; eski veriden istisna, dış yüzey kapsamı, pasif aday, keşif çalışması, aday/değişiklik bildirimi, e-posta DNS veya servis kontrolü uydurulmaz. Eski kalıcı istisnalar kalıcı kalır. Eski uygulamaya geri dönüş geçiş öncesi yedekledir. Varsayılan JSON `data.results` altında kaynak başına sonuç, `--check` varsa ayrıca `data.checks` içerir. `sources` ayrıca kayıtlı beklemeleri içerir. Ayrıntılar README'dedir. Kilit yerel macOS/Linux dosya sistemi içindir; Windows ve dağıtık çalıştırma desteklenmez.
 
-R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. Yerel Git deposu ile uzak GitHub `main` dalı yayımlanmış ve aynı commit zincirindedir; runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
+R1/R2'nin yerel parçaları, kalıcı işler, iki internet kaynağı, PHI-02'nin dar ve süreli/kalıcı tam adres istisnası ve sürümlü sentetik değerlendirme kümesi ile PHI-04/05/06'nın sınırlı kontrol/inceleme/JSON rapor parçaları uygulandı. Onaylı tam domain için DNS/IP/TLS/HTTPS temel, sertifika kimliği/değişim kanıtı, kaynaklı pasif subdomain aday/karar/çalışma envanteri, kesin IP'ye sabit sınırlı TCP kanıtı, CNAME hedef kanıtı ve ürün iddiası taşımayan teknoloji ipuçları ASM-01/02/03/04/05'in dar dilimlerini ilerletti. Açıklanabilir maruziyet ve sarkan CNAME adayı ASM-05'in yalnız ilk sağlayıcı-bağımsız dilimidir; panel, delegasyon ve gerçek takeover tespiti tamamlanmış değildir. Doğrulanmış ürün yaşam döngüsü, envanter geneli NVD adayı, gerekçeli insan maruziyet geçmişi ve kontrollü toplu yeniden değerlendirme VUL-02'yi; KEV/EPSS/CVSS nedenli çalışma bantları ile insan beyanlı iş önemi ve kayıtlı erişilebilirlik bağlamı VUL-03'ü ilerletti. Varlık grubu/kalıtım politikası, güvenilir sürüm aralığı, backport/kurulum bağlamı ve zamanlanmış kaynak/değişiklik aboneliği henüz yoktur. Kalıcı bekleme, kontrollü bakım, durum özeti ve gruplu izleme denemesi R3 işletim kapsamını ilerletti. PHI-06'nın birleşik yerel kutusu ve kullanıcının seçtiği tek bildirim için manuel imzalı webhook dış teslimi çalışıyor; otomatik abonelik/toplu worker ve diğer kanallar tamamlanmış değildir. Uzun çalışma, teknik sahiplik doğrulaması, tam subdomain/servis envanteri, otomatik ürün doğrulaması, gerçek kullanım etiketleri ve tam kapsam ölçümü olmadığı için G1/G2/G3/G4'ün bütün maddeleri tamamlanmış sayılmaz. 0.133.0 kayıtlı profil için Linux zamanlama dosyalarını ve doğrulanmış yedek bakımını ekler; genel olay aboneliği ve dağıtık servis değildir. Runtime verisi, sırlar ve sanal ortam kaynak kontrolü dışındadır.
 
 ## Son doğrulama
+
+0.133.0 tam paketi **1.649 testle 456,994 saniyede** tamamlandı: 1.648 test
+geçti, yalnız Linux `systemd-analyze` testi bu macOS ortamında atlandı.
+Kabuk sözdizimi, Python derleme ve mimari sınır kontrolü geçti. Test boyunca
+uygulama/test girdileri değiştirilmedi. GitHub üzerindeki CI sonucu bu
+yerel kontrolün yerine doğrulanmış sayılmaz.
+
+Gerçek veritabanı kopyasında şema 56→59 geçişi 117 eski tablonun bütün
+satırlarını korudu; 10 yeni tablo boş başladı. Geri dönüş yedeği ve ayrı
+dosyaya kurtarma eşleşti. Aynı kopyadaki 18 CLI komutu geçti; 15 salt okunur
+komutta veritabanı dosya özeti değişmedi. Kabul profili, plan, zamanlama
+dosyası, doğrulanmış bakım yedeği ve CLI restore sınandı. Hiçbir ağ veya
+sistem hizmeti çağrısı yapılmadı; Linux hizmeti etkinleştirilmedi.
+
+0.133.0 için ana proje üzerinde kuruluş/dönem raporu grubu 49,
+ATT&CK/kaynak katkısı/RansomLook bildirim grubu 46 odaklı testle doğrulandı.
+Ek çapraz özellik kabulü gerçek geçici şema 59 veritabanında 1 testle
+12,945 saniyede geçti: profil ve kuruluş bağlantıları, başlangıç toplaması,
+insan incelemesi, kaynak hatası, tek RansomLook bildirimi, yalnız eksik işi
+yeniden deneme ve aynı kanıtın rapor/kataloglarda görünmesi birlikte sınandı.
+Kaynaklar test verisidir; gerçek ağ ve hedef bağlantısı kapalıdır. Salt okunur
+komutlarda dosyaların ve sağlayıcı çağrı sayılarının değişmediği doğrulandı.
+Bu odaklı sayılar yukarıdaki tam regresyona ek kanıttır; canlı kaynak veya
+Linux hizmet çalıştırma kabulü iddiası değildir.
 
 0.130.0 hızlı kapısı 198/198 testle 45,114 saniyede; son tam regresyonu
 1.476/1.476 testle 556,986 saniyede geçti. Yeni testler
@@ -1355,6 +1426,10 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 0.91.0 testleri açık başarılı IOC yenilemesini, yenileme sonrası tekrar analizi, kaynak hatasında önceki kataloğun korunmasını, hata–eşleşme yokluğu ayrımını, bilinmeyen hedefin ağdan önce reddini ve varsayılan analizin salt-okunur kalmasını doğruladı. Tam kontrolde 1.110 otomatik test 172,606 saniyede geçti; gerçek ağ kullanılmadı.
 
 ## Sonraki teslim
+
+14 Kasım 2026 onaylı sırada 1–2 yayımlandı, 3–7 ana projeye entegre edildi.
+Sıradaki teslim Linux zamanlaması ve bakımdır; bu belgede tamamlanmış
+sayılmamıştır. [Sıralı plan](roadmap/ORDERED_INTEGRATION_PLAN.md) kapsamı gösterir.
 
 13 Kasım 2026 kullanıcı yönlendirmesi: terminal menüsü yerine özellik
 geliştirmeye devam edilecek; React arayüzü ileride ayrı projeden bağlanacak.

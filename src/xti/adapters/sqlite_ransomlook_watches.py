@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_collection_receipts import record_collection_step_receipt
+from xti.adapters.sqlite_notification_sequence import next_notification_sequence
 from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import ValidationError
 from xti.domain.cti_indicators import normalize_assertion_reason, normalize_cti_timestamp
@@ -18,6 +19,7 @@ from xti.domain.ransomlook_watches import (
     RANSOMLOOK_WATCH_ITEM_ACTIONS,
     RANSOMLOOK_WATCH_MATCH_MODES,
     RansomLookWatch,
+    RansomLookWatchChangeEvidence,
     RansomLookWatchDetails,
     RansomLookWatchEvent,
     RansomLookWatchMatch,
@@ -54,6 +56,8 @@ _MAX_WATCHES = 10_000
 _MAX_EVENTS = 100_000
 _MAX_RUNS = 100_000
 _MAX_ITEMS = 500_000
+_MAX_NOTIFICATIONS = 100_000
+_NOTIFICATION_SELECT = "sequence, id, run_id, watch_id, event_type, origin, created_at, read_at"
 
 
 def _uuid(value: object) -> str:
@@ -194,6 +198,36 @@ class SQLiteRansomLookWatchRepository:
             raise StorageError("RansomLook izleme sonucu bozuk; işlem durduruldu.") from error
 
     @classmethod
+    def _notifications(cls, connection, watches, runs):
+        rows = connection.execute(
+            f"SELECT {_NOTIFICATION_SELECT} FROM ransomlook_watch_notifications "
+            "ORDER BY sequence LIMIT ?", (_MAX_NOTIFICATIONS + 1,),
+        ).fetchall()
+        if len(rows) > _MAX_NOTIFICATIONS:
+            raise StorageError("RansomLook bildirim sayısı güvenli sınırı aşıyor.")
+        notices = []
+        try:
+            for row in rows:
+                sequence, identifier, run_id, watch_id, event, origin, created, read_at = row
+                if type(sequence) is not int or not 1 <= sequence <= 2**63 - 1:
+                    raise ValueError("invalid notification sequence")
+                identifier, run_id, watch_id = _uuid(identifier), _uuid(run_id), _uuid(watch_id)
+                run, watch = runs.get(run_id), watches.get(watch_id)
+                if (
+                    run is None or watch is None or run.watch_id != watch.id
+                    or run.previous_run_id is None or run.added_count + run.updated_count < 1
+                    or event != "ransomlook_watch_changed" or origin != "new"
+                    or _timestamp(created, field="RansomLook bildirim zamanı") != run.executed_at
+                ):
+                    raise ValueError("invalid notification evidence")
+                if read_at is not None:
+                    _timestamp(read_at, field="RansomLook bildirim okunma zamanı")
+                notices.append((sequence, identifier, run_id, watch_id, created, read_at))
+        except (ValueError, TypeError, OverflowError) as error:
+            raise StorageError("RansomLook izleme bildirimi bozuk; işlem durduruldu.") from error
+        return tuple(notices)
+
+    @classmethod
     def _audit(cls, connection):
         watch_rows = connection.execute(
             f"SELECT {_WATCH_SELECT} FROM ransomlook_watches ORDER BY id LIMIT ?",
@@ -288,6 +322,7 @@ class SQLiteRansomLookWatchRepository:
                 or _result_sha(selected) != run.result_sha256
             ):
                 raise StorageError("RansomLook izleme çalışma özeti bozuk.")
+        cls._notifications(connection, watches, runs)
         return watches, events, runs, items
 
     def upsert(self, **values) -> RansomLookWatchMutation:
@@ -540,15 +575,18 @@ class SQLiteRansomLookWatchRepository:
                     counts["added"], counts["updated"], counts["unchanged"],
                     counts["removed"], result_sha,
                 )
+                attention = 0 if previous is None else run.added_count + run.updated_count
+                notification_id = None
+                if attention:
+                    notification_id = self._notify(connection, watch, run)
                 record_collection_step_receipt(
                     connection, operation, result_kind="ransomlook_watch_run",
                     result_id=run.id, result_status="complete",
                 )
                 connection.commit()
-                attention = 0 if previous is None else run.added_count + run.updated_count
                 return RansomLookWatchRunReport(
                     watch, run, tuple(items[:item_limit]), len(items), attention,
-                    previous is None,
+                    previous is None, notification_id,
                 )
             except BaseException:
                 connection.rollback()
@@ -556,7 +594,9 @@ class SQLiteRansomLookWatchRepository:
 
     def run_details(self, run_id, *, item_limit):
         with self._storage._connection(readonly=True) as connection:
+            connection.execute("BEGIN")
             watches, _, runs, items = self._audit(connection)
+            notifications = self._notifications(connection, watches, runs)
         run = runs.get(run_id)
         if run is None:
             raise ValidationError("RansomLook izleme çalışması bulunamadı.")
@@ -572,4 +612,33 @@ class SQLiteRansomLookWatchRepository:
         return RansomLookWatchRunReport(
             watches[run.watch_id], run, tuple(selected[:item_limit]), len(selected),
             attention, run.previous_run_id is None,
+            next((row[1] for row in notifications if row[2] == run.id), None),
+        )
+
+    @staticmethod
+    def _notify(connection, watch, run):
+        count = connection.execute("SELECT COUNT(*) FROM ransomlook_watch_notifications").fetchone()[0]
+        if count >= _MAX_NOTIFICATIONS:
+            raise StorageError("RansomLook bildirim sayısı güvenli sınırına ulaştı.")
+        identifier = str(uuid4())
+        connection.execute(
+            "INSERT INTO ransomlook_watch_notifications "
+            "(sequence, id, run_id, watch_id, event_type, origin, created_at, read_at) "
+            "VALUES (?, ?, ?, ?, 'ransomlook_watch_changed', 'new', ?, NULL)",
+            (next_notification_sequence(connection), identifier, run.id, watch.id, run.executed_at),
+        )
+        return identifier
+
+    @classmethod
+    def notification_evidence(cls, connection, notification_id):
+        watches, _, runs, _ = cls._audit(connection)
+        notice = next((row for row in cls._notifications(connection, watches, runs)
+                       if row[1] == notification_id), None)
+        if notice is None:
+            raise StorageError("RansomLook bildiriminin kaynak kanıtı bulunamadı.")
+        run, watch = runs[notice[2]], watches[notice[3]]
+        return RansomLookWatchChangeEvidence(
+            watch.id, watch.display_name, run.id, run.source_run_id, run.definition_sha256,
+            run.executed_at, run.total_count, run.added_count, run.updated_count,
+            run.unchanged_count, run.removed_count,
         )

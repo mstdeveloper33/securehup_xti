@@ -1,6 +1,8 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.132.0 · **Tarih:** 14 Kasım 2026 · **Durum:** Kayıtlı toplama profilleri, çalışma geçmişi ve eksik işleri yeniden deneme.
+**Sürüm:** 0.133.0 · **Tarih:** 14 Kasım 2026 · **Şema:** 59.
+Kuruluş gruplama, dönem raporu, kaynak katkısı, ATT&CK kataloğu,
+RansomLook bildirimleri ve Linux zamanlama dosyaları kullanılabilir.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -42,8 +44,8 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 56 için önce `./xti migrate` çalıştır; geri dönüş yedeği
-otomatik alınır. Sekiz sonraki teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
+Eski kurulumda şema 59 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
 kalan işleri yeniden deneyebilirsin:
@@ -81,6 +83,81 @@ erişilebilir olduğunu garanti etmez.
 
 İlk gün kayıt, veri toplama, sonuç inceleme, gerçek adayı vakaya ekleme ve
 sonraki gün tekrar için [günlük kullanım rehberini](docs/DAILY_USE.md) izle.
+
+## Linux'ta günlük çalıştırma
+
+Kayıtlı `gunluk` profili için:
+
+```sh
+./xti schedule generate gunluk --output ./.xti-data/zamanlama-gunluk --at 09:00 --timezone Europe/Istanbul --keep 7
+```
+
+Komut yalnız yeni klasöre hizmet/zamanlayıcı dosyaları ve bilgisayarına özel
+kurulum komutları içeren `README.txt` üretir. Hizmeti etkinleştirmez. Her
+çalışma öncesi profil, kilit, disk alanı ve kesilmiş oturum kontrol edilir;
+yeni yedek alınıp ayrı dosyaya geri yükleme doğrulanır. Saklama yalnız kendi
+kayıtlı zamanlanmış yedeklerine uygulanır. Ayrıntılar ve Linux'ta etkinleştirme
+[zamanlama rehberindedir](docs/LINUX_SCHEDULING.md).
+
+## Kuruluş altında açıkça grupla
+
+```sh
+./xti organizations add "Örnek kuruluş"
+./xti organizations link KURULUS_KIMLIGI --kind domain --value example.com
+./xti organizations link KURULUS_KIMLIGI --kind ransomlook-watch --value IZLEME_KIMLIGI
+./xti organizations show KURULUS_KIMLIGI
+```
+
+Büyük harfli yerleri komutların verdiği gerçek kimliklerle değiştir. Domain
+ve izleme önceden kayıtlı olmalı. Sosyal izleme için `username-watch`,
+ThreatCluster için `ransomware-watch` seçilir. `organizations list` grupları
+listeler; `unlink`, `rename`, `revoke` ve `reactivate` değişiklik geçmişini korur.
+Gruplama sahiplik veya ihlal doğrulaması değildir; toplama başlatmaz ve
+profillerin seçimini değiştirmez. Aynı kayıt birden çok grupta bulunabilir.
+
+## Son bir günde veya bir haftada ne değişti?
+
+```sh
+./xti changes --days 1
+./xti changes --days 7
+./xti changes --days 7 --domain example.com
+./xti --json changes --days 7
+```
+
+Rapor son 24/168 saatte **yerelde kaydedilen** yenilikleri, değişimleri,
+ilk ölçümleri ve kaynak hatalarını ayrı gösterir. Varsayılan bütün yerel
+marka, dış yüzey, sosyal ve iki ransomware kaynağıdır. Domain filtresi
+**yalnız marka ve dış yüzey** bölümlerini kapsar; kuruluş bağlantıları bu
+filtreye izlemeleri kendiliğinden katmaz. Kuruluş filtresi henüz yoktur.
+
+Her satırın kayıt/izleme/çalışma kimliği bulunur. Aynı iddianın farklı
+kaynaklardaki satırları tek doğrulanmış olay sayılmaz. `--limit 200` bölüm
+başına gösterimi artırır; toplam ve gösterilmeyen sayı ayrıca verilir.
+Komut internete çıkmaz, yeni analiz veya bildirim oluşturmaz.
+
+## Hangi kaynak hangi adresleri getirdi?
+
+```sh
+./xti sources contribution example.com
+./xti sources contribution example.com --family brand
+./xti sources contribution example.com --family surface
+./xti sources contribution example.com --detail-limit 50 --detail-offset 50
+./xti --json sources contribution example.com
+```
+
+Gerçek domain listeleri, ortak adresler, yalnız bir kaynakta bulunanlar ve
+bunların kanıt kimlikleri gösterilir. Ayrıntı sayfası değişse de toplamlar
+korunur. `--detail-limit` 1–500; sonraki sayfa başlangıcı çıktıda belirtilir.
+Marka araması ve alt alan keşfi ayrı değerlendirilir. Görülen oran,
+tamamlanan kayıtlı denemelerin toplam bitmiş denemelere oranıdır; doğruluk
+veya internet kapsama oranı değildir. Hiç veri yoksa oran bilinmiyor kalır.
+
+Bu rapor ağsız ve yazmasızdır. Kaynaklarda görülen bir alt alan adı otomatik
+olarak sana ait sayılmaz; mevcut inceleme kararı ayrıca gösterilir. Yeni
+sağlayıcı eklenmedi: bağımsız katkı ve erişim/lisans koşulları doğrulanmadan
+adaptör seçilmeyecek. Common Crawl'ın dış erişim sorunu açık kalıyor;
+ücretsiz erişim, sınırsız sorgu veya kesintisiz hizmet garantisi değildir.
+[Karar dayanağı](docs/roadmap/SOURCE_PROVIDER_EVALUATION.md) ayrıntıları açıklar.
 
 ## Bir domain için kaynakları birlikte çalıştır
 
@@ -577,7 +654,7 @@ Varsayılan `recent`, ThreatCluster'ın anahtarsız açık JSON akışını bir 
 
 `ransomware refresh --source ransomlook`, aynı doğrulanmış yedi günlük tam snapshot'ı yalnız açık kullanıcı isteğiyle ayrı RansomLook geçmişine kaydeder. İlk başarılı kayıt başlangıç çizgisidir ve alarm değildir; sonraki çalışmalarda yeni, aynı ve pencereden çıkan kayıtlar ayrılır. Pencereden çıkış silinme, çözüm veya iddianın yanlışlığı anlamına gelmez. Kaynak hatası ayrı çalışma olarak saklanır ve son başarılı snapshot korunur. `ransomware status --source ransomlook` bu geçmişi internete çıkmadan gösterir. Bu tabloların ThreatCluster izleme, bildirim ve kimlik tablolarıyla bağlantısı yoktur.
 
-`watch-add ... --source ransomlook`, yalnız kaynağın gönderi/kuruluş başlığı alanı için kalıcı izleme tanımlar. Tam eşleşme varsayılandır; en az beş karakterli `--match contains` seçilebilir. RansomLook domain sağlamadığı için `--kind domain` ağ veya kayıt yazımı başlamadan reddedilir. `watch-run --source ransomlook`, son başarılı yerel snapshot üzerinde ağsız çalışır. İlk çalışma sessiz başlangıçtır; sonraki yeni eşleşmeler terminal/JSON sonucunda insan inceleme adayı olarak ayrılır. Yalnız pencereden çıkan kayıt dikkat adayı veya çözüm sayılmaz. Tanım değişirse yeni sessiz başlangıç yapılır; geri çekme geçmişi silmez. RansomLook adayları ortak gelen kutusuna gönderilmez ve bağımsız monitor komutu yoktur. `collect --ransomlook-watch ID` seçilen izlemeleri tek kaynak yenilemesinden sonra çalıştırır; ThreatCluster kanıtlarıyla birleştirmez.
+`watch-add ... --source ransomlook`, yalnız kaynağın gönderi/kuruluş başlığı alanı için kalıcı izleme tanımlar. Tam eşleşme varsayılandır; en az beş karakterli `--match contains` seçilebilir. RansomLook domain sağlamadığı için `--kind domain` ağ veya kayıt yazımı başlamadan reddedilir. `watch-run --source ransomlook`, son başarılı yerel snapshot üzerinde ağsız çalışır. İlk çalışma sessiz başlangıçtır; sonraki yeni eşleşmeler terminal/JSON sonucunda insan inceleme adayı olarak ayrılır. Yalnız pencereden çıkan kayıt dikkat adayı veya çözüm sayılmaz. Tanım değişirse yeni sessiz başlangıç yapılır; geri çekme geçmişi silmez. Sessiz başlangıçtan sonraki yeni/değişen eşleşmeler çalışma başına tek yerel `inbox` bildirimi üretir; aynı sonucun tekrarı veya yalnız pencereden çıkış üretmez. Bildirim tam izleme ve kaynak çalışma kimliğine bağlıdır. Bağımsız RansomLook monitor komutu yoktur. `collect --ransomlook-watch ID` seçilen izlemeleri tek kaynak yenilemesinden sonra çalıştırır; ThreatCluster kanıtlarıyla birleştirmez.
 
 `ransomware source-compare`, iki kaynağın ayrı tutulan son başarılı yerel snapshot'larını internete çıkmadan ve kayıt yazmadan karşılaştırır. Bir sonuç için kuruluş adının normalleştirilmiş biçimi iki kaynakta tam aynı olmalı; buna ek olarak grup adı veya kaynak keşif zamanı da aynı olmalıdır. Terminal ve JSON, iki özgün kayıt kimliğini, aynı alanları ve farklı ortak alanları birlikte gösterir. Yaklaşık isim benzerliği, domain, ülke veya kaynakta bulunmayan alanlar kullanılmaz. Sonuçlar kayıtları birleştirmez, alarm üretmez ve aynı olay ya da gerçekleşmiş ihlal kararı değildir.
 
@@ -760,10 +837,14 @@ Hedef yalnız `HTTPS` ve port `443` olabilir. Her gönderimde DNS yeniden çöz�
 
 Aktör, kampanya, malware ve rapor kayıtlarını; bunların birbirleriyle veya IOC'lerle ilişkilerini kaynağıyla saklayabilirsin:
 
-Resmî MITRE ATT&CK Enterprise v20.0 grubunu, kampanyasını, malware kaydını ve bunların `uses`/`attributed-to` ilişkilerini ücretsiz almak için:
+Resmî MITRE ATT&CK Enterprise v20.0 grup, kampanya, zararlı yazılım, teknik, alt teknik ve taktik kataloğunu almak için:
 
 ```sh
 ./xti cti attack-sync
+./xti cti attack-status
+./xti cti attack-search "DNS"
+./xti cti attack-show T1059.001
+./xti cti attack-show T1105 --relationship-limit 500 --relationship-offset 500
 ./xti cti search "APT29"
 ./xti cti entity-list --type threat-actor --limit 20
 ./xti cti relation-list --limit 20
@@ -771,7 +852,7 @@ Resmî MITRE ATT&CK Enterprise v20.0 grubunu, kampanyasını, malware kaydını 
 
 İlk komut yaklaşık 55 MB'lık sürümü sabitlenmiş STIX 2.1 dosyasını resmî MITRE deposundan indirir. Dosyanın tamamı doğrulanmadan hiçbir kayıt yazılmaz; yazma da tek işlem içindedir. Kaynak kesilir, biçim değişir veya yerel ATT&CK geçmişi bozuksa önceki kayıtlar korunur. Aynı sürümü yeniden çalıştırmak kayıtları çoğaltmaz; kaynakta artık etkin olmayan ATT&CK iddiaları geçmişi silinmeden geri çekilir. Elle eklediğin başka kaynak iddiaları etkilenmez.
 
-Bu ilk dilim ATT&CK tekniklerini/taktiklerini, savunma nesnelerini veya bütün STIX türlerini almaz. ATT&CK `intrusion-set` kaydı yerelde araştırılabilir `threat-actor` etiketiyle tutulur; bu otomatik kişi/grup atfı veya tehdit hükmü değildir. 50/100 güven değeri MITRE'nin verdiği puan değil, XTI'ın nötr yerel politikasıdır. Sürüm kendiliğinden yükselmez; yeni ATT&CK sürümü kod ve veri sözleşmesi incelenerek ayrıca alınır. Otomatik zamanlayıcı ve ayrı başarısız senkron geçmişi bu dilimde yoktur.
+Ek katalog teknikleri, alt teknikleri ve taktikleri kesin STIX/ATT&CK kimlikleriyle saklar; aynı adlı teknikleri birleştirmez. `attack-search` için `--limit/--offset`, `attack-show` için `--relationship-limit/--relationship-offset` sonraki kayıtları gösterir. Teknik–taktik bağları `kill_chain_phases` alanından türetilmiş olarak ayrı etiketlenir; STIX ilişkisi diye sunulmaz. Arama, ayrıntı ve durum komutları internete çıkmaz. Savunma nesneleri, `tool` ve diğer STIX türleri bu katalogda yoktur. ATT&CK `intrusion-set` kaydı yerelde araştırılabilir `threat-actor` etiketiyle tutulur; bu otomatik kişi/grup atfı veya tehdit hükmü değildir. 50/100 güven değeri MITRE'nin verdiği puan değil, XTI'ın nötr yerel politikasıdır. Sürüm kendiliğinden yükselmez; yeni ATT&CK sürümü kod ve veri sözleşmesi incelenerek ayrıca alınır. Başarılı katalog senkronlarının tarih/hash ve değişim geçmişi `attack-status` ile görünür; başarısız indirmeler için ayrı kalıcı senkron kaydı ve kendiliğinden ATT&CK güncellemesi yoktur.
 
 ATT&CK verisi MITRE'nin telif ve lisans koşullarına tabidir; proje veriyi kendi kaynak kodunda paketlemez, açık komutta resmî adresten indirir. Atıf ve lisans bağlantısı [üçüncü taraf bildiriminde](THIRD_PARTY_NOTICES.md) yer alır.
 
@@ -1603,6 +1684,13 @@ Bu bir grafik veritabanı veya yeni veri kopyası değildir. Mevcut kanıtların
 
 Her yeni marka bulgusu, pasif keşifte ilk kez bulunan alt alan adı adayı, onaylı dış yüzey kanıtındaki gerçek değişiklik ve açıkça `vuln change-notify` ile kaydedilen yeni zafiyet kanıt durumu için yerel kutuya bildirim eklenir. Değişiklik bildirimi DNS/TLS/HTTPS, MX/SPF/DMARC veya sınırlı TCP servis kontrolünün ikinci ve sonraki sonuçlarında oluşabilir. İlk temel kayıt ve aynı sonucun tekrarı alarm değildir. İlk komut okunmamış bildirimleri gösterir. Kutuda gördüğün bildirim kimliğini diğer komutlarda kullan. Ayrıntı; kayıt türüne göre eşleşme nedenini, pasif sertifika kanıtını, değişen alan/portu veya zafiyet inceleme tetikleyicisini gösterir. Bildirim kutusu yenilikleri ve okundu durumunu; `triage` ise yalnız marka bulgularının inceleme sırasını gösterir.
 
+RansomLook izlemesinde ilk ölçüm sessizdir. Sonraki yeni/değişen eşleşmeler
+çalışma başına tek bildirim verir; ayrıntıda kaynak, izleme, kaynak yenileme ve
+izleme çalışması kimlikleri görünür. Tam liste için
+`./xti ransomware watch-run-show CALISMA_KIMLIGI --source ransomlook` kullan.
+Tekrar, yalnız kaynak penceresinden çıkış veya kaynak hatası yeni bildirim
+üretmez. Bildirim, iddianın doğrulandığı veya bir ihlal yaşandığı anlamına gelmez.
+
 Listeye veya ayrıntıya bakmak otomatik olarak okundu sayılmaz. `inbox read` yalnız seçtiğin bildirimi işaretler; bulgunun şüpheli/normal veya alt alan adı adayının sahiplik kararını değiştirmez. Bir kaydı sınıflandırmak da bildirimini kendiliğinden okundu yapmaz. Aynı bulgu veya alt alan adı sonraki aramada görülürse bildirim çoğalmaz ve okundu işareti korunur. Bir adres farklı izlenen varlıkla veya yeni kural sürümüyle ayrı bulgu oluşturursa onun ayrı bildirimi olur.
 
 ```sh
@@ -1616,7 +1704,7 @@ Listeye veya ayrıntıya bakmak otomatik olarak okundu sayılmaz. `inbox read` y
 
 Varsayılan sayfa 20 kayıt gösterir; `inbox list --limit 50` ile 1–100 arasında seçebilirsin. Daha fazla kayıt varsa sonraki sayfanın tam komutu gösterilir. Sonraki sayfalara geçerken yeni bildirimler eski sayfaları kaydırmaz; yeni gelenleri görmek için `./xti inbox` komutuyla başa dön. Filtre sayıları o andaki toplamı gösterir; sayfalar arasında yapılan okundu değişiklikleri sonraki görünümü etkileyebilir.
 
-Bildirim ilgili bulgu, pasif aday veya değişiklik kanıtıyla aynı işlemde kaydedilir. İşlem başarısız olursa yarım kanıt ya da bildirim bırakılmaz. Okundu bilgisi program yeniden açıldığında ve yedekten dönüldüğünde korunur. Kutuyu okumak veya işaretlemek internete bağlanmaz. Değişiklik ancak ilgili tek kontrol komutunu veya `surface monitor` oturumunu çalıştırdığında fark edilir; bu sürümde arka plan takvimi, e-posta, SMS veya masaüstü teslimi ve kaynak kesintisi bildirimi yoktur.
+Bildirim ilgili bulgu, pasif aday veya değişiklik kanıtıyla aynı işlemde kaydedilir. İşlem başarısız olursa yarım kanıt ya da bildirim bırakılmaz. Okundu bilgisi program yeniden açıldığında ve yedekten dönüldüğünde korunur. Kutuyu okumak veya işaretlemek internete bağlanmaz. Değişiklik ilgili toplama, izleme veya kontrol komutunu çalıştırdığında fark edilir; bu sürümde arka plan takvimi, e-posta, SMS veya masaüstü teslimi ve kaynak kesintisi bildirimi yoktur.
 
 ## İsteğe bağlı dosya içe aktarma
 
@@ -1697,7 +1785,7 @@ Süre 7–3650 gün, işlem sınırı 1–10000 kayıt olabilir. Varsayılan sı
 
 Uygulama sırasında önce `backups/` içine tutarlı yedek alınır. Yedek alınamazsa hiçbir kayıt silinmez. Silme veya işlem kaydı başarısız olursa değişiklik geri alınır; alınmış yedek korunur. Başarılı temizlik ve yedek konumu `storage history` içinde görünür. Temizlik öncesi yedeği boş bir konuma geri yükleyerek o andaki tüm kayıtları geri alabilirsin.
 
-Temizlik veritabanı içinde yeniden kullanılabilir yer açar; dosyayı hemen küçültmez. Ayrıca yedek dosyası için disk alanı gerekir. `storage status` yedek ve rapor klasörlerini, SHM dosyasını veya diskteki toplam boş alanı saymaz; bunları birlikte görmek için `storage readiness` kullanılır. Yedekler kendiliğinden silinmez. `scan/watch` otomatik temizlik yapmaz. Temizlenmiş bağlantısız gözlem bir kaynakta tekrar alınırsa yeni gözlem olarak kaydedilebilir; eski işlerin tarihsel sayıları değiştirilmez. Ayrıntılar [bakım kararında](docs/decisions/0007-durable-waits-and-maintenance.md) bulunur.
+Temizlik veritabanı içinde yeniden kullanılabilir yer açar; dosyayı hemen küçültmez. Ayrıca yedek dosyası için disk alanı gerekir. `storage status` yedek ve rapor klasörlerini, SHM dosyasını veya diskteki toplam boş alanı saymaz; bunları birlikte görmek için `storage readiness` kullanılır. Bu bakım ve geçiş yedekleri kendiliğinden silinmez; `schedule prepare` yalnız ayrı `scheduled-backups/` havuzundaki doğrulanmış kendi yedeklerini azaltabilir. `scan/watch` otomatik temizlik yapmaz. Temizlenmiş bağlantısız gözlem bir kaynakta tekrar alınırsa yeni gözlem olarak kaydedilebilir; eski işlerin tarihsel sayıları değiştirilmez. Ayrıntılar [bakım kararında](docs/decisions/0007-durable-waits-and-maintenance.md) bulunur.
 
 ## Kullanım sınırları
 

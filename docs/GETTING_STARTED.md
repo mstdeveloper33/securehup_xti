@@ -41,6 +41,9 @@ Yalnız sana ait olan veya izleme iznin bulunan domaini ekle:
 Kurulum ve veri durumunu tek ekranda görmek için `./xti sources status --domain
 example.com` çalıştır. `--details` kaynak kapsamını ve zamanlarını açar.
 Sonraki kullanım adımları [günlük kullanım rehberinde](DAILY_USE.md) bulunur.
+Kayıtlı profili Linux'ta günlük/haftalık çalıştırmak için
+[zamanlama rehberini](LINUX_SCHEDULING.md) kullanabilirsin; kurulum kendi
+başına arka plan hizmeti etkinleştirmez.
 
 `scan`, herkese açık sertifika ve geçmiş web inceleme kayıtlarını araştırır.
 Bulunan kayıtlar adaydır; tek başına phishing veya kötü niyet kanıtı değildir.

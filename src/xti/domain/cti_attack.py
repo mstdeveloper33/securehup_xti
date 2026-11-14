@@ -1,6 +1,9 @@
 """Pinned MITRE ATT&CK subset models for source-preserving CTI sync."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 import re
 from uuid import UUID
 
@@ -16,6 +19,10 @@ from xti.domain.cti_knowledge import (
     normalize_entity_type,
     normalize_relationship_type,
 )
+
+
+if TYPE_CHECKING:
+    from xti.domain.attack_catalog import AttackCatalogSnapshot, AttackCatalogSyncSummary
 
 
 ATTACK_SOURCE_NAME = "mitre-attack-enterprise"
@@ -82,6 +89,7 @@ class AttackSnapshot:
     source_object_count: int
     entities: tuple[AttackEntityRecord, ...]
     relationships: tuple[AttackRelationshipRecord, ...]
+    catalog: AttackCatalogSnapshot | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,6 +113,7 @@ class AttackSyncResult:
     relationship_reactivated: int
     relationship_revoked: int
     recorded_at: str
+    catalog: AttackCatalogSyncSummary | None = None
 
 
 def validate_attack_snapshot(snapshot: AttackSnapshot) -> AttackSnapshot:
@@ -198,4 +207,23 @@ def validate_attack_snapshot(snapshot: AttackSnapshot) -> AttackSnapshot:
             raise ValidationError("MITRE ATT&CK snapshot yinelenen ilişki içeriyor.")
         relationship_ids.add(record.stix_id)
         relationship_keys.add(key)
+    if snapshot.catalog is not None:
+        from xti.domain.attack_catalog import validate_catalog_snapshot
+        catalog = validate_catalog_snapshot(snapshot.catalog)
+        if (catalog.version, catalog.source_url, catalog.content_sha256, catalog.source_object_count) != (snapshot.version, snapshot.source_url, snapshot.content_sha256, snapshot.source_object_count):
+            raise ValidationError("ATT&CK katalog ve CTI aynı kaynak yanıtına ait olmalı.")
+        legacy = {item.stix_id: item for item in catalog.entities if item.stix_type in _STIX_ENTITY_TYPES}
+        if set(legacy) != entity_ids:
+            raise ValidationError("ATT&CK katalog ve CTI varlık kapsamı uyuşmuyor.")
+        for record in snapshot.entities:
+            item = legacy[record.stix_id]
+            if (record.display_name, record.aliases, record.source_reference, record.observed_at) != (item.name, item.aliases, item.source_url, item.modified_at):
+                raise ValidationError("ATT&CK katalog ve CTI varlık kanıtı uyuşmuyor.")
+        selected_relationships = {item.stix_id: item for item in catalog.relationships if item.source_stix_id in legacy and item.target_stix_id in legacy}
+        if set(selected_relationships) != relationship_ids:
+            raise ValidationError("ATT&CK katalog ve CTI ilişki kapsamı uyuşmuyor.")
+        for record in snapshot.relationships:
+            item = selected_relationships[record.stix_id]
+            if (record.source_stix_id, record.relationship_type, record.target_stix_id, record.observed_at) != (item.source_stix_id, item.relationship_type, item.target_stix_id, item.modified_at):
+                raise ValidationError("ATT&CK katalog ve CTI ilişki kanıtı uyuşmuyor.")
     return snapshot

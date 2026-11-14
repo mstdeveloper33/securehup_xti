@@ -149,6 +149,25 @@ from xti.adapters.evaluation_dataset import EvaluationDataError, load_evaluation
 from xti.application.assets import AssetService
 from xti.application.analysis import UnifiedAnalysisRefreshService, UnifiedAnalysisService
 from xti.application.collection import CollectionService
+from xti.application.scheduling import SchedulingService
+from xti.adapters.systemd_schedule import SystemdScheduleWriter
+from xti.adapters.scheduled_backups import ScheduledBackupMaintenance
+from xti.interfaces.scheduling import (
+    register_schedule_commands, generated_lines as schedule_generated_lines,
+    preparation_lines as schedule_preparation_lines,
+)
+from xti.application.attack_catalog import AttackCatalogService
+from xti.adapters.sqlite_attack_catalog import SQLiteAttackCatalogRepository
+from xti.interfaces.attack_catalog import register_attack_catalog_parsers, run_attack_catalog_command
+from xti.application.source_contribution import SourceContributionService
+from xti.adapters.sqlite_source_contribution import SQLiteSourceContributionRepository
+from xti.interfaces.source_contribution import source_contribution_lines
+from xti.application.periodic_changes import PeriodicChangesService
+from xti.adapters.sqlite_periodic_changes import SQLitePeriodicChangesRepository
+from xti.interfaces.periodic_changes import periodic_changes_lines
+from xti.application.organizations import OrganizationService
+from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
+from xti.interfaces.organizations import register_organizations_parser, execute_organization_command
 from xti.application.collection_history import CollectionHistoryService
 from xti.adapters.sqlite_collection_history import SQLiteCollectionHistoryRepository
 from xti.interfaces.collection_history import (
@@ -724,7 +743,13 @@ def build_parser() -> Parser:
     )
     add_collection_arguments(collect)
     register_profiles_parser(commands)
+    register_schedule_commands(commands)
+    changes = commands.add_parser("changes", help="Son gün veya haftadaki kayıtlı değişiklikleri ve kaynak boşluklarını göster.")
+    changes.add_argument("--days", type=int, choices=(1, 7), default=1)
+    changes.add_argument("--domain", help="Yalnız bu domainin marka/dış yüzey kayıtları; izlemelerden sahiplik çıkarılmaz.")
+    changes.add_argument("--limit", type=int, default=100, help="Bölüm başına görünüm sınırı (1–500).")
     register_history_parser(commands)
+    register_organizations_parser(commands)
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -2177,6 +2202,7 @@ def build_parser() -> Parser:
         "cti", help="Aktör, kampanya, malware, rapor ve kaynaklı ilişkileri yönet.",
     )
     cti_actions = cti.add_subparsers(dest="cti_action", required=True)
+    register_attack_catalog_parsers(cti_actions)
     cti_search = cti_actions.add_parser(
         "search", help="Yerel CTI varlık ve IOC kayıtlarında ağsız arama yap.",
     )
@@ -2212,7 +2238,7 @@ def build_parser() -> Parser:
         "attack-sync",
         help=(
             "Sabit MITRE ATT&CK Enterprise sürümündeki etkin grup, kampanya, "
-            "malware ve ilişkileri atomik yenile."
+            "malware, teknik/taktik kataloğu ve kaynaklı ilişkileri atomik yenile."
         ),
     )
     cti_watch_add = cti_actions.add_parser(
@@ -2827,6 +2853,11 @@ def build_parser() -> Parser:
         help="Kullanılan kaynakları, sınırlarını ve son kaydedilen sonucu göster; ağ isteği yapmaz.",
     )
     source_actions = sources.add_subparsers(dest="source_action")
+    contribution = source_actions.add_parser("contribution", help="Kayıtlı kaynakların tekil/ortak domain katkısını ve çalışma sonuçlarını karşılaştır.")
+    contribution.add_argument("domain")
+    contribution.add_argument("--family", choices=("all", "surface", "brand"), default="all")
+    contribution.add_argument("--detail-offset", type=int, default=0)
+    contribution.add_argument("--detail-limit", type=int, default=100)
     source_status = source_actions.add_parser(
         "status", help="Kurulum, son çalışma, veri güncelliği ve sonraki komutu tek ekranda göster.",
     )
@@ -3209,6 +3240,20 @@ def make_profile_service(settings: Settings, repository: SQLiteAssetRepository) 
     )
 
 
+def make_scheduling_service(settings: Settings, repository: SQLiteAssetRepository) -> SchedulingService:
+    return SchedulingService(
+        SQLiteCollectionProfileRepository(settings.database),
+        lambda definition: make_collection_history_service(settings, repository),
+        SQLiteCollectionHistoryRepository(settings.database),
+        LocalExecutionLock(settings.database),
+        SystemdScheduleWriter(
+            launcher=Path(__file__).resolve().parents[3] / "xti",
+            database=settings.database,
+        ),
+        ScheduledBackupMaintenance(settings.database),
+    )
+
+
 def surface_check_incomplete(check) -> bool:
     return bool(check.result.errors) or check.result.dns_status in {"failed", "blocked"}
 
@@ -3351,6 +3396,29 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "evaluate":
         report = EvaluationService(make_domain_matcher()).run(load_evaluation_dataset())
         emit(asdict(report), evaluation_lines(report), as_json=args.json)
+    elif args.command == "changes":
+        report = PeriodicChangesService(SQLitePeriodicChangesRepository(settings.database)).show(
+            days=args.days, domain=args.domain, limit=args.limit,
+        )
+        emit(asdict(report), periodic_changes_lines(report), as_json=args.json)
+    elif args.command == "schedule":
+        scheduling = make_scheduling_service(settings, repository)
+        if args.schedule_command == "generate":
+            result = scheduling.generate(
+                args.profile, output=args.output, at=args.at, timezone=args.timezone,
+                weekday=args.weekday, keep=args.keep,
+            )
+            lines = schedule_generated_lines(result)
+        else:
+            result = scheduling.prepare(args.profile, keep=args.keep)
+            lines = schedule_preparation_lines(result)
+        emit(asdict(result), lines, as_json=args.json)
+    elif args.command == "organizations":
+        organization_service = OrganizationService(
+            SQLiteOrganizationRepository(settings.database), LocalExecutionLock(settings.database),
+        )
+        data, lines = execute_organization_command(organization_service, args)
+        emit(data, lines, as_json=args.json)
     elif args.command == "collections":
         histories = make_collection_history_service(settings, repository)
         if args.collection_action == "list":
@@ -5778,7 +5846,12 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "cti":
         knowledge_repository = SQLiteCtiKnowledgeRepository(settings.database)
         service = CtiKnowledgeService(knowledge_repository)
-        if args.cti_action == "attack-sync":
+        if args.cti_action in {"attack-status", "attack-search", "attack-show"}:
+            result, lines = run_attack_catalog_command(
+                args, AttackCatalogService(SQLiteAttackCatalogRepository(settings.database)),
+            )
+            emit(asdict(result), lines, as_json=args.json)
+        elif args.cti_action == "attack-sync":
             with LocalExecutionLock(settings.database).acquire():
                 result = AttackSyncService(
                     knowledge_repository, MitreAttackSource(),
@@ -6266,6 +6339,11 @@ def run(args: argparse.Namespace) -> int | None:
         attempt = jobs.run(progress=terminal_progress(args.json))
         provider = jobs.show(attempt.job_id).job.provider if attempt is not None else "crt.sh"
         return emit_attempt(attempt, as_json=args.json, provider=provider)
+    elif args.command == "sources" and args.source_action == "contribution":
+        report = SourceContributionService(SQLiteSourceContributionRepository(settings.database)).show(
+            args.domain, family=args.family, detail_offset=args.detail_offset, detail_limit=args.detail_limit,
+        )
+        emit(asdict(report), source_contribution_lines(report), as_json=args.json)
     elif args.command == "sources" and args.source_action == "status":
         report = SourceReadinessService(
             SQLiteSourceReadinessRepository(settings.database),

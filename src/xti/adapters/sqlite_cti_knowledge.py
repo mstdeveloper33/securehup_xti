@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_cti_indicators import SQLiteCtiIndicatorRepository
 from xti.domain.assets import ValidationError
+from xti.adapters.sqlite_attack_catalog import SQLiteAttackCatalogRepository
 from xti.domain.cti_attack import (
     ATTACK_CONFIDENCE,
     ATTACK_SOURCE_NAME,
@@ -1008,7 +1009,9 @@ class SQLiteCtiKnowledgeRepository:
 
     def validate_attack_source(self) -> None:
         with self._storage._connection(readonly=True) as connection:
+            connection.execute("BEGIN")
             self._audit_attack_source(connection)
+            SQLiteAttackCatalogRepository._audit(connection)
 
     def _sync_attack_entity(
         self, connection, record, *, recorded_at: str,
@@ -1220,6 +1223,7 @@ class SQLiteCtiKnowledgeRepository:
             try:
                 connection.execute("BEGIN IMMEDIATE")
                 self._audit_attack_source(connection)
+                SQLiteAttackCatalogRepository._audit(connection)
                 entity_ids: dict[str, str] = {}
                 expected_entity_assertions: set[str] = set()
                 for record in snapshot.entities:
@@ -1250,6 +1254,11 @@ class SQLiteCtiKnowledgeRepository:
                     expected_assertion_ids=expected_entity_assertions,
                     recorded_at=recorded_at,
                 )
+                catalog_result = (
+                    SQLiteAttackCatalogRepository.apply_in_transaction(
+                        connection, snapshot.catalog, recorded_at=recorded_at,
+                    ) if snapshot.catalog is not None else None
+                )
                 result = AttackSyncResult(
                     version=snapshot.version, source_url=snapshot.source_url,
                     content_sha256=snapshot.content_sha256,
@@ -1268,7 +1277,7 @@ class SQLiteCtiKnowledgeRepository:
                     relationship_unchanged=relationship_actions["unchanged"],
                     relationship_reactivated=relationship_actions["reactivated"],
                     relationship_revoked=relationship_actions["revoked"],
-                    recorded_at=recorded_at,
+                    recorded_at=recorded_at, catalog=catalog_result,
                 )
                 self._audit_attack_source(connection)
                 connection.commit()
