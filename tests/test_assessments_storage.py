@@ -309,6 +309,8 @@ class AssessmentMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS case_tasks")
             connection.execute("DROP TABLE IF EXISTS case_evidence")
             connection.execute("DROP TABLE IF EXISTS cases")
+            connection.execute("DROP TABLE IF EXISTS collection_profile_events")
+            connection.execute("DROP TABLE IF EXISTS collection_profiles")
             connection.execute("PRAGMA user_version=3")
             connection.execute("INSERT INTO assets VALUES ('asset-1', 'example.com', '2026-01-01')")
             connection.execute(
@@ -408,6 +410,8 @@ class AssessmentMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS case_tasks")
             connection.execute("DROP TABLE IF EXISTS case_evidence")
             connection.execute("DROP TABLE IF EXISTS cases")
+            connection.execute("DROP TABLE IF EXISTS collection_profile_events")
+            connection.execute("DROP TABLE IF EXISTS collection_profiles")
             connection.execute("PRAGMA user_version=4")
             raise sqlite3.OperationalError("Injected failure")
 

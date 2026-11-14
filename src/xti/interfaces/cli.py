@@ -149,6 +149,14 @@ from xti.adapters.evaluation_dataset import EvaluationDataError, load_evaluation
 from xti.application.assets import AssetService
 from xti.application.analysis import UnifiedAnalysisRefreshService, UnifiedAnalysisService
 from xti.application.collection import CollectionService
+from xti.application.collection_profiles import CollectionProfileService, collection_options
+from xti.adapters.sqlite_collection_profiles import SQLiteCollectionProfileRepository
+from xti.domain.collection_profiles import CollectionProfileDefinition
+from xti.interfaces.collection_profiles import (
+    add_collection_arguments, register_profiles_parser, definition_from_arguments,
+    validate_profile_selection, detail_lines as profile_detail_lines,
+    list_lines as profile_list_lines, mutation_lines as profile_mutation_lines,
+)
 from xti.application.collection_watches import CollectionWatchService
 from xti.domain.collection import COLLECTION_TASK_IDS, DEFAULT_COLLECTION_TASKS
 from xti.interfaces.collection import (
@@ -701,37 +709,14 @@ def build_parser() -> Parser:
         "collect",
         help="Kayıtlı domain için seçilen pasif kaynakları topla ve birleşik analiz üret.",
     )
-    collect.add_argument("domain", help="Önceden kaydedilmiş domain.")
+    collect.add_argument("domain", nargs="?", help="Önceden kaydedilmiş domain.")
+    collect.add_argument("--profile", metavar="AD", help="Kayıtlı toplama profilini kullan.")
     collect.add_argument(
         "--plan", action="store_true",
         help="Seçilen işleri ağ ve veri yazımı olmadan göster; toplama başlatmaz.",
     )
-    collect.add_argument(
-        "--task", action="append", choices=COLLECTION_TASK_IDS, dest="tasks",
-        help=(
-            "Çalışacak işi seç; tekrarlanabilir. Seçim varsayılan listenin yerine geçer. "
-            "Varsayılan: scan-crtsh, scan-urlscan, discover-crtsh."
-        ),
-    )
-    collect.add_argument("--typos", action="store_true", help="Marka aramasına sınırlı yazım varyantlarını ekle.")
-    collect.add_argument("--stale-after-hours", type=int, default=24, help="Analiz güncellik eşiği (1–8760 saat).")
-    collect.add_argument("--finding-limit", type=int, default=10, help="Analizde gösterilecek marka adayı (1–50).")
-    collect.add_argument(
-        "--username-watch", action="append", dest="username_watch_ids", metavar="ID",
-        help="Kayıtlı Maigret/Sherlock izlemesini seçilen işlere ekle; tekrarlanabilir.",
-    )
-    collect.add_argument(
-        "--ransomware-watch", action="append", dest="ransomware_watch_ids", metavar="ID",
-        help="ThreatCluster kaynağını yenile ve seçilen kayıtlı izlemeyi çalıştır; tekrarlanabilir.",
-    )
-    collect.add_argument(
-        "--ransomlook-watch", action="append", dest="ransomlook_watch_ids", metavar="ID",
-        help="RansomLook kaynağını yenile ve seçilen kayıtlı izlemeyi çalıştır; tekrarlanabilir.",
-    )
-    collect.add_argument(
-        "--watch-item-limit", type=int, default=100,
-        help="Her izleme sonucunda gösterilecek kayıt sınırı (1–500); izleme kapsamını daraltmaz.",
-    )
+    add_collection_arguments(collect)
+    register_profiles_parser(commands)
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -3120,7 +3105,7 @@ def make_analysis_service(settings: Settings, repository: SQLiteAssetRepository)
 
 
 def make_collection_service(
-    settings: Settings, repository: SQLiteAssetRepository, tasks: list[str] | None,
+    settings: Settings, repository: SQLiteAssetRepository, tasks: Sequence[str] | None,
     *, username_watch_ids: Sequence[str] = (),
     ransomware_watch_ids: Sequence[str] = (), ransomlook_watch_ids: Sequence[str] = (),
     watch_item_limit: int = 100,
@@ -3190,6 +3175,22 @@ def make_collection_service(
         make_jobs(settings, repository), discoveries, feeds,
         make_analysis_service(settings, repository),
         watch_collection=watch_collection,
+    )
+
+
+def make_profile_service(settings: Settings, repository: SQLiteAssetRepository) -> CollectionProfileService:
+    def collection_factory(definition: CollectionProfileDefinition) -> CollectionService:
+        return make_collection_service(
+            settings, repository, definition.task_ids,
+            username_watch_ids=definition.username_watch_ids,
+            ransomware_watch_ids=definition.ransomware_watch_ids,
+            ransomlook_watch_ids=definition.ransomlook_watch_ids,
+            watch_item_limit=definition.watch_item_limit,
+        )
+
+    return CollectionProfileService(
+        SQLiteCollectionProfileRepository(settings.database), collection_factory,
+        LocalExecutionLock(settings.database),
     )
 
 
@@ -3335,28 +3336,49 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "evaluate":
         report = EvaluationService(make_domain_matcher()).run(load_evaluation_dataset())
         emit(asdict(report), evaluation_lines(report), as_json=args.json)
+    elif args.command == "profiles":
+        profiles = make_profile_service(settings, repository)
+        if args.profile_action == "save":
+            mutation = profiles.save(args.name, definition_from_arguments(args))
+            emit(asdict(mutation), profile_mutation_lines(mutation), as_json=args.json)
+        elif args.profile_action == "list":
+            records, has_more = profiles.list_window(active_only=not args.all_entries, limit=args.limit)
+            emit(
+                {"profiles": [asdict(item) for item in records], "has_more": has_more},
+                profile_list_lines(records, has_more), as_json=args.json,
+            )
+        elif args.profile_action == "show":
+            details = profiles.show(args.name, event_limit=args.event_limit)
+            emit(asdict(details), profile_detail_lines(details), as_json=args.json)
+        else:
+            mutation = profiles.revoke(args.name, reason=args.reason)
+            emit(asdict(mutation), profile_mutation_lines(mutation), as_json=args.json)
     elif args.command == "collect":
-        watch_selection = {
-            "username_watch_ids": tuple(args.username_watch_ids or ()),
-            "ransomware_watch_ids": tuple(args.ransomware_watch_ids or ()),
-            "ransomlook_watch_ids": tuple(args.ransomlook_watch_ids or ()),
-        }
-        collection = make_collection_service(
-            settings, repository, args.tasks,
-            watch_item_limit=args.watch_item_limit, **watch_selection,
-        )
-        options = {
-            "tasks": args.tasks, "typos": args.typos,
-            "stale_after_hours": args.stale_after_hours,
-            "finding_limit": args.finding_limit,
-            "watch_item_limit": args.watch_item_limit,
-            **watch_selection,
-        }
-        if args.plan:
-            plan = collection.plan(args.domain, **options)
-            emit(asdict(plan), collection_plan_lines(plan), as_json=args.json)
-            return 0
-        result = collection.run(args.domain, progress=terminal_progress(args.json), **options)
+        validate_profile_selection(args)
+        if args.profile is not None:
+            profiles = make_profile_service(settings, repository)
+            if args.plan:
+                plan = profiles.plan(args.profile)
+                emit(asdict(plan), collection_plan_lines(plan), as_json=args.json)
+                return 0
+            result = profiles.run(args.profile, progress=terminal_progress(args.json))
+        else:
+            definition = definition_from_arguments(args)
+            collection = make_collection_service(
+                settings, repository, definition.task_ids,
+                watch_item_limit=definition.watch_item_limit,
+                username_watch_ids=definition.username_watch_ids,
+                ransomware_watch_ids=definition.ransomware_watch_ids,
+                ransomlook_watch_ids=definition.ransomlook_watch_ids,
+            )
+            options = collection_options(definition)
+            if args.plan:
+                plan = collection.plan(definition.asset_value, **options)
+                emit(asdict(plan), collection_plan_lines(plan), as_json=args.json)
+                return 0
+            result = collection.run(
+                definition.asset_value, progress=terminal_progress(args.json), **options,
+            )
         if args.json:
             print(json.dumps({"ok": result.status == "complete", "data": asdict(result)}, ensure_ascii=True))
         else:

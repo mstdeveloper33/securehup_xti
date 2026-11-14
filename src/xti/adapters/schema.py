@@ -4,7 +4,7 @@ import sqlite3
 from uuid import uuid4
 
 
-SCHEMA_VERSION = 54
+SCHEMA_VERSION = 55
 APPLICATION_ID = 0x58544901
 
 
@@ -15,6 +15,25 @@ class SchemaError(ValueError):
 ASSETS_DDL = (
     "CREATE TABLE assets (id TEXT PRIMARY KEY NOT NULL, "
     "value TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)"
+)
+
+COLLECTION_PROFILE_DDL = (
+    "CREATE TABLE collection_profiles ("
+    "id TEXT PRIMARY KEY NOT NULL, name_key TEXT NOT NULL UNIQUE, "
+    "display_name TEXT NOT NULL, revision INTEGER NOT NULL CHECK (revision > 0), "
+    "definition_json TEXT NOT NULL, definition_sha256 TEXT NOT NULL, "
+    "active INTEGER NOT NULL CHECK (active IN (0, 1)), created_at TEXT NOT NULL, "
+    "updated_at TEXT NOT NULL)",
+    "CREATE TABLE collection_profile_events ("
+    "sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, "
+    "profile_id TEXT NOT NULL REFERENCES collection_profiles(id) ON DELETE RESTRICT, "
+    "action TEXT NOT NULL CHECK (action IN ('added', 'updated', 'reactivated', 'revoked')), "
+    "revision INTEGER NOT NULL CHECK (revision > 0), display_name TEXT NOT NULL, "
+    "definition_json TEXT NOT NULL, definition_sha256 TEXT NOT NULL, "
+    "reason TEXT NOT NULL, recorded_at TEXT NOT NULL, UNIQUE (profile_id, revision))",
+    "CREATE INDEX collection_profiles_active_name ON collection_profiles(active, name_key)",
+    "CREATE INDEX collection_profile_events_profile_sequence ON "
+    "collection_profile_events(profile_id, sequence)",
 )
 
 ASSET_CRITICALITY_DDL = (
@@ -1286,6 +1305,20 @@ VULNERABILITY_REMEDIATION_DDL = (
 
 # (column name, declared type, NOT NULL, primary-key position)
 TABLES = {
+    "collection_profiles": [
+        ("id", "TEXT", 1, 1), ("name_key", "TEXT", 1, 0),
+        ("display_name", "TEXT", 1, 0), ("revision", "INTEGER", 1, 0),
+        ("definition_json", "TEXT", 1, 0), ("definition_sha256", "TEXT", 1, 0),
+        ("active", "INTEGER", 1, 0), ("created_at", "TEXT", 1, 0),
+        ("updated_at", "TEXT", 1, 0),
+    ],
+    "collection_profile_events": [
+        ("sequence", "INTEGER", 1, 1), ("id", "TEXT", 1, 0),
+        ("profile_id", "TEXT", 1, 0), ("action", "TEXT", 1, 0),
+        ("revision", "INTEGER", 1, 0), ("display_name", "TEXT", 1, 0),
+        ("definition_json", "TEXT", 1, 0), ("definition_sha256", "TEXT", 1, 0),
+        ("reason", "TEXT", 1, 0), ("recorded_at", "TEXT", 1, 0),
+    ],
     "assets": [("id", "TEXT", 1, 1), ("value", "TEXT", 1, 0), ("created_at", "TEXT", 1, 0)],
     "asset_criticalities": [
         ("asset_id", "TEXT", 1, 1), ("asset_value", "TEXT", 1, 0),
@@ -2120,6 +2153,8 @@ ALLOWLIST_V8_TABLES = {
 }
 
 UNIQUE_KEYS = {
+    "collection_profiles": {("id",), ("name_key",)},
+    "collection_profile_events": {("id",), ("profile_id", "revision")},
     "assets": {("id",), ("value",)},
     "asset_criticalities": {("asset_id",), ("asset_value",)},
     "asset_criticality_events": {("id",)},
@@ -2271,6 +2306,10 @@ UNIQUE_KEYS = {
 }
 
 INDEXES = {
+    "collection_profiles_active_name": ("collection_profiles", ("active", "name_key")),
+    "collection_profile_events_profile_sequence": (
+        "collection_profile_events", ("profile_id", "sequence"),
+    ),
     "asset_criticality_events_asset_id": (
         "asset_criticality_events", ("asset_id", "recorded_at"),
     ),
@@ -2533,6 +2572,10 @@ INDEXES = {
 }
 
 FOREIGN_KEYS = {
+    "collection_profiles": set(),
+    "collection_profile_events": {
+        ("collection_profiles", "profile_id", "id", "NO ACTION", "RESTRICT"),
+    },
     "assets": set(),
     "asset_criticalities": {("assets", "asset_id", "id", "NO ACTION", "RESTRICT")},
     "asset_criticality_events": {
@@ -3032,7 +3075,13 @@ VERSION_TABLES = {
     52: frozenset(TABLES),
     53: frozenset(TABLES),
     54: frozenset(TABLES),
+    55: frozenset(TABLES),
 }
+
+for _legacy_version in range(1, 55):
+    VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {
+        "collection_profiles", "collection_profile_events",
+    }
 
 for _legacy_version in range(1, 54):
     VERSION_TABLES[_legacy_version] = VERSION_TABLES[_legacy_version] - {
@@ -3194,6 +3243,12 @@ for _legacy_version in range(1, 39):
         "webhook_destinations", "webhook_destination_events",
         "webhook_deliveries", "webhook_delivery_attempts",
     }
+
+
+def create_collection_profile_schema(connection: sqlite3.Connection) -> None:
+    """Create saved collection recipes and their immutable lifecycle snapshots."""
+    for statement in COLLECTION_PROFILE_DDL:
+        connection.execute(statement)
 
 
 def create_asset_criticality_schema(connection: sqlite3.Connection) -> None:
@@ -3616,6 +3671,20 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
     expected = {(name, "table") for name in tables} | {(name, "index") for name in indexes}
     if objects != expected:
         raise SchemaError("Veritabanının kayıt düzeni beklenen biçimde değil.")
+    if "collection_profiles" in tables:
+        for name, statement in zip(
+            (
+                "collection_profiles", "collection_profile_events",
+                "collection_profiles_active_name", "collection_profile_events_profile_sequence",
+            ),
+            COLLECTION_PROFILE_DDL,
+        ):
+            object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+            declaration = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE name=? AND type=?", (name, object_type),
+            ).fetchone()[0]
+            if " ".join(declaration.split()) != " ".join(statement.split()):
+                raise SchemaError("Toplama profil kayıt düzeni beklenen biçimde değil.")
     if "notifications" in tables:
         # table_info cannot distinguish INTEGER PRIMARY KEY from AUTOINCREMENT.
         # Require our canonical declaration, retained by SQLite backup/VACUUM,

@@ -194,10 +194,14 @@ def parse_theharvester_jsonl(
         seen_domains.add(normalized)
         for source in raw_sources:
             observations[source] += 1
+            # The saved observation includes this normalized completion time.
+            # A later collection is new evidence; replaying the same observation
+            # keeps its identity and remains idempotent.
             canonical = json.dumps(
                 {
                     "provider": PROVIDER, "profile": INTEGRATION_PROFILE,
                     "source": source, "hostname": normalized,
+                    "completed_at": completed_at,
                 },
                 ensure_ascii=True, sort_keys=True, separators=(",", ":"),
             ).encode("utf-8")

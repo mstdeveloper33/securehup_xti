@@ -1,8 +1,17 @@
 # Yerel Uygulamanın Mimarisi
 
-**14 Kasım 2026 — 0.130.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+**14 Kasım 2026 — 0.131.0 uygulanmış yapı.** Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
+
+`CollectionProfileService`, küçük depo/kilit sözleşmeleri ve seçili toplama
+servisi fabrikası üzerinden adlandırılmış tanımları yönetir. Şema 55 güncel
+profil ve değiştirilemez tam tanım olaylarını ekler; sürüm/özet ve yaşam
+döngüsü denetlenir. Kaydetmede/çalıştırmada ağ öncesi plan doğrulanır; çalışma
+kilidi altında profil tekrar okunur. Eski profil geçmişi, bağlı izleme artık
+etkin değil diye silinmez. Profil, sahiplik ilişkisi veya çalışma oturumu
+yerine geçmez. [0130 kararı](decisions/0130-versioned-collection-profiles.md)
+ayrıntıları açıklar.
 
 `CollectionService`, seçilen mevcut `JobService`, `SurfaceDiscoveryService`
 ve `CtiFeedService` işlemlerini tek çalışma kilidi altında seri yürütür.

@@ -21,6 +21,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_setup.py \
     tests/test_setup_harvester.py \
     tests/test_theharvester_archive.py \
+    tests/test_theharvester_archive_repeats.py \
     tests/test_archive_http.py \
     tests/test_theharvester_archive_worker.py \
     tests/test_mitre_attack.py \
@@ -36,6 +37,9 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_collection_cli.py \
     tests/test_collection_watches.py \
     tests/test_collection_watch_cli.py \
+    tests/test_collection_profile_storage.py \
+    tests/test_collection_profile_migration.py \
+    tests/test_collection_profile_cli.py \
     tests/test_ci_configuration.py \
     tests/test_cli.py \
     tests/test_storage.py \

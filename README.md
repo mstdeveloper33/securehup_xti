@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.130.0 · **Tarih:** 14 Kasım 2026 · **Durum:** Seçilen sosyal ve ransomware izlemelerini birlikte çalıştırma.
+**Sürüm:** 0.131.0 · **Tarih:** 14 Kasım 2026 · **Durum:** Toplama seçimlerini adla kaydetme ve çalıştırma.
 
 Kendi alan adını yaz; XTI herkese açık sertifika ve geçmiş web inceleme kayıtlarında benzer adları arasın, adayları gerekçeleriyle kaydetsin. Adres listesi hazırlaman gerekmez. Bir aday bulgu kesin phishing/dolandırıcılık kararı değildir.
 
@@ -26,6 +26,24 @@ kısa kurulum ve güncelleme rehberi için
 [XTI hızlı başlangıç belgesine](docs/GETTING_STARTED.md) bak.
 
 ## Nereden başlayacağım?
+
+Aynı toplama seçimini her seferinde yazmamak için bir profil kaydet:
+
+```sh
+./xti profiles save gunluk example.com
+./xti collect --profile gunluk --plan
+./xti collect --profile gunluk
+./xti profiles show gunluk
+```
+
+Domain önceden `assets add` ile kayıtlı olmalı. `profiles save` seçimleri
+kaydeder; internetten toplama başlatmaz. `--plan` yalnız önizler. Profil
+kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
+Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
+eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
+`profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
+Eski kurulumda şema 55 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+otomatik alınır. Sekiz sonraki teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 ```sh
 ./xti sources status

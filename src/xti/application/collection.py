@@ -198,7 +198,10 @@ class CollectionService:
         ransomlook_watch_ids: Sequence[str] = (),
         watch_item_limit: int = 100,
         progress: Callable[[str], None] | None = None,
+        preflight: Callable[[], None] | None = None,
     ) -> CollectionResult:
+        if preflight is not None:
+            preflight()
         plan = self.plan(
             domain, tasks=tasks, typos=typos,
             stale_after_hours=stale_after_hours, finding_limit=finding_limit,
@@ -209,6 +212,8 @@ class CollectionService:
         )
         started = self._now()
         with self.jobs.lock.acquire():
+            if preflight is not None:
+                preflight()
             # Another writer may have changed local evidence since preflight.
             # Recheck under the shared lock before the first persistent action.
             plan = self.plan(

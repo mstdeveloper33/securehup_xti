@@ -82,6 +82,8 @@ class UbuntuPackageMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS case_tasks")
             connection.execute("DROP TABLE IF EXISTS case_evidence")
             connection.execute("DROP TABLE IF EXISTS cases")
+            connection.execute("DROP TABLE IF EXISTS collection_profile_events")
+            connection.execute("DROP TABLE IF EXISTS collection_profiles")
             connection.execute("PRAGMA user_version=31")
 
     def test_v31_requires_explicit_backed_up_migration_and_adds_empty_tables(self):

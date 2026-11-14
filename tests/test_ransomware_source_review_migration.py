@@ -48,6 +48,8 @@ class RansomwareSourceReviewMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS case_tasks")
             connection.execute("DROP TABLE IF EXISTS case_evidence")
             connection.execute("DROP TABLE IF EXISTS cases")
+            connection.execute("DROP TABLE IF EXISTS collection_profile_events")
+            connection.execute("DROP TABLE IF EXISTS collection_profiles")
             connection.execute("PRAGMA user_version=45")
             self.assertEqual(validate_schema(connection, allow_legacy=True), 45)
         return self.path

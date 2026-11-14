@@ -69,6 +69,27 @@ ile her izlemede gösterilen öğeleri artırabilir, çıktıda verilen ayrınt�
 komutuyla kayıtlı çalışmayı açabilirsin. Bu seçenek veri toplama sınırı değil,
 sonuç görüntüleme sınırıdır.
 
+Seçimlerin hazır olduğunda bir adla kaydedebilirsin:
+
+```sh
+./xti profiles save gunluk example.com --task scan-crtsh --task discover-crtsh
+./xti profiles show gunluk
+./xti collect --profile gunluk --plan
+./xti collect --profile gunluk
+```
+
+`save` internet sorgulamaz; istediğin izleme kimliklerini aynı komuta
+ekleyebilirsin. Profilde verilmeyen seçenekler varsayılan değerleriyle
+kaydedilir. Aynı adla yeniden kaydettiğinde **tam seçim değiştirilir**;
+eski seçim ve değişiklik sırası `profiles show` geçmişinde kalır. `--json`
+çıktısı her eski tanımı tam gösterir. `collect --profile` ile ayrıca domain
+veya seçenek verilmez; ayarı değiştirmek için profili yeniden kaydet.
+
+`profiles list` etkin profilleri, `profiles list --all` geri çekilenleri de
+gösterir. `profiles revoke gunluk --reason "Takibi duraklattım"` kaydı
+silmeden çalıştırmayı kapatır. Bir izleme sonradan geri çekilirse profil
+okunabilir kalır, fakat çalıştırma başlamaz. Profil kendi başına zamanlanmaz.
+
 İşleri ayrı ayrı çalıştırmak da mümkündür:
 
 ```sh

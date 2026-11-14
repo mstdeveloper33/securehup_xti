@@ -20,6 +20,7 @@ from xti.adapters.schema import (
     create_supplier_inventory_schema,
     create_supplier_candidate_schema,
     create_case_schema,
+    create_collection_profile_schema,
     create_epss_schema,
     create_nvd_schema,
     create_nvd_window_schema,
@@ -161,6 +162,7 @@ class SQLiteAssetRepository:
                 create_surface_cname_schema(connection)
                 create_supplier_candidate_schema(connection)
                 create_case_schema(connection)
+                create_collection_profile_schema(connection)
                 create_surface_change_notification_schema(connection)
                 create_vulnerability_schema(connection)
                 create_epss_schema(connection)
@@ -253,6 +255,15 @@ class SQLiteAssetRepository:
         with self._connection(readonly=True) as connection:
             self._check_integrity(connection)
             count = connection.execute("SELECT COUNT(*) FROM assets").fetchone()[0]
+            collection_profiles = connection.execute(
+                "SELECT COUNT(*) FROM collection_profiles"
+            ).fetchone()[0]
+            active_collection_profiles = connection.execute(
+                "SELECT COUNT(*) FROM collection_profiles WHERE active=1"
+            ).fetchone()[0]
+            collection_profile_events = connection.execute(
+                "SELECT COUNT(*) FROM collection_profile_events"
+            ).fetchone()[0]
             observations = connection.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
             findings = connection.execute("SELECT COUNT(*) FROM findings").fetchone()[0]
             jobs = connection.execute("SELECT COUNT(*) FROM scan_jobs").fetchone()[0]
@@ -653,6 +664,9 @@ class SQLiteAssetRepository:
             "supplier_candidate_evidence_count": supplier_candidate_evidence,
             "supplier_candidate_resolution_count": supplier_candidate_resolutions,
             "case_count": cases,
+            "collection_profile_count": collection_profiles,
+            "active_collection_profile_count": active_collection_profiles,
+            "collection_profile_event_count": collection_profile_events,
             "open_case_count": open_cases,
             "active_case_evidence_count": case_evidence,
             "open_case_task_count": open_case_tasks,
@@ -866,6 +880,8 @@ class SQLiteAssetRepository:
                     create_supplier_candidate_schema(connection)
                 if version < 54:
                     create_case_schema(connection)
+                if version < 55:
+                    create_collection_profile_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

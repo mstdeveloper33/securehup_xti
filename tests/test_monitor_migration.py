@@ -80,6 +80,8 @@ class MonitorMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS case_tasks")
             connection.execute("DROP TABLE IF EXISTS case_evidence")
             connection.execute("DROP TABLE IF EXISTS cases")
+            connection.execute("DROP TABLE IF EXISTS collection_profile_events")
+            connection.execute("DROP TABLE IF EXISTS collection_profiles")
             connection.execute(f"PRAGMA user_version={version}")
             connection.execute("INSERT INTO assets VALUES ('asset-1', 'example.com', ?)", (AT,))
             if version >= 2:

@@ -1,5 +1,10 @@
 # XTI — Uygulanabilir İş Listesi
 
+14 Kasım 2026 güncel teslim sırası [sekiz adımlı planda](ORDERED_INTEGRATION_PLAN.md)
+izlenir. İlk teslim kayıtlı toplama profilleridir; sonraki adım kalıcı birleşik
+çalışma geçmişi ve eksik adımları tekrar denemedir. Aşağıdaki eski sürüm
+notları tarihî kapsamı açıklar; gelecekteki işleri tamamlanmış saymaz.
+
 **Sürüm:** 0.130 · **Tarih:** 14 Kasım 2026 · **İş durumu:** SUP-01/SUP-02 ve INT-01'in kişisel yerel çekirdeği tamamlandı. Birleşik kaynak durumu tarama, keşif, sosyal araç, IOC, ransomware ve ATT&CK kayıtlarını kapsıyor; günlük toplama–inceleme–vaka–tekrar rehberi ve bütünleşik testleri mevcut. Sıradaki iş gerçek kullanımda görülen kapsam boşluklarını ölçmek ve katkısı kanıtlanan açık kaynak adaptörlerini değerlendirmektir. Yerel API ile STIX/TAXII kullanıcı kararıyla beklemededir. Atama/rol/SLA takım ürününde; otomatik tedarikçi aboneliği/markalı rapor SUP-03 altında kalır. Sunucu envanteri, ürün/sürüm çıkarımı, paket takibi ve zafiyet eşleştirmesi aktif backlog değildir.
 
 0.90.0, kayıtlı kanıtı değiştirmeden birleştiren `analyze DOMAIN` görünümünün ilk dilimidir. Yeni ağ işi başlatmaz; marka adayını, alt alan adı keşif durumunu, dış yüzey güncelliğini ve adaylarını, ayrıca güncel katalog varsa kesin domain/IP IOC eşleşmesini tek sonuçta gösterir.

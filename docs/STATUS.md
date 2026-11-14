@@ -1,10 +1,26 @@
 # XTI — Güncel Uygulama Durumu
 
-**14 Kasım 2026 · 0.130.0 sürümü seçilen sosyal ve ransomware izlemelerini toplama akışına ekler**
+**14 Kasım 2026 · 0.131.0 sürümü toplama seçimlerini adla kaydetme ve çalıştırmayı ekler**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 ## Çalışanlar
+
+- `profiles save AD DOMAIN`, `profiles list/show/revoke` ve
+  `collect --profile AD [--plan]`: domain, temel işler, seçili izlemeler ve
+  görünüm seçenekleri tam tanım olarak kaydedilir. Aynı adla save tam seçimi
+  değiştirir; eski seçimler örtük eklenmez. Varsayılanlar kayda açık yazılır.
+- Şema 55: profil ve eklemeli tam tanım geçmişi; revizyon, SHA-256, kanonik
+  sürümlü JSON ve yaşam döngüsü doğrulaması. Değişmeyen save yeni olay üretmez;
+  geri çekme kaydı silmez, yeniden kaydetme aynı kimlikle etkinleştirir.
+- Domain/izlemelerin ağ öncesi doğrulanması, ortak kilit altında profil
+  revizyonunun yeniden kontrolü. Plan/liste/ayrıntı ağsız ve yazmasızdır.
+  Profil gruplaması kuruluş veya sahiplik bağı sayılmaz. Açık yedekli
+  `migrate` gerekir. Birleşik oturum ve sürdürme henüz sonraki teslimdir.
+- theHarvester kaynak kanıtı aynı hostname farklı zamanda tekrar gelince
+  çakışmaz. Türetilmiş özet gözlem zamanını da kapsar; eski kanıtlar ve insan
+  kararları korunur, aynı gözlemin tekrarında aday çoğaltılmaz. Bu düzeltme
+  Common Crawl'ın dış erişim sorununu çözüldü saymaz.
 
 - `collect DOMAIN --username-watch ID --ransomware-watch ID --ransomlook-watch ID`
   ile kayıtlı sosyal/ThreatCluster/RansomLook izlemelerinin açık seçimi;

@@ -1,5 +1,27 @@
 # Değişiklik Kaydı
 
+## 0.131.0 — 14 Kasım 2026
+
+- Toplama seçimlerini `profiles save AD DOMAIN` ile kaydetme, listeleme,
+  ayrıntı/geçmiş gösterme ve gerekçeyle geri çekme eklendi.
+  `collect --profile AD [--plan]` kaydedilen tam seçimi kullanır.
+- Varsayılanlar kayda açık yazılır; aynı adla save tam seçimi değiştirir.
+  Değişmeyen seçim yeni revizyon yaratmaz. Domain/seçenek ile profilin
+  aynı komutta karıştırılması reddedilir. Profil değişirse çalışma kilidi
+  altında kaynak isteği başlamadan durulur.
+- Şema 55 profil ve tam tanım geçmişi tablolarını ekler. Kanonik sürümlü
+  tanım, SHA-256 ve yaşam döngüsü doğrulanır. Açık migration önce geri dönüş
+  yedeği alır; mevcut kanıt ve inceleme kayıtları korunur.
+- Profil gruplaması sahiplik bağlantısı oluşturmaz; kapatılmış izlemeye
+  bağlı profil geçmişi okunabilir kalır, yeni çalışma engellenir. Dış API
+  veya bağımlılık eklenmedi. Sekiz teslimin uygulanma sırası belgelendi.
+- theHarvester'ın türetilmiş kanıt özeti artık normalleştirilmiş toplama
+  zamanını da içerir. Aynı hostname daha sonra yeniden gözlendiğinde eski
+  kayıtla çakışmaz; önceki kanıt/insan kararı korunur, aday çoğalmaz.
+- Profil teslimi için tam paket 1.500/1.500 testle geçti. Gerçek veritabanı
+  kopyasında 54→55 geçişi 112 eski tablonun içeriklerini korudu; profil ve
+  önizleme ağsız doğrulandı. Son arşiv düzeltmesi ayrı ilgili testlerle sınandı.
+
 ## 0.130.0 — 14 Kasım 2026
 
 - `collect` komutuna tekrarlanabilir `--username-watch`, `--ransomware-watch`
