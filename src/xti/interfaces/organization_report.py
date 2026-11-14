@@ -11,6 +11,7 @@ from xti.interfaces.mail import check_lines as mail_lines
 from xti.interfaces.services import check_lines as service_lines
 from xti.interfaces.surface import check_lines as web_lines
 from xti.interfaces.text import safe_text
+from xti.interfaces.public_notice_watches import watch_detail_lines
 
 
 _SECTIONS = {"findings": "Domain/marka bulguları", "surface_candidates": "Pasif alt alan adı adayları",
@@ -101,6 +102,14 @@ def organization_report_lines(report: OrganizationReport) -> list[str]:
         lines.extend(f"  Not: {safe_text(note)}" for note in target.notes)
     if report.has_more_targets:
         lines.append(f"Sonraki hedef sayfası: --target-offset {report.target_offset + len(report.targets)} --target-limit {report.target_limit}")
+    lines.append("")
+    if report.public_notice_watch is not None:
+        lines.append("Kuruluşa ait kamu olay izleme geçmişi (çalışma anındaki kapsam):")
+        lines.extend(watch_detail_lines(report.public_notice_watch))
+        lines.append("Bu tarihî bölümün kapsamı, yukarıdaki güncel domain bölümlerinden ayrıdır.")
+    else:
+        lines.append("Bu kuruluş için kamu olay izlemesi açılmamış.")
+        lines.append("Açmak için: ./xti notices watch enable " + safe_text(organization.id))
     lines.extend(f"Not: {safe_text(note)}" for note in report.notes)
     return lines
 

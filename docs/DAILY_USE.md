@@ -1,7 +1,12 @@
 # XTI günlük kullanım
 
-Bu belge 0.135.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
-çalıştır; şema 61 geçişi önce geri dönüş yedeği alır.
+Bu belge 0.136.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
+çalıştır; şema 62 geçişi önce geri dönüş yedeği alır.
+
+Kuruluşa özel HIBP bildirimleri için `./xti notices watch enable KURULUS_KIMLIGI`
+ile açık izleme seçilir. Katalog yenilenince ilk ölçüm sessizdir; sonraki
+ilgili yeni/değişen kayıtlar `./xti inbox` içinde görünür. Tam domain kapsamı,
+önce/sonra kanıtı ve kapatma [kamu olay izlemesi rehberindedir](PUBLIC_NOTICE_WATCHES.md).
 
 Bu örneklerde `example.com` yerine izleyeceğin domaini, `markam` yerine marka
 kullanıcı adını yaz. Komutları proje klasöründe çalıştır. İlk kez kullanıyorsan

@@ -1,6 +1,6 @@
 # XTI — Kişisel Erken Uyarı Platformu
 
-**Sürüm:** 0.135.0 · **Tarih:** 14 Kasım 2026 · **Şema:** 61.
+**Sürüm:** 0.136.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 62.
 Kuruluş birleşik raporu, kuruluşa özel değişim/kaynak görünümü, ayrıntılı
 önce/sonra kanıtı, CTI ilişki bağlamı ve ücretsiz kamu ihlal kataloğu kullanılabilir.
 
@@ -44,7 +44,7 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 61 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 62 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
@@ -179,6 +179,22 @@ adaptör seçilmeyecek. Common Crawl'ın dış erişim sorunu açık kalıyor;
 [Karar dayanağı](docs/roadmap/SOURCE_PROVIDER_EVALUATION.md) ayrıntıları açıklar.
 
 ## Ücretsiz kamu ihlal kataloğu ve CTI ilişkileri
+
+Kuruluşuna bağladığın domainler için yerel bildirimleri açıkça açabilirsin:
+
+```sh
+./xti notices watch enable KURULUS_KIMLIGI
+./xti notices refresh
+./xti notices watch show KURULUS_KIMLIGI
+./xti inbox list
+```
+
+İlk değerlendirme sessiz başlangıçtır. Sonraki yeni/değişen tam domain
+eşleşmeleri çalışma başına tek bildirim oluşturur; önceki/sonraki metadata,
+gerçek kaynak ve tarihî kuruluş kapsamı korunur. Yeni domainin ilk ölçümü
+sessizdir; mevcut domainlerin değişimleri bildirilmeye devam eder. Okuma
+komutları ağ kullanmaz ve bildirimleri okundu yapmaz. Ayrıntılar ve kapatma
+komutu [kuruluş kamu olay izlemesi rehberindedir](docs/PUBLIC_NOTICE_WATCHES.md).
 
 HIBP kataloğunu günlük toplama profiline de katabilirsin:
 

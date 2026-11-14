@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
+from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
+
 from xti.adapters.public_notice_schema import PUBLIC_NOTICE_DDL
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
@@ -36,6 +38,7 @@ class PublicNoticeMigrationTests(unittest.TestCase):
             recorded_at="2026-11-14T15:00:00+00:00",
         )
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            remove_public_notice_watch_schema(connection)
             collection_layout_v60(connection)
             connection.execute("DROP TABLE public_notice_changes")
             connection.execute("DROP TABLE public_notice_runs")

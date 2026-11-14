@@ -8,6 +8,8 @@ import unittest
 from unittest.mock import patch
 from uuid import uuid4
 
+from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
+
 from xti.adapters.collection_public_notice_schema import (
     COLLECTION_HISTORY_V60_DDL, COLLECTION_RECEIPT_V60_COLUMNS,
     migrate_collection_public_notice_schema,
@@ -60,6 +62,7 @@ class CollectionPublicNoticeMigrationTests(unittest.TestCase):
             SQLitePublicNoticeRepository(self.path).apply(value, started_at=value.fetched_at, finished_at=value.fetched_at)
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("PRAGMA foreign_keys=ON")
+            remove_public_notice_watch_schema(connection)
             collection_layout_v60(connection)
             if version < 60:
                 connection.execute("DROP TABLE public_notice_changes")
@@ -176,6 +179,7 @@ class CollectionPublicNoticeMigrationTests(unittest.TestCase):
     def test_legacy_constraints_do_not_accept_new_task_kind_or_new_ordinal(self):
         details = self.begin()
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            remove_public_notice_watch_schema(connection)
             collection_layout_v60(connection)
             for update in ("kind='public_notice'", "source='hibp'", "ordinal=59"):
                 with self.assertRaisesRegex(sqlite3.IntegrityError, "CHECK"):

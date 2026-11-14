@@ -5,6 +5,9 @@
 0.134.0 ile uygulandı. Güncel sonuçlar [STATUS](../STATUS.md) içindedir.
 0.135.0, HIBP'yi mevcut toplama/profil/zamanlama akışına bağlar;
 [dört adımlı devam planının](PUBLIC_NOTICE_WORKFLOW_PLAN.md) ilk teslimidir.
+0.136.0 ikinci teslimi ekler: açık kuruluş HIBP izlemesi, domain başına
+sessiz başlangıç, atomik yerel bildirim ve tarihî kaynak/kapsam kanıtı.
+Kamu olayı vaka bağlama ve çevrimdışı HTML rapor sonraki iki adımdır.
 Kuruluş raporu, kapsamlı dönem/kaynak katkısı, önce/sonra kanıtları,
 doğrudan CTI bağlamı ve HIBP kamu metadata kataloğu kullanılabilir.
 Aşağıdaki eski sürüm notları tarihî kapsamı açıklar; geniş roadmap'in

@@ -176,7 +176,8 @@ class SQLitePublicNoticeRepository:
     def validate(self, *, operation: CollectionOperationToken | None = None) -> None:
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
-            _audit(connection)
+            from xti.adapters.sqlite_public_notice_watches import validate_public_notice_watches
+            validate_public_notice_watches(connection)
             validate_public_notice_operation(connection, operation)
 
     @staticmethod
@@ -219,6 +220,8 @@ class SQLitePublicNoticeRepository:
             try:
                 connection.execute("BEGIN IMMEDIATE")
                 validate_public_notice_operation(connection, operation)
+                from xti.adapters.sqlite_public_notice_watches import validate_public_notice_watches
+                validate_public_notice_watches(connection)
                 runs, old_changes, current, previous_chain = _audit(connection)
                 identifier = str(uuid4())
                 changes = []
@@ -241,6 +244,8 @@ class SQLitePublicNoticeRepository:
                     updated, len(incoming) - added - updated, removed, None,
                 )
                 self._insert(connection, run, changes, previous_chain)
+                from xti.adapters.sqlite_public_notice_watches import process_public_notice_watches
+                process_public_notice_watches(connection, run.id)
                 record_collection_step_receipt(
                     connection, operation, result_kind="public_notice_run",
                     result_id=run.id, result_status=run.status,
@@ -260,6 +265,8 @@ class SQLitePublicNoticeRepository:
             try:
                 connection.execute("BEGIN IMMEDIATE")
                 validate_public_notice_operation(connection, operation)
+                from xti.adapters.sqlite_public_notice_watches import validate_public_notice_watches
+                validate_public_notice_watches(connection)
                 runs, _, _, previous_chain = _audit(connection)
                 if len(runs) >= MAX_RUNS:
                     raise ValidationError("Kamu olay yerel geçmiş kapasitesi doldu; kayıtlar değiştirilmedi.")
@@ -280,6 +287,8 @@ class SQLitePublicNoticeRepository:
         _bounds(run_limit, offset, 100)
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
+            from xti.adapters.sqlite_public_notice_watches import validate_public_notice_watches
+            validate_public_notice_watches(connection)
             runs, _, _, _ = _audit(connection)
         complete = next((run for run in reversed(runs) if run.status == "complete"), None)
         return PublicNoticeStatus(runs[-1] if runs else None, complete,

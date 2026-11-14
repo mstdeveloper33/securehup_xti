@@ -1,5 +1,26 @@
 # Değişiklik Kaydı
 
+## 0.136.0 — 15 Kasım 2026
+
+- Kuruluş başına açık HIBP izleme: açma/kapatma, tam domain kapsamı,
+  kaynak durumu ve sayfalı çalışma/tanım geçmişi. Aynı HIBP yenilemesi bütün
+  açık izlemeleri ilerletir; ek ağ isteği veya ücretli API yoktur.
+- İlk ölçüm ve yeni/yeniden etkin domain sessizdir; mevcut kapsamın yeni
+  veya değişen kaydı çalışma başına tek yerel bildirim üretir. Tekrar,
+  kaynak hatası ve yalnız çıkarılma bildirim oluşturmaz.
+- Kaynak, izleme, bildirim ve toplama bağı aynı işlemde kaydedilir. Bildirim
+  tarihî kuruluş/link olaylarına ve gerçek önce/sonra metadata kanıtına
+  bağlıdır. Tüm kayıtlar sayfalanır; atıf/lisans ve okundu durumu korunur.
+- Kuruluş raporunda kesin kuruluş kimliğiyle ayrı tarihî izleme bölümü
+  bulunur. Durum ekranı artık mevcut RansomLook bildirimlerini de toplamına
+  katar; inbox, doctor ve status sayaçları tutarlıdır.
+- Şema 61→62 dört boş tablo ekler; benzersiz yedek ve eski sürüme yeni
+  dosyada geri dönüş vardır. Kişisel kuruluş/izleme kendiliğinden oluşturulmaz.
+- Tam paket: 1.828 test / 597,223 saniye; 1.827 başarılı, bir Linux kontrolü
+  macOS'ta atlandı. Hızlı kapı: 434 test / 194,914 saniye, aynı tek atlama.
+  Gerçek verinin kopyasında ve asıl verinin yedekli geçişinde 129 tablo /
+  86.843 satır korundu; geri dönüş şema 61 ve özgün kayıtlarla eşleşti.
+
 ## 0.135.0 — 14 Kasım 2026
 
 - HIBP kamu katalog yenilemesi `--task notices-hibp` ile mevcut toplama,

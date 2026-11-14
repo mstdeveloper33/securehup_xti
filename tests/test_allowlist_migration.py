@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
+
 from xti.adapters.schema import (
     ALLOWLIST_DDL,
     ALLOWLIST_V8_DDL,
@@ -112,6 +114,7 @@ class AllowlistMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            remove_public_notice_watch_schema(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")
@@ -197,6 +200,7 @@ class AllowlistMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            remove_public_notice_watch_schema(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")

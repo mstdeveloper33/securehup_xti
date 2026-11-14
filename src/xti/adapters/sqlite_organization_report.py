@@ -17,6 +17,7 @@ from xti.adapters.sqlite_jobs import SQLiteJobRepository
 from xti.adapters.sqlite_mail import SQLiteSurfaceMailRepository
 from xti.adapters.sqlite_organization_scope import read_organization_scope
 from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
+from xti.adapters.sqlite_public_notice_watches import read_public_notice_watch_details
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomlook_watches import SQLiteRansomLookWatchRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
@@ -561,12 +562,16 @@ class SQLiteOrganizationReportRepository:
                     target_offset, target_limit, item_offset, item_limit,
                     target_offset + len(targets) < len(effective),
                     (
-                        "Rapor yalnız kuruluşun şu an etkin açık bağlantılarını seçer; geçmişte kuruluş sahipliği veya olay atfı yapmaz.",
+                        "Hedef bölümleri kuruluşun şu an etkin açık bağlantılarını seçer; geçmiş sahiplik veya olay atfı yapmaz. Kamu olay izleme bölümü ise kesin kuruluş kimliğiyle tarihî kapsamı ayrıca gösterir.",
                         "Bağlantısı/kuruluşu/hedefi geri çekilmiş kayıtlar kapsamda görünür, sonuçlara katılmaz; kaynak kayıtları silinmez.",
                         "Bölümler aynı kanıtı paylaşabilir; sayaçlar benzersiz tehdit toplamı değildir.",
                         "Sayfa sınırları yalnız gösterimi etkiler; her bölüm toplamı ve devam bilgisi ayrı verilir.",
                         "Komutlar gezinme önerisidir; bu rapor onları çalıştırmaz, ağa çıkmaz ve bildirimleri okundu yapmaz.",
                     ), SCHEMA_VERSION,
+                    public_notice_watch=read_public_notice_watch_details(
+                        connection, organization_id, event_limit=item_limit, run_limit=item_limit,
+                        event_offset=item_offset, run_offset=item_offset,
+                    ),
                 )
         except (sqlite3.Error, ValueError, TypeError, KeyError, OverflowError) as error:
             raise StorageError("Kuruluş raporunun kaynak kanıtı doğrulanamadı; kayıtlar değiştirilmedi.") from error

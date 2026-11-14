@@ -9,6 +9,8 @@ import unittest
 from unittest.mock import patch
 from uuid import UUID, uuid4
 
+from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
+
 from xti.adapters.schema import (
     APPLICATION_ID, ASSETS_DDL, FINDINGS_DDL, JOBS_DDL, ASSESSMENTS_DDL,
     OPERATIONS_DDL, INBOX_DDL, SCHEMA_VERSION, VERSION_TABLES, validate_schema,
@@ -83,6 +85,7 @@ class InboxMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            remove_public_notice_watch_schema(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")

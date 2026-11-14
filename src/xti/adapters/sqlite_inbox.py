@@ -20,6 +20,7 @@ from xti.adapters.sqlite_vulnerability_notifications import (
 from xti.adapters.sqlite_cti_saved_searches import SQLiteCtiSavedSearchRepository
 from xti.adapters.sqlite_ransomware_watches import SQLiteRansomwareWatchRepository
 from xti.adapters.sqlite_ransomlook_watches import SQLiteRansomLookWatchRepository
+from xti.adapters.sqlite_public_notice_watches import SQLitePublicNoticeWatchRepository
 from xti.adapters.sqlite_brand_username_reviews import (
     SQLiteBrandUsernameReviewRepository,
 )
@@ -39,11 +40,13 @@ _COMBINED_NOTIFICATIONS = (
     "SELECT sequence, id, finding_id, NULL AS candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
     "NULL AS ransomware_run_id, NULL AS brand_candidate_id, "
-    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id FROM notifications UNION ALL "
+    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id FROM notifications UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
     "NULL AS ransomware_run_id, NULL AS brand_candidate_id, "
-    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id "
+    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id "
     "FROM surface_candidate_notifications UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, "
     "COALESCE(surface_check_id, mail_check_id, service_check_id) AS evidence_id, "
@@ -51,33 +54,43 @@ _COMBINED_NOTIFICATIONS = (
     "WHEN mail_check_id IS NOT NULL THEN 'mail' ELSE 'service' END AS evidence_type, "
     "NULL AS exposure_id, NULL AS cti_run_id, NULL AS ransomware_run_id, "
     "NULL AS brand_candidate_id, "
-    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id "
+    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id "
     "FROM surface_change_notifications UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, exposure_id, NULL AS cti_run_id, "
     "NULL AS ransomware_run_id, NULL AS brand_candidate_id, "
-    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id "
+    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id "
     "FROM vulnerability_change_notifications UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, NULL AS exposure_id, run_id AS cti_run_id, "
     "NULL AS ransomware_run_id, NULL AS brand_candidate_id, "
-    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id "
+    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id "
     "FROM cti_saved_search_notifications UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
     "run_id AS ransomware_run_id, NULL AS brand_candidate_id, "
-    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id "
+    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id "
     "FROM ransomware_watch_notifications UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, "
     "NULL AS evidence_id, NULL AS evidence_type, NULL AS exposure_id, "
     "NULL AS cti_run_id, NULL AS ransomware_run_id, "
-    "candidate_id AS brand_candidate_id, event_type, origin, created_at, read_at, NULL AS ransomlook_run_id "
+    "candidate_id AS brand_candidate_id, event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id "
     "FROM brand_username_review_notifications UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
     "NULL AS ransomware_run_id, NULL AS brand_candidate_id, "
-    "event_type, origin, created_at, read_at, run_id AS ransomlook_run_id "
-    "FROM ransomlook_watch_notifications"
+    "event_type, origin, created_at, read_at, run_id AS ransomlook_run_id, "
+    "NULL AS public_notice_watch_run_id FROM ransomlook_watch_notifications UNION ALL "
+    "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, NULL AS evidence_id, "
+    "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
+    "NULL AS ransomware_run_id, NULL AS brand_candidate_id, "
+    "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
+    "run_id AS public_notice_watch_run_id FROM public_notice_watch_notifications"
 )
 _TIMESTAMP = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
@@ -132,6 +145,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, candidate_id,
                 evidence_id, evidence_type, exposure_id, cti_run_id, ransomware_run_id,
                 brand_candidate_id, event_type, origin, created, read_at, ransomlook_run_id,
+                public_notice_watch_run_id,
             ) = row
             if type(sequence) is not int or not 1 <= sequence <= _MAX_SEQUENCE:
                 raise ValueError("Invalid notification sequence")
@@ -141,6 +155,7 @@ class SQLiteInboxRepository:
                 for value in (
                     finding_id, candidate_id, evidence_id, exposure_id,
                     cti_run_id, ransomware_run_id, brand_candidate_id, ransomlook_run_id,
+                    public_notice_watch_run_id,
                 )
             )
             if subjects != 1:
@@ -159,6 +174,8 @@ class SQLiteInboxRepository:
                 _identifier(ransomware_run_id)
             if ransomlook_run_id is not None:
                 _identifier(ransomlook_run_id)
+            if public_notice_watch_run_id is not None:
+                _identifier(public_notice_watch_run_id)
             if brand_candidate_id is not None:
                 _identifier(brand_candidate_id)
             if (
@@ -187,6 +204,9 @@ class SQLiteInboxRepository:
                 ransomlook_run_id is not None
                 and (event_type != "ransomlook_watch_changed" or origin != "new")
             ) or (
+                public_notice_watch_run_id is not None
+                and (event_type != "public_notice_watch_changed" or origin != "new")
+            ) or (
                 brand_candidate_id is not None
                 and (
                     event_type != "social_profile_possible_impersonation"
@@ -203,6 +223,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, event_type, origin, created, read_at,
                 candidate_id, evidence_id, evidence_type, exposure_id, cti_run_id,
                 ransomware_run_id, brand_candidate_id, ransomlook_run_id,
+                public_notice_watch_run_id,
             )
         except (ValueError, TypeError, OverflowError) as error:
             raise StorageError(
@@ -317,14 +338,19 @@ class SQLiteInboxRepository:
                 "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
                 "FROM ransomlook_watch_notifications"
             ).fetchone()
+            public_notice_total, public_notice_unread = connection.execute(
+                "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
+                "FROM public_notice_watch_notifications"
+            ).fetchone()
             total = (
                 finding_total + candidate_total + change_total + vulnerability_total
                 + cti_total + ransomware_total + brand_total + ransomlook_total
+                + public_notice_total
             )
             unread = (
                 finding_unread + candidate_unread + change_unread
                 + vulnerability_unread + cti_unread + ransomware_unread
-                + brand_unread + ransomlook_unread
+                + brand_unread + ransomlook_unread + public_notice_unread
             )
             matching = (
                 total if status == "all"
@@ -343,9 +369,17 @@ class SQLiteInboxRepository:
                 "SELECT * FROM (" + _COMBINED_NOTIFICATIONS + ")" + where +
                 " ORDER BY sequence DESC LIMIT ?", (*parameters, limit + 1),
             ).fetchall()
+            notifications = tuple(self._notification(row) for row in rows[:limit])
+            public_notice_ids = tuple(
+                notice.id for notice in notifications
+                if notice.public_notice_watch_run_id is not None
+            )
+            public_notice_evidence = (
+                SQLitePublicNoticeWatchRepository.notification_evidences(connection, public_notice_ids)
+                if public_notice_ids else {}
+            )
             items = []
-            for row in rows[:limit]:
-                notification = self._notification(row)
+            for notification in notifications:
                 if notification.finding_id is not None:
                     items.append(InboxItem(
                         notification,
@@ -392,6 +426,11 @@ class SQLiteInboxRepository:
                         notification, None, ransomlook_change=SQLiteRansomLookWatchRepository.notification_evidence(
                             connection, notification.id,
                         ),
+                    ))
+                elif notification.public_notice_watch_run_id is not None:
+                    items.append(InboxItem(
+                        notification, None,
+                        public_notice_change=public_notice_evidence[notification.id],
                     ))
                 else:
                     brand_review = (
@@ -463,6 +502,13 @@ class SQLiteInboxRepository:
                         connection, notification.id,
                     ),
                 )
+            elif notification.public_notice_watch_run_id is not None:
+                result = InboxDetails(
+                    notification, None,
+                    public_notice_change=SQLitePublicNoticeWatchRepository.notification_evidence(
+                        connection, notification.id,
+                    ),
+                )
             else:
                 result = InboxDetails(
                     notification, None, None, None, None, None, None,
@@ -495,6 +541,8 @@ class SQLiteInboxRepository:
                 if notification.ransomware_run_id is not None
                 else "ransomlook_watch_notifications"
                 if notification.ransomlook_run_id is not None
+                else "public_notice_watch_notifications"
+                if notification.public_notice_watch_run_id is not None
                 else "brand_username_review_notifications"
             )
             # Table names are fixed above; only values are external input.
@@ -527,10 +575,16 @@ class SQLiteInboxRepository:
                 connection.execute("BEGIN IMMEDIATE")
                 self._validate_sequences(connection)
                 # Validate the entire batch before changing even the first row.
-                for identifier in identifiers:
-                    notification = self._get(connection, identifier)
+                selected = tuple(self._get(connection, identifier) for identifier in identifiers)
+                public_notice_ids = tuple(
+                    notice.id for notice in selected
+                    if notice.public_notice_watch_run_id is not None
+                )
+                if public_notice_ids:
+                    SQLitePublicNoticeWatchRepository.notification_evidences(connection, public_notice_ids)
+                for notification in selected:
                     if notification.ransomlook_run_id is not None:
-                        SQLiteRansomLookWatchRepository.notification_evidence(connection, identifier)
+                        SQLiteRansomLookWatchRepository.notification_evidence(connection, notification.id)
                 changed = self._mark_rows(connection, identifiers, read, now)
                 notifications = tuple(
                     self._get(connection, identifier) for identifier in identifiers

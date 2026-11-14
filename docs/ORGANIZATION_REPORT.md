@@ -1,7 +1,13 @@
 # Kuruluş raporu: günlük kullanım
 
-0.135.0 · şema 61. Eski kurulumda önce `./xti migrate` çalıştır; komut
+0.136.0 · şema 62. Eski kurulumda önce `./xti migrate` çalıştır; komut
 geçişten önce benzersiz geri dönüş yedeği oluşturur.
+
+Raporda kuruluşa ait kamu olay izlemesinin tarihî bölümü de bulunur. Bu
+bölüm kesin kuruluş kimliğine aittir; güncel domain bölümlerinden ayrıdır.
+Domain bağlantısını kaldırmak eski izleme sonuçlarını silmez. İzleme açmak
+için `./xti notices watch enable KURULUS_KIMLIGI` kullan;
+[ayrıntılı rehber](PUBLIC_NOTICE_WATCHES.md) ilk sessiz ölçümü ve bildirimleri açıklar.
 
 ## 1. Kayıtlarını bir kez grupla
 
@@ -135,8 +141,9 @@ ekleyebilir, mevcut Linux zamanlayıcısıyla çalıştırabilirsin. Başarılı
 kaydı ile tamamlanma bağı aynı işlemde saklanır; kesintide başarılı kayıt
 korunur. `--plan`, profil kaydetme ve zamanlama hazırlığı kaynak sorgulamaz.
 HIBP ortak katalogdur; seçili domainin hedefte sorgulandığı anlamına gelmez.
-Bildirim/izleme tanımı, bu olayı vakaya bağlama ve HTML rapor ayrı gelecek
-işlerdir; bu teslim bunları kendiliğinden başlatmaz.
+0.136.0'da bildirim için ayrıca `notices watch enable KURULUS_KIMLIGI`
+seçilebilir; açık izlemeler bu ortak yenilemede değerlendirilir. Kamu olayı
+vaka kanıtı ve HTML rapor ayrı gelecek işlerdir.
 
 ## 6. Bir göstergenin kayıtlı CTI ilişkilerini aç
 

@@ -7,6 +7,7 @@ from xti.domain.surface import SurfaceCandidate, SurfaceCandidateDetails
 from xti.domain.cti_saved_searches import CtiSavedSearchChangeEvidence
 from xti.domain.ransomware_watches import RansomwareWatchChangeEvidence
 from xti.domain.ransomlook_watches import RansomLookWatchChangeEvidence
+from xti.domain.public_notice_watches import PublicNoticeWatchChangeEvidence
 from xti.domain.brand_username_reviews import (
     BrandUsernameReviewNotificationEvidence,
 )
@@ -29,6 +30,7 @@ class Notification:
     ransomware_run_id: str | None = None
     brand_candidate_id: str | None = None
     ransomlook_run_id: str | None = None
+    public_notice_watch_run_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +79,7 @@ class InboxItem:
     ransomware_change: RansomwareWatchChangeEvidence | None = None
     brand_profile_review: BrandUsernameReviewNotificationEvidence | None = None
     ransomlook_change: RansomLookWatchChangeEvidence | None = None
+    public_notice_change: PublicNoticeWatchChangeEvidence | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,6 +102,7 @@ class InboxDetails:
     ransomware_change: RansomwareWatchChangeEvidence | None = None
     brand_profile_review: BrandUsernameReviewNotificationEvidence | None = None
     ransomlook_change: RansomLookWatchChangeEvidence | None = None
+    public_notice_change: PublicNoticeWatchChangeEvidence | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -2,6 +2,7 @@
 
 from xti.domain.inbox import InboxDetails, InboxPage
 from xti.interfaces.text import safe_text
+from xti.interfaces.public_notice_watches import change_lines as public_notice_change_lines
 
 
 ORIGIN_LABELS = {"new": "Yeni aday", "existing": "Önceki kayıttan"}
@@ -118,6 +119,23 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
                 f"  Yeni {evidence.added_count} | değişen {evidence.updated_count}",
                 f"  Çalışma zamanı: {safe_text(evidence.executed_at)}",
             ])
+        elif item.public_notice_change is not None:
+            evidence = item.public_notice_change
+            lines.extend([
+                "",
+                f"{read_state} | Kuruluşun kamu olay eşleşmeleri değişti | "
+                f"{safe_text(evidence.organization_name)}",
+                f"  Bildirim: {safe_text(notice.id)}",
+                f"  Çalışma anındaki kuruluş adı; kimlik: {safe_text(evidence.organization_id)}",
+                f"  Yeni {evidence.added_count} | değişen {evidence.updated_count} | "
+                f"eşleşmeden çıkan {evidence.removed_count}",
+                f"  Sessiz başlangıç kayıtları: {evidence.baseline_count}",
+                f"  İzleme çalışması: {safe_text(evidence.run_id)} | "
+                f"katalog çalışması: {safe_text(evidence.source_run_id)}",
+                f"  Kaynak: {safe_text(evidence.attribution)}",
+                f"  Lisans: {safe_text(evidence.license)}",
+                "  Bu yerel eşleşme değişikliğidir; yeni veya doğrulanmış ihlal hükmü değildir.",
+            ])
         else:
             evidence = item.brand_profile_review
             lines.extend([
@@ -143,6 +161,41 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
 
 def detail_lines(item: InboxDetails) -> list[str]:
     notice = item.notification
+    if item.public_notice_change is not None:
+        evidence = item.public_notice_change
+        lines = [
+            f"Bildirim: {safe_text(notice.id)} | Kuruluşun kamu olay eşleşmeleri değişti",
+            f"Kutuda oluşturulma: {safe_text(notice.created_at)}",
+            f"Okundu zamanı: {safe_text(notice.read_at or 'Henüz okunmadı')}",
+            f"Çalışma anındaki kuruluş: {safe_text(evidence.organization_name)} | "
+            f"kimlik {safe_text(evidence.organization_id)}",
+            f"İzleme kimliği: {safe_text(evidence.watch_id)}",
+            f"İzleme çalışması: {safe_text(evidence.run_id)}",
+            f"Kaynak katalog çalışması: {safe_text(evidence.source_run_id)}",
+            "Önceki kaynak katalog çalışması: " + safe_text(evidence.previous_source_run_id or "Yok"),
+            f"Çalışma zamanı: {safe_text(evidence.recorded_at)}",
+            f"Tarihî kapsam özeti: {safe_text(evidence.scope_sha256)}",
+            "Çalışma anındaki açık domain kapsamı: " + ", ".join(
+                safe_text(member.domain) for member in evidence.scope.members
+            ),
+            f"Eşleşen {evidence.matched_count} | sessiz başlangıç {evidence.baseline_count} | "
+            f"yeni {evidence.added_count} | değişen {evidence.updated_count} | "
+            f"eşleşmeden çıkan {evidence.removed_count}",
+            f"Kaynak: {safe_text(evidence.attribution)}",
+            f"Lisans: {safe_text(evidence.license)}",
+            f"Çalışma kayıtları: toplam {evidence.total_item_count}; bu görünümde {len(evidence.items)}",
+        ]
+        for change in evidence.items:
+            lines.extend(public_notice_change_lines(change))
+        lines.append(f"Tam çalışma: ./xti notices watch-run-show {safe_text(evidence.run_id)}")
+        if evidence.has_more:
+            lines.append(
+                f"Sonraki kayıtlar: ./xti notices watch-run-show {safe_text(evidence.run_id)} "
+                f"--offset {len(evidence.items)}"
+            )
+        lines.extend(safe_text(note) for note in evidence.notes)
+        lines.append("Ayrıntıya bakmak bildirimi okundu işaretlemez; tarihî kanıt değişmez.")
+        return lines
     if item.ransomlook_change is not None:
         evidence = item.ransomlook_change
         return [

@@ -9,6 +9,7 @@ from xti.domain.mail import MailDnsCheck
 from xti.domain.organization_scope import OrganizationScope
 from xti.domain.organizations import OrganizationLinkView
 from xti.domain.public_notices import PublicNotice
+from xti.domain.public_notice_watches import PublicNoticeWatchDetails
 from xti.domain.services import ServiceScanCheck
 from xti.domain.surface import SurfaceCheck
 from xti.domain.surface_freshness import SurfaceFreshnessSnapshot
@@ -130,3 +131,4 @@ class OrganizationReport:
     has_more_targets: bool
     notes: tuple[str, ...]
     schema_version: int
+    public_notice_watch: PublicNoticeWatchDetails | None = None

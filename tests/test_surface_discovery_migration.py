@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
+
 from xti.adapters.schema import (
     SCHEMA_VERSION,
     SURFACE_DISCOVERY_DDL,
@@ -143,6 +145,7 @@ class SurfaceDiscoveryMigrationTests(unittest.TestCase):
             connection.execute("DROP TABLE IF EXISTS cases")
             connection.execute("DROP TABLE IF EXISTS collection_profile_events")
             connection.execute("DROP TABLE IF EXISTS collection_profiles")
+            remove_public_notice_watch_schema(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")

@@ -162,6 +162,7 @@ class CollectionService:
             ) + ((
                 "HIBP yenilemesi ortak kamu olay kataloğunu günceller; katalog sayıları seçilen domainin bulgu sayısı değildir.",
                 "HIBP yalnız kamu olay metaverisidir; e-posta, hesap veya parola sorgusu yapılmaz.",
+                "Açık kuruluş kamu olay izlemeleri bu ortak yenilemede değerlendirilir; seçilen domainle sınırlanmaz.",
                 HIBP_ATTRIBUTION, HIBP_LICENSE,
             ) if any(task.kind == "public_notice" for task in selected) else ()) + ((
                 "İzlemeler açık kimlik seçiminizle çalışır; domainle sahiplik veya kuruluş ilişkisi otomatik kurulmaz.",

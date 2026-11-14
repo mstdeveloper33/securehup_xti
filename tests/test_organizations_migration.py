@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
+
 from xti.adapters.schema import (
     SCHEMA_VERSION, VERSION_TABLES, create_collection_history_schema,
     create_organization_schema, validate_schema,
@@ -55,6 +57,7 @@ class OrganizationMigrationTests(unittest.TestCase):
         with closing(sqlite3.connect(path)) as connection, connection:
             if version >= 56:
                 collection_layout_v60(connection)
+            remove_public_notice_watch_schema(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE IF EXISTS ransomlook_watch_notifications")

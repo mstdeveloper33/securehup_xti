@@ -27,6 +27,7 @@ from xti.adapters.schema import (
     create_ransomlook_notification_schema,
     create_attack_catalog_schema,
     create_public_notice_schema,
+    create_public_notice_watch_schema,
     create_epss_schema,
     create_nvd_schema,
     create_nvd_window_schema,
@@ -172,6 +173,7 @@ class SQLiteAssetRepository:
                 create_public_notice_schema(connection)
                 create_collection_history_schema(connection)
                 create_organization_schema(connection)
+                create_public_notice_watch_schema(connection)
                 create_ransomlook_notification_schema(connection)
                 create_attack_catalog_schema(connection)
                 create_surface_change_notification_schema(connection)
@@ -526,6 +528,21 @@ class SQLiteAssetRepository:
             unread_ransomlook_watch_notifications = connection.execute(
                 "SELECT COUNT(*) FROM ransomlook_watch_notifications WHERE read_at IS NULL"
             ).fetchone()[0]
+            public_notice_watches = connection.execute(
+                "SELECT COUNT(*) FROM public_notice_watches"
+            ).fetchone()[0]
+            active_public_notice_watches = connection.execute(
+                "SELECT COUNT(*) FROM public_notice_watches WHERE active=1"
+            ).fetchone()[0]
+            public_notice_watch_runs = connection.execute(
+                "SELECT COUNT(*) FROM public_notice_watch_runs"
+            ).fetchone()[0]
+            public_notice_watch_notifications = connection.execute(
+                "SELECT COUNT(*) FROM public_notice_watch_notifications"
+            ).fetchone()[0]
+            unread_public_notice_watch_notifications = connection.execute(
+                "SELECT COUNT(*) FROM public_notice_watch_notifications WHERE read_at IS NULL"
+            ).fetchone()[0]
             ransomware_watch_notifications = connection.execute(
                 "SELECT COUNT(*) FROM ransomware_watch_notifications"
             ).fetchone()[0]
@@ -633,6 +650,7 @@ class SQLiteAssetRepository:
                 notifications + candidate_notifications + surface_change_notifications
                 + vulnerability_change_notifications + cti_saved_search_notifications
                 + ransomware_watch_notifications + ransomlook_watch_notifications
+                + public_notice_watch_notifications
                 + brand_username_review_notifications
             ),
             "unread_notification_count": (
@@ -641,6 +659,7 @@ class SQLiteAssetRepository:
                 + unread_vulnerability_change_notifications
                 + unread_cti_saved_search_notifications
                 + unread_ransomware_watch_notifications + unread_ransomlook_watch_notifications
+                + unread_public_notice_watch_notifications
                 + unread_brand_username_review_notifications
             ),
             "surface_change_notification_count": surface_change_notifications,
@@ -728,6 +747,11 @@ class SQLiteAssetRepository:
             "active_ransomware_watch_count": active_ransomware_watches,
             "ransomware_watch_run_count": ransomware_watch_runs,
             "ransomlook_watch_notification_count": ransomlook_watch_notifications,
+            "public_notice_watch_count": public_notice_watches,
+            "active_public_notice_watch_count": active_public_notice_watches,
+            "public_notice_watch_run_count": public_notice_watch_runs,
+            "public_notice_watch_notification_count": public_notice_watch_notifications,
+            "unread_public_notice_watch_notification_count": unread_public_notice_watch_notifications,
             "unread_ransomlook_watch_notification_count": unread_ransomlook_watch_notifications,
             "ransomware_watch_notification_count": ransomware_watch_notifications,
             "unread_ransomware_watch_notification_count": (
@@ -925,6 +949,8 @@ class SQLiteAssetRepository:
                     create_public_notice_schema(connection)
                 if 56 <= version < 61:
                     migrate_collection_public_notice_schema(connection)
+                if version < 62:
+                    create_public_notice_watch_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

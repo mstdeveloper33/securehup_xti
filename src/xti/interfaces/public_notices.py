@@ -22,6 +22,8 @@ def register_public_notice_parser(commands) -> None:
     run.add_argument("run_id")
     run.add_argument("--limit", type=int, default=20)
     run.add_argument("--offset", type=int, default=0)
+    from xti.interfaces.public_notice_watches import register_public_notice_watch_parsers
+    register_public_notice_watch_parsers(actions)
 
 
 def _header(report) -> list[str]:
@@ -99,6 +101,7 @@ def public_notice_refresh_lines(report) -> list[str]:
         lines.append("Kaynak hatası: " + safe_text(run.error))
     else:
         lines.append(f"Katalog: {run.notice_count}; eklenen {run.added_count}, değişen {run.updated_count}, aynı {run.unchanged_count}, listeden çıkan {run.removed_count}")
+        lines.append("Açık kuruluş izlemeleri aynı yenilemede değerlendirilir; bildirimler için: ./xti inbox")
     if report.is_baseline:
         lines.append("İlk başarılı katalog başlangıç çizgisidir; bu kayıtlar bugün olmuş yeni ihlaller değildir.")
     lines.append(f"Başlangıç/değişim kayıtları: {report.total_change_count}; bu sayfada {len(report.changes)}")
@@ -135,6 +138,7 @@ def public_notice_collection_lines(report) -> list[str]:
     ]
     if run.status == "complete":
         lines.append(f"Katalog kaydı: {run.notice_count} | eklenen {run.added_count}, değişen {run.updated_count}, aynı {run.unchanged_count}, listeden çıkan {run.removed_count}")
+        lines.append("Açık kuruluş izlemeleri bu ortak yenilemeye katılır; yerel bildirimler: ./xti inbox")
         if report.is_baseline:
             lines.append("İlk başarılı alım başlangıç çizgisidir; bu kayıtlar bugün yaşanmış yeni ihlaller değildir.")
     else:

@@ -6,6 +6,8 @@ import sqlite3
 import unittest
 from unittest.mock import patch
 
+from tests.public_notice_watch_legacy_fixture import remove_public_notice_watch_schema
+
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_inbox import SQLiteInboxRepository
@@ -39,6 +41,7 @@ class RansomLookNotificationMigrationTests(unittest.TestCase):
         organizations.link(org.id, normalize_organization_target("domain", "example.com"), reason="Kullanıcı seçimi.", recorded_at=fixtures.NOW.isoformat())
         with closing(sqlite3.connect(self.path)) as connection, connection:
             collection_layout_v60(connection)
+            remove_public_notice_watch_schema(connection)
             connection.execute("DROP TABLE IF EXISTS public_notice_changes")
             connection.execute("DROP TABLE IF EXISTS public_notice_runs")
             connection.execute("DROP TABLE ransomlook_watch_notifications")

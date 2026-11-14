@@ -178,6 +178,9 @@ from xti.application.organization_report import OrganizationReportService
 from xti.adapters.sqlite_organization_report import SQLiteOrganizationReportRepository
 from xti.interfaces.organization_report import execute_organization_report_command
 from xti.application.public_notices import PublicNoticeService
+from xti.application.public_notice_watches import PublicNoticeWatchService
+from xti.adapters.sqlite_public_notice_watches import SQLitePublicNoticeWatchRepository
+from xti.interfaces.public_notice_watches import execute_public_notice_watch_command
 from xti.adapters.sqlite_public_notices import SQLitePublicNoticeRepository
 from xti.adapters.hibp_public_notices import HibpPublicNoticeSource
 from xti.interfaces.public_notices import (
@@ -3430,6 +3433,13 @@ def run(args: argparse.Namespace) -> int | None:
         )
         emit(asdict(report), periodic_changes_lines(report), as_json=args.json)
     elif args.command == "notices":
+        if args.notice_action in {"watch", "watch-run-show"}:
+            data, lines = execute_public_notice_watch_command(
+                PublicNoticeWatchService(SQLitePublicNoticeWatchRepository(settings.database),
+                                         LocalExecutionLock(settings.database)), args,
+            )
+            emit(data, lines, as_json=args.json)
+            return 0
         notices = PublicNoticeService(
             SQLitePublicNoticeRepository(settings.database),
             HibpPublicNoticeSource() if args.notice_action == "refresh" else None,
