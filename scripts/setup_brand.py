@@ -29,9 +29,16 @@ INSTALL_TIMEOUT = 900
 VERIFY_TIMEOUT = 90
 
 
-def run_command(arguments, *, cwd, lock_fd, timeout, environment=None):
-    return _run_command(arguments, cwd=cwd, lock_fd=lock_fd, timeout=timeout,
-                        environment=environment, recovery_command=RECOVERY_COMMAND)
+def run_command(arguments, *, cwd, lock_fd, timeout, environment=None, stage="araç komutu"):
+    try:
+        return _run_command(arguments, cwd=cwd, lock_fd=lock_fd, timeout=timeout,
+                            environment=environment, recovery_command=RECOVERY_COMMAND)
+    except (ProcessCleanupError, SetupInterrupted):
+        # Their types control rollback and retry safety; never wrap these.
+        raise
+    except ToolInstallationError as error:
+        # Static stage labels explain the failure without exposing child logs.
+        raise ToolInstallationError(f"{stage}: {error}") from error
 
 
 def stable_bootstrap(project):
@@ -81,11 +88,13 @@ def verify(project, lock_fd):
     with tempfile.TemporaryDirectory(prefix="xti-brand-check-") as temporary:
         environment = clean_environment(Path(temporary), project=project)
         run_command([python, "-m", "pip", "--isolated", "check"], cwd=temporary,
-                    lock_fd=lock_fd, timeout=VERIFY_TIMEOUT, environment=environment)
+                    lock_fd=lock_fd, timeout=VERIFY_TIMEOUT, environment=environment,
+                    stage="Bağımlılık kontrolü")
         result = run_command(
             [python, project / "scripts/verify_brand_install.py", "--prefix", venv,
              "--installation-lock-fd", str(lock_fd)], cwd=temporary,
             lock_fd=lock_fd, timeout=VERIFY_TIMEOUT, environment=environment,
+            stage="Araç kimliği ve katalog doğrulaması",
         )
     if result:
         print(result)
@@ -101,7 +110,8 @@ def install(project, bootstrap, lock_fd):
         with tempfile.TemporaryDirectory(prefix="xti-brand-install-") as temporary:
             environment = clean_environment(Path(temporary))
             run_command([bootstrap, "-m", "venv", venv], cwd=project,
-                        lock_fd=lock_fd, timeout=VENV_TIMEOUT, environment=environment)
+                        lock_fd=lock_fd, timeout=VENV_TIMEOUT, environment=environment,
+                        stage="Python ortamı oluşturma")
             python = venv / "bin/python"
             run_command(
                 [python, "-m", "pip", "--isolated", "--disable-pip-version-check", "--no-input",
@@ -109,6 +119,7 @@ def install(project, bootstrap, lock_fd):
                  "--index-url", "https://pypi.org/simple",
                  "--constraint", project / "constraints/brand.txt", f"{project}[brand]"],
                 cwd=project, lock_fd=lock_fd, timeout=INSTALL_TIMEOUT, environment=environment,
+                stage="Paket kurulumu",
             )
         verify(project, lock_fd)
         refuse_legacy(project)

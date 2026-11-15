@@ -38,7 +38,12 @@ kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 - Ayrı `XTI stabilization acceptance` işi yalnız elle çalıştırılır. Genel
   testler, önceki sürümden gerçek araç güncelleme/kurtarma, gerçek systemd
   ve sınırlı kaynak/disk/kapasite denemeleri ayrı işlerde raporlanır.
-  Kullanıcı verisi, araç pinleri ve şema 64 değişmez.
+  Kullanıcı verisi, Maigret/Sherlock/theHarvester commitleri ve şema 64 değişmez.
+- Gerçek Python 3.11 temiz kurulumunda NumPy 2.5.4'ün Python 3.12 alt
+  sınırıyla çakıştığı doğrulandı. Python 3.11 için 2.4.6, 3.12 ve üstünde
+  mevcut 2.5.4 koşullu sabitlenir. Kurulum denetimi aynı koşulu uygular;
+  CI seçilen yorumlayıcıyı açıkça kullanır ve temiz marka kurulumunu iki
+  Python sürümünde ayrı doğrular.
 
 **0.140.4 kabul kaydı:** Yerel yeni veri kabulü 5 testle, gizlilik kabulü
 5 testle geçti. Gerçek Linux yükseltme/hizmet/kapasite ve son kodun genel

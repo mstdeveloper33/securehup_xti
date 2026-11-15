@@ -185,15 +185,26 @@ elif stage == "verify":
 
     def test_failed_create_install_dependency_check_or_verifier_restores_exact_old_environment(self):
         before = self.existing()
-        for stage in ("venv", "install", "pip-check", "verify"):
+        for stage, label in (
+            ("venv", "Python ortamı oluşturma"), ("install", "Paket kurulumu"),
+            ("pip-check", "Bağımlılık kontrolü"), ("verify", "Araç kimliği ve katalog doğrulaması"),
+        ):
             with self.subTest(stage=stage):
                 self.environment["XTI_TEST_FAIL"] = stage
                 result = self.run_setup("--force")
                 self.assertNotEqual(result.returncode, 0)
+                self.assertIn(label + ":", result.stderr)
                 self.assertEqual(self.snapshot(self.venv), before)
                 self.assertFalse((self.root / ".brand-install.json").exists())
                 self.assertEqual(self.evidence.read_bytes(), b"existing evidence\x00\xff")
         self.assertEqual(len(list(self.root.glob(".venv-failed-*"))), 4)
+
+    def test_stage_diagnostics_preserve_cleanup_and_interruption_exception_types(self):
+        for error in (HELPER.ProcessCleanupError("child may still write"), HELPER.SetupInterrupted("signal")):
+            with self.subTest(error=type(error).__name__), patch.object(HELPER, "_run_command", side_effect=error):
+                with self.assertRaises(type(error)) as caught:
+                    HELPER.run_command(["python"], cwd=self.root, lock_fd=1, timeout=1, stage="Paket kurulumu")
+                self.assertIs(caught.exception, error)
 
     def test_failed_first_install_keeps_candidate_without_ready_environment(self):
         self.environment["XTI_TEST_FAIL"] = "install"

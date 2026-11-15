@@ -7,12 +7,15 @@
 - Sırlar terminal/JSON/HTML ve hata çıktılarında; yedek ve dosya izinleri
   gerçek komutlarla sınanır. Anahtar dosyası yerine FIFO verilince oluşan
   bekleme giderildi.
+- Python 3.11 kurulumunda NumPy 2.4.6, daha yeni Python'da mevcut 2.5.4
+  koşullu sabitlenir; bağımlılık doğrulaması aynı seçimi denetler. Temiz
+  marka kurulumu gerçek Python 3.11 ve 3.12 ile ayrı çalışır.
 - Önceki sürümden gerçek araç güncelleme/kurtarma ve gerçek Linux
   zamanlayıcısı, kaynak kesintisi, disk ve ölçülü çalışma kabul betikleri;
   ağır kontroller ayrı, elle başlatılan GitHub işindedir.
 - Başlangıç rehberine kesinti ve yedekten dönüş adımları eklendi.
   Gerçek çalıştırma kapsamı ve sonuçları [STATUS](docs/STATUS.md) içindedir.
-  Araç pinleri, engine v1 ve şema 64 korunur.
+  Maigret/Sherlock/theHarvester commitleri, engine v1 ve şema 64 korunur.
 
 ## 0.140.3 — 15 Kasım 2026
 

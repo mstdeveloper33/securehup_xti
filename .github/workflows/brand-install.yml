@@ -83,8 +83,13 @@ concurrency:
 
 jobs:
   brand-install:
+    name: brand-install (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -93,7 +98,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
           cache: pip
       - name: Select the configured Python for XTI
         run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"

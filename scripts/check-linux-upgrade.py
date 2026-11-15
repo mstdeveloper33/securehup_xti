@@ -352,6 +352,9 @@ def main(arguments=None):
             canonical, _, _, installer = tool_paths(project, options.tool)
             command([installer], environment, timeout=1200)
             command([installer, "--check"], environment, timeout=120)
+            tool_interpreter = canonical / ("bin/python" if options.tool == "brand" else ".venv/bin/python")
+            tool_python = command([tool_interpreter, "-I", "-c", "import platform; print(platform.python_version())"], environment)
+            COMMON.summary(f"- Actual baseline {options.tool} Python: {tool_python}; acceptance Python: {platform.python_version()}.")
             if options.tool == "brand":
                 environment.pop("XTI_PYTHON", None)
             COMMON.local_asset(environment)

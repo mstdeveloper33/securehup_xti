@@ -190,6 +190,8 @@ Yedeği mevcut dosyanın üzerine yazmadan sınamak için:
 Yedek dosyası ve geri yükleme hedefi yeni olmalıdır; sonraki denemede yeni
 isim seç. Kurtarılan kayıtları bu veri alanını seçerek incele. Bu adımlar
 asıl veri alanını değiştirmez; doğrulama tamamlanmadan eski kayıtları silme.
+Yedeğin açılabilmesi, bütün kanıt ve kararların anlam bakımından doğru
+olduğunu tek başına göstermez; kurtarılan kayıtları ilgili komutlarla incele.
 Şema değiştiyse eski kodu mevcut veritabanında denemek yerine o sürüme ait
 yedeği ayrı veri alanına geri yükle. Aynı şemadaki sınanmış sürüm geçişi,
 bütün geçmiş/gelecek sürümlere dönüş garantisi değildir.

@@ -1,6 +1,6 @@
 # Maigret ve Sherlock kurulumu, güncelleme ve kurtarma
 
-**Uygulama:** 0.140.3 · **Şema:** 64.
+**Uygulama:** 0.140.4 · **Şema:** 64.
 
 Normal kullanım aynı kalır:
 
@@ -12,6 +12,14 @@ Normal kullanım aynı kalır:
 İlk kurulum için Git, Python 3.11+ ve internet gerekir. Paketler proje
 içindeki `.venv` ortamına kurulur. Sağlıklı mevcut ortamın tekrar kontrolü
 paket indirmez; araçlar incelenmiş sürüm ve commit'lerinde kalır.
+
+Bağımlılıklar `constraints/brand.txt` içinde sabittir. Python 3.11 için
+NumPy 2.4.6, Python 3.12 ve üstünde 2.5.4 seçilir; kurulum denetimi de
+aynı koşulu kontrol eder. 2.5.4'ün Python alt sınırı 3.12 olduğundan tek
+sürümü bütün ortamlara zorlamak 3.11 kurulumunu engelliyordu.
+[2.4.6 resmî metadata](https://pypi.org/pypi/numpy/2.4.6/json),
+[2.5.4 resmî metadata](https://pypi.org/pypi/numpy/2.5.4/json).
+Maigret/Sherlock commit'leri ve site katalogları bu ayrımla değişmez.
 
 ## Kurulumu kontrol et veya kurtar
 

@@ -97,20 +97,47 @@ def _catalog_sha256(path: Path, expected_size: int) -> str:
     return digest.hexdigest()
 
 
-def _verify_constraints(path: Path) -> None:
+_CONSTRAINT = re.compile(
+    r"(?P<name>[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?)"
+    r"==(?P<version>[0-9]+(?:\.[0-9]+)*(?:\.post[0-9]+)?)"
+    r"(?:\s*;\s*python_version\s*(?P<operator><|>=)\s*"
+    r"(?P<quote>['\"])(?P<major>[0-9]{1,2})\.(?P<minor>[0-9]{1,2})(?P=quote))?"
+)
+
+
+def _constraint_pin(value: str, python_version: tuple[int, int]) -> tuple[str, str] | None:
+    """Only our reviewed exact pins and two numeric Python marker operators.
+
+    This is deliberately not a general PEP 508 evaluator. Unsupported syntax,
+    including in an inactive branch, must be reviewed instead of skipped.
+    """
+    match = _CONSTRAINT.fullmatch(value)
+    if match is None:
+        raise VerificationError(f"geçersiz bağımlılık kısıtı: {value}")
+    operator = match["operator"]
+    if operator:
+        boundary = (int(match["major"]), int(match["minor"]))
+        active = python_version < boundary if operator == "<" else python_version >= boundary
+        if not active:
+            return None
+    return match["name"], match["version"]
+
+
+def _verify_constraints(path: Path, *, python_version: tuple[int, int] | None = None) -> None:
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except OSError as error:
         raise VerificationError("bağımlılık sürüm kısıtları okunamadı") from error
     seen = set()
+    current_python = tuple(sys.version_info[:2]) if python_version is None else python_version
     for line in lines:
         value = line.strip()
         if not value or value.startswith("#"):
             continue
-        parts = value.split("==")
-        if len(parts) != 2 or not parts[0] or not parts[1]:
-            raise VerificationError(f"geçersiz bağımlılık kısıtı: {value}")
-        name, expected = parts
+        pin = _constraint_pin(value, current_python)
+        if pin is None:
+            continue
+        name, expected = pin
         key = re.sub(r"[-_.]+", "-", name).lower()
         if key in seen:
             raise VerificationError(f"yinelenen bağımlılık kısıtı: {name}")

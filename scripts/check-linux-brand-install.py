@@ -120,6 +120,12 @@ def main():
             venv = PROJECT / ".venv"
             COMMON.require(Path(actual_prefix).resolve() == venv.resolve(),
                            "The default launcher did not select the managed environment.")
+            tool_python = COMMON.run(
+                ["./scripts/python", "-c", "import platform; print(platform.python_version())"], environment
+            ).strip()
+            COMMON.require(tuple(map(int, tool_python.split(".")[:2])) == sys.version_info[:2],
+                           "The installed brand environment did not use the requested acceptance Python.")
+            COMMON.summary(f"- Actual installed brand-tool Python: {tool_python}; acceptance Python: {platform.python_version()}.")
             components = json.loads(COMMON.run(["./xti", "--json", "components"], environment))["data"]
             rows = {row["identifier"]: row for row in components["components"]}
             for name in ("maigret", "sherlock"):

@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import tempfile
 import tomllib
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -131,6 +132,59 @@ class ReviewedComponentPinTests(unittest.TestCase):
 
 
 class BrandVerifierMetadataTests(unittest.TestCase):
+    def test_reviewed_numpy_constraint_selects_the_installed_python_branch(self):
+        constraints = PROJECT / "constraints/brand.txt"
+        for version, expected in (((3, 11), "2.4.6"), ((3, 12), "2.5.4"), ((3, 13), "2.5.4")):
+            looked_up = []
+
+            def installed(name):
+                looked_up.append(name)
+                if name == "numpy":
+                    return SimpleNamespace(version=expected)
+                raise VERIFIER.PackageNotFoundError(name)
+
+            with self.subTest(python=version), patch.object(VERIFIER, "distribution", side_effect=installed):
+                VERIFIER._verify_constraints(constraints, python_version=version)
+                self.assertEqual(looked_up.count("numpy"), 1)
+                wrong = "2.5.4" if expected == "2.4.6" else "2.4.6"
+                with patch.object(VERIFIER, "distribution", side_effect=lambda name: (
+                        SimpleNamespace(version=wrong) if name == "numpy" else installed(name))):
+                    with self.assertRaisesRegex(VERIFIER.VerificationError, "numpy sürümü uyuşmuyor"):
+                        VERIFIER._verify_constraints(constraints, python_version=version)
+
+    def test_constraint_markers_are_numeric_strict_and_never_evaluated(self):
+        self.assertEqual(VERIFIER._constraint_pin("python-dateutil==2.9.0.post0", (3, 11)), ("python-dateutil", "2.9.0.post0"))
+        self.assertEqual(VERIFIER._constraint_pin("numpy==2.4.6 ; python_version < '3.12'", (3, 11)), ("numpy", "2.4.6"))
+        self.assertIsNone(VERIFIER._constraint_pin('numpy==2.4.6 ; python_version < "3.12"', (3, 12)))
+        self.assertEqual(VERIFIER._constraint_pin('numpy==2.5.4 ; python_version >= "3.12"', (3, 100)), ("numpy", "2.5.4"))
+        for line in (
+            'numpy==2.4.6 ; python_version < 3.12',
+            'numpy==2.4.6 ; python_version < "3.12\'',
+            'numpy==2.4.6 ; python_version <= "3.12"',
+            'numpy==2.4.6 ; python_version == "3.11"',
+            'numpy==2.4.6 ; python_full_version < "3.12"',
+            'numpy==2.4.6 ; os_name == "posix"',
+            'numpy==2.4.6 ; python_version < "3.12.0"',
+            'numpy==2.4.6 ; python_version < "3.12" or os_name == "posix"',
+            'numpy==2.4.6 ; python_version < "3.12"; print("executed")',
+            'numpy>=2.4.6', 'numpy==2.*', '--index-url=https://example.invalid',
+        ):
+            with self.subTest(line=line):
+                with self.assertRaises(VERIFIER.VerificationError):
+                    VERIFIER._constraint_pin(line, (3, 13))
+
+    def test_duplicate_active_constraints_are_rejected_even_if_package_is_absent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "constraints.txt"
+            path.write_text('Some_Package==1.0 ; python_version >= "3.11"\nsome-package==1.0\n')
+            with patch.object(VERIFIER, "distribution", side_effect=VERIFIER.PackageNotFoundError("absent")):
+                with self.assertRaisesRegex(VERIFIER.VerificationError, "yinelenen"):
+                    VERIFIER._verify_constraints(path, python_version=(3, 11))
+            path.write_text('numpy==2.4.6 ; python_version < "3.12"\nnumpy==2.5.4 ; python_version >= "3.12"\n')
+            with patch.object(VERIFIER, "distribution", side_effect=VERIFIER.PackageNotFoundError("absent")):
+                VERIFIER._verify_constraints(path, python_version=(3, 11))
+                VERIFIER._verify_constraints(path, python_version=(3, 12))
+
     def test_verifier_consumes_reviewed_brand_pins(self):
         self.assertEqual(len(VERIFIER.TOOLS), 2)
         for tool, pin in zip(VERIFIER.TOOLS, (MAIGRET_PIN, SHERLOCK_PIN), strict=True):
