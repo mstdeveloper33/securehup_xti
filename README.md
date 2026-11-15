@@ -10,8 +10,9 @@ Kaynaklı kanıt, analiz ve iş geçmişi bu repoda; uygulama backend'i,
 kullanıcı/oturum yönetimi ve web deneyimi .NET tarafında kalır.
 Uygun yerel açık kaynak bileşenler kullanılır; OpenCTI/IntelOwl zorunlu
 değildir ve henüz bağlı değildir. .NET bağlantısı da henüz uygulanmadı.
-Yeni özelliklerden önce kurulum, güncelleme, test, hata yönetimi ve
-kurtarma davranışları sağlamlaştırılacak. Görev paylaşımı ve teslim sırası
+Kurulum, güncelleme, test, hata yönetimi ve kurtarma davranışlarının
+doğrulama kapsamı ve sonuçları [kabul kaydında](docs/STATUS.md) izlenir.
+Görev paylaşımı ve teslim sırası
 [motor yol haritasındadır](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md).
 
 Kurulumdan sonra günlük kullanım, yarım kalan toplama ve yedekten dönüş
@@ -52,9 +53,11 @@ Aktif ürün kapsamı dış kaynaklı OSINT/XTI'dır. Sunucu içine ajan kurulma
 
 ## Hızlı başlangıç
 
-Python 3.11 veya daha yeni bir sürüm yeterlidir. Kurulum global Python ortamına
-paket kurmaz; sosyal kullanıcı adı araçlarını proje içindeki `.venv` ortamına
-kurar:
+Çekirdek için Python 3.11 veya daha yeni bir sürüm gerekir. Temiz Linux
+kurulumu Ubuntu 24.04 x86_64 üzerinde Python 3.11 ve 3.12 ile doğrulandı;
+ayrıntılar aşağıdaki [ortam tablosundadır](#sınanmış-ortamlar).
+Kurulum global Python ortamına paket kurmaz; sosyal kullanıcı adı araçlarını
+proje içindeki `.venv` ortamına kurar:
 
 ```sh
 git clone https://github.com/mstdeveloper33/securehup_xti.git
@@ -1964,7 +1967,33 @@ GitHub'daki temiz Maigret/Sherlock kurulumu yalnız ilgili kurulum, sürüm veya
 marka adaptörü dosyaları değiştiğinde tekrar çalışır. `v*` etiketi ancak tam
 paket başarılı olursa GitHub sürümüne dönüştürülür.
 
-Python 3.11+ gerekir; başlatıcı uygun sürümü seçer. Doğrulanan ortam macOS/Python 3.13.3'tür. Çalıştırıcı kilidi macOS/Linux içindir; Windows çalıştırıcısı henüz desteklenmez. Çekirdek özellikler ek Python paketi istemez. Normal `./setup`, resmî Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine önceki ortamı koruyarak kurar; sürüm, commit ve katalog bütünlüğünü doğrular. Yalnız çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar internet ister; testler ve geçmiş/kuyruk işlemleri internetsiz çalışır. Public Suffix List, Unicode ve sosyal kaynak/lisans bilgileri [THIRD_PARTY.md](THIRD_PARTY.md) içindedir.
+### Sınanmış ortamlar
+
+0.140.4 kod commit'i `7060cec` için doğrulanan temiz kurulumlar ve yerel
+geliştirme ortamı:
+
+| Ortam | Python | Doğrulama kapsamı |
+|---|---|---|
+| Ubuntu 24.04, x86_64 | 3.11 ve 3.12 | Maigret/Sherlock temiz kurulumu, yerel kontrol, tekrar ve geçici kayıtların korunması; [iki sürümün kabul işi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709958013) başarılı |
+| Ubuntu 24.04, x86_64 | Çekirdek 3.11; theHarvester ayrı araç ortamında | İsteğe bağlı theHarvester temiz kurulumu, tekrar, engine okuma ve yedekten dönüş; [Linux kabul işi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709958037) başarılı |
+| macOS 26.6.2, arm64 | 3.13.3 | Yerel geliştirme ve test ortamı; çalıştırılan kontrollerin kapsamı [durum belgesinde](docs/STATUS.md) |
+
+Çekirdeğin Python alt sınırı 3.11'dir; başka Python sürümleri, dağıtımlar
+ve mimariler için aynı kurulum başarısı bu tabloyla doğrulanmış sayılmaz.
+Çalıştırıcı kilidi macOS/Linux içindir; Windows çalıştırıcısı henüz
+desteklenmez. Gerçek kaynak erişimi ve Linux hizmet işletimi kendi kabul
+sonuçlarıyla [durum belgesinde](docs/STATUS.md) izlenir.
+
+Çekirdek özellikler ek Python paketi istemez. Normal `./setup`, resmî
+Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine önceki
+ortamı koruyarak kurar; sürüm, commit ve katalog bütünlüğünü doğrular.
+Yalnız çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar
+internet ister; geçmiş kayıtları okuma ve yerel kuyruk yönetimi internetsiz
+çalışır. Genel regresyon testleri ağsızdır; gerçek temiz kurulum kabulü
+paketleri indirmek için internet kullanır. Public Suffix List, Unicode ve
+sosyal kaynak/lisans bilgileri [THIRD_PARTY.md](THIRD_PARTY.md) içindedir.
+
+### Geliştirme kontrolleri ve çıktı biçimleri
 
 Geliştirme için tekrarlanabilir, tamamen geçici verili kontrol:
 

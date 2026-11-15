@@ -14,7 +14,12 @@
 | 5 | ATT&CK teknik/taktik kataloğu | Tamamlandı (0.133.0) | Resmî kimliklerle arama, ayrıntı ve kaynaklı ilişkiler |
 | 6 | Kaynak katkısını ölçme ve ücretsiz kaynak genişlemesi | Tamamlandı (0.133.0) | Domain kümeleri ve deneme oranları ölçülüyor; karar notu tamam, bağımsız katkı kanıtlanmadan yeni adaptör seçilmedi |
 | 7 | RansomLook değişimlerini yerel bildirim kutusuna ekleme | Tamamlandı (0.133.0) | Sessiz başlangıç, yeni/değişen iddiada tek bildirim; kaynakların ayrı kalması |
-| 8 | Linux zamanlaması ve bakım | Tamamlandı (0.133.0); Linux etkinleştirme kullanıcıda | Dosya üretimi, çakışma koruması, doğrulanmış yedek/kurtarma ve saklama; gerçek Linux hizmeti bu ortamda çalıştırılmadı |
+| 8 | Linux zamanlaması ve bakım | Tamamlandı (0.133.0); gerçek Linux kabulü 0.140.4'te geçti | Dosya üretimi, çakışma koruması, yedek/kurtarma ve saklama; gerçek systemd durdurma/yeniden çalışma ve kaçırılmış zamanın tek telafisi doğrulandı. Kullanıcının makinesinde etkinleştirme açık seçimdir |
+
+0.140.4 kabulü Ubuntu 24.04 üzerinde geçici veriyle yapıldı;
+[sonuç ve ölçümler](../STATUS.md) test edilen commit'e bağlıdır. İşletim
+sistemi yeniden açılışı, güç kaybı veya 7/24 hizmet seviyesi bu kabulün
+kapsamı değildir.
 
 Her teslim mevcut veriyi koruyacak; kalıcı veri değişikliklerinde açık geçiş
 ve geri dönüş yedeği, anlamlı hata/kesinti testleri ve güncel kullanım örneği

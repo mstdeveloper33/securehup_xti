@@ -1,5 +1,11 @@
 # Linux'ta kayıtlı profili zamanlama
 
+0.140.4'ün gerçek Ubuntu kabulünde üretilen systemd hizmeti, durdurma ve
+yeniden çalışma, çakışma reddi ve kaçırılmış zamanın tek telafisi geçti.
+[Süreli kullanım ve disk ölçümleri](STATUS.md) test ortamıyla kaydedilir;
+işletim sistemi yeniden açılışı veya 7/24 hizmet seviyesi bu kabulden
+çıkarılmaz. Kendi makinenizde etkinleştirme aşağıdaki açık adımlarla yapılır.
+
 Bu özellik kişisel Linux bilgisayarında bir profili günlük veya haftalık
 çalıştırır. Ücretli servis gerektirmez. Bilgisayar açık ve internete bağlı
 olmalıdır; kaynakların erişim sınırları devam eder. Linux ve systemd 247+

@@ -1,7 +1,13 @@
 # XTI hızlı başlangıç
 
-XTI için Git, Python 3.11 veya daha yeni bir sürüm ve ilk kurulumda internet
-bağlantısı gerekir. Global Python ortamına paket kurulmaz; Maigret ve Sherlock
+XTI için Git, çekirdekte Python 3.11 veya daha yeni bir sürüm ve ilk kurulumda
+internet bağlantısı gerekir. Ubuntu 24.04 x86_64 üzerinde Python 3.11 ve
+3.12 ile gerçek temiz Maigret/Sherlock kurulumu doğrulandı;
+[sınanmış ortamlar](../README.md#sınanmış-ortamlar) ve kabul bağlantıları
+bu sürümün kapsamını gösterir. Diğer Python/işletim sistemi sürümleri için
+aynı kurulum sonucu varsayılmaz.
+
+Global Python ortamına paket kurulmaz; Maigret ve Sherlock
 proje içindeki `.venv` ortamında tutulur. İsteğe bağlı theHarvester ayrı
 `.tools/theharvester` ortamını kullanır; kurulumu ve kaynakları
 [günlük kullanım rehberinde](DAILY_USE.md) anlatılır.

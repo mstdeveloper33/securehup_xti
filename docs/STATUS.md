@@ -11,11 +11,12 @@ geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
 veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
 
-**Güncel öncelik:** Yeni özelliklerden önce mevcut SQLite motorunun
-doğrulama, kurulum, güncelleme ve kurtarma düzeni sağlamlaştırılır.
-Gelecekteki platform .NET ve PostgreSQL kullanacak; şimdi PostgreSQL
+**Güncel teslim:** Mevcut SQLite motoru için tanımlanan 11 maddelik
+sağlamlaştırma paketi, aşağıdaki ortam ve kabul senaryolarında tamamlandı.
+Kişisel terminal kullanımı, kurulum/güncelleme ve kurtarma yolu hazırdır.
+Gelecekteki .NET/PostgreSQL bağlantısı ayrı aşamadır; şimdi PostgreSQL
 kurulumu veya veri taşıması yapılmıyor. [0145 kararı](decisions/0145-stabilization-first-local-engine.md)
-ve motor planının STB sırası geçerlidir.
+ve motor planındaki sınırlar geçerlidir.
 
 **Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
 olay adaylarında RapidFuzz deneyi, haber modülünde feedparser ve sonraki
@@ -45,10 +46,67 @@ kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
   CI seçilen yorumlayıcıyı açıkça kullanır ve temiz marka kurulumunu iki
   Python sürümünde ayrı doğrular.
 
-**0.140.4 kabul kaydı:** Yerel yeni veri kabulü 5 testle, gizlilik kabulü
-5 testle geçti. Gerçek Linux yükseltme/hizmet/kapasite ve son kodun genel
-test sonucu yayın sonrası burada ayrı kaydedilecek. Betik eklenmesi tek
-başına Linux kabulünün tamamlandığı anlamına gelmez.
+**0.140.4 kabul kaydı — kod `7060cec`:** Kabul ortamı GitHub'ın geçici
+Ubuntu 24.04 x86_64 makinesi, çekirdekte Python 3.11.18'dir. Temiz marka
+kurulumu ayrıca Python 3.12.16 ile geçti. Yerel geliştirme ortamı macOS
+26.6.2 arm64 / Python 3.13.3'tür. Aşağıdaki Linux sonuçları aynı kod
+commit'ine aittir; sonradan yalnız belge değişmesi bu kodu değiştirmez.
+
+| Kontrol | Sonuç ve kanıt |
+|---|---|
+| Hızlı kontroller | 687 test, 392,275 saniye; tamamı başarılı. [CI kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709958003) |
+| Genel test paketi | 2.107 test, 1.099,978 saniye; tamamı başarılı, atlanan test yok. [CI kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709965600/job/132799182088) |
+| Temiz Maigret/Sherlock kurulumu | Python 3.11.18 ve 3.12.16; gerçek kurulum/tekrar, ortam ve örnek veri korunması, engine ve yedekten dönüş başarılı. [İki ortamın kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709958013) |
+| Temiz theHarvester kurulumu | Gerçek sabit araç, tekrar, engine ve yeni dizine yedekten dönüş başarılı. [CI kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709958037) |
+| İki araçta sürüm güncelleme ve kurtarma | 0.140.2 `9cdf32c` → 0.140.4 `7060cec` → aynı şemada eski kod → güncel kod; gerçek kurucuyu kesme, çalışan alt sürecin kilidi ve iki kez açık kurtarma başarılı. [Kabul kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709965600) |
+| Linux işletimi | Beş kaynak hata/düzelme senaryosu, gerçek systemd, düşük disk, kapasite ve 600 saniyelik tekrar başarılı. [Ölçüm işi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709965600/job/132799181874) |
+
+Sürüm geçişi mevcut araç ortamını korur: eski marka ortamının gerçek
+Python'u 3.12.3, theHarvester ortamınınki 3.14.10 olarak ayrıca kaydedildi.
+Deney çekirdeğinin Python 3.11 olması, eski araç ortamlarının da 3.11
+olduğu anlamına gelmez. Geçiş aynı şema ve aynı araç pinleri içindir;
+gelecekte farklı pin/şema geçişi ayrıca doğrulanır.
+
+**Ölçülen işletim kapsamı:** kaynak hata denemeleri, üretim HIBP HTTP
+açma sınırına kontrollü yanıtlar vererek gerçek CLI süreçlerinde yapıldı;
+gerçek soket erişimi kapalıydı. Zaman aşımı, bağlantı kopması, 429, 503 ve
+bozuk yanıtta son başarı korundu; her denemede tek kaynak çağrısı yapıldı.
+Bu, bütün sağlayıcıların canlı erişim testi değildir. Gerçek systemd kullanıcı
+hizmetinde meşgul iş reddi, hata çıkış kodu, durdurma/yeniden çalışma ve
+hızlandırılmış iki tarihte kaçırılan zamanın yalnız bir kez telafisi geçti.
+
+Kapasite ortamı `Linux-7.0.0-1017-azure-x86_64-with-glibc2.39`, Python
+3.11.18; aşağıdaki kayıtlar sentetik domainlerdir. Veri sırasıyla 100,
+1.000 ve 5.000'e büyütüldü; oluşturma süreleri o aşamada eklenen 100,
+900 ve 4.000 kayda aittir. Arama, doğru toplam sayısı ve ilk 20 sonuçla
+ölçüldü; süre gerçek komut başlangıcını içerir. Yedek/geri yükleme süreleri
+depo işlemini ölçer.
+
+| Toplam domain | Aşamadaki ekleme | Arama | Yedek + geri yükleme | Veritabanı |
+|---|---|---|---|---|
+| 100 | 1,853 sn | 0,843 sn | 0,111 sn | 2.170.880 bayt |
+| 1.000 | 15,799 sn | 0,484 sn | 0,114 sn | 2.338.816 bayt |
+| 5.000 | 69,501 sn | 0,531 sn | 0,126 sn | 3.088.384 bayt |
+
+Alt süreçler için gözlenen en yüksek RSS 66.301.952 bayt; kabul betiğinde
+42.315.776 bayttır. Bu değerler süreçlerin en yüksek ölçümleridir, toplam
+makine belleği veya tek sorguya ait artış değildir. Önceden belirlenen
+arama <60 sn, yedek/geri yükleme <120 sn ve alt süreç RSS <1 GiB sınırları
+geçti. İzole 48 MiB tmpfs üzerinde 48.177.152 bayt boş alan ölçüldü;
+64 MiB ön kontrol rezervinin altında toplama/yedekleme başlamadan açık
+`storage_error` üretildi, mevcut kayıtlar korundu. Disk doldurulmadı.
+
+600,004 saniyelik denemede 50 tekrarlı hazırlık/toplama turu tamamlandı;
+en büyük veritabanı 2.277.376 bayt, saklanan yedek sayısı en fazla ikiydi.
+Veri bütünlüğü ve değişmeyen kaynakta yeni değişiklik kaydı üretmeme kontrolleri
+geçti. Bu kabul 5.000 sentetik domain ve 10 dakikalık ölçümle sınırlıdır;
+7/24 hizmet seviyesi, sürekli bellekte kalan işçi, işletim sistemi yeniden
+açılışı veya donanım güç kaybı kabulü değildir.
+
+Yerel karma veri ve gizlilik kabulleri ayrı ayrı beş testle geçti;
+güncel kabul betikleri/testleri son genel pakete dahildir. Kullanım ve
+kurtarma komutları [başlangıç rehberinde](GETTING_STARTED.md), 11 işin
+kapsamı [motor planında](roadmap/ENGINE_INTEGRATION_ROADMAP.md) kayıtlıdır.
 
 - 0.140.3 Maigret/Sherlock ortamına kalıcı kilit, kimlik kontrollü günlük
   ve açık `--recover` ekler. Sağlıklı tekrar paket indirmez; `--check` ve
@@ -95,11 +153,10 @@ Aynı kod commit'inin
 de başarıyla tamamlandı. Bu üç sonuç `cbea620` koduna aittir; sonraki
 yalnız belge değişikliği bu kabulün kodunu değiştirmez.
 
-STB-02'nin bu temiz kurulum ve kurtarma temeli kabul edildi. Önceki
-yayımlanmış XTI sürümünden gerçek güncelleme ve gerçek araç ortamını
-yenileme sırasında kesinti/geri dönüş zinciri ayrıca doğrulanacak;
-STB-02 bütünüyle kapanmış sayılmaz. Kalıcı hizmet, yeniden başlama ve
-7×24 işletim kabulü de açıktır.
+Bu, 0.140.3 teslim anındaki kabul kaydıdır. O sırada açık kalan önceki
+sürümden gerçek güncelleme ve araç ortamını yenilerken kesinti/geri dönüş
+zinciri 0.140.4'te doğrulandı; güncel kabul kaydı yukarıdadır. İşletim
+sistemi yeniden açılışı ve 7×24 hizmet seviyesi bu kabulün kapsamı değildir.
 Araç pinleri, şema 64 ve mevcut kullanıcı kayıtları korunur.
 
 - 0.140.2 theHarvester kurulumu eski ortamı korur; hata halinde geri
@@ -138,7 +195,8 @@ Bu teslim anında gerçek Linux/Actions sonucu okunamamıştı. 0.140.3
 ve [hızlı kontrolleri](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43700800548)
 başarılı olarak doğrulandı. Ubuntu işinin hem çevrimdışı regresyon hem
 gerçek temiz kurulum adımı geçti. Bu kayıt yalnız belirtilen commit
-içindir; kalıcı hizmet/yeniden başlama/7×24 kabulü ayrıca açıktır.
+içindir; o sürümde hizmet kabulü ayrıca açıktı. 0.140.4'ün gerçek systemd
+ve süreli çalışma sonucu yukarıdadır; 7×24 hizmet seviyesi kabul edilmedi.
 Kullanıcı verileri, şema 64 ve incelenmiş araç sürümleri korunur.
 
 - 0.140.1 hızlı CI paketine `engine_contract`, `engine_records`,
@@ -1881,16 +1939,12 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
-15 Kasım 2026 son kullanıcı kararı: yeni özelliklerden önce mevcut motor
-sağlamlaştırılır. [Güncel STB sırası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
-geçerlidir. Sürümlü yerel okuma ve ortak araç kataloğu kullanılabilir;
-0.140.2 theHarvester, 0.140.3 marka araçları ve XTI başlatıcısının
-kesinti/geri dönüşünü ekler. İki kurulum zincirinin gerçek temiz Ubuntu kurulumu,
-tekrarı, yerel veri koruması ve yedekten dönüşü `cbea620` üzerinde geçti.
-Sıradaki STB-02 doğrulaması önceki sürümden güncelleme ve gerçek araç
-ortamını yenilerken kesinti sonrası geri dönüş olacak. Ardından STB-03
-veri ve iş güvenilirliği zinciri gelir. Bu kabul, uzun süreli Linux hizmeti değildir.
-SQLite ile kullanım devam eder. .NET/PostgreSQL
+15 Kasım 2026 son kullanıcı kararıyla tanımlanan 11 mevcut motor işi,
+0.140.4 (`7060cec`) üzerinde tamamlandı. Temiz kurulum, gerçek sürüm
+güncelleme/kurtarma, karma kayıtların geri yüklenmesi, kesilmiş işin devamı,
+gizlilik, gerçek systemd ve ölçümlü kapasite kabulü yukarıda kayıtlıdır.
+[Motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) her işin bitiş kanıtını
+ve sınırını gösterir. SQLite ile kişisel kullanım devam eder. .NET/PostgreSQL
 gelecekteki platformdur; gerçek bağlantı ve gerekiyorsa veri geçişi ayrı
 kabul işidir. Uygulama backend'i, oturum ve panel .NET tarafındadır.
 Olay adayları, genel kayıtlı arama bildirimleri, RSS ve LLM bu dönemde bekler.
@@ -1899,15 +1953,15 @@ raporu kullanılabilir.
 
 
 14 Kasım 2026 onaylı sekiz teslim 0.131.0–0.133.0'da tamamlandı;
-Linux hizmetinin gerçek Linux üzerinde etkinleştirme kabulü ayrıca bekler.
+Linux hizmetinin gerçek Linux üzerinde sınırlı işletim kabulü 0.140.4'te geçti.
 [Sıralı plan](roadmap/ORDERED_INTEGRATION_PLAN.md) bu ayrımı gösterir.
 Kuruluş birleşik raporu ve HIBP kamu kataloğu 0.134.0'da, kataloğun kayıtlı
 toplama/zamanlama akışına katılması 0.135.0'da eklendi. Kuruluşa bağlı kamu
 olaylarını izleme ve yerel bildirim kutusu 0.136.0'da eklendi. Tarihî kamu
 olayını vakaya bağlama ve çevrimdışı HTML kuruluş raporu 0.137.0'da eklendi.
-Gerçek temiz Ubuntu kurulumu ve geçici veride yedekten dönüş yukarıdaki
-0.140.3 kabulünde geçti. Sürüm yükseltme, günlük hizmet işletimi ve
-kesinti sonrası hizmetin yeniden başlaması ayrıca açık doğrulama işidir.
+Gerçek temiz Ubuntu kurulumu, geçici veride yedekten dönüş, sürüm
+güncelleme ve hizmet durdurma/yeniden çalışma zinciri doğrulandı.
+7/24 hizmet seviyesi ve işletim sistemi yeniden açılışı bu kabulün dışındadır.
 Common Crawl dış indeks erişimi ayrı açık konu olarak takip edilir.
 [Kamu olayları devam planı](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md) kapsamı gösterir.
 

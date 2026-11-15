@@ -18,7 +18,8 @@ yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
 ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
 Aşağıdaki bölümler mevcut 0.140.4 uygulamasını anlatır.
 
-Güncel çalışma önceliği mevcut motorun sağlamlaştırılmasıdır. SQLite
+0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
+ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite
 geliştirme, deneme ve kişisel kullanım için korunur. .NET/PostgreSQL
 gelecekteki platform bilgisidir; mevcut veri taşınmaz. Gerçek platform
 incelenmeden sürücü, fiziksel veritabanı ayrımı veya geçiş kapsamı seçilmez.

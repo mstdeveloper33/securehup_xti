@@ -14,6 +14,10 @@
   zamanlayıcısı, kaynak kesintisi, disk ve ölçülü çalışma kabul betikleri;
   ağır kontroller ayrı, elle başlatılan GitHub işindedir.
 - Başlangıç rehberine kesinti ve yedekten dönüş adımları eklendi.
+  Tanımlanan 11 maddelik mevcut motor paketi tamamlandı: `7060cec`
+  üzerinde Ubuntu genel paketinde 2.107, hızlı pakette 687 testin tamamı
+  geçti. Gerçek araç yükseltme/kurtarma, systemd, düşük disk ve 600
+  saniyelik işletim kabulü başarılı; 5.000 sentetik domaine kadar ölçüldü.
   Gerçek çalıştırma kapsamı ve sonuçları [STATUS](docs/STATUS.md) içindedir.
   Maigret/Sherlock/theHarvester commitleri, engine v1 ve şema 64 korunur.
 

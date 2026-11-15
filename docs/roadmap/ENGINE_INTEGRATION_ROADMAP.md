@@ -221,16 +221,21 @@ alır; marka Ubuntu kabulü veri korunması ve tekrar kontrolüyle genişletilir
 `cbea620` üzerinde iki gerçek Ubuntu kurulum işi başarılıdır: temiz
 kurulum, tekrar, geçici kayıtların korunması, engine okuma ve yedekten
 dönüş geçti; kilit/kesinti/kurtarma mekanizması çevrimdışı regresyonlarla
-sınandı. [Çalıştırma kayıtları](../STATUS.md). Önceki yayımlanmış XTI
-sürümünden gerçek güncelleme ve gerçek araç ortamının yenilenmesi
-sırasında kesinti/geri dönüş ayrıca açıktır. STB-02'nin bu ilk kabulü,
-aşamanın bütün güncelleme kapsamını tamamlamaz.
-STB-02–06 henüz bütünüyle tamamlanmış değildir. Yerel motor kabulü ile gerçek .NET
-üretim kabulü ayrı kaydedilir. SQLite ile STB-02–04 ilerleyebilir;
+sınandı. 0.140.4 (`7060cec`) üzerinde önceki yayımlanmış 0.140.2'den
+gerçek güncelleme, aynı şemada kod geri dönüşü ve gerçek araç kurucusu
+kesintisinden kurtarma iki araç zincirinde de geçti.
+[Çalıştırma kayıtları](../STATUS.md). Yerel motor kabulü ile gerçek .NET
+üretim kabulü ayrı kaydedilir. SQLite ile STB-02–04 doğrulanabilir;
 gelecekteki PostgreSQL dağıtımını bugün kurmak ön koşul değildir. Mevcut
 platform görülmeden framework, sürücü, sunucu sürümü veya fiziksel veritabanı
 ayrımı seçilmez. Özellik geliştirmesine dönüş tamamlanan kabul ve açık
 işler üzerinden yeniden değerlendirilir.
+
+0.140.4 ile STB-01–04 ve STB-06'nın aşağıda tanımlanan mevcut kişisel
+motor kapsamı tamamlandı. STB-05 gerçek .NET/PostgreSQL platformunu
+gerektirir ve bu teslimden ayrıdır. Ölçümlü işletim kabulü 5.000 sentetik
+domain, gerçek systemd ve 600 saniyelik tekrarla sınırlıdır; 7/24 hizmet
+seviyesi veya işletim sistemi yeniden açılışı kabulü sayılmaz.
 
 Yeni kaynaklar önce ücretsiz ve uygun açık kaynak erişimiyle denenir.
 Kapsamları, koşulları ve katkıları görünürdür. Bütün internet, kesintisiz
@@ -249,18 +254,18 @@ motorun yeni geliştirme işleri değildir. Mevcut manuel webhook gibi
 uygulanmış aktarım yetenekleri silinmez; gelecekteki ürün kanalı ve
 abonelik yönetimi .NET tarafının kararıdır.
 
-## 8. İlk sonraki iş
+## 8. Tamamlanan paket ve sonraki sınır
 
-**Sürüm güncelleme kabulünü tamamlama (STB-02):** temiz Ubuntu kabulü
-geçti. Sırada önceki yayımlanmış sürümle oluşturulmuş araç ortamı ve
-örnek kayıtları yeni sürüme taşıyarak kurulum/okuma/geri dönüşü doğrulama
-vardır. Gerçek araç ortamını yenilerken kesinti ve açık kurtarma ayrıca
-sınanır; mevcut çevrimdışı mekanizma testleri bu zincirin yerine geçmez.
-Sonrasında STB-03 kapsamında kalıcı kanıt/iş kesintisi, yedek ve geri
-yükleme zincirinin birlikte kabulü gelir.
+Mevcut motorun 11 maddelik kabul paketi tamamlandı. Kullanıcı
+[başlangıç rehberiyle](../GETTING_STARTED.md) kurup terminalden çalışabilir;
+güncelleme, yarım iş ve yedekten dönüş adımları aynı rehberdedir. V1 yerel
+okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir. Şema 64 ve
+mevcut veriler korunur.
 
-V1 yerel okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir.
-.NET/PostgreSQL bağlantısı henüz uygulanmadı. Şema ve mevcut veriler korunur.
+Gerçek .NET/PostgreSQL bağlantısı hedef platform hazır olduğunda STB-05
+ile yapılır. Yeni özellik sırası ENG-03, ENG-04 ve ihtiyaç halinde ENG-07
+olarak korunur; bu teslim yeni kaynak, panel veya LLM başlatmaz. Sonraki
+değişiklikler aynı hata/kesinti/veri koruma ve kurulum kabulünden geçer.
 
 ## 9. Toplu sağlamlaştırma iş listesi ve bitiş ölçütleri
 
@@ -296,13 +301,38 @@ işler sırayla ilerler. Her satır ancak kendi kanıtı kaydedilince kapanır.
 Sabit araç/Python sürümleri değişirse o sürüm geçişi ayrıca kabul gerektirir;
 mevcut sürümün başarısı gelecekteki tüm yükseltmeleri kapsamaz.
 
-İlk sürüm geçişi denemesinin başlangıcı yayımlanmış 0.140.2 (`9cdf32c`),
-hedefi 0.140.3 (`66b4d56`) olarak seçilmiştir. Geçici klonda aynı proje
-yolu korunur; eski sürümde oluşturulan gerçek araç ortamı ve sentetik
-kayıtlar yeni kodla kullanılır. Önce eski sürümün kontrolü, sonra güncelleme,
-araç doğrulaması, engine okuması ve desteklenen geri dönüş sınanır. Kurulum
-kesintisi ayrı deneyde yapılır; kullanıcının çalışan ortamı değiştirilmez.
-Bu paragraf deney tasarımıdır, çalıştırılmış kabul sonucu değildir.
+Gerçek sürüm geçişi yayımlanmış 0.140.2 (`9cdf32c`) ile 0.140.4
+(`7060cec`) arasında tamamlandı. Geçici klonda aynı proje yolu korundu;
+eski sürümün gerçek araç ortamı ve sentetik kayıtları yeni kodla kullanıldı.
+Önce eski sürümün kontrolü, sonra güncelleme, araç doğrulaması, engine
+okuması, aynı şemada kod geri dönüşü ve yeniden güncelleme geçti.
+Kurucu süreç kesintisi ayrı deneyde yapıldı; canlı alt süreç kilidi korudu,
+sonlandırıldıktan sonra iki kez kurtarma önceki ortamı ve kayıtları korudu.
+[İki araç zincirinin gerçek kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709965600).
+Kullanıcının çalışan ortamı değiştirilmedi. Bu geçiş şema 64 ve aynı araç
+pinleri içindir; farklı şema veya gelecekteki araç sürümleri ayrıca sınanır.
+
+### Tamamlanma kaydı — 0.140.4 / `7060cec`
+
+Tanımlanan 11 iş aşağıdaki somut kanıtlarla tamamlandı. Sonuç ve ölçümler
+[STATUS](../STATUS.md) içinde; son kodun genel testleri ve gerçek Linux
+senaryoları [aynı kabul turunda](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43709965600)
+başarıyla geçti.
+
+| İşler | Durum | Gerçek kanıt ve kapsam |
+|---|---|---|
+| 1–2: güncelleme ve araç kurtarma | Tamamlandı | Maigret/Sherlock ve theHarvester: eski sürüm → güncel → aynı şemada geri dönüş → güncel; gerçek paket alt süreci ve iki kez kurtarma |
+| 3–7: veri, kesinti, eşzamanlılık, bozuk kayıt ve gizlilik | Tamamlandı | On arama ailesi ve ilişkili geçmişin tüm tablo/satır karşılaştırması; üç noktada gerçek süreç ölümü, rakip komutlar, bozuk kanıt/yedek reddi, çıktı gizliliği ve özel dosya izinleri |
+| 8: kaynak hatası ve düzelme | Tamamlandı | HIBP üretim HTTP sınırında kontrollü timeout/kopma/429/503/bozuk yanıt; gerçek CLI süreçleri, son başarının korunması ve eksik işin devamı. Canlı bütün sağlayıcı testi değildir |
+| 9: Linux hizmeti | Tamamlandı | Gerçek systemd kullanıcı hizmeti/timer, meşgul iş reddi, durdurma/yeniden çalışma, kaçırılmış zamanın tek telafisi; işletim sistemi yeniden açılışı yok |
+| 10: kapasite ve disk | Tamamlandı | 100/1.000/5.000 sentetik domain, izole 48 MiB düşük disk; 600,004 saniyede 50 tur, veri bütünlüğü ve yedek saklama; süre/RSS/disk eşikleri geçti |
+| 11: teslim ve genel doğrulama | Tamamlandı | Son kodun genel ve hızlı testleri, temiz Linux kurulumları; başlangıç/güncelleme/kurtarma komutlarının geçici ortamda doğrulanması ve destek kapsamının kaydı |
+
+Kurtarma kabulü fiziksel SQLite/şema/bağ bütünlüğünü ve seçili iş
+anlamlarını sınar; her olası tarihî kaydın semantik doğruluğu veya bütün
+gelecek veri hacimleri için garanti oluşturmaz. Bağımsız bir son
+kullanıcının baştan sona kurulum yaptığı iddia edilmez; belgelenmiş
+adımlar otomatik kabul ve yerel geçici komutlarla doğrulandı.
 
 ### Kod değişikliğinden önce ve teslimden önce
 

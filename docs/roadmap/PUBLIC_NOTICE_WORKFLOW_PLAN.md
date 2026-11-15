@@ -22,13 +22,16 @@ eşleşme ve başlangıç farklı durumlardır.
 
 Ücretli API veya yeni paket gerektirmez; dış kaynağın erişim/kota koşulları
 korunur. React/API, LLM, geniş marka, e-posta/SMS ve TAXII ayrı gelecek
-teslimlerdir. Common Crawl dış erişimi ve gerçek Linux hizmet kabulü açık
-konulardır; zamanlama dosyası üretmek canlı hizmet doğrulaması değildir.
+teslimlerdir. Common Crawl dış erişimi ayrı açık konudur. Gerçek Linux
+hizmetinin durdurma, yeniden çalışma, çakışma ve kaçırılmış zamanın tek
+telafisi kabulü 0.140.4'te geçti; işletim sistemi yeniden açılışı ve 7/24
+hizmet seviyesi bu denemenin kapsamı değildir.
 
 Uygulanmış davranış ve test sonucu [STATUS](../STATUS.md), kullanıcı
 komutları [günlük kullanım](../DAILY_USE.md) belgesindedir.
 
-Sonraki önerilen sıra: gerçek Linux üzerinde klonla–kur–çalıştır kabulü,
-zamanlayıcı/kesinti/yedekten dönüş kontrolü; ardından gerçek kullanımda
-kaynak katkısı ve erişim boşlukları. Common Crawl dış erişimi ayrı takip
-edilir. Ücretli API, React/API veya LLM bu sıraya otomatik eklenmez.
+Klonla–kur–çalıştır, zamanlayıcı/kesinti ve yedekten dönüş kabulünün
+0.140.4 sonuçları durum belgesindedir. Sonraki değerlendirme gerçek
+kullanımda kaynak katkısı ve erişim boşluklarıdır. Common Crawl dış
+erişimi ayrı takip edilir. Ücretli API, React/API veya LLM bu sıraya
+otomatik eklenmez.

@@ -34,8 +34,12 @@ bütünlüğü ve ileri işletim kabulü ayrı izlenir.
 0.140.1 hızlı CI/belge tutarlılığını düzeltir. 0.140.2–0.140.3 araç
 kurulumlarının kilit, kesinti günlüğü ve kurtarma düzenini ekler. Gerçek
 temiz Ubuntu kurulumları, tekrar, kayıt koruma ve yedekten dönüş kabulü
-geçti. Sırada önceki sürümden gerçek güncelleme ve araç ortamı yenilenirken
-kesinti/geri dönüş kabulü vardır; sonuçlar [STATUS](../STATUS.md) içindedir.
+geçti. 0.140.4, önceki sürümden gerçek güncellemeyi ve araç ortamı
+yenilenirken kesinti/geri dönüş zincirini iki araçta doğrular. Veri, işletim
+ve genel testlerin kapsamı ve sonuçları [STATUS](../STATUS.md) içindedir.
+Tanımlanan 11 maddelik mevcut motor paketi tamamlandı; gerçek .NET/
+PostgreSQL platform kabulü ayrı aşamadır. Kapasite kabulü 5.000 sentetik
+domain ve 10 dakikalık ölçüme dayanır; 7/24 hizmet seviyesi değildir.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
 [bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.
