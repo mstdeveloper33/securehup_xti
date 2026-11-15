@@ -18,6 +18,9 @@ NEW_TABLES = frozenset({
 })
 
 
+from tests.collection_v68_fixture import legacy_collection_manifest_entry
+
+
 def manifest(path):
     with closing(sqlite3.connect(path)) as connection:
         result = {table: (
@@ -30,6 +33,9 @@ def manifest(path):
         result["sqlite_sequence"] = connection.execute(
             "SELECT name,seq FROM sqlite_sequence ORDER BY name"
         ).fetchall()
+        for table in ("collection_session_steps", "collection_step_receipts"):
+            if table in result:
+                result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
 
 

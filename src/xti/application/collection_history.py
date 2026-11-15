@@ -21,6 +21,8 @@ from xti.domain.collection_profiles import (
     CollectionProfile, CollectionProfileDefinition, normalize_profile_definition,
 )
 from xti.domain.public_notices import HIBP_CONTRACT_VERSION
+from xti.domain.news import NEWS_POLICY
+from xti.domain.global_saved_searches import GLOBAL_SEARCH_WATCH_VERSION
 from xti.ports.collection_history import CollectionHistoryRepository
 from xti.ports.jobs import ExecutionLock
 
@@ -72,6 +74,10 @@ class CollectionHistoryService:
                 contract = username_contract(source.source_version, source.integration_profile)
             elif task.kind == "public_notice":
                 contract = HIBP_CONTRACT_VERSION
+            elif task.kind == "news_refresh":
+                contract = NEWS_POLICY
+            elif task.kind == "search_watch":
+                contract = GLOBAL_SEARCH_WATCH_VERSION
             else:
                 contract = f"collection-source-v1:{task.kind}:{task.source}"
             contracts[task.id] = contract
@@ -105,6 +111,7 @@ class CollectionHistoryService:
         typos: bool = False, stale_after_hours: int = 24, finding_limit: int = 10,
         username_watch_ids: Sequence[str] = (), ransomware_watch_ids: Sequence[str] = (),
         ransomlook_watch_ids: Sequence[str] = (), watch_item_limit: int = 100,
+        news_sources: Sequence[str] = (), search_watch_ids: Sequence[str] = (),
         progress: Callable[[str], None] | None = None,
         preflight: Callable[[], None] | None = None,
         profile: CollectionProfile | None = None,
@@ -114,6 +121,7 @@ class CollectionHistoryService:
             finding_limit=finding_limit, username_watch_ids=username_watch_ids,
             ransomware_watch_ids=ransomware_watch_ids, ransomlook_watch_ids=ransomlook_watch_ids,
             watch_item_limit=watch_item_limit,
+            news_sources=news_sources, search_watch_ids=search_watch_ids,
         )
         if profile is not None and profile.definition != definition:
             raise ValidationError("Toplama seçimi kaynak profille uyuşmuyor.")
@@ -152,6 +160,8 @@ class CollectionHistoryService:
             username_watch_ids=ids("username_watch"),
             ransomware_watch_ids=ids("ransomware_watch", "threatcluster"),
             ransomlook_watch_ids=ids("ransomware_watch", "ransomlook"),
+            news_sources=tuple(unit.source for unit in units if unit.kind == "news_refresh"),
+            search_watch_ids=ids("search_watch"),
         )
 
     def _resume_context(self, resume: CollectionResumePlan):
@@ -213,6 +223,18 @@ class CollectionHistoryService:
             ransomware_tasks = {task.source: task for task in plan.tasks if task.kind == "ransomware"}
             for stored_step in details.steps:
                 unit = units[stored_step.step_key]
+                if unit.kind == "search_watch":
+                    token = CollectionOperationToken(
+                        session_id, stored_step.id, stored_step.target_sha256, stored_step.depends_on_step_id,
+                    )
+                    if collection.news_searches is None:
+                        raise ValidationError("Kayıtlı haber araması bağlantısı yapılandırılmamış.")
+                    if not collection.news_searches.ready(token):
+                        self.repository.stop_step_without_result(
+                            token, status="skipped", error_code="dependency_failed", finished_at=self._now(),
+                        )
+                        steps.append(CollectionStep(tasks[unit.step_key], "skipped"))
+                        continue
                 if unit.kind == "ransomware_watch" and refreshes[unit.source].run.status != "complete":
                     token = CollectionOperationToken(
                         session_id, stored_step.id, stored_step.target_sha256, stored_step.depends_on_step_id,
@@ -225,7 +247,7 @@ class CollectionHistoryService:
                 token = self.repository.start_step(session_id, stored_step.id, started_at=self._now())
                 if progress:
                     progress(f"Toplama: {unit.step_key}")
-                if unit.kind in {"scan", "discovery", "ioc", "public_notice"}:
+                if unit.kind in {"scan", "discovery", "ioc", "public_notice", "news_refresh", "search_watch"}:
                     steps.append(collection._collect(tasks[unit.step_key], plan, progress, operation=token))
                 elif unit.kind == "username_watch":
                     task = tasks[unit.step_key]

@@ -9,8 +9,10 @@ from unittest.mock import Mock
 
 from xti.application.news import NewsService
 from xti.domain.assets import ValidationError
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.news import NEWS_SOURCES, NewsFeed
 from xti.ports.discovery import SourceError
+from uuid import uuid4
 
 
 NOW = datetime(2026, 11, 15, 12, tzinfo=timezone.utc)
@@ -111,6 +113,29 @@ class NewsServiceTests(unittest.TestCase):
         self.repo.status.assert_called_once_with(source_key='ncsc', offset=2, limit=4)
         self.assertEqual(self.lock.acquisitions, 0)
         self.assertEqual(self.source.mock_calls, [])
+
+    def test_collection_operation_is_validated_before_http_without_nested_lock(self):
+        operation = CollectionOperationToken(str(uuid4()), str(uuid4()), 'a' * 64, None)
+        events = []
+        self.repo.validate_operation.side_effect = lambda *args: events.append('operation')
+        self.source.fetch.side_effect = lambda key: (events.append('fetch') or NewsFeed(key, NOW.isoformat(), 'a' * 64, ()))
+        with self.lock.acquire():
+            self.service.refresh('cisa', operation=operation)
+        self.assertEqual(events, ['operation', 'fetch'])
+        self.assertEqual(self.lock.acquisitions, 1)
+        self.assertEqual(self.repo.apply.call_args.kwargs['operation'], operation)
+
+    def test_invalid_collection_operation_never_fetches_and_failure_receipt_keeps_token(self):
+        operation = CollectionOperationToken(str(uuid4()), str(uuid4()), 'a' * 64, None)
+        self.repo.validate_operation.side_effect = ValidationError('Invalid collection operation')
+        with self.assertRaises(ValidationError):
+            self.service.refresh('cisa', operation=operation)
+        self.source.fetch.assert_not_called()
+        self.repo.validate_operation.side_effect = None
+        self.source.fetch.side_effect = SourceError('Publisher unavailable')
+        self.repo.record_failure.return_value = SimpleNamespace(status='failed')
+        self.service.refresh('cisa', operation=operation)
+        self.assertEqual(self.repo.record_failure.call_args.kwargs['operation'], operation)
 
 
 if __name__ == '__main__':

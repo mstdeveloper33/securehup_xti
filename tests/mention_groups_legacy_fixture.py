@@ -4,6 +4,7 @@ from xti.adapters.global_saved_search_schema import MENTION_SCOPE_COLUMN
 
 
 def remove_mention_group_schema(connection):
+    from tests.collection_v68_fixture import collection_layout_v68
     existing = {row[0] for row in connection.execute(
         "SELECT name FROM sqlite_schema WHERE type='table'"
     )}
@@ -16,6 +17,7 @@ def remove_mention_group_schema(connection):
         'SELECT 1 FROM global_saved_searches WHERE mention_request_key IS NOT NULL LIMIT 1'
     ).fetchone():
         raise ValueError('Fixture has schema68-only typed search scope')
+    collection_layout_v68(connection)
     for table in new_tables:
         if table in existing:
             connection.execute(f'DROP TABLE {table}')

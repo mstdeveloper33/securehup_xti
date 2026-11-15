@@ -22,6 +22,9 @@ from tests.test_mentions_storage import request, hit
 from xti.domain.mentions import MentionResponse, build_query
 
 
+from tests.collection_v68_fixture import legacy_collection_manifest_entry
+
+
 def manifest(path):
     with closing(sqlite3.connect(Path(path).absolute().as_uri() + "?mode=ro", uri=True)) as connection:
         result = {}
@@ -35,6 +38,9 @@ def manifest(path):
             if table == 'global_saved_searches':
                 result[table] = legacy_search_manifest_entry(result[table])
         result["sqlite_sequence"] = connection.execute("SELECT name,seq FROM sqlite_sequence ORDER BY name").fetchall()
+        for table in ("collection_session_steps", "collection_step_receipts"):
+            if table in result:
+                result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
 
 

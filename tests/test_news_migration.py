@@ -18,6 +18,9 @@ from tests.news_legacy_fixture import remove_news_schema
 from tests.mention_groups_legacy_fixture import legacy_search_manifest_entry
 
 
+from tests.collection_v68_fixture import legacy_collection_manifest_entry
+
+
 def manifest(path):
     with closing(sqlite3.connect(Path(path).absolute().as_uri() + '?mode=ro', uri=True)) as connection:
         result = {}
@@ -32,6 +35,9 @@ def manifest(path):
             if table == 'global_saved_searches':
                 result[table] = legacy_search_manifest_entry(result[table])
         result['sqlite_sequence'] = connection.execute('SELECT name,seq FROM sqlite_sequence ORDER BY name').fetchall()
+        for table in ("collection_session_steps", "collection_step_receipts"):
+            if table in result:
+                result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
 
 

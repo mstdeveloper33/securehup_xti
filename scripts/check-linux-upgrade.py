@@ -288,13 +288,46 @@ def database_manifest(path):
 
 def require_preserved_tables(before, after):
     for name, expected in before[1].items():
-        COMMON.require(after[1].get(name) == expected,
+        actual = after[1].get(name)
+        reviewed_upgrade = (
+            before[0] <= 68 and after[0] == 69
+            and name in ("collection_session_steps", "collection_step_receipts")
+            and _preserved_collection_upgrade(name, expected, actual)
+        )
+        COMMON.require(actual == expected or reviewed_upgrade,
                        f"Schema migration changed pre-existing table/evidence: {name}.")
 
 
-def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=68):
+def _preserved_collection_upgrade(name, expected, actual):
+    """Allow only reviewed DDL changes, exact old values and NULL new links."""
+    if actual is None:
+        return False
+    from xti.adapters.collection_news_schema import (
+        COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V68_DDL,
+    )
+    shapes = []
+    for statements in (COLLECTION_HISTORY_V68_DDL, COLLECTION_HISTORY_DDL):
+        with closing(sqlite3.connect(":memory:")) as connection:
+            for statement in statements:
+                connection.execute(statement)
+            shapes.append((
+                connection.execute(f"PRAGMA table_info({name})").fetchall(),
+                connection.execute(
+                    "SELECT type,name,sql FROM sqlite_schema WHERE tbl_name=? ORDER BY name", (name,),
+                ).fetchall(),
+            ))
+    if (expected[0], expected[2]) != shapes[0] or (actual[0], actual[2]) != shapes[1]:
+        return False
+    width = len(expected[0]) + 1  # Preserve rowid in addition to every old column.
+    return (
+        [row[:width] for row in actual[1]] == expected[1]
+        and all(value is None for row in actual[1] for value in row[width:])
+    )
+
+
+def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=69):
     """Exercise a reviewed explicit schema64 upgrade, retaining its original backup."""
-    COMMON.require(target_schema in (65, 66, 67, 68), "Unsupported migration target.")
+    COMMON.require(target_schema in (65, 66, 67, 68, 69), "Unsupported migration target.")
     data = Path(environment["XTI_DATA_DIR"])
     error = command(["./setup", "--core-only"], environment, expected=None)
     COMMON.require("migrate" in error, "Old data was not rejected with explicit migration guidance.")
@@ -320,7 +353,7 @@ def migrate_acceptance_data(environment, before_files, before_database, *, targe
     COMMON.require(repeated.get("changed") is False and repeated.get("backup") is None,
                    "Repeated migration was not a no-op.")
     COMMON.require(COMMON.snapshot(data) == after_files, "Repeated migration changed database or backup bytes.")
-    COMMON.summary(f"- PASS: schema64 setup refused without writes; explicit schema{target_schema} migration preserved all old rows/rowids/DDL and created an unchanged schema64 backup.")
+    COMMON.summary(f"- PASS: schema64 setup refused without writes; explicit schema{target_schema} migration preserved all old rows/rowids/evidence, applied only reviewed collection DDL changes and created an unchanged schema64 backup.")
     return backup, after_files
 
 
@@ -491,7 +524,7 @@ def main(arguments=None):
             stage = "candidate schema compatibility"
             command(["git", "checkout", "--detach", checked_commit(target)], environment)
             target_schema = int(command(["./scripts/python", "-c", "from xti.adapters.schema import SCHEMA_VERSION; print(SCHEMA_VERSION)"], environment))
-            COMMON.require(target_schema in (64, 65, 66, 67, 68), "Only reviewed schema64/schema65/schema66/schema67/schema68 candidates are supported by this acceptance.")
+            COMMON.require(target_schema in (64, 65, 66, 67, 68, 69), "Only reviewed schema64–69 candidates are supported by this acceptance.")
             backup, current_files = None, before
             if target_schema > 64:
                 stage = f"explicit schema64 to schema{target_schema} migration"
@@ -550,7 +583,7 @@ def main(arguments=None):
 
             stage = "real package subprocess interruption and recovery"
             interrupt_real_install(project, options.tool, environment)
-        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit 64→65/66/67/68 migration with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
+        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit 64→65/66/67/68/69 migration with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
         return 0
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
         COMMON.summary(f"- RESULT: FAIL at {stage}: {error}")

@@ -6,6 +6,8 @@ from xti.domain.analysis import UnifiedAnalysisReport
 from xti.domain.brand_username_watches import BrandUsernameWatchRunReport
 from xti.domain.cti_feeds import CtiFeedRun
 from xti.domain.jobs import ScanAttempt
+from xti.domain.news import NewsRefreshReport
+from xti.domain.global_saved_searches import GlobalSavedSearchRunReport
 from xti.domain.public_notices import PublicNoticeRefreshReport
 from xti.domain.ransomlook_ransomware import RansomLookClaimRunReport
 from xti.domain.ransomlook_watches import RansomLookWatchRunReport
@@ -22,6 +24,7 @@ class CollectionWatchTarget:
     kind: str
     match_mode: str
     platforms: tuple[str, ...] = ()
+    search_event_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,6 +78,8 @@ class CollectionStep:
     username: BrandUsernameWatchRunReport | None = None
     ransomware: CollectionRansomwareResult | None = None
     public_notices: PublicNoticeRefreshReport | None = None
+    news: NewsRefreshReport | None = None
+    search: GlobalSavedSearchRunReport | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -7,6 +7,7 @@ from xti.application.analysis import UnifiedAnalysisService
 from xti.application.collection_watches import CollectionWatchService
 from xti.application.cti_feeds import CtiFeedService
 from xti.application.jobs import JobService
+from xti.application.news import NewsService
 from xti.application.public_notices import PublicNoticeService
 from xti.application.surface import SurfaceDiscoveryService
 from xti.domain.assets import ValidationError, normalize_domain
@@ -21,6 +22,10 @@ from xti.domain.collection import (
 )
 from xti.domain.cti_feeds import CTI_FEED_POLICIES, CtiFeedRun
 from xti.domain.collection_history import CollectionOperationToken
+from xti.domain.collection_profiles import normalize_news_selection, MAX_PROFILE_WATCHES
+from xti.domain.news import NewsRefreshReport, news_source
+from xti.domain.global_saved_searches import GlobalSavedSearchRunReport
+from xti.ports.collection_news import CollectionNewsSearches
 from xti.domain.jobs import ScanAttempt
 from xti.domain.public_notices import (
     HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_NAME, HIBP_SOURCE_URL,
@@ -44,6 +49,8 @@ class CollectionService:
         analysis: UnifiedAnalysisService,
         *, watch_collection: CollectionWatchService | None = None,
         public_notices: PublicNoticeService | None = None,
+        news: NewsService | None = None,
+        news_searches: CollectionNewsSearches | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.jobs = jobs
@@ -52,6 +59,7 @@ class CollectionService:
         self.analysis = analysis
         self.watch_collection = watch_collection or CollectionWatchService()
         self.public_notices = public_notices
+        self.news, self.news_searches = news, news_searches
         self.clock = clock or (lambda: datetime.now(timezone.utc))
 
     def _now(self) -> datetime:
@@ -86,14 +94,20 @@ class CollectionService:
         ransomware_watch_ids: Sequence[str] = (),
         ransomlook_watch_ids: Sequence[str] = (),
         watch_item_limit: int = 100, allow_empty_base: bool = False,
+        news_sources: Sequence[str] = (), search_watch_ids: Sequence[str] = (),
     ) -> CollectionPlan:
+        news_keys, search_ids = normalize_news_selection(
+            news_sources, search_watch_ids, require_all_sources=not allow_empty_base,
+        )
         username_ids, ransomware_ids, ransomlook_ids = CollectionWatchService.validate_selection(
             username_watch_ids=username_watch_ids,
             ransomware_watch_ids=ransomware_watch_ids,
             ransomlook_watch_ids=ransomlook_watch_ids,
             item_limit=watch_item_limit,
         )
-        selected = self._selection(tasks, allow_empty_base=allow_empty_base)
+        if sum(map(len, (username_ids, ransomware_ids, ransomlook_ids, search_ids))) > MAX_PROFILE_WATCHES:
+            raise ValidationError("Toplam en fazla 50 açık izleme kimliği seçilebilir.")
+        selected = self._selection(tasks, allow_empty_base=allow_empty_base or bool(news_keys))
         if type(typos) is not bool:
             raise ValidationError("Yazım varyasyonu seçimi doğru/yanlış olmalı.")
         if typos and not any(task.kind == "scan" for task in selected):
@@ -151,8 +165,27 @@ class CollectionService:
             ransomlook_watch_ids=ransomlook_ids,
             item_limit=watch_item_limit,
         )
+        news_tasks = ()
+        if news_keys:
+            if self.news is None or self.news.source is None:
+                raise ValidationError("Seçilen haber kaynağı yapılandırılmamış.")
+            self.news.repository.validate()
+            news_tasks = tuple(CollectionTask(
+                f"news-refresh:{key}", "news_refresh", key, f"{news_source(key).name} haber yenilemesi",
+            ) for key in news_keys)
+        search_tasks = ()
+        if search_ids:
+            if self.news_searches is None:
+                raise ValidationError("Kayıtlı haber araması bağlantısı yapılandırılmamış.")
+            targets = self.news_searches.plan(search_ids)
+            if tuple(target.watch_id for target in targets) != search_ids:
+                raise ValidationError("Kayıtlı haber araması seçilen kimliklerle uyuşmuyor.")
+            search_tasks = tuple(CollectionTask(
+                f"search-watch:{target.watch_id}", "search_watch", "local",
+                f"Kayıtlı haber araması: {target.display_name}", (target,),
+            ) for target in targets)
         return CollectionPlan(
-            asset_value=value, typos=typos, tasks=selected + watch_tasks,
+            asset_value=value, typos=typos, tasks=selected + watch_tasks + news_tasks + search_tasks,
             watch_item_limit=watch_item_limit,
             notes=(
                 "Seçilen arşivler, açık kaynak listeleri ve seçili kullanıcı adı platformları sorgulanır; hedefte aktif test yapılmaz.",
@@ -169,7 +202,11 @@ class CollectionService:
                 "Her ransomware kaynağı bir kez yenilenir; yenileme başarısızsa o kaynağın seçilen izlemeleri çalıştırılmaz.",
                 "İlk izleme ölçümü başlangıç kaydıdır; yeni tehdit veya doğrulanmış ihlal anlamına gelmez.",
                 "İzleme sonuçları aşağıdaki domain analizinden ayrıdır; kaynaklar ve örtüşen izlemeler tekil bulgu toplamına eklenmez.",
-            ) if watch_tasks else ()),
+            ) if watch_tasks else ()) + ((
+                "Yalnız seçilen RSS kaynakları yenilenir; makale sayfaları açılmaz.",
+                "Haberler ortak kataloğa kaydedilir; sayılar domainin tehdit veya ihlal sayısı değildir.",
+                "Kayıtlı haber aramaları yalnız üç seçili kaynak da başarılıysa çalışır; ilk ölçüm sessiz başlangıç kaydıdır.",
+            ) if news_tasks or search_tasks else ()),
         )
 
     def _collect(
@@ -178,6 +215,31 @@ class CollectionService:
         operation: CollectionOperationToken | None = None,
     ) -> CollectionStep:
         kwargs = {"operation": operation} if operation is not None else {}
+        if task.kind == "news_refresh":
+            if self.news is None or operation is None:
+                raise ValidationError("Haber toplama kalıcı bir toplama oturumu gerektirir.")
+            result = self.news.refresh(task.source, limit=plan.watch_item_limit, operation=operation)
+            if (not isinstance(result, NewsRefreshReport) or result.run.source_key != task.source
+                    or result.run.status not in {"complete", "failed"}):
+                raise ValidationError("Haber kaynağı geçersiz toplama sonucu üretti.")
+            return CollectionStep(task, result.run.status, news=result)
+        if task.kind == "search_watch":
+            if self.news_searches is None or operation is None or len(task.watches) != 1:
+                raise ValidationError("Kayıtlı haber araması kalıcı bir toplama oturumu gerektirir.")
+            result = self.news_searches.run(task.watches[0], operation=operation,
+                executed_at=self._now().isoformat(), limit=plan.watch_item_limit)
+            target = task.watches[0]
+            if (not isinstance(result, GlobalSavedSearchRunReport)
+                    or result.run.search_id != target.watch_id
+                    or result.run.event_id != target.search_event_id
+                    or result.saved_search.id != target.watch_id
+                    or result.saved_search.query != target.query
+                    or result.saved_search.display_name != target.display_name
+                    or result.saved_search.kinds != ("news",)
+                    or result.saved_search.include_inactive
+                    or result.saved_search.mention_request_key is not None):
+                raise ValidationError("Kayıtlı haber araması seçilen tanımla uyuşmayan sonuç üretti.")
+            return CollectionStep(task, "complete", search=result)
         if task.kind in {"username_watch", "ransomware"}:
             if operation is not None:
                 raise ValidationError("İzleme oturumu tek kaynak birimiyle çalıştırılmalı.")
@@ -236,9 +298,12 @@ class CollectionService:
         ransomware_watch_ids: Sequence[str] = (),
         ransomlook_watch_ids: Sequence[str] = (),
         watch_item_limit: int = 100,
+        news_sources: Sequence[str] = (), search_watch_ids: Sequence[str] = (),
         progress: Callable[[str], None] | None = None,
         preflight: Callable[[], None] | None = None,
     ) -> CollectionResult:
+        if news_sources or search_watch_ids:
+            raise ValidationError("Haber seçimi kurtarma destekli kalıcı toplama yürütücüsüyle çalıştırılmalı.")
         if preflight is not None:
             preflight()
         plan = self.plan(

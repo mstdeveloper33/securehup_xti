@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from xti.domain.assets import ValidationError
 from xti.domain.organization_report import OrganizationReport
+from xti.domain.mentions import request_key
 from xti.domain.public_notice_watches import PublicNoticeWatchRunReport
 
 
@@ -53,6 +54,8 @@ def export_record_count(snapshot: OrganizationExportSnapshot) -> int:
         count += len(report.public_notice_watch.events) + len(report.public_notice_watch.runs)
     if report.public_notice_case_links is not None:
         count += len(report.public_notice_case_links.items)
+    if report.content is not None:
+        count += len(report.content.scopes) + sum(len(page.items) for page in report.content.sections)
     return count + sum(len(run.items) + len(run.scope.members) for run in snapshot.public_notice_watch_runs)
 
 
@@ -80,6 +83,42 @@ def validate_complete_export(snapshot: OrganizationExportSnapshot, organization_
         case_links.offset != 0 or case_links.has_more or case_links.total_count != len(case_links.items)
     ):
         raise ValidationError("Kamu olay vaka bağlantıları eksik; tam rapor dosyası yazılmadı.")
+    content = report.content
+    if content is not None:
+        if (content.organization_id != organization_id or content.scope_offset != 0
+                or content.has_more_scopes or content.total_scope_count != len(content.scopes)):
+            raise ValidationError("Kuruluş içerik kapsamları eksik veya farklı kuruluşa ait; dosya yazılmadı.")
+        if {page.kind for page in content.sections} != {"content", "historical_content"} or len(content.sections) != 2:
+            raise ValidationError("Kuruluş içerik bölümleri eksik veya yinelenmiş; dosya yazılmadı.")
+        for page in content.sections:
+            if page.offset != 0 or page.has_more or page.total_count != len(page.items):
+                raise ValidationError("Kuruluş içerik bölümünde gösterilmeyen kayıt var; dosya yazılmadı.")
+        scopes = {}
+        for entry in content.scopes:
+            if (entry.target.kind not in {"organization", "supplier"}
+                    or entry.target.kind == "organization" and entry.target.id != organization_id
+                    or entry.scope_status not in {"current", "old_definition", "old_request", "inactive_organization", "inactive_target", "inactive_relationship"}
+                    or entry.scope_status == "current" and entry.target.kind == "supplier" and not entry.current_group_ids):
+                raise ValidationError("Kuruluş içerik hedefinin açık kapsamı geçersiz; dosya yazılmadı.")
+            if entry.request is None:
+                if entry.request_key is not None or entry.retained_record_count:
+                    raise ValidationError("Aranmamış içerik kapsamına kaynak kaydı bağlanamaz; dosya yazılmadı.")
+                continue
+            if (entry.request.target != entry.target or entry.request_key != request_key(entry.request)
+                    or entry.request_key in scopes):
+                raise ValidationError("Kuruluş içerik istek kapsamı eksik veya yinelenmiş; dosya yazılmadı.")
+            scopes[entry.request_key] = entry
+        counts, identifiers = {}, set()
+        for page in content.sections:
+            for record in page.items:
+                entry = scopes.get(record.definition_sha256)
+                if (entry is None or record.id in identifiers or record.kind != "content" or record.source != "tavily"
+                        or (entry.scope_status == "current") != (page.kind == "content")):
+                    raise ValidationError("Kuruluş içerik kanıtı güncel/tarihî kapsamıyla uyuşmuyor; dosya yazılmadı.")
+                identifiers.add(record.id)
+                counts[entry.request_key] = counts.get(entry.request_key, 0) + 1
+        if any(entry.retained_record_count != counts.get(key, 0) for key, entry in scopes.items()):
+            raise ValidationError("Kuruluş içerik kapsamının korunan kayıtları eksik; dosya yazılmadı.")
     watch = report.public_notice_watch
     if watch is None:
         if snapshot.public_notice_watch_runs:

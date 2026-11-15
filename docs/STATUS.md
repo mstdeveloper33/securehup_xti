@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.145.0 · Şema 68.**
+**16 Kasım 2026 · 0.146.0 · Şema 69.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -11,10 +11,47 @@ aittir. Biz motoru, sürümlü sözleşmesini, örneklerini ve belgelerini
 sağlarız. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
-veya müşteri yalıtımı henüz uygulanmadı. 0.145.0 bütçeli grup izleme için
-şema 68'e açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
+veya müşteri yalıtımı henüz uygulanmadı. 0.146.0 RSS toplama profilleri ve
+kuruluş içerik raporu için şema 69'a açık yedekli geçiş ekler; engine v1'in
+dört işlemi korunur.
 
-**Güncel teslim:** 0.145.0, bir kuruluş ve açıkça seçilmiş en fazla 19
+**Güncel teslim:** 0.146.0, seçilmiş RSS kaynaklarını mevcut `collect`,
+profil ve Linux zamanlama akışına bağlar. `--only-news` yalnız haber işi;
+`--news-source` ve `--search-watch` açık kaynak/arama seçimi sağlar.
+Eski varsayılan üç domain görevi değişmez. Haber araması için üç yayıncı
+birlikte seçilir; biri başarısızsa arama atlanır ve eski veriden yeni
+bildirim üretilmez. İlk başarılı arama sessiz başlangıçtır.
+
+Haber sonucu/makbuz ve arama/fark/inbox/makbuz atomiktir. Devam işlemi
+tamamlanan kaynakları yeniden indirmez; aynı kaynak çalışmalarının tarihî
+kesitini kullanır. Tanım olayı değişmişse veya arama daha yeni kaynaklarla
+ilerlemişse eski kesitten yanıltıcı fark üretilmez. Önceki profil/plan
+metinleri, hash'leri, çalışma satırları ve kimlikleri korunur.
+
+`organizations report` ve mevcut HTML dışa aktarımı firma/tedarikçi
+içeriklerini ekler. Kesin kuruluş kimliği ve etkin grubun açık tedarikçi
+seçimi kullanılır. Eski ilişki/ad/domain/sorgu ayrı tarihî kapsamda kalır;
+başarılı boş arama, kaynak hatası, son deneme/başarı ve tam sayfalama
+toplamları görünür. Bu okuma kaynak çağırmaz veya kredi tüketmez.
+[Haber kullanımı](NEWS_COLLECTION.md), [kuruluş raporu](ORGANIZATION_REPORT.md),
+[karar](decisions/0151-news-collection-and-content-report.md).
+
+**0.146.0 doğrulaması:** Yerel genel tur macOS/Python 3.13 üzerinde
+2.490 test çalıştırdı (975,835 saniye): 2.485 başarılı, Linux'a özel
+dört kontrol atlandı; bir eski terminal testinin taklit fonksiyonu yeni
+`data_dir` argümanını kabul etmedi. Uygulama değişmeden test çağrısı
+güncellendi; ilgili dosyanın sekiz testi 17,017 saniyede geçti. Genel tur
+tekrarlanmadı. Yeni haber toplama/arama/şema 69 ve kuruluş içerik testleri
+genel turda geçti. Güncel kodun gerçek Linux sonucu ayrıca izlenir.
+
+Önceki hedefli CLI/profil/zamanlama/geçmiş/yükseltme turunda 53 testin
+51'i başarılı, Linux `/proc` gerektiren ikisi atlandı (74,107 saniye).
+Altı belgedeki 231 yerel bağlantı ve 17 yeni komut örneği doğrulandı;
+compile, shell syntax ve diff kontrolleri temiz. Canlı Tavily isteği/kredi
+kullanılmadı, zamanlayıcı etkinleştirilmedi ve kullanıcı veritabanına
+dokunulmadı. Canlı kaynak erişimi bu çevrimdışı testlerin sonucu değildir.
+
+**Önceki teslim:** 0.145.0, bir kuruluş ve açıkça seçilmiş en fazla 19
 tedarikçiyi `mentions groups` altında birlikte izler. Sürümlü tanım,
 bütün sorguların ağsız planı, çalışma/gün sorgu sınırı, en az çalışma
 aralığı ve değişmez çalışma geçmişi uygulanmıştır. Her HTTP öncesi
@@ -132,8 +169,9 @@ Trafilatura ve diğer gelecek tercihler kurulmuş sayılmaz.
   Eski kayıtlı aramaların on türlük somut kapsamı kendiliğinden genişlemez.
   Yeni haber kapsamı açık tanım gerektirir; mevcut `search-watch → inbox`
   ilk sessiz başlangıç ve yeni/anlamlı değişiklik kurallarını kullanır.
-- Haber toplama izlemeyi otomatik çalıştırmaz; `collect` profillerine
-  henüz eklenmedi. Haber sayfaları/ekler açılmaz. Kaynaklar üç sabit
+- Tekil `news refresh` izlemeyi çalıştırmaz. 0.146.0 `collect` profili,
+  açıkça seçilmiş haber aramalarını başarılı yenilemeden sonra çalıştırır.
+  Haber sayfaları/ekler açılmaz. Kaynaklar üç sabit
   yayıncıyla sınırlıdır; her haber eşleşmesi araştırma bağlamıdır.
 - Şema 66 üç boş tablo ekler; açık migration ve yeni dizine yedekten
   dönüş uygulanır. Güncel görünüm, tam akış görüntüleri ve çalışma

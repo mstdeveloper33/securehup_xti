@@ -18,8 +18,15 @@ from xti.interfaces.public_notice_watches import watch_detail_lines
 _SECTIONS = {"findings": "Domain/marka bulguları", "surface_candidates": "Pasif alt alan adı adayları",
              "profiles": "Sosyal profil sonuçları", "claims": "Kaynak iddiaları",
              "public_notices": "Kamu olay kataloğu tam domain eşleşmeleri",
-             "notifications": "Yerel bildirimler", "case_links": "Açık vaka bağlantıları"}
+             "notifications": "Yerel bildirimler", "case_links": "Açık vaka bağlantıları",
+             "content": "Güncel kapsamın içerik adayları", "historical_content": "Tarihî kapsamın içerik adayları"}
 _FRESHNESS = {"never": "başarılı kayıt yok", "current": "güncel", "stale": "eski", "clock_error": "gelecek zamanlı kayıt"}
+CONTENT_SCOPE_LABELS = {"current": "Güncel kapsam", "old_definition": "Eski isim/domain kapsamı",
+    "old_request": "Eski arama konusu/sonuç sınırı",
+    "inactive_organization": "Kuruluş geri çekilmiş", "inactive_target": "Tedarikçi etkin değil",
+    "inactive_relationship": "Etkin açık tedarikçi ilişkisi kalmamış"}
+_CONTENT_STATUSES = {"source_candidate": "arama adayı", "retained_candidate": "önceki aramadan korunan aday",
+                     "historical_candidate": "tarihî kapsamın adayı"}
 
 
 def register_organization_report_parser(actions: _SubParsersAction) -> None:
@@ -44,7 +51,8 @@ def _command(navigation: ReportNavigation, indent: str = "    ") -> str:
 def _attempt(label: str, attempt: OrganizationReportAttempt | None) -> str:
     if attempt is None:
         return f"      {label}: kayıt yok"
-    value = f"      {label}: {safe_text(attempt.status)} | {safe_text(attempt.recorded_at)} | {safe_text(attempt.id)}"
+    status = "başarılı, boş sonuç" if attempt.status == "empty" else attempt.status
+    value = f"      {label}: {safe_text(status)} | {safe_text(attempt.recorded_at)} | {safe_text(attempt.id)}"
     if attempt.definition_matches_current is not None:
         value += f" | güncel tanım: {'evet' if attempt.definition_matches_current else 'hayır'}"
     if attempt.is_baseline is not None:
@@ -124,7 +132,41 @@ def organization_report_lines(report: OrganizationReport) -> list[str]:
             lines.extend(_command(link) for link in record.navigation)
         if page.has_more:
             lines.append(f"Kamu olay vaka bağlantılarının devamı: --item-offset {page.offset + len(page.items)} --item-limit {page.limit}")
+    if report.content is not None:
+        lines.extend(content_lines(report.content))
     lines.extend(f"Not: {safe_text(note)}" for note in report.notes)
+    return lines
+
+
+def content_lines(content) -> list[str]:
+    lines = ["", "Firma ve tedarikçi içerikleri (Tavily, kayıtlı veri):",
+             f"İstek kapsamı: toplam {content.total_scope_count} | bu sayfa {len(content.scopes)} | başlangıç {content.scope_offset}"]
+    for item in content.scopes:
+        target, coverage = item.target, item.coverage
+        lines.extend((f"  {safe_text(target.name)} | {safe_text(target.kind)} | {safe_text(target.id)}",
+                      "    " + CONTENT_SCOPE_LABELS[item.scope_status],
+                      f"    Aramadaki domainler: {safe_text(', '.join(target.domains) or 'yok')}",
+                      f"    Güncel açık grup kimlikleri: {safe_text(', '.join(item.current_group_ids) or 'yok')}",
+                      f"    Kaynak güncelliği: {_FRESHNESS[coverage.freshness]}",
+                      _attempt("Son deneme", coverage.latest_attempt), _attempt("Son başarı", coverage.latest_success)))
+        if item.request is not None:
+            lines.append(f"    Konu: {safe_text(item.request.topic)} | sonuç sınırı: {item.request.max_results} | istek özeti: {safe_text(item.request_key)}")
+        lines.append(f"    Son başarılı arama sonucu: {item.latest_success_result_count if item.latest_success_result_count is not None else 'başarılı kayıt yok'} | korunan aday: {item.retained_record_count}")
+        lines.extend(f"    Not: {safe_text(note)}" for note in (*coverage.notes, *item.notes))
+        lines.extend(_command(link) for link in item.navigation)
+    if content.has_more_scopes:
+        lines.append(f"İçerik kapsamlarının devamı: --target-offset {content.scope_offset + len(content.scopes)} --target-limit {content.scope_limit}")
+    for page in content.sections:
+        lines.append(f"  {_SECTIONS[page.kind]}: toplam {page.total_count} | bu sayfa {len(page.items)} | başlangıç {page.offset}")
+        for record in page.items:
+            lines.extend((f"    {safe_text(record.value)} | {safe_text(_CONTENT_STATUSES.get(record.status, record.status))} | {safe_text(record.source)}",
+                          f"      Kimlik: {safe_text(record.id)} | zaman: {safe_text(record.recorded_at)}",
+                          f"      İstek özeti: {safe_text(record.definition_sha256)}"))
+            lines.extend(f"      {safe_text(detail)}" for detail in record.details)
+            lines.extend(_command(link, "      ") for link in record.navigation)
+        if page.has_more:
+            lines.append(f"    Bu içerik bölümünün devamı: --item-offset {page.offset + len(page.items)} --item-limit {page.limit}")
+    lines.extend(f"  Not: {safe_text(note)}" for note in content.notes)
     return lines
 
 

@@ -25,6 +25,8 @@ def collection_options(definition: CollectionProfileDefinition) -> dict:
         "ransomware_watch_ids": definition.ransomware_watch_ids,
         "ransomlook_watch_ids": definition.ransomlook_watch_ids,
         "watch_item_limit": definition.watch_item_limit,
+        "news_sources": definition.news_sources,
+        "search_watch_ids": definition.search_watch_ids,
     }
 
 

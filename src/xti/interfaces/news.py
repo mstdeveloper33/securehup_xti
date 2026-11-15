@@ -137,7 +137,7 @@ def detail_lines(report, *, data_dir=None):
             *_record_lines(report.record, data_dir=data_dir), *(safe_text(note) for note in report.notes)]
 
 
-def refresh_lines(report, *, limit, data_dir=None):
+def refresh_lines(report, *, limit, data_dir=None, comparison_pending=False):
     run = report.run
     source = news_source(run.source_key)
     lines = [f'Haber toplama: {safe_text(run.status)} | {safe_text(run.id)}',
@@ -159,7 +159,8 @@ def refresh_lines(report, *, limit, data_dir=None):
     if report.offset + len(report.changes) < report.total_change_count:
         lines.append('Sonraki kanıt sayfası: ' + news_command(
             'run-show', run.id, '--offset', report.offset + len(report.changes), '--limit', limit, data_dir=data_dir))
-    lines.append('Kayıtlı aramalar ayrıca search-watch run ile karşılaştırılır; bu toplama otomatik bildirim üretmez.')
+    if not comparison_pending:
+        lines.append('Kayıtlı aramalar ayrıca search-watch run ile karşılaştırılır; bu toplama otomatik bildirim üretmez.')
     return lines + [safe_text(note) for note in report.notes]
 
 

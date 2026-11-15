@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.145.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 68.
+**Sürüm:** 0.146.0 · **Tarih:** 16 Kasım 2026 · **Şema:** 69.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Bu repo
@@ -100,7 +100,7 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 66 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 69 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
@@ -181,7 +181,10 @@ Kuruluşun bütün bağlı domain ve izlemelerinin kayıtlarını birlikte aç:
 
 Raporda gerçek adresler, profil/iddia kayıtları, son deneme ve son başarı,
 eski/eksik veriler, bildirimler ve ilgili mevcut vakalara geçiş bulunur.
-Geri çekilmiş bağlantılar rapor kapsamına girmez. `--target-offset/--target-limit`
+Firma ve seçilmiş tedarikçiler için saklanan Tavily içerikleri de kaynak,
+bağlantı, arama kapsamı ve güncellikle görünür. Tedarikçi kapsamı kuruluşun
+etkin `mentions groups` seçiminden gelir; eski ilişkiler tarihî bölümde kalır.
+Geri çekilmiş domain/izleme bağlantıları güncel hedef bölümlerine girmez. `--target-offset/--target-limit`
 hedefleri, `--item-offset/--item-limit` her bölümdeki kayıtları sayfalar;
 toplamlar değişmez. Bu bir yerel gruplamadır, müşteri erişim yalıtımı değildir.
 [Kuruluş raporu rehberi](docs/ORGANIZATION_REPORT.md) bütün komutları açıklar.
@@ -351,7 +354,7 @@ Kaynak seç ve haberleri getir:
 ./xti news status
 ```
 
-Yalnız `refresh` internete çıkar. Her `refresh` komutu bir kaynağı bir kez okur;
+`news` komutlarında yalnız `refresh` internete çıkar. Her `refresh` bir kaynağı bir kez okur;
 haber sayfaları, resimler ve ekler açılmaz. Başlık, yayıncının sunduğu
 en fazla 2.000 karakterlik düz metin özet, özgün bağlantı ve kaynak
 tarihleri saklanır. Özet kısaltılmışsa açıkça gösterilir. Eksik veya
@@ -395,7 +398,25 @@ Her kaynak için hiç toplanmadı, başarılı boş yanıt ve hata ayrıdır;
 son hata önceki başarılı kayıtları silmez. Kaynaklar yayınlarını veya
 erişim kurallarını değiştirebilir; ücretsiz olması sınırsız erişim
 garantisi değildir. İlk sürüm sabit üç HTTPS yayını destekler, serbest URL
-veya makale tarayıcısı değildir. `collect` profil işlerine henüz eklenmedi.
+veya makale tarayıcısı değildir.
+
+Haberleri ve kayıtlı aramayı aynı profilde çalıştırmak için:
+
+```sh
+./xti profiles save haberler example.com --only-news --news-source cisa --news-source ncsc --news-source cert-fr --search-watch ARAMA_KIMLIGI
+./xti collect --profile haberler --plan
+./xti collect --profile haberler
+./xti inbox
+```
+
+`ARAMA_KIMLIGI`, yukarıdaki `search-watch add ... --kind news` çıktısından
+gelir. Domain kayıtlı olmalı. Bu profil yalnız seçilen yayıncıları alır;
+hedef siteye bağlanmaz. Üçü başarılıysa seçilen haber araması karşılaştırılır.
+Kaynak hatasında önceki başarı korunur ve karşılaştırma atlanır. İlk ölçüm
+sessiz başlangıçtır. Tamamlanan kaynakları yeniden almadan eksik adımlara
+`collections resume` ile devam edilir. Profil mevcut Linux zamanlama yolunu
+kullanır; hizmet kendiliğinden açılmaz. Tek kaynağı aramasız toplamak da
+mümkündür. [Kurulum, kullanım ve sınırlar](docs/NEWS_COLLECTION.md).
 
 Yanıt en fazla 4 MiB/2.000 haber; saklanan haber 50.000, çalışma 10.000,
 tek kanıt görüntüsü 8 MiB ve toplam görüntü/projeksiyon ayrı ayrı 64 MiB

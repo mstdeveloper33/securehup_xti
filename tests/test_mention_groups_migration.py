@@ -22,6 +22,9 @@ from tests.test_mentions_storage import request, hit
 T0 = "2026-11-15T12:00:00+00:00"
 
 
+from tests.collection_v68_fixture import legacy_collection_manifest_entry
+
+
 def manifest(path):
     with closing(sqlite3.connect(Path(path).absolute().as_uri() + "?mode=ro", uri=True)) as connection:
         result = {}
@@ -34,6 +37,9 @@ def manifest(path):
             )
             result[table] = legacy_search_manifest_entry(entry) if table == "global_saved_searches" else entry
         result["sqlite_sequence"] = connection.execute("SELECT name,seq FROM sqlite_sequence ORDER BY name").fetchall()
+        for table in ("collection_session_steps", "collection_step_receipts"):
+            if table in result:
+                result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
 
 
@@ -65,7 +71,7 @@ class MentionGroupMigrationTests(unittest.TestCase):
         self.legacy()
         before = manifest(self.path)
         result = self.storage.migrate()
-        self.assertEqual((result["from_version"], result["to_version"]), (67, 68))
+        self.assertEqual((result["from_version"], result["to_version"]), (67, SCHEMA_VERSION))
         self.assertEqual(VERSION_TABLES[68] - VERSION_TABLES[67], {"mention_group_events", "mention_notification_operations"})
         self.assertEqual(manifest(self.path), before)
         self.assertEqual(manifest(result["backup"]), before)

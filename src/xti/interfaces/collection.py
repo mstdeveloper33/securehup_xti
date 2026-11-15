@@ -4,12 +4,14 @@ from xti.domain.brand_username_watches import BrandUsernameWatchRunReport
 from xti.domain.collection import CollectionPlan, CollectionResult, CollectionStep
 from xti.interfaces.analysis import report_lines as analysis_lines
 from xti.interfaces.public_notices import public_notice_collection_lines
+from xti.interfaces.news import refresh_lines as news_refresh_lines
+from xti.interfaces.global_saved_searches import run_lines as search_run_lines
 from xti.interfaces.ransomlook_watches import run_lines as ransomlook_watch_lines
 from xti.interfaces.ransomware_watches import run_lines as ransomware_watch_lines
 from xti.interfaces.text import safe_text
 
 
-_STATUS = {"complete": "Tamamlandı", "partial": "Kısmi", "failed": "Başarısız"}
+_STATUS = {"complete": "Tamamlandı", "partial": "Kısmi", "failed": "Başarısız", "skipped": "Atlandı"}
 _SOCIAL_ACTIONS = {
     "baseline_found": "başlangıçta bulundu, doğrulanmadı",
     "baseline_unreported": "başlangıçta raporlanmadı",
@@ -120,7 +122,7 @@ def _ransomware_lines(step: CollectionStep) -> list[str]:
     return lines
 
 
-def result_lines(result: CollectionResult) -> list[str]:
+def result_lines(result: CollectionResult, *, data_dir=None) -> list[str]:
     lines = [
         f"Pasif toplama: {safe_text(result.plan.asset_value)}",
         f"Genel sonuç: {_STATUS[result.status]}",
@@ -184,6 +186,15 @@ def result_lines(result: CollectionResult) -> list[str]:
                 lines.append("  Varsa önceki geçerli yerel IOC kaydı analizde korunur.")
         elif step.public_notices is not None:
             lines.extend("  " + line for line in public_notice_collection_lines(step.public_notices))
+        elif step.news is not None:
+            lines.extend("  " + line for line in news_refresh_lines(
+                step.news, limit=result.plan.watch_item_limit, data_dir=data_dir, comparison_pending=True,
+            ))
+            lines.append("  Haber sayısı yayıncıya aittir; seçilen domainin bulgu sayısı değildir.")
+        elif step.search is not None:
+            lines.extend("  " + line for line in search_run_lines(step.search, data_dir=data_dir))
+        elif step.task.kind == "search_watch" and step.status == "skipped":
+            lines.append("  Haber yenilemesi tamamlanamadı; eski katalogdan yeni bildirim üretilmedi.")
         elif step.username is not None:
             lines.extend(_username_lines(step.username))
         elif step.ransomware is not None:

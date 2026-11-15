@@ -7,6 +7,7 @@ import sqlite3
 import unittest
 from unittest.mock import patch
 
+from xti.adapters.collection_news_schema import COLLECTION_HISTORY_DDL
 from xti.adapters.case_public_notice_schema import (
     CASE_EVIDENCE_DDL, CASE_EVIDENCE_INDEX_DDL, CASE_EVIDENCE_V62_DDL,
     migrate_case_public_notice_schema,
@@ -137,11 +138,12 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
         after = declarations(self.path)
         self.assertTrue(before.keys() <= after.keys())
         changed = {key for key in before if before[key] != after.get(key)}
-        self.assertEqual(changed, {("table", "case_evidence")})
+        self.assertEqual(changed, {("table", "case_evidence"), ("table", "collection_session_steps"),
+                                   ("table", "collection_step_receipts")})
         added = {key: value for key, value in after.items() if key not in before}
         # Include SQLite's constraint auto-indexes as well as named declarations.
         with closing(sqlite3.connect(":memory:")) as expected_connection:
-            for statement in (*SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
+            for statement in (*COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
                 expected_connection.execute(statement)
             expected_added = {
                 (kind, name): declaration for kind, name, declaration in expected_connection.execute(

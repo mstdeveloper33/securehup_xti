@@ -130,6 +130,10 @@ class SQLiteCollectionHistoryRepository:
             if unit.watch is None:
                 continue
             watch = unit.watch
+            if unit.kind == "search_watch":
+                from xti.adapters.sqlite_collection_news import validate_search_target
+                validate_search_target(connection, watch)
+                continue
             table = {
                 "username_watch": "brand_username_watches",
                 "threatcluster": "ransomware_watches", "ransomlook": "ransomlook_watches",
@@ -253,7 +257,8 @@ class SQLiteCollectionHistoryRepository:
                 step = cls._step(_row(connection, "collection_session_steps", item[0]), unit, session)
                 if unit.watch is not None:
                     watch_table = (
-                        "brand_username_watches" if unit.kind == "username_watch"
+                        "global_saved_searches" if unit.kind == "search_watch"
+                        else "brand_username_watches" if unit.kind == "username_watch"
                         else "ransomware_watches" if unit.source == "threatcluster"
                         else "ransomlook_watches"
                     )
@@ -263,6 +268,11 @@ class SQLiteCollectionHistoryRepository:
                     _row(connection, watch_table, unit.watch.watch_id)
                 if step.ordinal != ordinal:
                     raise StorageError("Toplama adım sırası geçersiz.")
+                if step.kind == 'search_watch':
+                    from xti.adapters.sqlite_collection_news import news_source_cutoffs, news_dependencies_failed
+                    if ((step.status in {'running', 'complete'} and news_source_cutoffs(connection, session.id) is None)
+                            or (step.status == 'skipped' and not news_dependencies_failed(connection, session.id))):
+                        raise StorageError('Haber araması kaynak bağımlılıklarıyla uyuşmuyor.')
                 if step.depends_on_step_id is not None:
                     dependency = by_id.get(step.depends_on_step_id)
                     if (
@@ -388,6 +398,10 @@ class SQLiteCollectionHistoryRepository:
                 dependency = next(other for other in details.steps if other.id == step.depends_on_step_id)
                 if dependency.status != "complete":
                     raise ValidationError("Ransomware üyesi aynı yürütmede başarılı kaynak yenilemesi gerektirir.")
+            if step.kind == "search_watch":
+                from xti.adapters.sqlite_collection_news import news_source_cutoffs
+                if news_source_cutoffs(connection, session_id) is None:
+                    raise ValidationError("Haber araması üç başarılı kaynak toplaması gerektirir.")
             connection.execute("UPDATE collection_session_steps SET status='running',started_at=? WHERE id=? AND status='pending'", (started_at, step.id))
             self._details(connection, session_id)
             return CollectionOperationToken(session_id, step.id, step.target_sha256, step.depends_on_step_id)
@@ -410,14 +424,19 @@ class SQLiteCollectionHistoryRepository:
             raise ValidationError("Sonuçsuz toplama adımı kapanış nedeni geçersiz.")
         finished_at = canonical_time(finished_at)
         with self._write() as connection:
-            session, step, _, _ = operation_context(connection, token, allow_pending=True)
+            session, step, unit, _ = operation_context(connection, token, allow_pending=True)
             self._details(connection, session["id"])
             if status == "skipped":
-                if step["status"] != "pending" or error_code != "dependency_failed" or step["depends_on_step_id"] is None:
+                if step["status"] != "pending" or error_code != "dependency_failed" or (step["depends_on_step_id"] is None and unit.kind != "search_watch"):
                     raise ValidationError("Yalnız kaynak yenilemesi başarısız bekleyen üye atlanabilir.")
-                dependency = _row(connection, "collection_session_steps", step["depends_on_step_id"])
-                if dependency["status"] not in {"failed", "partial", "interrupted", "skipped"}:
-                    raise ValidationError("Atlama için başarısız kaynak yenilemesi gerekli.")
+                if unit.kind == "search_watch":
+                    from xti.adapters.sqlite_collection_news import news_dependencies_failed
+                    if not news_dependencies_failed(connection, session['id']):
+                        raise ValidationError('Haber araması yalnız kaynaklar tamamlanıp en az biri başarısız olunca atlanabilir.')
+                else:
+                    dependency = _row(connection, "collection_session_steps", step["depends_on_step_id"])
+                    if dependency["status"] not in {"failed", "partial", "interrupted", "skipped"}:
+                        raise ValidationError("Atlama için başarısız kaynak yenilemesi gerekli.")
             elif step["status"] != "running" and status != "interrupted":
                 raise ValidationError("Başlatılmayan adım başarısız sonuç olarak kapatılamaz.")
             self._abandon_scan(connection, step, finished_at, error_code)

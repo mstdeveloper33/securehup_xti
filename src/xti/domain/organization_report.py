@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from xti.domain.assets import ValidationError
 from xti.domain.cname import CnameDnsCheck
 from xti.domain.mail import MailDnsCheck
+from xti.domain.mentions import MentionRequest, MentionTarget
 from xti.domain.organization_scope import OrganizationScope
 from xti.domain.organizations import OrganizationLinkView
 from xti.domain.public_notices import PublicNotice
@@ -67,6 +68,52 @@ class OrganizationReportCoverage:
     latest_success: OrganizationReportAttempt | None
     freshness: str
     notes: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class OrganizationContentScope:
+    target: MentionTarget
+    request: MentionRequest | None
+    request_key: str | None
+    scope_status: str
+    current_group_ids: tuple[str, ...]
+    coverage: OrganizationReportCoverage
+    latest_success_result_count: int | None
+    retained_record_count: int
+    navigation: tuple[ReportNavigation, ...] = ()
+    notes: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class OrganizationReportContent:
+    organization_id: str
+    scopes: tuple[OrganizationContentScope, ...]
+    total_scope_count: int
+    scope_offset: int
+    scope_limit: int
+    has_more_scopes: bool
+    sections: tuple[OrganizationReportPage, ...]
+    notes: tuple[str, ...] = ()
+
+
+def content_scope_status(request: MentionRequest, *, current_target: MentionTarget | None,
+                         organization_active: bool, supplier_active: bool,
+                         supplier_linked: bool, configured_queries: tuple[tuple[str, int], ...],
+                         has_direct_search: bool) -> str:
+    """Keep changed identities, relationships and managed query scopes historical."""
+    if not organization_active:
+        return "inactive_organization"
+    if request.target.kind == "supplier":
+        if not supplier_active:
+            return "inactive_target"
+        if not supplier_linked:
+            return "inactive_relationship"
+    if current_target != request.target:
+        return "old_definition"
+    if (configured_queries and (request.topic, request.max_results) not in configured_queries
+            and (request.target.kind == "supplier" or not has_direct_search)):
+        return "old_request"
+    return "current"
 
 
 def report_freshness(at: str | None, observed_at: str, stale_after_hours: int) -> str:
@@ -133,3 +180,4 @@ class OrganizationReport:
     schema_version: int
     public_notice_watch: PublicNoticeWatchDetails | None = None
     public_notice_case_links: OrganizationReportPage | None = None
+    content: OrganizationReportContent | None = None

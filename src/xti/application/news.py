@@ -1,10 +1,12 @@
 """Explicit publisher refresh and local news lookup; collection is separate from watches."""
 
 from datetime import datetime, timezone
+from contextlib import nullcontext
 import re
 from uuid import UUID
 
 from xti.domain.assets import ValidationError
+from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.global_search import global_match, normalize_global_query
 from xti.domain.news import (
     NEWS_SOURCES, NewsDetail, NewsRefreshReport, NewsSearchReport, news_source,
@@ -37,13 +39,18 @@ class NewsService:
                 or type(limit) is not int or not 1 <= limit <= 500):
             raise ValidationError("Haber görünüm başlangıcı 0–1.000.000, sınırı 1–500 olmalı.")
 
-    def refresh(self, source_key: str, *, limit=20):
+    def refresh(self, source_key: str, *, limit=20, operation: CollectionOperationToken | None = None):
         news_source(source_key)
         self._page(0, limit)
         if self.source is None or self.lock is None:
             raise ValidationError("Haber toplama kaynağı ve yazıcı kilidi yapılandırılmalı.")
-        with self.lock.acquire():
+        # Recorded collection owns the shared lock. Its durable operation must
+        # be checked before transport, and again in the source commit.
+        with self.lock.acquire() if operation is None else nullcontext():
             self.repository.validate()
+            if operation is not None:
+                self.repository.validate_operation(source_key, operation)
+            kwargs = {"operation": operation} if operation is not None else {}
             started_at = self._now()
             try:
                 feed = self.source.fetch(source_key)
@@ -55,9 +62,9 @@ class NewsService:
                     raise SourceError("Haber kaynağından geçersiz kanıt alındı; önceki haberler korunur.") from error
             except SourceError as error:
                 run = self.repository.record_failure(source_key, started_at=started_at,
-                    finished_at=self._now(), error=str(error))
+                    finished_at=self._now(), error=str(error), **kwargs)
                 return NewsRefreshReport(run, (), 0)
-            return self.repository.apply(feed, started_at=started_at, finished_at=self._now(), limit=limit)
+            return self.repository.apply(feed, started_at=started_at, finished_at=self._now(), limit=limit, **kwargs)
 
     def list(self, query=None, *, source_key=None, offset=0, limit=20):
         self._page(offset, limit)

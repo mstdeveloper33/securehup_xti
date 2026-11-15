@@ -32,6 +32,9 @@ NEW_TABLES = (
 )
 
 
+from tests.collection_v68_fixture import legacy_collection_manifest_entry
+
+
 def legacy_snapshot(path):
     """All old SQL, columns, rowids, values, indexes, and sequence counters."""
     with closing(sqlite3.connect(path)) as connection:
@@ -55,6 +58,9 @@ def legacy_snapshot(path):
             "SELECT name, seq FROM sqlite_sequence WHERE name NOT IN (?, ?) ORDER BY name",
             ("public_notice_watch_events", "public_notice_watch_runs"),
         ).fetchall()
+        for table in ("collection_session_steps", "collection_step_receipts"):
+            if table in result:
+                result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
 
 

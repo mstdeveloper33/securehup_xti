@@ -28,6 +28,8 @@ RESULT_TABLES = {
     "scan_attempt": "scan_attempts", "discovery_run": "surface_discovery_runs",
     "feed_run": "cti_feed_runs", "username_run": "brand_username_watch_runs",
     "public_notice_run": "public_notice_runs",
+    "news_run": "news_runs",
+    "saved_search_run": "global_saved_search_runs",
     "threatcluster_source_run": "ransomware_claim_runs", "ransomlook_source_run": "ransomlook_claim_runs",
     "threatcluster_watch_run": "ransomware_watch_runs", "ransomlook_watch_run": "ransomlook_watch_runs",
 }
@@ -129,6 +131,22 @@ def validate_public_notice_operation(connection, operation: CollectionOperationT
         raise StorageError("Toplama kamu kataloğu işlemi etkin oturum kapsamıyla uyuşmuyor.")
 
 
+def validate_news_operation(connection, operation, *, source_key):
+    if operation is None:
+        return
+    from xti.domain.news import NEWS_POLICY, news_source
+    news_source(source_key)
+    session, step, unit, plan = operation_context(connection, operation)
+    if (unit.kind != 'news_refresh' or unit.source != source_key
+            or unit.step_key != 'news-refresh:' + source_key or unit.watch is not None
+            or unit.contract_version != NEWS_POLICY or step['depends_on_step_id'] is not None
+            or source_key not in plan.definition.news_sources):
+        raise ValidationError('Haber toplama işlemi dondurulmuş kaynak seçimiyle uyuşmuyor.')
+    from xti.adapters.sqlite_collection_history import SQLiteCollectionHistoryRepository
+    SQLiteCollectionHistoryRepository._details(connection, session['id'])
+    SQLiteCollectionHistoryRepository._current_origin(connection, plan)
+
+
 def source_result(connection, unit, definition, step, *, result_kind: str, result_id: str, result_status: str):
     """Validate the exact durable source row and derive bounded receipt counters."""
     if result_kind not in RESULT_TABLES or result_status not in RESULT_STATUSES:
@@ -138,11 +156,26 @@ def source_result(connection, unit, definition, step, *, result_kind: str, resul
         "scan": "scan_attempt", "discovery": "discovery_run", "ioc": "feed_run",
         "username_watch": "username_run", "public_notice": "public_notice_run", "ransomware_refresh": f"{unit.source}_source_run",
         "ransomware_watch": f"{unit.source}_watch_run",
+        "news_refresh": "news_run", "search_watch": "saved_search_run",
     }.get(unit.kind)
     if result_kind != expected_kind:
         raise StorageError("Toplama kaynak sonucu seçilen birime ait değil.")
     row = _row(connection, RESULT_TABLES[result_kind], result_id)
-    if result_kind == "public_notice_run":
+    if result_kind == 'news_run':
+        from xti.adapters.sqlite_news import _audit
+        from xti.domain.news import NEWS_POLICY
+        run = next((value for value in _audit(connection).runs if value.id == result_id), None)
+        if (run is None or unit.kind != 'news_refresh' or unit.contract_version != NEWS_POLICY
+                or unit.source not in definition.news_sources or unit.step_key != 'news-refresh:' + unit.source
+                or unit.watch is not None or run.source_key != unit.source or run.status != result_status
+                or step['started_at'] is None or run.started_at < step['started_at']):
+            raise StorageError('Haber sonucu dondurulmuş toplama adımıyla uyuşmuyor.')
+        counters = {key: value for key, value in asdict(run).items() if key.endswith('_count')}
+        recorded_at = run.finished_at
+    elif result_kind == 'saved_search_run':
+        from xti.adapters.sqlite_collection_news import validate_search_receipt
+        recorded_at, counters = validate_search_receipt(connection, unit, definition, step, result_id, result_status)
+    elif result_kind == "public_notice_run":
         _public_notice_unit(unit, definition, step)
         from xti.adapters.sqlite_public_notices import read_public_notice_history
         history = read_public_notice_history(connection)

@@ -3,6 +3,8 @@
 from xti.application.collection_history import CollectionResumeResult
 from xti.domain.collection_history import CollectionResumePlan, CollectionSessionDetails, CollectionSessionPage
 from xti.interfaces.analysis import report_lines as analysis_lines
+from xti.interfaces.news import news_command
+from xti.interfaces.global_saved_searches import search_watch_command
 from xti.interfaces.text import safe_text
 
 _STATUS = {
@@ -11,7 +13,17 @@ _STATUS = {
 }
 
 
-def _public_notice_lines(receipt) -> list[str]:
+def _source_receipt_lines(receipt, *, data_dir=None) -> list[str]:
+    if receipt.result_kind == "news_run":
+        return [
+            "    Kapsam: yayıncı haberleri; sayaçlar seçilen domainin bulguları değildir.",
+            "    Haber kanıtı: " + news_command("run-show", receipt.result_id, data_dir=data_dir),
+        ]
+    if receipt.result_kind == "saved_search_run":
+        return [
+            "    Kapsam: seçilen haber araması; eşleşme tek başına tehdit kararı değildir.",
+            "    Arama kanıtı: " + search_watch_command("run-show", receipt.result_id, data_dir=data_dir),
+        ]
     if receipt.result_kind != "public_notice_run":
         return []
     lines = [
@@ -53,7 +65,7 @@ def page_lines(page: CollectionSessionPage) -> list[str]:
     return lines
 
 
-def detail_lines(details: CollectionSessionDetails) -> list[str]:
+def detail_lines(details: CollectionSessionDetails, *, data_dir=None) -> list[str]:
     session = details.session
     lines = [
         f"Toplama oturumu: {safe_text(session.id)} | {_STATUS[session.status]}",
@@ -76,7 +88,7 @@ def detail_lines(details: CollectionSessionDetails) -> list[str]:
                 lines.append(f"    Bağlı kaynak yenilemesi: {safe_text(receipt.source_run_id)}")
             for name, value in receipt.summary:
                 lines.append(f"    {safe_text(name)}: {value}")
-            lines.extend(_public_notice_lines(receipt))
+            lines.extend(_source_receipt_lines(receipt, data_dir=data_dir))
         if step.error_code:
             lines.append(f"    Durma nedeni: {safe_text(step.error_code)}")
     for retained in details.retained:
@@ -84,7 +96,7 @@ def detail_lines(details: CollectionSessionDetails) -> list[str]:
             f"  Önceki yürütmeden korundu: {safe_text(retained.unit.step_key)} | "
             f"{safe_text(retained.receipt.result_id)} | {safe_text(retained.receipt.recorded_at)}"
         )
-        lines.extend(_public_notice_lines(retained.receipt))
+        lines.extend(_source_receipt_lines(retained.receipt, data_dir=data_dir))
     lines.extend([
         f"Yerel analiz durumu: {_STATUS[session.analysis_status]}",
         "Bu görünüm kayıtlı geçmişi okur; yeni kaynak sorgusu veya yeni analiz üretmez.",
@@ -97,7 +109,7 @@ def detail_lines(details: CollectionSessionDetails) -> list[str]:
     return lines
 
 
-def resume_plan_lines(plan: CollectionResumePlan) -> list[str]:
+def resume_plan_lines(plan: CollectionResumePlan, *, data_dir=None) -> list[str]:
     lines = [
         f"Eksik işlerin yeniden deneme planı: {safe_text(plan.parent.id)}",
         "Bu önizleme ağ isteği veya veri yazımı yapmadı.",
@@ -106,15 +118,15 @@ def resume_plan_lines(plan: CollectionResumePlan) -> list[str]:
         lines.append(f"  Çalıştırılacak: {safe_text(unit.step_key)}")
     for retained in plan.retained:
         lines.append(f"  Korunacak: {safe_text(retained.unit.step_key)} | {safe_text(retained.receipt.result_id)}")
-        lines.extend(_public_notice_lines(retained.receipt))
+        lines.extend(_source_receipt_lines(retained.receipt, data_dir=data_dir))
     if not plan.units:
         lines.append("Kaynaklar tamamlanmış; yalnız yerel analiz yeniden üretilecek.")
     return lines
 
 
-def resume_result_lines(result: CollectionResumeResult) -> list[str]:
+def resume_result_lines(result: CollectionResumeResult, *, data_dir=None) -> list[str]:
     return [
-        *detail_lines(result.history), "", "Şimdiki yerel kayıtlardan analiz:",
+        *detail_lines(result.history, data_dir=data_dir), "", "Şimdiki yerel kayıtlardan analiz:",
         *analysis_lines(result.analysis, after_collection=True), "",
         *(safe_text(note) for note in result.notes),
     ]

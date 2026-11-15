@@ -3215,6 +3215,7 @@ def make_collection_service(
     *, username_watch_ids: Sequence[str] = (),
     ransomware_watch_ids: Sequence[str] = (), ransomlook_watch_ids: Sequence[str] = (),
     watch_item_limit: int = 100,
+    news_sources: Sequence[str] = (), search_watch_ids: Sequence[str] = (),
 ) -> CollectionService:
     username_watch_ids, ransomware_watch_ids, ransomlook_watch_ids = (
         CollectionWatchService.validate_selection(
@@ -3277,6 +3278,10 @@ def make_collection_service(
         watch_collection = CollectionWatchService(
             username=username, ransomware_histories=histories, ransomware_watches=watches,
         )
+    news_searches = None
+    if search_watch_ids:
+        from xti.adapters.sqlite_collection_news import SQLiteCollectionNewsSearches
+        news_searches = SQLiteCollectionNewsSearches(settings.database)
     return CollectionService(
         make_jobs(settings, repository), discoveries, feeds,
         make_analysis_service(settings, repository),
@@ -3284,6 +3289,8 @@ def make_collection_service(
         public_notices=(PublicNoticeService(
             SQLitePublicNoticeRepository(settings.database), HibpPublicNoticeSource(),
         ) if "notices-hibp" in selected else None),
+        news=make_news_service(settings.database, refresh=True) if news_sources else None,
+        news_searches=news_searches,
     )
 
 
@@ -3295,6 +3302,8 @@ def make_collection_history_service(settings: Settings, repository: SQLiteAssetR
             ransomware_watch_ids=definition.ransomware_watch_ids,
             ransomlook_watch_ids=definition.ransomlook_watch_ids,
             watch_item_limit=definition.watch_item_limit,
+            news_sources=definition.news_sources,
+            search_watch_ids=definition.search_watch_ids,
         )
     return CollectionHistoryService(
         SQLiteCollectionHistoryRepository(settings.database), collection_factory,
@@ -3581,19 +3590,19 @@ def run(args: argparse.Namespace) -> int | None:
             emit(asdict(page), collection_history_page_lines(page), as_json=args.json)
         elif args.collection_action == "show":
             details = histories.show(args.session_id)
-            emit(asdict(details), collection_history_detail_lines(details), as_json=args.json)
+            emit(asdict(details), collection_history_detail_lines(details, data_dir=args.data_dir), as_json=args.json)
         elif args.collection_action == "recover":
             recovered = histories.recover()
             emit({"recovered_session_ids": recovered}, [f"Kapatılan kesilmiş çalışma: {len(recovered)}", *recovered], as_json=args.json)
         elif args.plan:
             plan = histories.resume_plan(args.session_id)
-            emit(asdict(plan), resume_plan_lines(plan), as_json=args.json)
+            emit(asdict(plan), resume_plan_lines(plan, data_dir=args.data_dir), as_json=args.json)
         else:
             result = histories.resume(args.session_id, progress=terminal_progress(args.json))
             if args.json:
                 print(json.dumps({"ok": result.history.session.status == "complete", "data": asdict(result)}, ensure_ascii=True))
             else:
-                for line in resume_result_lines(result):
+                for line in resume_result_lines(result, data_dir=args.data_dir):
                     print(line)
             return 0 if result.history.session.status == "complete" else 3
     elif args.command == "profiles":
@@ -3636,7 +3645,7 @@ def run(args: argparse.Namespace) -> int | None:
         if args.json:
             print(json.dumps({"ok": result.status == "complete", "data": asdict(result)}, ensure_ascii=True))
         else:
-            for line in collection_result_lines(result):
+            for line in collection_result_lines(result, data_dir=args.data_dir):
                 print(line)
         return 0 if result.status == "complete" else 3
     elif args.command == "analyze":

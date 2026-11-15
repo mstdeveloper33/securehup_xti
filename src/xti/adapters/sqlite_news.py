@@ -10,6 +10,9 @@ import re
 from uuid import UUID, uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.sqlite_collection_receipts import (
+    validate_news_operation, record_collection_step_receipt,
+)
 from xti.domain.assets import ValidationError
 from xti.domain.news import (
     NEWS_POLICY, NEWS_SOURCES, MAX_FEED_ARTICLES, MAX_NEWS_ARTICLES,
@@ -214,8 +217,30 @@ def _catalog(state):
     return NewsCatalog(tuple(state.current[key] for key in sorted(state.current)), tuple(sources))
 
 
-def read_news_catalog(connection):
-    return _catalog(_audit(connection))
+def read_news_catalog(connection, *, through_run_ids=None):
+    state = _audit(connection)
+    if through_run_ids is None:
+        return _catalog(state)
+    if (not isinstance(through_run_ids, dict)
+            or set(through_run_ids) != {source.key for source in NEWS_SOURCES}):
+        raise ValidationError('Haber kesiti üç yayıncı için açık kaynak çalışması gerektirir.')
+    by_id = {run.id: run for run in state.runs}
+    cutoffs = {}
+    for source, identifier in through_run_ids.items():
+        run = by_id.get(identifier)
+        if run is None or run.source_key != source or run.status != 'complete':
+            raise ValidationError('Haber kesitinin başarılı kaynak çalışma bağı geçersiz.')
+        cutoffs[source] = run.sequence
+    current, runs = {}, []
+    for run in state.runs:
+        if run.sequence > cutoffs[run.source_key]:
+            continue
+        runs.append(run)
+        if run.status == 'complete':
+            _, payload = state.snapshots[run.snapshot_sha256]
+            _, articles = articles_from_json(payload)
+            _advance(current, run, tuple((article, article_sha256(article)) for article in articles))
+    return _catalog(_State(tuple(runs), current, state.snapshots, state.chain, ()))
 
 
 class SQLiteNewsRepository:
@@ -226,6 +251,13 @@ class SQLiteNewsRepository:
         with self._storage._connection(readonly=True) as connection:
             connection.execute('BEGIN')
             _audit(connection)
+
+    def validate_operation(self, source_key, operation):
+        with self._storage._connection(readonly=True) as connection:
+            connection.execute('BEGIN')
+            state = _audit(connection)
+            self._capacity(state, state.runs[-1].finished_at if state.runs else '0001-01-01T00:00:00+00:00')
+            validate_news_operation(connection, operation, source_key=source_key)
 
     @staticmethod
     def _capacity(state, finished_at):
@@ -240,7 +272,7 @@ class SQLiteNewsRepository:
         connection.execute(f'INSERT INTO news_runs ({_RUN_SELECT},chain_sha256) '
                            f'VALUES ({",".join("?" for _ in values)})', values)
 
-    def apply(self, feed: NewsFeed, *, started_at, finished_at, limit=20, offset=0):
+    def apply(self, feed: NewsFeed, *, started_at, finished_at, limit=20, offset=0, operation=None):
         _page(limit, offset)
         _times(started_at, finished_at)
         validate_feed(feed)
@@ -251,6 +283,7 @@ class SQLiteNewsRepository:
             try:
                 connection.execute('BEGIN IMMEDIATE')
                 state = _audit(connection)
+                validate_news_operation(connection, operation, source_key=feed.source_key)
                 self._capacity(state, finished_at)
                 byte_count = sum(len(item[1]) for item in state.snapshots.values())
                 if digest not in state.snapshots and byte_count + len(payload) > MAX_NEWS_TOTAL_BYTES:
@@ -277,13 +310,15 @@ class SQLiteNewsRepository:
                         'first_run_id=excluded.first_run_id,last_change_run_id=excluded.last_change_run_id,'
                         'last_seen_run_id=excluded.last_seen_run_id,first_seen_at=excluded.first_seen_at,'
                         'last_changed_at=excluded.last_changed_at,last_seen_at=excluded.last_seen_at', row)
+                record_collection_step_receipt(connection, operation, result_kind='news_run',
+                                               result_id=run.id, result_status=run.status)
                 connection.commit()
             except BaseException:
                 connection.rollback()
                 raise
         return NewsRefreshReport(run, changes[offset:offset + limit], len(changes), offset)
 
-    def record_failure(self, source_key, *, started_at, finished_at, error):
+    def record_failure(self, source_key, *, started_at, finished_at, error, operation=None):
         news_source(source_key)
         _times(started_at, finished_at)
         news_text(error, maximum=2000)
@@ -291,10 +326,13 @@ class SQLiteNewsRepository:
             try:
                 connection.execute('BEGIN IMMEDIATE')
                 state = _audit(connection)
+                validate_news_operation(connection, operation, source_key=source_key)
                 self._capacity(state, finished_at)
                 run = NewsRun(state.runs[-1].sequence + 1 if state.runs else 1, str(uuid4()),
                               source_key, 'failed', started_at, finished_at, None, None, None, 0, 0, 0, 0, error)
                 self._insert_run(connection, run, state.chain)
+                record_collection_step_receipt(connection, operation, result_kind='news_run',
+                                               result_id=run.id, result_status=run.status)
                 connection.commit()
             except BaseException:
                 connection.rollback()

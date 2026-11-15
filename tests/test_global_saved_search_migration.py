@@ -14,6 +14,9 @@ from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from tests.global_saved_search_legacy_fixture import remove_global_saved_search_schema
 
 
+from tests.collection_v68_fixture import legacy_collection_manifest_entry
+
+
 def legacy_manifest(path):
     """Every legacy row, rowid, column and SQL declaration, not a count sample."""
     with closing(sqlite3.connect(Path(path).absolute().as_uri() + "?mode=ro", uri=True)) as connection:
@@ -30,6 +33,9 @@ def legacy_manifest(path):
         manifest["sqlite_sequence"] = connection.execute(
             "SELECT name,seq FROM sqlite_sequence ORDER BY name"
         ).fetchall()
+        for table in ("collection_session_steps", "collection_step_receipts"):
+            if table in manifest:
+                manifest[table] = legacy_collection_manifest_entry(table, manifest[table])
         return manifest
 
 

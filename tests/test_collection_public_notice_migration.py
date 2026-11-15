@@ -164,7 +164,7 @@ class CollectionPublicNoticeMigrationTests(unittest.TestCase):
             values = (str(uuid4()), details.session.id, 59, "notices-hibp", "public_notice", "hibp", "a" * 64, "pending")
             connection.execute("INSERT INTO collection_session_steps (id,session_id,ordinal,step_key,kind,source,target_sha256,status) VALUES (?,?,?,?,?,?,?,?)", values)
             with self.assertRaisesRegex(sqlite3.IntegrityError, "CHECK"):
-                connection.execute("UPDATE collection_session_steps SET ordinal=60 WHERE id=?", (values[0],))
+                connection.execute("UPDATE collection_session_steps SET ordinal=63 WHERE id=?", (values[0],))
             with self.assertRaisesRegex(sqlite3.IntegrityError, "CHECK"):
                 connection.execute("UPDATE collection_step_receipts SET public_notice_run_id=?", (run.id,))
             receipt_sql = "INSERT INTO collection_step_receipts (step_id,recorded_at,result_status,summary_json,summary_sha256,public_notice_run_id) VALUES (?,?,?,?,?,?)"

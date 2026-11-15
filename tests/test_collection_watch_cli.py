@@ -351,7 +351,7 @@ class CollectionWatchCLITests(unittest.TestCase):
         tc = self.add_tc()
         self.threatcluster.value = SourceError("Kaynak kesildi.")
 
-        def render_untrusted_error(result):
+        def render_untrusted_error(result, **options):
             # Persistence rejects controls independently. Exercise the public
             # renderer's trust boundary using the actual failed CLI result.
             step = next(step for step in result.steps if step.ransomware is not None)
@@ -362,7 +362,7 @@ class CollectionWatchCLITests(unittest.TestCase):
             changed = replace(step, ransomware=replace(step.ransomware, refresh=refresh))
             return result_lines(replace(result, steps=tuple(
                 changed if item is step else item for item in result.steps
-            )))
+            )), **options)
 
         with patch("xti.interfaces.cli.collection_result_lines", side_effect=render_untrusted_error):
             code, output, _ = self.invoke(

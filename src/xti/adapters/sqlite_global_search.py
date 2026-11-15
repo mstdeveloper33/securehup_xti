@@ -61,12 +61,13 @@ def _nav(label, *arguments):
 
 class _SearchReader:
     def __init__(self, connection, path, query, include_inactive, checked_at, *, tracking=False,
-                 mention_request_key=None, mention_run_id=None):
+                 mention_request_key=None, mention_run_id=None, news_run_ids=None):
         self.connection, self.path, self.query = connection, path, query
         self.include_inactive, self.checked_at = include_inactive, checked_at
         self.results, self.coverage = [], []
         self.observations = [] if tracking else None
         self.mention_request_key, self.mention_run_id = mention_request_key, mention_run_id
+        self.news_run_ids = news_run_ids
 
     def track(self, result, *, identity=None, semantic=None):
         if self.observations is None:
@@ -323,7 +324,7 @@ class _SearchReader:
                      license_note=history.attribution + ' | ' + history.license)
 
     def news(self):
-        catalog = read_news_catalog(self.connection)
+        catalog = read_news_catalog(self.connection, through_run_ids=self.news_run_ids)
         for status in catalog.sources:
             start = len(self.results)
             source = status.source
@@ -512,15 +513,17 @@ class _SearchReader:
 
 
 def read_global_search_snapshot(connection, path, query, *, kinds, include_inactive, checked_at,
-                                tracking=False, mention_request_key=None, mention_run_id=None):
+                                tracking=False, mention_request_key=None, mention_run_id=None, news_run_ids=None):
     """Compose all selected families inside the caller's existing transaction."""
     if mention_request_key is not None and (kinds != ('mention',) or query != mention_request_key
                                            or include_inactive):
         raise ValueError('Typed mention search requires its exact request scope')
     if mention_run_id is not None and mention_request_key is None:
         raise ValueError('Historical mention source run requires an exact request scope')
+    if news_run_ids is not None and (kinds != ("news",) or include_inactive):
+        raise ValueError("Historical news collection requires news-only scope")
     reader = _SearchReader(connection, path, query, include_inactive, checked_at, tracking=tracking,
-                           mention_request_key=mention_request_key, mention_run_id=mention_run_id)
+                           mention_request_key=mention_request_key, mention_run_id=mention_run_id, news_run_ids=news_run_ids)
     handlers = {'domain': reader.domains, 'finding': reader.findings, 'social': reader.social,
                 'ransomware': reader.ransomware, 'public-notice': reader.public_notices, 'news': reader.news,
                 'mention': reader.mentions,

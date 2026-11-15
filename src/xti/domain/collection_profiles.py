@@ -9,9 +9,11 @@ import unicodedata
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.collection import COLLECTION_TASK_IDS, DEFAULT_COLLECTION_TASKS
 from xti.domain.cti_knowledge import normalize_knowledge_id
+from xti.domain.news import NEWS_SOURCES, news_source
 
 
 PROFILE_DEFINITION_VERSION = 1
+NEWS_PROFILE_DEFINITION_VERSION = 2
 MAX_PROFILE_DEFINITION_BYTES = 16_384
 MAX_PROFILE_WATCHES = 50
 PROFILE_ACTIONS = frozenset({"added", "updated", "reactivated", "revoked"})
@@ -52,6 +54,24 @@ class CollectionProfileDefinition:
     stale_after_hours: int = 24
     finding_limit: int = 10
     watch_item_limit: int = 100
+    news_sources: tuple[str, ...] = ()
+    search_watch_ids: tuple[str, ...] = ()
+
+
+def normalize_news_selection(sources: Sequence[str], search_ids: Sequence[str], *,
+                             require_all_sources: bool = True) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    if (not isinstance(sources, Sequence) or isinstance(sources, (str, bytes))
+            or len(sources) > len(NEWS_SOURCES)):
+        raise ValidationError("Haber kaynakları açık kaynak anahtarlarıyla seçilmeli.")
+    for source in sources:
+        news_source(source)
+    if len(set(sources)) != len(sources):
+        raise ValidationError("Haber kaynakları tekrarlı olamaz.")
+    selected = tuple(source.key for source in NEWS_SOURCES if source.key in sources)
+    searches = _watch_ids(search_ids)
+    if searches and require_all_sources and len(selected) != len(NEWS_SOURCES):
+        raise ValidationError("Kayıtlı haber araması için cisa, ncsc ve cert-fr kaynaklarının üçü de açıkça seçilmeli.")
+    return selected, searches
 
 
 def _watch_ids(values: Sequence[str]) -> tuple[str, ...]:
@@ -70,9 +90,10 @@ def normalize_profile_definition(value: CollectionProfileDefinition) -> Collecti
     if not isinstance(value, CollectionProfileDefinition):
         raise ValidationError("Geçerli bir toplama profil tanımı gerekli.")
     tasks = value.task_ids
+    news_sources, search_ids = normalize_news_selection(value.news_sources, value.search_watch_ids)
     if (
         not isinstance(tasks, Sequence) or isinstance(tasks, (str, bytes))
-        or not 1 <= len(tasks) <= len(COLLECTION_TASK_IDS)
+        or not (0 if news_sources else 1) <= len(tasks) <= len(COLLECTION_TASK_IDS)
         or any(not isinstance(task, str) or task not in COLLECTION_TASK_IDS for task in tasks)
     ):
         raise ValidationError(f"Profil için desteklenen 1–{len(COLLECTION_TASK_IDS)} temel görev seçilmeli.")
@@ -94,19 +115,23 @@ def normalize_profile_definition(value: CollectionProfileDefinition) -> Collecti
             value.username_watch_ids, value.ransomware_watch_ids, value.ransomlook_watch_ids,
         )
     )
-    if sum(map(len, (username, ransomware, ransomlook))) > MAX_PROFILE_WATCHES:
+    if sum(map(len, (username, ransomware, ransomlook, search_ids))) > MAX_PROFILE_WATCHES:
         raise ValidationError("Profilde toplam en fazla 50 açık izleme kimliği seçilebilir.")
     return CollectionProfileDefinition(
         normalize_domain(value.asset_value),
         tuple(task for task in COLLECTION_TASK_IDS if task in tasks),
         username, ransomware, ransomlook, value.typos, value.stale_after_hours,
-        value.finding_limit, value.watch_item_limit,
+        value.finding_limit, value.watch_item_limit, news_sources, search_ids,
     )
 
 
 def canonical_definition_json(value: CollectionProfileDefinition) -> str:
     payload = asdict(normalize_profile_definition(value))
-    payload["version"] = PROFILE_DEFINITION_VERSION
+    if payload["news_sources"] or payload["search_watch_ids"]:
+        payload["version"] = NEWS_PROFILE_DEFINITION_VERSION
+    else:
+        del payload["news_sources"], payload["search_watch_ids"]
+        payload["version"] = PROFILE_DEFINITION_VERSION
     return json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
 
 
@@ -117,14 +142,19 @@ def parse_definition_json(value: str) -> CollectionProfileDefinition:
     try:
         payload = json.loads(value)
         keys = set(CollectionProfileDefinition.__dataclass_fields__) | {"version"}
+        if isinstance(payload, dict) and payload.get("version") == PROFILE_DEFINITION_VERSION:
+            keys -= {"news_sources", "search_watch_ids"}
         if (
             not isinstance(payload, dict) or set(payload) != keys
             or type(payload["version"]) is not int
-            or payload["version"] != PROFILE_DEFINITION_VERSION
+            or payload["version"] not in {PROFILE_DEFINITION_VERSION, NEWS_PROFILE_DEFINITION_VERSION}
         ):
             raise ValueError("unsupported definition")
         payload.pop("version")
-        for key in ("task_ids", "username_watch_ids", "ransomware_watch_ids", "ransomlook_watch_ids"):
+        for key in ("task_ids", "username_watch_ids", "ransomware_watch_ids", "ransomlook_watch_ids",
+                    "news_sources", "search_watch_ids"):
+            if key not in payload:
+                continue
             if not isinstance(payload[key], list):
                 raise ValueError("invalid selection")
             payload[key] = tuple(payload[key])

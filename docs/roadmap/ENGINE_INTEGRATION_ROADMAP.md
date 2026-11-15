@@ -1,7 +1,7 @@
 # XTI motoru yol haritası ve tüketici ekibe teslim sınırı
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.145.0 / şema 68.
+**Mevcut sürüm:** 0.146.0 / şema 69.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
 ENG-03'ün kaynaklar arası olay adayları ile kayıtlı genel arama ve yerel
@@ -9,8 +9,9 @@ bildirim dilimleri uygulandı. ENG-04'ün ilk RSS/Atom haber teslimi de
 uygulandı. 0.144.0 Tavily ile seçili firma/kuruluş/tedarikçi için tek
 istekli web/haber araması ve kaynaklı geçmiş ekler. 0.145.0 kuruluş–tedarikçi
 izleme grubunu, bütçeli düzenli Tavily toplamasını ve mevcut inbox bağlantısını
-uygular. Sonraki kapsam gerçek kaynak kullanımının kabulü, ölçülen kaynak
-boşlukları ve RSS haberlerin genel toplama iş akışına bağlanmasıdır.
+uygular. 0.146.0 RSS profillerini, seçilmiş haber araması/inbox bağlantısını
+ve kuruluş raporundaki firma/tedarikçi içeriklerini ekler.
+Sonraki kapsam gerçek Tavily kullanımının kabulü ve ölçülen kaynak boşluklarıdır.
 Bu sonraki işler henüz uygulanmadı.
 .NET tüketicisi henüz bağlı değildir; bağlantıyı repoyu kullanan ekip yapar.
 [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
@@ -216,7 +217,7 @@ teslim hazırlığı ve ENG-07 en sondadır; gerçek .NET uygulaması dış ekib
 | **ENG-01 — Motor/.NET sözleşmesi** | 0.139.0: sürümlü yerel `search`, `record.get`, `sources.status` ve örnekleri uygulandı | Salt okuma, eski komut uyumu, tam/boş/hatalı/eski kaynak, kapsam reddi ve kayıt referansı kabulü; gerçek .NET tüketicisi ENG-05'te açık |
 | **ENG-02 — Bileşen ve kaynak düzeni** | 0.140.0: üç mevcut araç için ortak pin, açık yapılandırma ve yerel kurulum kataloğu; CLI/engine okuması uygulandı | Kurulum gözlemi canlı kaynak durumundan ayrı, araç yokken eski kanıt okunabilir, pin kayması testli; yeni araçlar aynı sınırla eklenir |
 | **ENG-03 — Olay adayları ve genel arama izlemesi** | 0.141.0: olay adayları; 0.142.0: `search-watch`, yerel inbox ve sınırlı ön plan tekrarı uygulandı | Kaynak/tarih ayrımı, değişmez tanım ve tam sonuç/kapsam kanıtı, sessiz başlangıç, yeni/anlamlı değişmiş eşleşmede atomik bildirim; yalnız çıkarılma geçmişte kalır |
-| **ENG-04 — Haber ve kaynak genişlemesi** | 0.143.0 RSS/Atom; 0.144.0 Tavily tekil arama; 0.145.0 bütçeli kuruluş/tedarikçi grup toplama, zamanlama ve inbox bağlantısı uygulandı. RSS profilleri ve ölçülmüş kaynak boşlukları sonraki kapsam | Kaynak atfı, kalıcı kanıt, eski sonuçları koruma; kesin hedef/sorgu kapsamı, kalıcı bütçe ve kesintide tekrar güvenliği; ilk sessiz başlangıç ve yeni/değişen içerik bildirimi |
+| **ENG-04 — Haber ve kaynak genişlemesi** | 0.143.0 RSS/Atom; 0.144.0 Tavily tekil arama; 0.145.0 bütçeli kuruluş/tedarikçi izleme; 0.146.0 RSS profili/zamanlama/inbox ve birleşik içerik raporu uygulandı. Gerçek Tavily kabulü ve ölçülmüş kaynak boşlukları sonraki kapsam | Kaynak atfı, kalıcı kanıt, eski sonuçları koruma; kesin hedef/sorgu kapsamı, kalıcı bütçe ve kesintide tekrar güvenliği; ilk sessiz başlangıç ve yeni/değişen içerik bildirimi |
 | **ENG-05 — Tüketici ekibe teslim; en sonda** | Bu repo sözleşme, örnekler ve belgeleri sağlar; .NET adaptörünü ve gerçek bağlantı kabulünü repoyu kullanan ekip yapar | Motorun kendi sözleşme testleri korunur; platform sürüm/taşıma/kapsam ve iki taraflı kabulü tüketici ekibin sorumluluğudur |
 | **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü; araç kurulum bütünlüğü ve kesinti sonrası geri dönüş | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
 | **ENG-07 — En sona ertelenen motor yetenekleri** | Gerektikçe geniş STIX/diğer paylaşım çıktıları ve isteğe bağlı LLM | İlk üç özellikten sonra değerlendirilir; kaynaklı sonuç sözleşmesi korunur, model/sağlayıcı hatası çekirdeği durdurmaz |
@@ -227,8 +228,9 @@ bütünlüğü veya canlı çalışma kabulü değildir; ileri işletim işleri 
 açıktır. İlk olay adayı, genel arama bildirimi ve üç yayıncıdan RSS/Atom
 haber toplama dilimleri tamamlandı. Tavily kuruluş/tedarikçi grup izleme,
 bütçe, zamanlama ve inbox bağlantısı da 0.145.0'da eklendi. RSS haberlerinin
-`collect` profillerine ve zamanlamaya katılması, ayrıca kanıtlanmış kapsam boşluğuna yeni kaynak
-eklenmesi sonraki işlerdir. Geniş paylaşım ve LLM en sondadır. Mevcut
+`collect` profillerine ve zamanlamaya katılması ile birleşik içerik raporu
+0.146.0'da eklendi. Gerçek Tavily kabulü ve kanıtlanmış kapsam boşluğuna
+yeni kaynak eklenmesi sonraki işlerdir. Geniş paylaşım ve LLM en sondadır. Mevcut
 özelliklerin kullanımı devam eder.
 
 ### ENG-03 ilk teslimi — 0.141.0

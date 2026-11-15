@@ -24,6 +24,7 @@ from xti.adapters.schema import (
     create_collection_profile_schema,
     create_collection_history_schema,
     migrate_collection_public_notice_schema,
+    migrate_collection_news_schema,
     create_organization_schema,
     create_ransomlook_notification_schema,
     create_attack_catalog_schema,
@@ -1033,6 +1034,8 @@ class SQLiteAssetRepository:
                 if version < 68:
                     upgrade_global_saved_search_scopes(connection)
                     create_mention_group_schema(connection)
+                if 56 <= version < 69:
+                    migrate_collection_news_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

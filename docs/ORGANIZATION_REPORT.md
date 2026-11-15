@@ -1,6 +1,6 @@
 # Kuruluş raporu: günlük kullanım
 
-0.137.0 · şema 63. Eski kurulumda önce `./xti migrate` çalıştır; komut
+0.146.0 · şema 69. Eski kurulumda önce `./xti migrate` çalıştır; komut
 geçişten önce benzersiz geri dönüş yedeği oluşturur.
 
 Raporda kuruluşa ait kamu olay izlemesinin tarihî bölümü de bulunur. Bu
@@ -41,6 +41,9 @@ Toplama için mevcut `collect`/profil komutlarını kullanmaya devam edersin.
 | Kamu ihlal kataloğu | HIBP'nin domain alanıyla birebir eşleşen olay metaverisi |
 | Kaynak durumu | Son deneme, son başarılı kayıt, hata ve eski/eksik veri ayrımı |
 | İnceleme | İlgili mevcut bildirim ve vaka kimliklerine geçiş komutları |
+| Firma içerikleri | Kesin kuruluş kimliğiyle toplanmış Tavily sonuçları, başlık, özet, bağlantı ve arama kapsamı |
+| Tedarikçi içerikleri | Etkin `mentions groups` içinde açıkça seçilmiş etkin tedarikçilerin kaynaklı sonuçları |
+| Tarihî içerikler | Eski isim/domain/sorgu kapsamları ve kaldırılmış tedarikçi ilişkilerine ait korunan kanıt |
 
 Rapor internete çıkmaz ve yeni veri üretmez. Başarısız son deneme önceki
 başarılı veriyi güncel başarıya dönüştürmez. İzleme tanımı değiştiyse eski
@@ -48,7 +51,7 @@ tanımın sonucu yeni sorgunun sonucu gibi sunulmaz. Kaynak yenilemesi ile
 izleme çalışması ayrı gösterilir. Varsayılan güncellik eşiği 24 saattir;
 `--stale-after-hours` yalnız raporun yaş değerlendirmesini değiştirir.
 
-Yalnız **şu an etkin** kuruluş, bağlantı ve hedefler kapsamı oluşturur.
+Güncel domain/izleme bölümlerini **şu an etkin** kuruluş, bağlantı ve hedefler oluşturur.
 `organizations show` geri çekilmiş bağlantıları ve geçmişi de açar. Bu
 kişisel gruplamadır; takım/müşteri erişim yetkilendirmesi sağlamaz. Bir vaka
 birden fazla gruba ait kanıt içeriyorsa rapor yalnız eşleşen bağlantının
@@ -65,6 +68,33 @@ Hedef sayfası ve bölüm içi sayfa bağımsızdır. Görünüm sınırı topla
 değiştirmez; sonraki sayfa çıktıda belirtilir. Ağ/işleme güvenlik sınırları
 gösterim sayfasından ayrıdır; bütünlük denetimi sınırı aşılırsa komut bunu
 açık hata olarak bildirir, eksik toplamı tam sonuç gibi sunmaz.
+
+### Firma ve tedarikçi içeriği
+
+Bu bölüm saklanan [firma aramalarını](MENTIONS.md) kullanır. Raporu açmak
+Tavily'ye bağlanmaz, anahtar istemez ve kredi tüketmez. Firmanın adı başka
+bir hedefin metninde geçtiği için o kayıt kuruluşa eklenmez; kesin hedef
+kimliği kullanılır. Bağımsız `company` araması aynı adı taşısa bile kayıtlı
+`organization` aramasının yerine geçmez.
+
+Güncel tedarikçiler kuruluşun etkin [izleme gruplarında](MENTION_GROUPS.md)
+açıkça seçilmiş kimliklerdir. Bu kişisel veri alanında aynı tedarikçinin
+kayıtları ortak kullanılabilir; müşteri erişim yalıtımı değildir. İlişki
+kaldırılırsa yalnız o kuruluşun geçmiş grup çalışmalarındaki kaynak kanıtı
+tarihî bölümde gösterilir. Başka kuruluşun sonraki araması bu eski ilişkiye
+eklenmez.
+
+Firma/tedarikçi adı veya domaini değiştiğinde eski sorgu yeni sorgu gibi
+sunulmaz. Her tam sorgu için son deneme, son başarı, başarılı boş yanıt ve
+hata ayrıdır. Son başarılı sonuç penceresinden çıkan eski kayıt korunur
+ve bu durum belirtilir. Kaynak puanı risk puanı değildir.
+
+`--target-offset/--target-limit` içerik kapsamlarını da sayfalar;
+`--item-offset/--item-limit` güncel ve tarihî içerik bölümlerini sayfalar.
+Toplamlar birbirinden bağımsızdır. İçerik kayıtları gösterilen kapsam
+sayfasıyla daralmaz. Mevcut HTML dışa aktarımı bu bölümleri de alır; eksik
+sayfa tam rapor diye yazılmaz. Bu, bütün API çalışma geçmişinin dökümü
+değildir; önceki kaynak çalışmalarını verilen ayrıntı komutlarıyla açabilirsin.
 
 ## 3. Son günün veya haftanın farklarını incele
 

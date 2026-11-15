@@ -14,12 +14,14 @@ from xti.interfaces.cname import check_lines as cname_lines
 from xti.interfaces.mail import check_lines as mail_lines
 from xti.interfaces.services import check_lines as service_lines
 from xti.interfaces.surface import check_lines as web_lines
+from xti.interfaces.organization_report import CONTENT_SCOPE_LABELS
 
 
 _SECTIONS = {"findings": "Domain ve marka bulguları", "surface_candidates": "Pasif alt alan adı adayları",
              "profiles": "Sosyal profil sonuçları", "claims": "Kaynak iddiaları",
              "public_notices": "Kamu olay kataloğu", "notifications": "Yerel bildirimler",
-             "case_links": "Açık vaka bağlantıları", "public_notice_case_links": "Kamu olay vaka bağlantıları"}
+             "case_links": "Açık vaka bağlantıları", "public_notice_case_links": "Kamu olay vaka bağlantıları",
+             "content": "Güncel kapsamın içerik adayları", "historical_content": "Tarihî kapsamın içerik adayları"}
 _FRESHNESS = {"never": "Başarılı kayıt yok", "current": "Güncel", "stale": "Eski",
               "clock_error": "Gelecek zamanlı kayıt"}
 _STATUS = {"complete": "Tamamlandı", "partial": "Kısmi", "failed": "Başarısız",
@@ -27,7 +29,10 @@ _STATUS = {"complete": "Tamamlandı", "partial": "Kısmi", "failed": "Başarıs�
            "pending": "İnceleme bekliyor", "owned": "Kullanıcı bana ait olarak işaretledi", "rejected": "Reddedildi",
            "unread": "Okunmadı", "read": "Okundu", "source_metadata": "Kaynak metaverisi",
            "added": "Yeni eşleşen kayıt", "updated": "Değişen kayıt", "removed": "Eşleşmeden çıkan kayıt",
-           "unchanged": "Değişmeyen kayıt", "baseline": "Sessiz başlangıç", "enabled": "Açıldı", "disabled": "Kapatıldı"}
+           "unchanged": "Değişmeyen kayıt", "baseline": "Sessiz başlangıç", "enabled": "Açıldı", "disabled": "Kapatıldı",
+           "empty": "Başarılı, boş sonuç", "reserved": "Kaynak çağrısı ayrıldı, sonuç bilinmiyor", "unknown": "Kaynak sonucu bilinmiyor",
+           "source_candidate": "Arama adayı", "retained_candidate": "Önceki aramadan korunan aday",
+           "historical_candidate": "Tarihî kapsamın adayı"}
 _KINDS = {"domain": "Domain", "username-watch": "Kullanıcı adı izlemesi",
           "ransomware-watch": "ThreatCluster izlemesi", "ransomlook-watch": "RansomLook izlemesi"}
 
@@ -167,7 +172,7 @@ class HtmlOrganizationReportRenderer:
         yield '<nav class="toc" aria-label="Rapor bölümleri"><a href="#scope">Açık kapsam</a>'
         for index, target in enumerate(report.targets):
             yield f'<a href="#target-{index}">{_text(target.membership.target.display_name)}</a>'
-        yield '<a href="#public-watch">Kamu olay izleme geçmişi</a><a href="#public-cases">Kamu olay vaka bağlantıları</a></nav></section>'
+        yield '<a href="#content">Firma ve tedarikçi içerikleri</a><a href="#public-watch">Kamu olay izleme geçmişi</a><a href="#public-cases">Kamu olay vaka bağlantıları</a></nav></section>'
         yield '<section class="panel" id="scope"><h2>Açık kuruluş kapsamı</h2><p class="muted">Etkin olmayan bağlantılar da açıklamasıyla listelenir; güncel hedef bölümlerine kanıt eklemezler.</p>'
         if report.scope.links:
             yield '<div class="table-wrap"><table class="scope"><thead><tr><th>Hedef</th><th>Tür</th><th>Durum</th><th>Açık bağlantı</th></tr></thead><tbody>'
@@ -220,6 +225,7 @@ class HtmlOrganizationReportRenderer:
                     yield _record(record)
             yield _commands(target.navigation)
             yield '<ul class="fine">' + ''.join(f'<li>{_text(note)}</li>' for note in target.notes) + '</ul><a class="back" href="#top">Başa dön</a></section>'
+        yield from self._content(snapshot)
         yield from self._watch_history(snapshot)
         yield '<section class="panel" id="public-cases"><h2>Kamu olay vaka bağlantıları</h2><p class="fine">Yalnız bu kuruluşun tam kaynak kanıtına açıkça bağlanan vaka kimlikleri gösterilir. Başka vaka kanıtlarının içeriği bu dosyaya katılmaz.</p>'
         cases = report.public_notice_case_links
@@ -231,6 +237,38 @@ class HtmlOrganizationReportRenderer:
         yield '</section><footer><p>Tek dosya · JavaScript, uzaktan font veya görsel içermez. Bağlantılara tıklamak seçilen dış kaynak sitesini açar; terminal komutları yalnız gezinme bilgisidir.</p>'
         yield ''.join(f'<p>{_text(note)}</p>' for note in report.notes)
         yield '</footer></main></body></html>'
+
+    def _content(self, snapshot: OrganizationExportSnapshot) -> Iterable[str]:
+        content = snapshot.report.content
+        yield '<section class="panel" id="content"><h2>Firma ve tedarikçi içerikleri</h2>'
+        if content is None:
+            yield '<p class="empty">Kayıtlı içerik raporu yok.</p></section>'
+            return
+        yield '<p>Kaynak: Tavily. İçerikler arama adaylarıdır; doğrulanmış tehdit veya ihlal değildir.</p>'
+        yield f'<h3>İstek kapsamları · {content.total_scope_count} kaydın tamamı</h3>'
+        for item in content.scopes:
+            target, coverage = item.target, item.coverage
+            yield '<article class="evidence"><h4>' + _text(target.name) + '</h4>'
+            yield _meta((("Hedef türü", target.kind), ("Kesin hedef kimliği", target.id),
+                ("Kapsam durumu", CONTENT_SCOPE_LABELS[item.scope_status]),
+                ("Aramadaki domainler", ", ".join(target.domains) or "yok"),
+                ("Güncel açık grup kimlikleri", ", ".join(item.current_group_ids) or "yok"),
+                ("Konu", item.request.topic if item.request else "Kayıtlı arama yok"),
+                ("Sonuç sınırı", item.request.max_results if item.request else None),
+                ("İstek özeti", item.request_key),
+                ("Son başarılı aramanın sonuç sayısı", item.latest_success_result_count if item.latest_success_result_count is not None else "Başarılı kayıt yok"),
+                ("Korunan aday sayısı", item.retained_record_count)))
+            yield '<p>Bu istek kapsamının kaynak güncelliği: ' + _pill(coverage.freshness, freshness=True) + '</p>'
+            yield '<div class="columns"><div><h4>Son deneme</h4>' + _attempt(coverage.latest_attempt) + '</div><div><h4>Son başarılı kayıt</h4>' + _attempt(coverage.latest_success) + '</div></div>'
+            yield '<ul class="fine">' + ''.join(f'<li>{_text(note)}</li>' for note in (*coverage.notes, *item.notes)) + '</ul>'
+            yield _commands(item.navigation) + '</article>'
+        for page in content.sections:
+            yield '<h3>' + _text(_SECTIONS[page.kind]) + f' <span class="pill">{page.total_count} kayıt · tamamı</span></h3>'
+            if not page.items:
+                yield '<p class="empty">Bu bölümde aday yok; kaynak denemesi, boş başarı ve eksik kapsamı yukarıda ayrı inceleyin.</p>'
+            for record in page.items:
+                yield _record(record)
+        yield '<ul class="fine">' + ''.join(f'<li>{_text(note)}</li>' for note in content.notes) + '</ul></section>'
 
     def _watch_history(self, snapshot: OrganizationExportSnapshot) -> Iterable[str]:
         watch = snapshot.report.public_notice_watch

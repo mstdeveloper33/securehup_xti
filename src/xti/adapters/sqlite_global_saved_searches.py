@@ -368,7 +368,7 @@ class SQLiteGlobalSavedSearchRepository:
             len(items), offset, limit, offset + len(selected) < len(items), notification_id)
 
     def _run_in_transaction(self, connection, state, search_id, *, executed_at, offset, limit,
-                            run_id=None, mention_run_id=None):
+                            run_id=None, mention_run_id=None, news_run_ids=None):
         search = state.searches.get(search_id)
         existing = state.runs.get(run_id) if run_id is not None else None
         if existing is not None:
@@ -392,6 +392,8 @@ class SQLiteGlobalSavedSearchRepository:
         try:
             scope = ({'mention_request_key': search.mention_request_key, 'mention_run_id': mention_run_id}
                      if search.mention_request_key is not None else {})
+            if news_run_ids is not None:
+                scope['news_run_ids'] = news_run_ids
             reader = read_global_search_snapshot(connection, self._storage.path, search.query,
                 kinds=search.kinds, include_inactive=search.include_inactive, checked_at=executed_at, tracking=True, **scope)
             matches = tuple(make_match(result,

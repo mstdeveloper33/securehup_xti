@@ -16,6 +16,7 @@ from xti.adapters.sqlite_inbox import SQLiteInboxRepository, _COMBINED_NOTIFICAT
 from xti.adapters.sqlite_jobs import SQLiteJobRepository
 from xti.adapters.sqlite_mail import SQLiteSurfaceMailRepository
 from xti.adapters.sqlite_organization_scope import read_organization_scope
+from xti.adapters.sqlite_organization_content import read_organization_content
 from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
 from xti.adapters.sqlite_public_notice_watches import (
     read_public_notice_watch_details, read_complete_public_notice_watch,
@@ -549,6 +550,10 @@ class SQLiteOrganizationReportRepository:
                     public_notice_case_links=reader.page("public_notice_case_links", reader.case_links(
                         reader.public_notice_case_keys(organization_id=organization_id),
                     )),
+                    content=read_organization_content(connection, scope,
+                        observed_at=observed_at, stale_after_hours=stale_after_hours,
+                        scope_offset=target_offset, scope_limit=MAX_EXPORT_RECORDS if complete else target_limit,
+                        item_offset=item_offset, item_limit=item_limit),
                 )
                 if complete:
                     result = OrganizationExportSnapshot(report, watch_runs)

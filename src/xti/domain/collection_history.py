@@ -14,9 +14,13 @@ from xti.domain.collection_profiles import (
     normalize_profile_definition, normalize_profile_name, parse_definition_json,
 )
 from xti.domain.ransomware_watches import normalize_ransomware_watch_query
+from xti.domain.global_search import normalize_global_query
+from xti.domain.news import NEWS_POLICY, news_source
+from xti.domain.global_saved_searches import GLOBAL_SEARCH_WATCH_VERSION
 
 EXECUTOR_CONTRACT_VERSION = 1
-MAX_COLLECTION_UNITS = 59
+NEWS_PLAN_VERSION = 2
+MAX_COLLECTION_UNITS = 62
 MAX_COLLECTION_GENERATIONS = 100
 SESSION_STATUSES = frozenset({"running", "complete", "partial", "failed", "interrupted"})
 STEP_STATUSES = frozenset({"pending", "running", "complete", "partial", "failed", "interrupted", "skipped"})
@@ -31,6 +35,7 @@ RESULT_KINDS = (
     "threatcluster_source_run", "ransomlook_source_run",
     "threatcluster_watch_run", "ransomlook_watch_run",
     "public_notice_run",
+    "news_run", "saved_search_run",
 )
 
 
@@ -97,8 +102,17 @@ class CollectionFrozenPlan:
     executor_contract_version: int = EXECUTOR_CONTRACT_VERSION
 
 
+def _unit_payload(unit: CollectionFrozenUnit) -> dict:
+    payload = asdict(unit)
+    if payload["watch"] is not None and payload["watch"]["search_event_id"] is None:
+        # Existing username/ransomware plans have no saved-search event field.
+        # Preserve those historical unit bytes and target hashes exactly.
+        del payload["watch"]["search_event_id"]
+    return payload
+
+
 def unit_sha256(unit: CollectionFrozenUnit) -> str:
-    return sha256_text(canonical_json(asdict(unit)))
+    return sha256_text(canonical_json(_unit_payload(unit)))
 
 
 def expected_unit_keys(definition: CollectionProfileDefinition) -> tuple[str, ...]:
@@ -111,6 +125,8 @@ def expected_unit_keys(definition: CollectionProfileDefinition) -> tuple[str, ..
         if ids:
             keys.append(f"ransomware-refresh:{source}")
             keys.extend(f"ransomware-watch:{source}:{watch_id}" for watch_id in ids)
+    keys.extend(f"news-refresh:{source}" for source in definition.news_sources)
+    keys.extend(f"search-watch:{watch_id}" for watch_id in definition.search_watch_ids)
     return tuple(keys)
 
 
@@ -118,7 +134,8 @@ def normalize_frozen_plan(plan: CollectionFrozenPlan) -> CollectionFrozenPlan:
     if not isinstance(plan, CollectionFrozenPlan):
         raise ValidationError("Dondurulmuş toplama planı gerekli.")
     definition = normalize_profile_definition(plan.definition)
-    if definition != plan.definition or type(plan.executor_contract_version) is not int or plan.executor_contract_version != 1:
+    if (definition != plan.definition or type(plan.executor_contract_version) is not int
+            or plan.executor_contract_version != EXECUTOR_CONTRACT_VERSION):
         raise ValidationError("Toplama yürütme sözleşmesi desteklenmiyor.")
     if (not isinstance(plan.units, tuple) or not 1 <= len(plan.units) <= MAX_COLLECTION_UNITS
         or any(not isinstance(unit, CollectionFrozenUnit) for unit in plan.units)):
@@ -142,14 +159,29 @@ def normalize_frozen_plan(plan: CollectionFrozenPlan) -> CollectionFrozenPlan:
             ):
                 raise ValidationError("Toplama kaynak yenileme birimi geçersiz.")
             continue
+        if unit.kind == "news_refresh":
+            news_source(unit.source)
+            if (unit.step_key != f"news-refresh:{unit.source}" or unit.watch is not None
+                    or unit.contract_version != NEWS_POLICY):
+                raise ValidationError("Toplama haber kaynağı birimi geçersiz.")
+            continue
         watch = unit.watch
         if not isinstance(watch, CollectionWatchTarget):
             raise ValidationError("Toplama izleme tanımı gerekli.")
         history_uuid(watch.watch_id)
         if normalize_profile_name(watch.display_name) != watch.display_name:
             raise ValidationError("Toplama izleme adı kanonik değil.")
-        if unit.kind == "username_watch":
+        if unit.kind == "search_watch":
+            history_uuid(watch.search_event_id)
+            if (unit.step_key != f"search-watch:{watch.watch_id}" or unit.source != "local"
+                    or watch.kind != "news" or watch.match_mode != "global" or watch.platforms != ()
+                    or normalize_global_query(watch.query) != watch.query
+                    or unit.contract_version != GLOBAL_SEARCH_WATCH_VERSION):
+                raise ValidationError("Toplama kayıtlı haber araması birimi geçersiz.")
+        elif unit.kind == "username_watch":
             if (
+                watch.search_event_id is not None
+                or
                 unit.source not in {"maigret", "sherlock"}
                 or unit.step_key != f"username-watch:{watch.watch_id}"
                 or watch.kind != "username" or watch.match_mode != "exact"
@@ -161,6 +193,8 @@ def normalize_frozen_plan(plan: CollectionFrozenPlan) -> CollectionFrozenPlan:
                 raise ValidationError("Toplama sosyal izleme tanımı geçersiz.")
         elif unit.kind == "ransomware_watch":
             if (
+                watch.search_event_id is not None
+                or
                 unit.source not in {"threatcluster", "ransomlook"}
                 or unit.step_key != f"ransomware-watch:{unit.source}:{watch.watch_id}"
                 or watch.platforms != ()
@@ -210,9 +244,9 @@ def freeze_collection_plan(
                     task.source, definition.asset_value, watch, contract,
                 ))
         else:
-            if task.kind == "username_watch" and len(task.watches) != 1:
+            if task.kind in {"username_watch", "search_watch"} and len(task.watches) != 1:
                 raise ValidationError("Her sosyal toplama birimi bir izleme taşımalı.")
-            if task.kind != "username_watch" and task.watches:
+            if task.kind not in {"username_watch", "search_watch"} and task.watches:
                 raise ValidationError("Temel toplama birimi izleme taşıyamaz.")
             units.append(CollectionFrozenUnit(
                 task.id, task.kind, task.source, definition.asset_value,
@@ -224,9 +258,10 @@ def freeze_collection_plan(
 def canonical_plan_json(plan: CollectionFrozenPlan) -> str:
     normalize_frozen_plan(plan)
     return canonical_json({
-        "version": 1, "executor_contract_version": plan.executor_contract_version,
+        "version": NEWS_PLAN_VERSION if plan.definition.news_sources else 1,
+        "executor_contract_version": plan.executor_contract_version,
         "origin": asdict(plan.origin) if plan.origin is not None else None,
-        "units": [asdict(unit) for unit in plan.units],
+        "units": [_unit_payload(unit) for unit in plan.units],
     })
 
 
@@ -242,7 +277,8 @@ def parse_plan_json(value: str, definition: CollectionProfileDefinition) -> Coll
         if (
             not isinstance(payload, dict)
             or set(payload) != {"version", "executor_contract_version", "origin", "units"}
-            or type(payload["version"]) is not int or payload["version"] != 1
+            or type(payload["version"]) is not int or payload["version"] not in {1, 2}
+            or payload["version"] != (NEWS_PLAN_VERSION if definition.news_sources else 1)
             or not isinstance(payload["units"], list) or len(payload["units"]) > MAX_COLLECTION_UNITS
         ):
             raise ValueError("invalid plan")

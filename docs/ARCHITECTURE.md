@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.145.0, şema 68 ana proje yapısı.**
+**16 Kasım 2026 — 0.146.0, şema 69 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
@@ -22,6 +22,23 @@ sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
 [0142 kararı](decisions/0142-xti-engine-dotnet-host.md) ilk hedefi,
 [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
 Aşağıdaki bölümler mevcut uygulamayı ve önceki teslimlerin sınırlarını anlatır.
+
+0.146.0 mevcut `CollectionHistoryService` ve zamanlama akışına açık RSS
+kaynağı/haber araması seçimlerini ekler. Yeni seçim olmayan v1 profil/plan
+JSON'u ve hash'leri korunur. Haber kaynak sonucu ve makbuzu tek transaction;
+arama/fark/inbox ve makbuzu da tek transaction'dır. Küçük
+`CollectionNewsSearches` portu kaynak makbuzlarının tarihî kesiti ile
+dondurulmuş arama tanımını bağlar. Başarılı kaynaklar devam işleminde
+yeniden alınmaz. Kaynak hatası karşılaştırmayı engeller; izleme tanımı veya
+daha yeni arama kanıtı eski çalışmayla uyuşmuyorsa geriye doğru fark üretilmez.
+Şema 69 yalnız iki toplama tablosunun izin verilen tür/bağlantılarını
+genişletir; eski satır/rowid/JSON/hash'leri korur.
+
+`read_organization_content` mevcut birleşik raporun tek readonly
+transaction'ında kesin kuruluş ve açık etkin tedarikçi ilişkilerini okur.
+Geçmiş ilişki kaynakları donmuş grup çalışmalarından alınır. Güncel/tarihî
+içerikler, kaynak kapsamı, toplamlar ve HTML tamlık kontrolü ayrıdır.
+Rapor anahtar okumaz veya kaynak çağırmaz. [0151 kararı](decisions/0151-news-collection-and-content-report.md).
 
 `MentionGroupService` ortak yazıcı kilidi altında sürümlü grup tanımı,
 dondurulmuş kuruluş/tedarikçi istekleri, çalışma aralığı ve UTC günlük
@@ -106,8 +123,9 @@ Genel arama aynı bağlantıda `read_news_catalog` kullanır; `news` on birinci
 türdür. Eski kayıtlı aramaların somut tür listesi, kimliği ve hash politikası
 korunur. Yeni haber kimliği ile anlamlı içerik ayrıdır; görülme/çalışma
 zamanı farkı bildirim üretmez. Engine'in dört işlemi aynı kalır; kontrollü
-haber kayıt türü ve kaynak namespace'leri eklenir. Toplama komutu mevcut
-`search-watch` karşılaştırmasını kendiliğinden çalıştırmaz. Kaynaklı haber
+haber kayıt türü ve kaynak namespace'leri eklenir. Tekil `news refresh`
+karşılaştırma çalıştırmaz; 0.146.0'da `collect` içindeki açık haber araması
+seçimi bu bağlantıyı sağlar. Kaynaklı haber
 ve ücretsiz erişim doğrulanmış ihlal veya 7/24 hizmet iddiası değildir.
 [0148 kararı](decisions/0148-publisher-news-feeds.md).
 
