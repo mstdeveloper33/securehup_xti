@@ -1,5 +1,19 @@
 # Değişiklik Kaydı
 
+## 0.140.4 — 15 Kasım 2026
+
+- On kayıt ailesinin birlikte kurtarılması, üç gerçek süreç kesintisi,
+  rakip komutlar, eksik işin devamı ve bozuk kanıtın reddi için kabul zinciri.
+- Sırlar terminal/JSON/HTML ve hata çıktılarında; yedek ve dosya izinleri
+  gerçek komutlarla sınanır. Anahtar dosyası yerine FIFO verilince oluşan
+  bekleme giderildi.
+- Önceki sürümden gerçek araç güncelleme/kurtarma ve gerçek Linux
+  zamanlayıcısı, kaynak kesintisi, disk ve ölçülü çalışma kabul betikleri;
+  ağır kontroller ayrı, elle başlatılan GitHub işindedir.
+- Başlangıç rehberine kesinti ve yedekten dönüş adımları eklendi.
+  Gerçek çalıştırma kapsamı ve sonuçları [STATUS](docs/STATUS.md) içindedir.
+  Araç pinleri, engine v1 ve şema 64 korunur.
+
 ## 0.140.3 — 15 Kasım 2026
 
 - Maigret/Sherlock ortamında kalıcı kilit, kimlik günlüğü ve `--recover`;

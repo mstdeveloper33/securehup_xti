@@ -1,7 +1,7 @@
 # XTI motoru ve mevcut .NET platformuna entegrasyon
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.140.3 / şema 64.
+**Mevcut sürüm:** 0.140.4 / şema 64.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı. Yeni istihbarat özelliklerinden önce aşağıdaki STB sağlamlaştırma
 sırası geçerlidir. .NET tüketicisi henüz bağlı değildir.
@@ -261,3 +261,81 @@ yükleme zincirinin birlikte kabulü gelir.
 
 V1 yerel okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir.
 .NET/PostgreSQL bağlantısı henüz uygulanmadı. Şema ve mevcut veriler korunur.
+
+## 9. Toplu sağlamlaştırma iş listesi ve bitiş ölçütleri
+
+**15 Kasım 2026 kullanıcı yönlendirmesi:** Kalan işler birlikte çıkarılır;
+değişikliklerin başarı, hata, kesinti ve uyumluluk ölçütleri koddan önce
+belirlenir. Aşağıdaki liste mevcut STB sırasını ayrıntılandırır; yeni bir
+ürün kapsamı değildir. İnceleme tabanı `66b4d56` / 0.140.3'tür.
+
+Temiz Ubuntu kurulumu, sağlıklı tekrar, temel veri koruma ve araç kilit/
+kurtarma testleri mevcut kabul kanıtıdır. Yedekleme, yarım iş kaydı,
+tekrar deneme ve sır gizleme de uygulanmıştır. Aşağıdaki işlerin çoğu bu
+parçaların birlikte ve gerçek süreçlerde doğrulanmasıdır. Doğrulama
+eksikliği tek başına kod hatası sayılmaz; düzeltme somut bulguya dayanır.
+
+| Sıra / kimlik | Yapılacak iş | Bittiğini gösterecek sonuç | Ortam |
+|---|---|---|---|
+| 1 / STB-02a | Önceki yayımlanmış sürümde araçlar ve örnek kayıtlar hazırlayıp mevcut sürüme güncelleme; desteklenen geri dönüş yolunu uygulama | Araçlar doğrulanır; kayıt/kanıt kimlikleri ve geçmiş korunur; engine okuması aynı anlamı taşır; dönüşün kod, araç ve veri kapsamı açık kaydedilir | Geçici Linux klonu; gerçek kullanıcı verisi kullanılmaz |
+| 2 / STB-02b | Gerçek araç ortamını yeniden kurarken kontrollü kesinti ve açık kurtarma | Çalışan alt süreç varken ortam taşınmaz; önceki ortam kurtarma sonrası doğrulanır; veriler korunur; kurtarmayı tekrarlamak zarar vermez | Geçici Linux klonu; Maigret/Sherlock ve theHarvester ayrı |
+| 3 / STB-03a | Desteklenen kayıt ailelerini, insan kararlarını, vaka/bildirim/tedarikçi ve iş geçmişini tek örnek kümede yedekleyip geri yükleme | Kimlikler, bağlar, geçmiş ve okunma durumları korunur; engine'in desteklediği okumalarda CLI/engine sonuçları eşdeğerdir; kaynak veriye yazılmaz | Geçici SQLite ve sentetik kanıt |
+| 4 / STB-03b | Toplama kaydının öncesinde/sonrasında ve üst oturum kapanmadan kesinti; yalnız eksik işi sürdürme | Tamamlanan kaynak kaydı yeniden üretilmez; kanıt/bildirim çoğalmaz; eksik iş tamamlanır; eski oturum geçmişi korunur | Kontrollü kaynaklar ve gerçek alt süreçler |
+| 5 / STB-03c | Toplama, devam, kurtarma ve yedek komutlarını aynı veri üzerinde eşzamanlı sınama | Aynı işin tek sahibi olur; çalışan iş devralınmaz; çakışma açık bildirilir; sağlam veri korunur | Geçici ortak veri alanı |
+| 6 / STB-03d | Bozuk kayıt/kanıt bağı, bozuk yedek, dolu geri yükleme hedefi ve başarısız kurtarma | Yanlış başarı veya sessiz üstüne yazma olmaz; sağlam kayıt/yedek değiştirilmez; doğrulanmış kopyadan geri dönüş adımları uygulanabilir | Bozulmuş veri yalnız test kopyasında |
+| 7 / STB-03e | Test sırlarının terminal, JSON, HTML, hata ve süreç çıktıları boyunca gizliliği; hassas dosya izinleri ve girdi sınırı | Test sırrı dış çıktıya taşınmaz; dosya izinleri doğrulanır; engine isteği keyfî komut/veri yolu seçemez; yedeklerin hassas içeriği belgelenir | Yerel test verisi; gerçek sır kullanılmaz |
+| 8 / STB-04a | Kaynak zaman aşımı, bağlantı kesilmesi, 429/503, bozuk yanıt ve düzelme zinciri | Son başarılı veri korunur; hata boş başarı olmaz; bekleme/istek sınırları korunur; yalnız gereken iş sürdürülür | Kontrollü kaynak düzeneği; dış sağlayıcı zorlanmaz |
+| 9 / STB-04b | Gerçek Linux zamanlayıcısını çalıştırma, durdurma, yeniden başlatma ve kaçırılmış zamanlama sonrası gecikmiş çalışmayı doğrulama | Çift çalışma oluşmaz; meşgul/kısmi/hatalı sonuç korunur; durdurma etkilidir; yedek ve kurtarma adımları gerçek hizmette işler; her kaçırılmış tur ayrı çalıştırılmaz | systemd kullanıcı oturumu olan geçici Linux ortamı |
+| 10 / STB-04c | Büyüyen örnek veri, düşük disk ve uzun çalışma denemesi | Veri kaybı/yanlış başarı olmaz; süre, bellek ve disk ölçümleri makine/veri hacmiyle kaydedilir; deneme süresi ve kabul eşikleri başlamadan yazılır | İzole disk sınırı ve ölçülebilir Linux ortamı |
+| 11 / STB-06a | Kurulum, güncelleme, günlük kullanım ve kurtarmayı tek teslim rehberinde doğrulama; CLI/engine uyumluluğunu ve CI kapsamını eşitleme | Yeni klonda komutlar çalışır; mevcut sözleşme korunur; son kodun ilgili ve genel testleri geçer; desteklenen ortam, sonuç commit'i ve kalan platform işleri görünürdür | Temiz klon; Linux adımları gerçek Linux'ta |
+
+1–2 tamamlandıktan sonra 3–7, ardından 8–10 yürür; 11'in belgelendirmesi
+her dilimde güncellenir ve sonunda baştan sona kabul yapılır. Bağımsız
+incelemeler paralel yürüyebilir; aynı kalıcı veriyi veya kurulumu değiştiren
+işler sırayla ilerler. Her satır ancak kendi kanıtı kaydedilince kapanır.
+Sabit araç/Python sürümleri değişirse o sürüm geçişi ayrıca kabul gerektirir;
+mevcut sürümün başarısı gelecekteki tüm yükseltmeleri kapsamaz.
+
+İlk sürüm geçişi denemesinin başlangıcı yayımlanmış 0.140.2 (`9cdf32c`),
+hedefi 0.140.3 (`66b4d56`) olarak seçilmiştir. Geçici klonda aynı proje
+yolu korunur; eski sürümde oluşturulan gerçek araç ortamı ve sentetik
+kayıtlar yeni kodla kullanılır. Önce eski sürümün kontrolü, sonra güncelleme,
+araç doğrulaması, engine okuması ve desteklenen geri dönüş sınanır. Kurulum
+kesintisi ayrı deneyde yapılır; kullanıcının çalışan ortamı değiştirilmez.
+Bu paragraf deney tasarımıdır, çalıştırılmış kabul sonucu değildir.
+
+### Kod değişikliğinden önce ve teslimden önce
+
+1. Beklenen davranış, etkilenen giriş/çıkış, veri/kanıt bağı ve geri dönüş
+   yolu yazılır. Mevcut testlerin kapsadığı alan tekrar geliştirilmez.
+2. Normal başarıya ek boş sonuç, kaynak hatası, bozuk veri, kesinti,
+   tekrar ve eşzamanlı çalışma senaryolarından ilgili olanlar seçilir.
+3. Değişiklik küçük bir sorumlulukta tutulur; iş mantığı terminal,
+   veritabanı ve dış araçtan bağımsız kalır. Ortak davranışın kopyası
+   yerine mevcut port/adaptör ve yardımcıları kullanılır.
+4. Anlamlı regresyon senaryoları ve bağımsız inceleme geçmeden teslim
+   kapatılmaz. Son test keşfinden sonra kod değişirse etkilenen kontroller
+   yeniden çalıştırılır; son kodun hangi testlerden geçtiği açık yazılır.
+5. Sonuç, test ortamı ve commit birlikte kaydedilir. Gerçek hata, henüz
+   yapılmamış doğrulama, dış kaynak kesintisi ve yeni özellik ayrı izlenir.
+   Yeni bulgu mevcut işin ölçütüyle ilişkilendirilir; kapsam büyümesi ayrıca
+   görünür yazılır. Sorunsuz birkaç testten üretim garantisi çıkarılmaz.
+
+### Gerçek platform geldiğinde yapılacaklar
+
+STB-05 kapsamında mevcut .NET projesiyle dört okuma işleminin gerçek
+tüketici kabulü yapılır. Sonra engine üzerinden kalıcı iş başlatma,
+durum/sonuç okuma, cevap kaybında tekrar güvenliği ve kapsam denetimi
+uygulanır. PostgreSQL yerleşimi ve gerekiyorsa veri taşıma aynı platform
+incelenerek kararlaştırılır; kimlik/kanıt/karar geçmişi ve geri dönüş
+eşdeğerliği doğrulanır. Bunlar bugünkü SQLite kabulünün bitiş koşulu
+değildir; ilgili .NET kodu ve hedef çalışma ortamı gerektirir.
+
+### Sağlamlaştırmadan sonraki özellik sırası
+
+ENG-03 kaynaklar arası olay adayları ve kayıtlı genel arama bildirimleri;
+ENG-04 RSS/Atom ve ölçülmüş katkısı olan kaynaklar; ENG-07 ihtiyaç halinde
+paylaşım çıktıları ve isteğe bağlı LLM desteği. Her yeni açık kaynak
+bileşende görev, lisans, sabit sürüm, veri katkısı ve hata halinde çekirdek
+davranışı önce değerlendirilir. Bu liste bu özellikleri şimdi uygulamaya
+alma veya ertelenmiş web/oturum kapsamını geri açma kararı değildir.

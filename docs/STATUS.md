@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.140.3 · Şema 64.**
+**15 Kasım 2026 · 0.140.4 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -25,6 +25,25 @@ arama/bildirim desenleri kullanılacak. Bu bileşen araştırmasının paketleri
 kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
+
+- 0.140.4 karma kayıt kurtarma, gerçek süreç kesintisi/tekrar ve gizli bilgi
+  kabullerini birleştirir. On engine arama ailesi, insan kararları, vaka
+  kanıtları, bildirim okunma durumu ve iş geçmişi geçici veride sınanır.
+  Yedek fiziksel SQLite/şema/bağ bütünlüğünü kontrol eder; her kaydın iş
+  anlamını doğruladığı iddia edilmez. Bozuk vaka kanıtının okuma sırasında
+  reddi ayrıca sınanır.
+- Webhook anahtarında normal dosya olmayan bir FIFO yolu, dosya türü
+  denetlenmeden beklemeye neden olabiliyordu. Açma işlemi artık beklemeden
+  türü denetler; normal dosya, symlink reddi ve özel izin kuralları korunur.
+- Ayrı `XTI stabilization acceptance` işi yalnız elle çalıştırılır. Genel
+  testler, önceki sürümden gerçek araç güncelleme/kurtarma, gerçek systemd
+  ve sınırlı kaynak/disk/kapasite denemeleri ayrı işlerde raporlanır.
+  Kullanıcı verisi, araç pinleri ve şema 64 değişmez.
+
+**0.140.4 kabul kaydı:** Yerel yeni veri kabulü 5 testle, gizlilik kabulü
+5 testle geçti. Gerçek Linux yükseltme/hizmet/kapasite ve son kodun genel
+test sonucu yayın sonrası burada ayrı kaydedilecek. Betik eklenmesi tek
+başına Linux kabulünün tamamlandığı anlamına gelmez.
 
 - 0.140.3 Maigret/Sherlock ortamına kalıcı kilit, kimlik kontrollü günlük
   ve açık `--recover` ekler. Sağlıklı tekrar paket indirmez; `--check` ve

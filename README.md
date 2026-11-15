@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.140.3 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+**Sürüm:** 0.140.4 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Gelecekteki
@@ -13,6 +13,11 @@ değildir ve henüz bağlı değildir. .NET bağlantısı da henüz uygulanmadı
 Yeni özelliklerden önce kurulum, güncelleme, test, hata yönetimi ve
 kurtarma davranışları sağlamlaştırılacak. Görev paylaşımı ve teslim sırası
 [motor yol haritasındadır](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md).
+
+Kurulumdan sonra günlük kullanım, yarım kalan toplama ve yedekten dönüş
+adımları [başlangıç rehberindedir](docs/GETTING_STARTED.md).
+Sınanmış sürüm/ortam ve gerçek Linux kabul sonuçları
+[durum belgesinde](docs/STATUS.md) kaydedilir.
 
 Engine'in ilk sürümlü bağlantısı kullanılabilir: `./xti engine --describe`
 desteklenen işlemleri gösterir. `./xti engine`, standart girdiden tek JSON

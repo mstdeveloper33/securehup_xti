@@ -35,7 +35,9 @@ def read_webhook_secret(path: Path) -> bytes:
     target = Path(path).expanduser().absolute()
     descriptor = None
     try:
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        # Validate the opened descriptor without waiting for a FIFO writer.
+        # O_NONBLOCK does not change regular-file reads; fstat rejects devices/pipes.
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
         descriptor = os.open(target, flags)
         details = os.fstat(descriptor)
         if not stat.S_ISREG(details.st_mode):

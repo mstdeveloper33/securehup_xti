@@ -1,6 +1,6 @@
 # Bağlı açık kaynak araçlarını görme
 
-**Uygulama:** 0.140.3 · **Bileşen kataloğu:** 1 · **Şema:** 64.
+**Uygulama:** 0.140.4 · **Bileşen kataloğu:** 1 · **Şema:** 64.
 
 `components`, XTI'ın bağlı olduğu Maigret, Sherlock ve theHarvester için
 beklenen sürümü, kullanım kapsamını ve bu projedeki kurulum durumunu gösterir:

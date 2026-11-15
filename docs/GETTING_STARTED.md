@@ -145,3 +145,59 @@ git pull
 `./setup` eski şemayı otomatik değiştirmez. Bir geçiş gerekiyorsa açıkça
 `./xti migrate` çalıştırmanı ister; böylece yerel verin sessizce değiştirilmez.
 
+## Sorun sonrası kaldığın yerden devam et
+
+Önce `./xti doctor` ve `./xti sources status` ile yerel veri ve kaynak
+durumunu oku. Kaynak hatası, hiç sonuç bulunmaması veya kurulumun yarım
+kalması farklı durumlardır. Kaynak kesintisinde kayıtlarını sıfırlama.
+
+Marka araçlarının kurulumu yarım kalmışsa:
+
+```sh
+./scripts/setup-brand --recover
+./scripts/setup-brand --check
+```
+
+İsteğe bağlı theHarvester kurulumu için aynı sıra
+`./scripts/setup-harvester --recover` ve `./scripts/setup-harvester --check`
+şeklindedir. Kurulum başka bir komut tarafından kullanılıyorsa kilidi veya
+günlük dosyasını silme; çalışan komutun bitmesini bekle. İlk kurulum
+tamamlanmadan kesildiyse kurtarmanın ardından normal kurulum komutunu
+yeniden çalıştır. Kurtarma geçmişte sağlıklı bir ortam yaratmış sayılmaz.
+
+Toplama komutu kesildiyse:
+
+```sh
+./xti collections list
+./xti collections recover
+./xti collections show OTURUM_KIMLIGI
+./xti collections resume OTURUM_KIMLIGI --plan
+```
+
+`OTURUM_KIMLIGI` yerine listeden ilgili kaydı kullan. Planı kontrol ettikten
+sonra aynı `resume` komutunu `--plan` olmadan çalıştır. Bu işlem eksik
+adımlar için kaynaklara yeniden bağlanabilir; tamamlanan kaynak kanıtı ve
+önceki oturum geçmişi korunur. Çalışan işin kurtarılması kabul edilmez.
+
+Yedeği mevcut dosyanın üzerine yazmadan sınamak için:
+
+```sh
+./xti backup --output ./kurtarma-yedegi.db
+./xti --data-dir ./.xti-kurtarma-denemesi restore ./kurtarma-yedegi.db
+./xti --data-dir ./.xti-kurtarma-denemesi doctor
+```
+
+Yedek dosyası ve geri yükleme hedefi yeni olmalıdır; sonraki denemede yeni
+isim seç. Kurtarılan kayıtları bu veri alanını seçerek incele. Bu adımlar
+asıl veri alanını değiştirmez; doğrulama tamamlanmadan eski kayıtları silme.
+Şema değiştiyse eski kodu mevcut veritabanında denemek yerine o sürüme ait
+yedeği ayrı veri alanına geri yükle. Aynı şemadaki sınanmış sürüm geçişi,
+bütün geçmiş/gelecek sürümlere dönüş garantisi değildir.
+
+Yedek SQLite kayıtlarını ve kayıtlı webhook adres/anahtarlarını içerir;
+paylaşılacak rapor olarak kullanılmaz. Veritabanı, yedek ve anahtar dosyası
+yalnız sahibinin okuyabildiği izinlerle oluşturulur. Yedek veritabanı,
+ayrıca ürettiğin HTML raporlarını veya dışarıda tuttuğun dosyaları içeren
+bir klasör arşivi değildir. Ayrı diskte saklamak disk arızasına karşı
+ayrıca gereklidir.
+

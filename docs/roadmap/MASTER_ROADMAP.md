@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.3 / şema 64.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.4 / şema 64.
 
 **Güncel karar:** Bu repo mevcut .NET platformuna bağlanacak profesyonel
 XTI veri toplama ve analiz motorudur. Uygulama backend'i, kullanıcı/oturum,
