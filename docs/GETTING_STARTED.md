@@ -153,14 +153,16 @@ git pull
 `./setup` eski şemayı otomatik değiştirmez. Bir geçiş gerekiyorsa açıkça
 `./xti migrate` çalıştırmanı ister; böylece yerel verin sessizce değiştirilmez.
 
-0.144.0 için şema 66→67 geçişi gerekir. Güncel kodla `./xti migrate`
+0.145.0 için şema 67→68 geçişi gerekir. Güncel kodla `./xti migrate`
 çalıştırıldığında önce benzersiz bir kurtarma yedeği alınır; mevcut kayıtlar
-korunarak bir boş firma içerik araması tablosu eklenir. Daha eski
-şemalarda önceki gerekli adımlar da uygulanır. Eski kod şema 67'yi açmaz.
+korunarak firma izleme grubu geçmişi ve bildirim bağları eklenir; kayıtlı
+aramalara opsiyonel kesin sorgu kapsamı eklenir. Eski tanım ve kanıt
+JSON/hash'leri değişmez. Daha eski şemalarda önceki gerekli adımlar da
+uygulanır. Eski kod şema 68'i açmaz.
 Eski sürüme dönmek gerekiyorsa geçiş öncesi yedeği aşağıdaki geri yükleme
-akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 67 dosyasının üzerine
+akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 68 dosyasının üzerine
 yazma. Tavily için ek paket kurulmaz; `./xti mentions configure` ile özel
-anahtarını tanımla. [Firma/tedarikçi araması](MENTIONS.md).
+anahtarını tanımla. [Tekil arama](MENTIONS.md), [bütçeli firma/tedarikçi izleme](MENTION_GROUPS.md).
 
 0.143.0'daki RSS/Atom haber bağımlılıkları henüz yoksa `./scripts/setup-brand`
 çalıştır. Mevcut ortamda paketler yoksa kurucu eski ortamı yedekleyip yeni

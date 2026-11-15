@@ -63,6 +63,12 @@ def search_watch_command(*arguments, data_dir=None):
 
 
 def _definition_lines(search):
+    if search.mention_request_key is not None:
+        return [
+            f"İçerik izlemesi: {safe_text(search.display_name)} | {safe_text(search.id)} | sürüm {search.revision}",
+            "Kapsam: yalnız seçilen firma/tedarikçinin aynı arama tanımındaki Tavily sonuçları",
+            "Durum: " + ("etkin" if search.active else "devre dışı"),
+        ]
     return [
         f"Arama: {safe_text(search.display_name)} | {safe_text(search.id)} | sürüm {search.revision}",
         f"Sorgu: {safe_text(search.query)} | türler: " + ", ".join(safe_text(kind) for kind in search.kinds),
@@ -122,12 +128,14 @@ def _match_lines(match, label, *, data_dir=None):
     if match is None:
         return [f"    {label}: bu karşılaştırma kapsamında yok"]
     result = match.result
+    matching = ("kayıtlı hedef ve arama kapsamı" if result.matched_field == 'mention_request_key'
+                else f"{safe_text(result.match_type)} | {safe_text(result.matched_field)}={safe_text(result.matched_value)}")
     lines = [
         f"    {label}: {safe_text(result.display_value)}",
         "      Kayıt kimliği: " + safe_text(json.dumps(match.identity, ensure_ascii=False)),
         f"      Tür: {safe_text(result.kind)} / {safe_text(result.record_type)} | kaynak: {safe_text(result.source)}",
         f"      Durum: {safe_text(result.status)} | " + ("güncel yerel kayıt" if result.current else "tarihî / etkin değil"),
-        f"      Eşleşme: {safe_text(result.match_type)} | {safe_text(result.matched_field)}={safe_text(result.matched_value)}",
+        f"      Eşleşme: {matching}",
         f"      Kayıt zamanı: {safe_text(result.recorded_at)} | kaynak çalışması: {safe_text(result.source_run_id or 'yok')}",
         f"      Karşılaştırma özeti: {safe_text(match.state_sha256)}",
     ]
@@ -164,7 +172,10 @@ def run_lines(report, *, data_dir=None):
         lines.append("Yerel bildirim: " + safe_text(report.notification_id))
     if report.has_more:
         lines.append("Sonraki kanıt sayfası: " + search_watch_command("run-show", run.id, "--offset", report.offset + len(report.items), "--limit", report.limit, data_dir=data_dir))
-    lines.extend(("Kaynak toplama yapılmadı; kayıtların değişmesi yeni veya doğrulanmış ihlal anlamına gelmez.",
+    source_note = ("Kaydedilmiş Tavily çalışmasının kanıtı karşılaştırıldı; içerik değişmesi doğrulanmış ihlal anlamına gelmez."
+                   if report.saved_search.mention_request_key is not None else
+                   "Kaynak toplama yapılmadı; kayıtların değişmesi yeni veya doğrulanmış ihlal anlamına gelmez.")
+    lines.extend((source_note,
                   "Artık eşleşmeyen kayıt silinmiş tehdit veya giderilmiş risk demek değildir; yalnız çıkarılma bildirim oluşturmaz.",
                   "İlk çalışma ve yeni tanım sessiz başlangıçtır. Yalnız sonraki yeni/değişen eşleşmeler yerel bildirim üretir.",
                   "Güncel kayıt komutları bugünkü durumu açar; yukarıdaki önce/sonra kanıtı çalışma anına aittir."))

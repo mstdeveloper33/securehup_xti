@@ -5,6 +5,7 @@
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). 0.143.0 haber modülü feedparser 6.0.14 ve
 feedparser-sgmllib 2.1.0 kullanır; mevcut üç aracın sürümleri korunur.
+0.145.0 kuruluş/tedarikçi grup izlemesini ve mevcut inbox bağlantısını,
 0.144.0 kullanıcı tercihiyle Tavily Search API bağlantısını ekler;
 mevcut HTTP protokolü için ek SDK/paket bağımlılığı gerekmez.
 Diğer seçilmiş projeler ile test edilip kullanıma alınan sürümler ayrı durumlardır.
@@ -263,8 +264,10 @@ ikisini birlikte kurma kararı verilmez.
 [Motor planındaki](ENGINE_INTEGRATION_ROADMAP.md) mevcut STB paketi
 tamamlandı. Olay adaylarının ilk dilimi 0.141.0'da, genel kayıtlı arama
 ve yerel bildirimleri 0.142.0'da ek bağımlılık olmadan uygulandı. 0.143.0,
-ilk üç RSS/Atom kaynağını hazır ayrıştırıcıyla bağladı. Sonraki işler
-haberlerin toplu/zamanlı toplama oturumuna katılması ve ölçülmüş veri
+ilk üç RSS/Atom kaynağını hazır ayrıştırıcıyla bağladı. 0.144.0 Tavily
+tekil aramayı, 0.145.0 bütçeli kuruluş/tedarikçi grup araması, zamanlama
+ve mevcut inbox bağlantısını uyguladı. Sonraki işler RSS
+haberlerinin toplu/zamanlı toplama oturumuna katılması ve ölçülmüş veri
 boşluğuna kaynak eklenmesidir; bunlar henüz uygulanmadı.
 Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve
 ölçülmüş faydayla ele alınır. Tercihler somut katkı/kabul koşullarıyla yeniden değerlendirilir.

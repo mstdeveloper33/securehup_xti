@@ -68,3 +68,17 @@ FOREIGN_KEYS = {
         ("global_saved_searches", "search_id", "id", "NO ACTION", "RESTRICT"),
     },
 }
+
+# Legacy65–67 shapes remain available to the strict versioned validator.
+LEGACY_TABLES = {name: list(columns) for name, columns in TABLES.items()}
+TABLES["global_saved_searches"].append(("mention_request_key", "TEXT", 0, 0))
+TABLES["mention_notification_operations"] = [
+    ("operation_id", "TEXT", 1, 1), ("group_id", "TEXT", 1, 0),
+    ("request_key", "TEXT", 1, 0), ("mention_run_id", "TEXT", 1, 0),
+    ("search_run_id", "TEXT", 1, 0), ("created_at", "TEXT", 1, 0),
+]
+UNIQUE_KEYS["mention_notification_operations"] = {("operation_id",), ("search_run_id",)}
+FOREIGN_KEYS["mention_notification_operations"] = {
+    ("mentions_runs", "mention_run_id", "id", "NO ACTION", "RESTRICT"),
+    ("global_saved_search_runs", "search_run_id", "id", "NO ACTION", "RESTRICT"),
+}

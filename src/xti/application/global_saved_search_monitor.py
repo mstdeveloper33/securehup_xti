@@ -31,6 +31,10 @@ class GlobalSavedSearchMonitor:
             if type(value) is not int or not minimum <= value <= maximum:
                 raise ValidationError(f"{label} {minimum}–{maximum} arasında olmalı.")
         definition = self.service.show(search_id, event_limit=1, run_limit=1)
+        if definition.saved_search.mention_request_key is not None:
+            raise ValidationError(
+                "Bu içerik izlemesini firma grubu yönetir; './xti mentions groups monitor' kullanın."
+            )
         if not definition.saved_search.active:
             raise ValidationError("Kapalı kayıtlı arama izlenemez.")
         started_at, started = self.service._now(), self._tick()

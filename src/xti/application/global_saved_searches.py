@@ -44,6 +44,12 @@ class GlobalSavedSearchService:
         search_id, reason = watch_id(search_id), watch_reason(reason)
         with self.lock.acquire():
             at = self._now()
+            details = self.repository.details(search_id, event_offset=0, event_limit=1,
+                                              run_offset=0, run_limit=1)
+            if details.saved_search.mention_request_key is not None:
+                raise ValidationError(
+                    "Bu içerik izlemesini firma grubu yönetir; './xti mentions groups disable' kullanın."
+                )
             return self.repository.disable(search_id, reason=reason, recorded_at=at)
 
     def list(self, *, active_only=True, offset=0, limit=50):

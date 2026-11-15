@@ -24,7 +24,7 @@ from xti.domain.global_saved_searches import (
 )
 
 
-_SEARCH = 'id,name_key,display_name,query,kinds_json,include_inactive,active,revision,created_at,updated_at'
+_SEARCH = 'id,name_key,display_name,query,kinds_json,include_inactive,active,revision,created_at,updated_at,mention_request_key'
 _EVENT = 'sequence,id,search_id,revision,action,definition_json,definition_sha256,reason,recorded_at'
 _RUN = ('sequence,id,search_id,event_id,snapshot_sha256,previous_run_id,executed_at,'
         'total_count,added_count,updated_count,unchanged_count,removed_count,diff_sha256')
@@ -254,35 +254,47 @@ class SQLiteGlobalSavedSearchRepository:
             (str(uuid4()), search.id, search.revision, action, raw, text_sha256(raw), reason, search.updated_at),
         )
 
-    def upsert(self, *, name_key, display_name, query, kinds, include_inactive, recorded_at):
+    def _upsert_in_transaction(self, connection, state, *, name_key, display_name, query,
+                               kinds, include_inactive, recorded_at, mention_request_key=None,
+                               identifier=None):
+        old = next((value for value in state.searches.values() if value.name_key == name_key), None)
+        if old is not None and old.mention_request_key != mention_request_key:
+            raise ValidationError('Yönetilen içerik izlemesi serbest metin aramasına dönüştürülemez.')
+        if old is not None and recorded_at < old.updated_at:
+            raise ValidationError('Arama güncelleme zamanı mevcut geçmişten eski olamaz.')
+        value = GlobalSavedSearch(old.id if old else identifier or str(uuid4()), name_key, display_name, query,
+            kinds, include_inactive, True, old.revision + 1 if old else 1,
+            old.created_at if old else recorded_at, recorded_at, mention_request_key)
+        value = definition_from_json(definition_json(value))
+        if old is not None and replace(value, revision=old.revision, updated_at=old.updated_at) == old:
+            return GlobalSavedSearchMutation('unchanged', old)
+        if len(state.events) >= MAX_WATCH_EVENTS or (old is None and len(state.searches) >= MAX_WATCHES):
+            raise StorageError('Kayıtlı genel arama tanım geçmişi güvenli sınırına ulaştı.')
+        action = 'added' if old is None else 'updated' if old.active else 'reactivated'
+        row = (value.id, value.name_key, value.display_name, value.query, canonical_json(value.kinds),
+               int(value.include_inactive), int(value.active), value.revision, value.created_at, value.updated_at, value.mention_request_key)
+        if old is None:
+            connection.execute(f'INSERT INTO global_saved_searches ({_SEARCH}) VALUES ({",".join("?" for _ in row)})', row)
+        else:
+            connection.execute('UPDATE global_saved_searches SET display_name=?,query=?,kinds_json=?,include_inactive=?,active=1,revision=?,updated_at=?,mention_request_key=? WHERE id=?',
+                (value.display_name, value.query, canonical_json(value.kinds), int(value.include_inactive),
+                 value.revision, value.updated_at, value.mention_request_key, value.id))
+        self._insert_event(connection, value, action, '')
+        return GlobalSavedSearchMutation(action, value)
+
+    def upsert(self, *, name_key, display_name, query, kinds, include_inactive, recorded_at,
+               mention_request_key=None):
         with self._storage._connection() as connection:
             try:
                 connection.execute('BEGIN IMMEDIATE')
                 state = self._audit(connection)
-                old = next((value for value in state.searches.values() if value.name_key == name_key), None)
-                if old is not None and recorded_at < old.updated_at:
-                    raise ValidationError('Arama güncelleme zamanı mevcut geçmişten eski olamaz.')
-                value = GlobalSavedSearch(old.id if old else str(uuid4()), name_key, display_name, query,
-                    kinds, include_inactive, True, old.revision + 1 if old else 1,
-                    old.created_at if old else recorded_at, recorded_at)
-                value = definition_from_json(definition_json(value))
-                if old is not None and replace(value, revision=old.revision, updated_at=old.updated_at) == old:
-                    return GlobalSavedSearchMutation('unchanged', old)
-                if len(state.events) >= MAX_WATCH_EVENTS or (old is None and len(state.searches) >= MAX_WATCHES):
-                    raise StorageError('Kayıtlı genel arama tanım geçmişi güvenli sınırına ulaştı.')
-                action = 'added' if old is None else 'updated' if old.active else 'reactivated'
-                row = (value.id, value.name_key, value.display_name, value.query, canonical_json(value.kinds),
-                       int(value.include_inactive), int(value.active), value.revision, value.created_at, value.updated_at)
-                if old is None:
-                    connection.execute(f'INSERT INTO global_saved_searches ({_SEARCH}) VALUES ({",".join("?" for _ in row)})', row)
-                else:
-                    connection.execute('UPDATE global_saved_searches SET display_name=?,query=?,kinds_json=?,include_inactive=?,active=1,revision=?,updated_at=? WHERE id=?',
-                        (value.display_name, value.query, canonical_json(value.kinds), int(value.include_inactive),
-                         value.revision, value.updated_at, value.id))
-                self._insert_event(connection, value, action, '')
+                result = self._upsert_in_transaction(connection, state, name_key=name_key,
+                    display_name=display_name, query=query, kinds=kinds,
+                    include_inactive=include_inactive, recorded_at=recorded_at,
+                    mention_request_key=mention_request_key)
                 self._audit(connection)
                 connection.commit()
-                return GlobalSavedSearchMutation(action, value)
+                return result
             except BaseException:
                 connection.rollback()
                 raise
@@ -355,65 +367,89 @@ class SQLiteGlobalSavedSearchRepository:
         return GlobalSavedSearchRunReport(state.events[run.event_id].search, run, selected, snapshot.coverage,
             len(items), offset, limit, offset + len(selected) < len(items), notification_id)
 
-    def run(self, search_id, *, executed_at, offset, limit):
+    def _run_in_transaction(self, connection, state, search_id, *, executed_at, offset, limit,
+                            run_id=None, mention_run_id=None):
+        search = state.searches.get(search_id)
+        existing = state.runs.get(run_id) if run_id is not None else None
+        if existing is not None:
+            prior = state.events[existing.event_id].search
+            if (search is None or existing.search_id != search_id
+                    or (prior.query, prior.kinds, prior.include_inactive, prior.mention_request_key)
+                    != (search.query, search.kinds, search.include_inactive, search.mention_request_key)):
+                raise ValidationError('Aynı arama işlem kimliği farklı kapsam için kullanılamaz.')
+            return self._report(state, existing, offset=offset, limit=limit)
+        if search is None or not search.active:
+            raise ValidationError('Etkin kayıtlı genel arama bulunamadı.')
+        event = max((value for value in state.events.values() if value.search_id == search_id), key=lambda value: value.revision)
+        latest = max((value for value in state.runs.values() if value.search_id == search_id), key=lambda value: value.sequence, default=None)
+        if executed_at < max(event.recorded_at, latest.executed_at if latest else event.recorded_at):
+            raise ValidationError('Arama çalışma zamanı mevcut geçmişten eski olamaz.')
+        if len(state.runs) >= MAX_WATCH_RUNS:
+            raise StorageError('Kayıtlı genel arama çalışma geçmişi güvenli sınırına ulaştı.')
+        # User arguments and the saved definition have already been
+        # validated. Errors here concern stored source evidence or the
+        # bounded snapshot, and must reach the CLI as storage failures.
+        try:
+            scope = ({'mention_request_key': search.mention_request_key, 'mention_run_id': mention_run_id}
+                     if search.mention_request_key is not None else {})
+            reader = read_global_search_snapshot(connection, self._storage.path, search.query,
+                kinds=search.kinds, include_inactive=search.include_inactive, checked_at=executed_at, tracking=True, **scope)
+            matches = tuple(make_match(result,
+                tuple(value for key in sorted(identity) for value in (key, identity[key])), semantic)
+                for result, identity, semantic in reader.observations)
+            snapshot = GlobalSavedSearchSnapshot(matches, tuple(reader.coverage))
+            raw = snapshot_json(snapshot)
+            snapshot = snapshot_from_json(raw)
+            validate_snapshot_scope(snapshot, search)
+            for match in snapshot.matches:
+                _identity(match)
+        except (TypeError, ValueError, KeyError, IndexError, AttributeError,
+                OverflowError, RecursionError, EngineContractError) as error:
+            raise StorageError('Genel arama kaynak kanıtı bozuk veya güvenli boyut sınırını aşıyor; çalışma kaydedilmedi.') from error
+        digest = text_sha256(raw)
+        if digest not in state.snapshots:
+            size = connection.execute('SELECT COALESCE(SUM(LENGTH(CAST(payload_json AS BLOB))),0) FROM global_search_snapshots').fetchone()[0]
+            if size + len(raw.encode('utf-8')) > MAX_WATCH_TOTAL_SNAPSHOT_BYTES:
+                raise StorageError('Kayıtlı genel arama kanıt geçmişi güvenli boyut sınırına ulaştı.')
+            connection.execute('INSERT INTO global_search_snapshots (sha256,payload_json) VALUES (?,?)', (digest, raw))
+        previous = latest if latest is not None and latest.event_id == event.id else None
+        items = difference(state.snapshots[previous.snapshot_sha256] if previous else None, snapshot)
+        counts = tuple(sum(item.action == action for item in items)
+                       for action in ('added', 'updated', 'unchanged', 'removed'))
+        identifier = run_id or str(uuid4())
+        row = (identifier, search_id, event.id, digest, previous.id if previous else None,
+               executed_at, len(matches), *counts, difference_sha256(items))
+        cursor = connection.execute(f'INSERT INTO global_saved_search_runs ({_RUN.split(",", 1)[1]}) VALUES ({",".join("?" for _ in row)})', row)
+        run = GlobalSavedSearchRun(cursor.lastrowid, *row)
+        notice_id = None
+        if previous is not None and counts[0] + counts[1] > 0:
+            notice_id = str(uuid4())
+            notice = (next_notification_sequence(connection), notice_id, identifier, search_id,
+                      'global_saved_search_changed', 'new', executed_at, None)
+            connection.execute(f'INSERT INTO global_saved_search_notifications ({_NOTICE}) VALUES ({",".join("?" for _ in notice)})', notice)
+            state.notices[notice_id] = notice
+        state.runs[identifier] = run
+        state.snapshots[digest] = snapshot
+        result = self._report(state, run, offset=offset, limit=limit)
+        return result
+
+    def run(self, search_id, *, executed_at, offset, limit, run_id=None):
         search_id, executed_at = watch_id(search_id), watch_time(executed_at)
+        if run_id is not None:
+            run_id = watch_id(run_id)
         _page(offset, limit)
         with self._storage._connection() as connection:
             try:
                 connection.execute('BEGIN IMMEDIATE')
                 state = self._audit(connection)
                 search = state.searches.get(search_id)
-                if search is None or not search.active:
-                    raise ValidationError('Etkin kayıtlı genel arama bulunamadı.')
-                event = max((value for value in state.events.values() if value.search_id == search_id), key=lambda value: value.revision)
-                latest = max((value for value in state.runs.values() if value.search_id == search_id), key=lambda value: value.sequence, default=None)
-                if executed_at < max(event.recorded_at, latest.executed_at if latest else event.recorded_at):
-                    raise ValidationError('Arama çalışma zamanı mevcut geçmişten eski olamaz.')
-                if len(state.runs) >= MAX_WATCH_RUNS:
-                    raise StorageError('Kayıtlı genel arama çalışma geçmişi güvenli sınırına ulaştı.')
-                # User arguments and the saved definition have already been
-                # validated. Errors here concern stored source evidence or the
-                # bounded snapshot, and must reach the CLI as storage failures.
-                try:
-                    reader = read_global_search_snapshot(connection, self._storage.path, search.query,
-                        kinds=search.kinds, include_inactive=search.include_inactive, checked_at=executed_at, tracking=True)
-                    matches = tuple(make_match(result,
-                        tuple(value for key in sorted(identity) for value in (key, identity[key])), semantic)
-                        for result, identity, semantic in reader.observations)
-                    snapshot = GlobalSavedSearchSnapshot(matches, tuple(reader.coverage))
-                    raw = snapshot_json(snapshot)
-                    snapshot = snapshot_from_json(raw)
-                    validate_snapshot_scope(snapshot, search)
-                    for match in snapshot.matches:
-                        _identity(match)
-                except (TypeError, ValueError, KeyError, IndexError, AttributeError,
-                        OverflowError, RecursionError, EngineContractError) as error:
-                    raise StorageError('Genel arama kaynak kanıtı bozuk veya güvenli boyut sınırını aşıyor; çalışma kaydedilmedi.') from error
-                digest = text_sha256(raw)
-                if digest not in state.snapshots:
-                    size = connection.execute('SELECT COALESCE(SUM(LENGTH(CAST(payload_json AS BLOB))),0) FROM global_search_snapshots').fetchone()[0]
-                    if size + len(raw.encode('utf-8')) > MAX_WATCH_TOTAL_SNAPSHOT_BYTES:
-                        raise StorageError('Kayıtlı genel arama kanıt geçmişi güvenli boyut sınırına ulaştı.')
-                    connection.execute('INSERT INTO global_search_snapshots (sha256,payload_json) VALUES (?,?)', (digest, raw))
-                previous = latest if latest is not None and latest.event_id == event.id else None
-                items = difference(state.snapshots[previous.snapshot_sha256] if previous else None, snapshot)
-                counts = tuple(sum(item.action == action for item in items)
-                               for action in ('added', 'updated', 'unchanged', 'removed'))
-                identifier = str(uuid4())
-                row = (identifier, search_id, event.id, digest, previous.id if previous else None,
-                       executed_at, len(matches), *counts, difference_sha256(items))
-                cursor = connection.execute(f'INSERT INTO global_saved_search_runs ({_RUN.split(",", 1)[1]}) VALUES ({",".join("?" for _ in row)})', row)
-                run = GlobalSavedSearchRun(cursor.lastrowid, *row)
-                notice_id = None
-                if previous is not None and counts[0] + counts[1] > 0:
-                    notice_id = str(uuid4())
-                    notice = (next_notification_sequence(connection), notice_id, identifier, search_id,
-                              'global_saved_search_changed', 'new', executed_at, None)
-                    connection.execute(f'INSERT INTO global_saved_search_notifications ({_NOTICE}) VALUES ({",".join("?" for _ in notice)})', notice)
-                    state.notices[notice_id] = notice
-                state.runs[identifier] = run
-                state.snapshots[digest] = snapshot
-                result = self._report(state, run, offset=offset, limit=limit)
+                if search is not None and search.mention_request_key is not None:
+                    raise ValidationError(
+                        'Bu içerik izlemesini firma grubu yönetir; '
+                        "'./xti mentions groups run' veya 'resume' kullanın."
+                    )
+                result = self._run_in_transaction(connection, state, search_id,
+                    executed_at=executed_at, offset=offset, limit=limit, run_id=run_id)
                 connection.commit()
                 return result
             except BaseException:

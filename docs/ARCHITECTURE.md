@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.144.0, şema 67 ana proje yapısı.**
+**15 Kasım 2026 — 0.145.0, şema 68 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
@@ -23,6 +23,21 @@ sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
 [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
 Aşağıdaki bölümler mevcut uygulamayı ve önceki teslimlerin sınırlarını anlatır.
 
+`MentionGroupService` ortak yazıcı kilidi altında sürümlü grup tanımı,
+dondurulmuş kuruluş/tedarikçi istekleri, çalışma aralığı ve UTC günlük
+sorgu bütçesini uygular. `mention_group_events` eklemeli geçmişinden
+durum denetlenir. HTTP öncesi ayrılmış sorgu sonucu belirsizse tekrar
+edilmez; kaynak sonucu ve attempt receipt'i aynı transaction'da yazılır.
+Eksik bildirim aşaması kaynak sorgusundan ayrı devam ettirilebilir.
+
+`SQLiteMentionNotificationBridge`, kesin request-key'li kayıtlı arama
+ve kaynak çalışmasının tarihî kesitini kullanır. İlk başlangıç sessizdir;
+mevcut snapshot/fark/inbox ve idempotent işlem bağı tek transaction'dır.
+Eski v1 JSON/hash değişmez; tipli kapsam v2 tanımı ve opsiyonel sütunla
+eklenir. Foreground monitor ve systemd dosyaları aynı grup servisine
+gider; bütçeyi atlayan ayrı çalıştırıcı yoktur. .NET engine okuma sınırı
+değişmez. [0150 kararı](decisions/0150-budgeted-company-monitoring.md).
+
 `MentionService`, seçilen kuruluş/tedarikçi tanımını küçük hedef portundan
 yazıcı kilidi altında alır; şema, kapsam ve kapasite doğrulanmadan ücretli
 HTTP isteği başlamaz. `TavilySearchSource` tek temel isteği sabit HTTPS
@@ -35,8 +50,8 @@ olarak saklar. Güncel görünüm ve önce/sonra farkı denetlenmiş geçmişten
 üretilir; hata veya sonuç penceresinden çıkma kanıtı silmez. Sorgu kapsamı
 kimliğe girer; rank/puan değişimi anlamlı içerik değişimi sayılmaz.
 Genel arama ve mevcut kayıtlı arama yeni `mention` türünü destekler;
-engine v1 dört işlemle kalır. Kuruluş–tedarikçi toplu izleme tanımı ve
-tenant ayrımı henüz eklenmedi. [0149 kararı](decisions/0149-tavily-company-mentions.md).
+engine v1 dört işlemle kalır. Kuruluş–tedarikçi grup izleme 0.145.0'da
+eklenir; tenant ayrımı henüz yoktur. [0149 kararı](decisions/0149-tavily-company-mentions.md).
 
 0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
 ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite

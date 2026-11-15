@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.143.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 66.
+**Sürüm:** 0.145.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 68.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Bu repo
@@ -25,12 +25,18 @@ adımları [başlangıç rehberindedir](docs/GETTING_STARTED.md).
 Sınanmış sürüm/ortam ve gerçek Linux kabul sonuçları
 [durum belgesinde](docs/STATUS.md) kaydedilir.
 
+Firmanı ve seçtiğin tedarikçileri Tavily ile birlikte aramak, günlük sorgu
+sınırı koymak ve yeni/değişen içerikleri mevcut bildirim kutusunda görmek
+için [firma izleme grupları rehberini](docs/MENTION_GROUPS.md) kullan.
+Terminalde sınırlı tekrar ve Linux günlük/haftalık zamanlama dosyaları
+desteklenir; kaynak kullanımı kendi Tavily anahtarını gerektirir.
+
 Engine'in ilk sürümlü bağlantısı kullanılabilir: `./xti engine --describe`
 desteklenen işlemleri gösterir. `./xti engine`, standart girdiden tek JSON
 isteği alarak kayıtlı verilerde arama, kayıt ayrıntısı, kaynak durumu ve
 projedeki araçların kurulum bilgisini okur. Eski komutlar ve `--json` çıktıları korunur. Bu bağlantı toplama
 başlatmaz; mevcut toplama komutları kullanılmaya devam eder. Dört işlem
-korunur; 0.143.0 haber kayıt türünü ekler. [Engine kullanım ve sözleşme rehberi](docs/ENGINE_CONTRACT.md).
+korunur; haber ve firma içerik kayıtlarını da okuyabilir. [Engine kullanım ve sözleşme rehberi](docs/ENGINE_CONTRACT.md).
 
 Bağlı açık kaynak araçlarını tek yerde görmek için:
 

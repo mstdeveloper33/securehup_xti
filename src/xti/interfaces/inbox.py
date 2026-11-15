@@ -104,10 +104,13 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
         elif item.global_search_change is not None:
             evidence = item.global_search_change
             run = evidence.run
+            scoped = evidence.saved_search.mention_request_key is not None
+            heading = "Firma/tedarikçi içerikleri değişti" if scoped else "Genel arama eşleşmeleri değişti"
+            query_label = "kayıtlı hedefin Tavily sonuçları" if scoped else safe_text(evidence.saved_search.query)
             lines.extend([
                 "",
-                f"{read_state} | Genel arama eşleşmeleri değişti | {safe_text(evidence.saved_search.display_name)}",
-                f"  Bildirim: {safe_text(notice.id)} | sorgu: {safe_text(evidence.saved_search.query)}",
+                f"{read_state} | {heading} | {safe_text(evidence.saved_search.display_name)}",
+                f"  Bildirim: {safe_text(notice.id)} | sorgu: {query_label}",
                 f"  Yeni {run.added_count} | değişen {run.updated_count} | artık eşleşmeyen {run.removed_count}",
                 f"  Çalışma zamanı: {safe_text(run.executed_at)} | çalışma: {safe_text(run.id)}",
                 "  Çalışma anındaki tanım ve kanıt; eşleşme yeni veya doğrulanmış ihlal değildir.",

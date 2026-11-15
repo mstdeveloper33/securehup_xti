@@ -6,4 +6,7 @@ def remove_mentions_schema(connection):
     if exists:
         if connection.execute("SELECT 1 FROM mentions_runs LIMIT 1").fetchone():
             raise ValueError("Fixture has schema67-only content search data")
+    from tests.mention_groups_legacy_fixture import remove_mention_group_schema
+    remove_mention_group_schema(connection)
+    if exists:
         connection.execute("DROP TABLE mentions_runs")

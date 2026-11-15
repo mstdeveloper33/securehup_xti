@@ -17,12 +17,13 @@ from xti.domain.engine import EngineContractError, reference_for_result
 from xti.domain.organization_report import ReportNavigation
 from xti.domain.news import NewsArticle, validate_article
 from xti.domain.mentions import (
-    MentionHit, MentionRequest, MentionTarget, match_hit, result_id,
+    MentionHit, MentionRequest, MentionTarget, match_hit, request_key, result_id,
     validate_hit, validate_request,
 )
 
 
 GLOBAL_SEARCH_WATCH_VERSION = "global-search-watch-v1"
+MENTION_SCOPED_WATCH_VERSION = "global-search-watch-v2"
 MAX_WATCH_MATCHES = 50_000
 MAX_WATCH_SNAPSHOT_BYTES = 16 * 1024 * 1024
 MAX_WATCH_TOTAL_SNAPSHOT_BYTES = 64 * 1024 * 1024
@@ -140,19 +141,30 @@ class GlobalSavedSearch:
     revision: int
     created_at: str
     updated_at: str
+    mention_request_key: str | None = None
 
 
 def definition_json(search: GlobalSavedSearch) -> str:
-    return canonical_json({"rule_version": GLOBAL_SEARCH_WATCH_VERSION, "search": asdict(search)})
+    value = asdict(search)
+    version = MENTION_SCOPED_WATCH_VERSION
+    if search.mention_request_key is None:
+        # Preserve every historical v1 definition byte and therefore its hash.
+        del value['mention_request_key']
+        version = GLOBAL_SEARCH_WATCH_VERSION
+    return canonical_json({"rule_version": version, "search": value})
 
 
 def definition_from_json(value: str) -> GlobalSavedSearch:
     payload = parse_canonical_json(value)
     if (not isinstance(payload, dict) or set(payload) != {"rule_version", "search"}
-            or payload["rule_version"] != GLOBAL_SEARCH_WATCH_VERSION):
+            or payload["rule_version"] not in {GLOBAL_SEARCH_WATCH_VERSION, MENTION_SCOPED_WATCH_VERSION}):
         raise ValueError("Unsupported saved search rule version")
     item = payload["search"]
-    _keys(item, GlobalSavedSearch)
+    expected = {field.name for field in fields(GlobalSavedSearch)}
+    if payload['rule_version'] == GLOBAL_SEARCH_WATCH_VERSION:
+        expected.remove('mention_request_key')
+    if not isinstance(item, dict) or set(item) != expected:
+        raise ValueError('Search watch definition fields differ')
     item = dict(item)
     item["kinds"] = tuple(item["kinds"])
     search = GlobalSavedSearch(**item)
@@ -166,6 +178,11 @@ def definition_from_json(value: str) -> GlobalSavedSearch:
             or watch_time(search.created_at) != search.created_at
             or watch_time(search.updated_at) != search.updated_at):
         raise ValueError("Invalid saved search definition")
+    if payload['rule_version'] == MENTION_SCOPED_WATCH_VERSION:
+        _sha(search.mention_request_key)
+        if (search.kinds != ('mention',) or search.include_inactive
+                or search.query != search.mention_request_key):
+            raise ValueError('Typed mention search requires its exact request scope')
     return search
 
 
@@ -227,7 +244,8 @@ def _validate_mention_match(result, semantic):
                 or semantic['match_fields'] != list(match_fields)):
             raise ValueError('Mention source context differs')
         fields = {'title': hit.title, 'summary': hit.summary, 'url': hit.url,
-                  'target_name': target.name, 'target_domains': ', '.join(target.domains)}
+                  'target_name': target.name, 'target_domains': ', '.join(target.domains),
+                  'mention_request_key': request_key(request)}
         if result.matched_field not in fields or result.matched_value != fields[result.matched_field]:
             raise ValueError('Mention visible match differs')
     except (TypeError, ValueError, KeyError, AttributeError) as error:
@@ -394,6 +412,10 @@ def validate_snapshot_scope(snapshot: GlobalSavedSearchSnapshot, search: GlobalS
         result = item.result
         if result.kind not in search.kinds or (not search.include_inactive and not result.current):
             raise ValueError("Saved search result is outside the selected scope")
+        if search.mention_request_key is not None:
+            if (result.kind != 'mention' or result.matched_field != 'mention_request_key'
+                    or result.matched_value != search.mention_request_key or result.match_type != 'exact'):
+                raise ValueError('Saved mention result differs from its exact request scope')
         matched = global_match(search.query, ((result.matched_field, result.matched_value),))
         if matched is None or matched[0] != result.match_type:
             raise ValueError("Saved search result differs from its historical query")

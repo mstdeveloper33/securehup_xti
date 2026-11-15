@@ -15,6 +15,7 @@ from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_global_saved_searches import SQLiteGlobalSavedSearchRepository
 from xti.adapters.sqlite_news import SQLiteNewsRepository
 from tests.news_legacy_fixture import remove_news_schema
+from tests.mention_groups_legacy_fixture import legacy_search_manifest_entry
 
 
 def manifest(path):
@@ -28,6 +29,8 @@ def manifest(path):
                 connection.execute('SELECT type,name,sql FROM sqlite_schema WHERE tbl_name=? ORDER BY name',
                                    (table,)).fetchall(),
             )
+            if table == 'global_saved_searches':
+                result[table] = legacy_search_manifest_entry(result[table])
         result['sqlite_sequence'] = connection.execute('SELECT name,seq FROM sqlite_sequence ORDER BY name').fetchall()
         return result
 

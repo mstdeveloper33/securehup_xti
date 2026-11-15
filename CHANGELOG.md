@@ -1,5 +1,25 @@
 # Değişiklik Kaydı
 
+## 0.145.0 — 15 Kasım 2026
+
+- `mentions groups`: bir kuruluş ve açıkça seçilmiş tedarikçiler için
+  sürümlü izleme, tam sorgu planı, çalışma geçmişi ve bütün kaynak sonuçları.
+- Çalışma/gün sorgu sınırı ve aralık; HTTP öncesi kalıcı rezervasyon,
+  kesintide belirsiz sorguyu tekrar etmeyen devam, aynı istek kimliğiyle
+  tekrar güvenliği. Kaynak hatasında kalan çağrılar yapılmaz.
+- Başarılı toplama mevcut `search-watch → inbox` yoluna kesin hedef/sorgu
+  kapsamıyla bağlanır. İlk kapsam sessizdir; yeni/anlamlı değişen içerik
+  bildirilir. Kaynak ve bildirim aşamaları ayrı kurtarılabilir.
+- Sınırlı terminal izlemesi; güvenli günlük/haftalık systemd dosyaları,
+  takvim/aralık uyumu, açık anahtar dosyası yolu ve doğrulanmış yedek hazırlığı.
+  Zamanlayıcı kendiliğinden etkinleştirilmez.
+- Şema 68: grup olayları, idempotent bildirim bağları ve opsiyonel tipli
+  kayıtlı arama kapsamı. Eski tanım/kanıt JSON/hash korunur; açık geçiş
+  benzersiz yedek alır. Yeni paket veya engine v1 işlemi yoktur.
+- Linux hızlı kontrolü önceki teslimde 9 dakika 51 saniye sürdüğü için
+  yeni testlerle iş süre sınırı 10'dan 15 dakikaya çıkarıldı; testler çıkarılmadı.
+  [Kullanım](docs/MENTION_GROUPS.md), [karar](docs/decisions/0150-budgeted-company-monitoring.md).
+
 ## 0.144.0 — 15 Kasım 2026
 
 - Tavily ile firma, kayıtlı kuruluş ve tedarikçi hakkında gerçek web/haber

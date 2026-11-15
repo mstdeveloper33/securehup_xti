@@ -12,6 +12,8 @@ from xti.interfaces.text import safe_text
 def register_mentions_parser(commands):
     parser = commands.add_parser("mentions", help="Firma ve tedarikçi hakkında internette içerik ara; kaynaklı geçmişi incele.")
     actions = parser.add_subparsers(dest="mentions_action", required=True)
+    from xti.interfaces.mention_groups import register_mention_groups
+    register_mention_groups(actions)
     configure = actions.add_parser("configure", help="Tavily anahtarını gizli girişle özel dosyaya kaydet; internete bağlanma.")
     configure.add_argument("--api-key-file", type=Path)
     for action in ("plan", "search"):

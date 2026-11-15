@@ -99,8 +99,18 @@ def _audit(connection):
         raise StorageError("İçerik araması geçmişi bozuk veya kapasite sınırını aşıyor; kayıtlar değiştirilmedi.") from error
 
 
-def read_mentions_catalog(connection):
+def read_mentions_catalog(connection, *, through_run_id=None):
     state = _audit(connection)
+    if through_run_id is not None:
+        mention_uuid(through_run_id)
+        index = next((i for i, run in enumerate(state.runs) if run.id == through_run_id), None)
+        if index is None:
+            raise ValidationError("İçerik geçmişi kesiti için kaynak çalışması bulunamadı.")
+        records = {}
+        runs = state.runs[:index + 1]
+        for run in runs:
+            _advance(records, run)
+        return MentionCatalog(tuple(records[key] for key in sorted(records)), runs)
     return MentionCatalog(tuple(state.records[key] for key in sorted(state.records)), state.runs)
 
 
@@ -113,18 +123,24 @@ class SQLiteMentionRepository:
         if len(state.runs) >= MAX_MENTION_RUNS or state.byte_count + additional_bytes > MAX_MENTION_TOTAL_BYTES:
             raise StorageError("İçerik araması geçmişi kapasitesi doldu; kayıtlar değiştirilmedi.")
 
-    def validate(self, *, max_results=20):
+    def validate(self, *, max_results=20, pending_runs=1, operation=None):
         if type(max_results) is not int or not 1 <= max_results <= 20:
             raise ValidationError("İçerik araması sonuç sınırı 1–20 olmalı.")
+        if type(pending_runs) is not int or not 1 <= pending_runs <= 20:
+            raise ValidationError("Bekleyen içerik arama sayısı 1–20 olmalı.")
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
             state = _audit(connection)
+            from xti.adapters.sqlite_mention_groups import validate_group_operation
+            validate_group_operation(connection, operation)
             # Reserve a worst-case response before any metered request can begin.
-            self._capacity(state, MAX_MENTION_RUN_BYTES)
-            if len(state.records) + max_results > MAX_MENTION_RECORDS:
+            self._capacity(state, MAX_MENTION_RUN_BYTES * pending_runs)
+            if len(state.runs) + pending_runs > MAX_MENTION_RUNS:
+                raise StorageError("İçerik çalışma kapasitesi tüm grup hedefleri için yetersiz.")
+            if len(state.records) + max_results * pending_runs > MAX_MENTION_RECORDS:
                 raise StorageError("İçerik aday kapasitesi yeni arama için yetersiz; kredi kullanılmadı.")
 
-    def _write(self, request, response, *, error, started_at, finished_at):
+    def _write(self, request, response, *, error, started_at, finished_at, operation=None):
         validate_request(request)
         mention_time(started_at)
         mention_time(finished_at)
@@ -135,7 +151,10 @@ class SQLiteMentionRepository:
                 connection.execute("BEGIN IMMEDIATE")
                 state = _audit(connection)
                 self._capacity(state)
-                run = MentionRun(len(state.runs) + 1, str(uuid4()), request,
+                from xti.adapters.sqlite_mention_groups import validate_group_operation, record_group_result
+                validate_group_operation(connection, operation, request)
+                identifier = operation.result_run_id if operation is not None else str(uuid4())
+                run = MentionRun(len(state.runs) + 1, identifier, request,
                     "complete" if response is not None else "failed", started_at, finished_at,
                     response, error, 0, 0, 0)
                 if state.runs and datetime.fromisoformat(started_at) < datetime.fromisoformat(state.runs[-1].finished_at):
@@ -147,18 +166,19 @@ class SQLiteMentionRepository:
                 sha = _sha(payload)
                 connection.execute("INSERT INTO mentions_runs VALUES (?,?,?,?,?,?,?)",
                     (run.sequence, run.id, request_key(request), run.status, payload, sha, _chain(state.chain, sha)))
+                record_group_result(connection, operation, run)
                 connection.commit()
             except BaseException:
                 connection.rollback()
                 raise
         return run
 
-    def apply(self, request, response, *, started_at, finished_at):
+    def apply(self, request, response, *, started_at, finished_at, operation=None):
         validate_response(response, request)
-        return self._write(request, response, error=None, started_at=started_at, finished_at=finished_at)
+        return self._write(request, response, error=None, started_at=started_at, finished_at=finished_at, operation=operation)
 
-    def record_failure(self, request, *, error, started_at, finished_at):
-        return self._write(request, None, error=error, started_at=started_at, finished_at=finished_at)
+    def record_failure(self, request, *, error, started_at, finished_at, operation=None):
+        return self._write(request, None, error=error, started_at=started_at, finished_at=finished_at, operation=operation)
 
     def catalog(self):
         with self._storage._connection(readonly=True) as connection:

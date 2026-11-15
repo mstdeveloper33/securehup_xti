@@ -292,9 +292,9 @@ def require_preserved_tables(before, after):
                        f"Schema migration changed pre-existing table/evidence: {name}.")
 
 
-def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=67):
+def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=68):
     """Exercise a reviewed explicit schema64 upgrade, retaining its original backup."""
-    COMMON.require(target_schema in (65, 66, 67), "Unsupported migration target.")
+    COMMON.require(target_schema in (65, 66, 67, 68), "Unsupported migration target.")
     data = Path(environment["XTI_DATA_DIR"])
     error = command(["./setup", "--core-only"], environment, expected=None)
     COMMON.require("migrate" in error, "Old data was not rejected with explicit migration guidance.")
@@ -491,7 +491,7 @@ def main(arguments=None):
             stage = "candidate schema compatibility"
             command(["git", "checkout", "--detach", checked_commit(target)], environment)
             target_schema = int(command(["./scripts/python", "-c", "from xti.adapters.schema import SCHEMA_VERSION; print(SCHEMA_VERSION)"], environment))
-            COMMON.require(target_schema in (64, 65, 66, 67), "Only reviewed schema64/schema65/schema66/schema67 candidates are supported by this acceptance.")
+            COMMON.require(target_schema in (64, 65, 66, 67, 68), "Only reviewed schema64/schema65/schema66/schema67/schema68 candidates are supported by this acceptance.")
             backup, current_files = None, before
             if target_schema > 64:
                 stage = f"explicit schema64 to schema{target_schema} migration"
@@ -550,7 +550,7 @@ def main(arguments=None):
 
             stage = "real package subprocess interruption and recovery"
             interrupt_real_install(project, options.tool, environment)
-        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit 64→65/66/67 migration with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
+        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit 64→65/66/67/68 migration with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
         return 0
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
         COMMON.summary(f"- RESULT: FAIL at {stage}: {error}")

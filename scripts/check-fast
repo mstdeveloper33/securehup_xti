@@ -25,6 +25,13 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_mentions_service.py \
     tests/test_mentions_cli.py \
     tests/test_mentions_integration.py \
+    tests/test_mention_groups_storage.py \
+    tests/test_mention_groups_migration.py \
+    tests/test_mention_groups_service.py \
+    tests/test_mention_groups_cli.py \
+    tests/test_mention_notifications.py \
+    tests/test_mentions_schedule.py \
+    tests/test_mention_group_monitor.py \
     tests/test_linux_upgrade_acceptance.py \
     tests/test_setup.py \
     tests/test_news_installation.py \

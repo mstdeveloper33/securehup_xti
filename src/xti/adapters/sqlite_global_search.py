@@ -33,7 +33,7 @@ from xti.domain.global_search import (
 )
 from xti.domain.organization_report import ReportNavigation
 from xti.domain.organizations import normalize_organization_id
-from xti.domain.mentions import build_query
+from xti.domain.mentions import build_query, request_key
 from xti.domain.global_saved_searches import mention_semantic
 from xti.domain.ransomlook_ransomware import RANSOMLOOK_SOURCE_LICENSE
 from xti.domain.ransomware_claims import RANSOMWARE_SOURCE_LICENSE
@@ -60,11 +60,13 @@ def _nav(label, *arguments):
 
 
 class _SearchReader:
-    def __init__(self, connection, path, query, include_inactive, checked_at, *, tracking=False):
+    def __init__(self, connection, path, query, include_inactive, checked_at, *, tracking=False,
+                 mention_request_key=None, mention_run_id=None):
         self.connection, self.path, self.query = connection, path, query
         self.include_inactive, self.checked_at = include_inactive, checked_at
         self.results, self.coverage = [], []
         self.observations = [] if tracking else None
+        self.mention_request_key, self.mention_run_id = mention_request_key, mention_run_id
 
     def track(self, result, *, identity=None, semantic=None):
         if self.observations is None:
@@ -347,15 +349,23 @@ class _SearchReader:
                               'Kayıt sayısı saklanan son bilinen haberlerdir; yalnız son akış yanıtının boyutu değildir.'))
 
     def mentions(self):
-        catalog = read_mentions_catalog(self.connection)
+        catalog = (read_mentions_catalog(self.connection, through_run_id=self.mention_run_id)
+                   if self.mention_run_id is not None else read_mentions_catalog(self.connection))
+        records = tuple(record for record in catalog.records
+                        if self.mention_request_key is None or record.request_key == self.mention_request_key)
+        runs = tuple(run for run in catalog.runs
+                     if self.mention_request_key is None or request_key(run.request) == self.mention_request_key)
         start = len(self.results)
-        for record in catalog.records:
+        for record in records:
             request, hit = record.request, record.hit
+            fields = ((('mention_request_key', self.mention_request_key),)
+                      if self.mention_request_key is not None else
+                      (('title', hit.title), ('summary', hit.summary), ('url', hit.url),
+                       ('target_name', request.target.name),
+                       ('target_domains', ', '.join(request.target.domains))))
             self.add('mention', 'company_mention', record.id, hit.title,
                      'search_candidate', True, record.last_changed_at, 'tavily',
-                     (('title', hit.title), ('summary', hit.summary), ('url', hit.url),
-                      ('target_name', request.target.name),
-                      ('target_domains', ', '.join(request.target.domains))),
+                     fields,
                      source_run_id=record.last_change_run_id,
                      details=(f'Hedef: {request.target.name} ({request.target.kind})',
                               f'Hedef kimliği: {request.target.id}',
@@ -369,11 +379,14 @@ class _SearchReader:
                      semantic=mention_semantic(record),
                      navigation=(_nav('İçerik ayrıntısı', 'mentions', 'show', record.id),
                                  _nav('Arama çalışma kanıtı', 'mentions', 'run-show', record.last_change_run_id)))
-        latest = catalog.runs[-1] if catalog.runs else None
-        success = next((run for run in reversed(catalog.runs) if run.status == 'complete'), None)
-        self.cover('mention', 'tavily', len(catalog.records), start, latest=latest, success=success,
+        latest = runs[-1] if runs else None
+        success = next((run for run in reversed(runs) if run.status == 'complete'), None)
+        scope_note = ('Kaynak zamanı yalnız bu kesin hedef/sorgu kapsamına aittir.'
+                      if self.mention_request_key is not None else
+                      'Kaynak son deneme/başarı zamanı başka bir hedef veya arama kapsamına ait olabilir.')
+        self.cover('mention', 'tavily', len(records), start, latest=latest, success=success,
                    notes=('Yalnız açıkça aranmış hedeflerin saklanan son bilinen sonuçlarıdır.',
-                          'Kaynak son deneme/başarı zamanı başka bir hedef veya arama kapsamına ait olabilir.',
+                          scope_note,
                           'Her istek en çok 20 sıralanmış sonuç alır; sonuç yokluğu internette içerik yokluğu değildir.',
                           'Aramadan düşen eski sonuç silinmez; bu arama interneti yeniden sorgulamaz.'))
 
@@ -499,9 +512,15 @@ class _SearchReader:
 
 
 def read_global_search_snapshot(connection, path, query, *, kinds, include_inactive, checked_at,
-                                tracking=False):
+                                tracking=False, mention_request_key=None, mention_run_id=None):
     """Compose all selected families inside the caller's existing transaction."""
-    reader = _SearchReader(connection, path, query, include_inactive, checked_at, tracking=tracking)
+    if mention_request_key is not None and (kinds != ('mention',) or query != mention_request_key
+                                           or include_inactive):
+        raise ValueError('Typed mention search requires its exact request scope')
+    if mention_run_id is not None and mention_request_key is None:
+        raise ValueError('Historical mention source run requires an exact request scope')
+    reader = _SearchReader(connection, path, query, include_inactive, checked_at, tracking=tracking,
+                           mention_request_key=mention_request_key, mention_run_id=mention_run_id)
     handlers = {'domain': reader.domains, 'finding': reader.findings, 'social': reader.social,
                 'ransomware': reader.ransomware, 'public-notice': reader.public_notices, 'news': reader.news,
                 'mention': reader.mentions,

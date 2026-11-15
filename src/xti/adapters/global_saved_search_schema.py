@@ -42,3 +42,28 @@ GLOBAL_SAVED_SEARCH_DDL = (
     "CREATE INDEX global_saved_search_runs_search_sequence ON global_saved_search_runs(search_id,sequence)",
     "CREATE INDEX global_saved_search_notifications_read_sequence ON global_saved_search_notifications(read_at,sequence)",
 )
+
+
+MENTION_SCOPE_COLUMN = (
+    "mention_request_key TEXT CHECK (mention_request_key IS NULL OR length(mention_request_key)=64)"
+)
+MENTION_NOTIFICATION_OPERATION_DDL = (
+    "CREATE TABLE mention_notification_operations ("
+    "operation_id TEXT PRIMARY KEY NOT NULL, group_id TEXT NOT NULL, "
+    "request_key TEXT NOT NULL CHECK (length(request_key)=64), "
+    "mention_run_id TEXT NOT NULL REFERENCES mentions_runs(id) ON DELETE RESTRICT, "
+    "search_run_id TEXT NOT NULL UNIQUE REFERENCES global_saved_search_runs(id) ON DELETE RESTRICT, "
+    "created_at TEXT NOT NULL)",
+)
+GLOBAL_SAVED_SEARCH_CURRENT_DDL = (
+    GLOBAL_SAVED_SEARCH_DDL[0][:-1] + ", " + MENTION_SCOPE_COLUMN + ")",
+    *GLOBAL_SAVED_SEARCH_DDL[1:],
+    *MENTION_NOTIFICATION_OPERATION_DDL,
+)
+
+
+def upgrade_global_saved_search_scopes(connection):
+    """Schema68 adds exact source scopes while preserving historical rows and DDL."""
+    connection.execute("ALTER TABLE global_saved_searches ADD COLUMN " + MENTION_SCOPE_COLUMN)
+    for statement in MENTION_NOTIFICATION_OPERATION_DDL:
+        connection.execute(statement)

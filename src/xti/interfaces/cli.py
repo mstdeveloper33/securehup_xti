@@ -25,6 +25,7 @@ from xti.interfaces.event_candidates import (
 )
 from xti.interfaces.news import register_news_parser, make_news_service, execute_news_command
 from xti.interfaces.mentions import register_mentions_parser, make_mentions_service, execute_mentions_command
+from xti.interfaces.mention_groups import make_mention_group_service, execute_mention_group_command
 from xti.adapters.sqlite import SCHEMA_VERSION, SQLiteAssetRepository, StorageError
 from xti.adapters.domain_file import read_domain_file
 from xti.adapters.public_suffix import PublicSuffixResolver
@@ -3478,6 +3479,12 @@ def run(args: argparse.Namespace) -> int | None:
         )
         emit(asdict(report), periodic_changes_lines(report), as_json=args.json)
     elif args.command == "mentions":
+        if args.mentions_action == "groups":
+            data, lines, status = execute_mention_group_command(make_mention_group_service(
+                settings.database, api_key_file=getattr(args, "api_key_file", None)), args,
+                progress=terminal_progress(args.json))
+            emit(data, lines, as_json=args.json, ok=status == 0)
+            return status
         data, lines, status = execute_mentions_command(
             None if args.mentions_action == "configure" else make_mentions_service(
                 settings.database, search=args.mentions_action == "search",

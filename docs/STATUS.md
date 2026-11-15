@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.144.0 · Şema 67.**
+**15 Kasım 2026 · 0.145.0 · Şema 68.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -11,10 +11,45 @@ aittir. Biz motoru, sürümlü sözleşmesini, örneklerini ve belgelerini
 sağlarız. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
-veya müşteri yalıtımı henüz uygulanmadı. 0.144.0 firma içerik geçmişi için
-şema 67'ye açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
+veya müşteri yalıtımı henüz uygulanmadı. 0.145.0 bütçeli grup izleme için
+şema 68'e açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
 
-**Güncel teslim:** 0.144.0, isteğe bağlı Tavily ile seçilen firma,
+**Güncel teslim:** 0.145.0, bir kuruluş ve açıkça seçilmiş en fazla 19
+tedarikçiyi `mentions groups` altında birlikte izler. Sürümlü tanım,
+bütün sorguların ağsız planı, çalışma/gün sorgu sınırı, en az çalışma
+aralığı ve değişmez çalışma geçmişi uygulanmıştır. Her HTTP öncesi
+kalıcı rezervasyon vardır; başarısız/belirsiz sorgu bütçeden düşmeye devam
+eder. Açık kalan çalışma yeni turu engeller; `resume` belirsiz sorguyu
+tekrarlamaz, kaydedilmiş kaynağın eksik bildirimini ağsız tamamlar.
+
+Başarılı kaynaklar mevcut kayıtlı arama/inbox yoluna kesin request-key
+kapsamıyla bağlanır; başka hedefin metninde geçen adlar karışmaz.
+İlk kapsam sessiz başlangıçtır. Kaynak sonucu ve grup receipt'i atomik;
+bildirim ve işlem bağı da atomiktir. Aynı işlemde ikinci bildirim yoktur.
+Eski serbest metin izleme tanım/kanıt JSON/hash'leri korunur.
+
+Sınırlı terminal monitor'ü ve günlük/haftalık Linux zamanlama dosyaları
+vardır. Zamanlayıcı kendi anahtar dosyası yolunu kullanır; takvim/aralık
+uyumu, ortak kilit ve doğrulanmış yedek hazırlığı uygulanır. Dosya üretimi
+hizmeti etkinleştirmez. Varsayılan grup aralığı 23 saat; günlük takvimde
+24 saatten kısa aralık zorunludur. Sınırlar Tavily hesap bakiyesi veya
+genel hesap harcaması değildir. RSS profilleri ve .NET görevi değişmedi.
+[Kullanım](MENTION_GROUPS.md), [karar](decisions/0150-budgeted-company-monitoring.md).
+
+**0.145.0 doğrulaması:** Yerel genel paket macOS/Python 3.13 üzerinde
+2.440 test çalıştırdı (968,113 saniye): **2.436 başarılı, hata yok,
+Linux'a özel dört test atlandı.** Bunlar iki `/proc` süreç sahipliği ve
+iki gerçek systemd dosya ayrıştırma kontrolüdür; gerçek Linux sonuçları
+ayrı CI ortamında değerlendirilir. Son terminal ilerleme çıktısı ayrıca
+gerçek CLI akışında doğrulandı. Yeni grup depolama, şema 67→68 geçişi,
+bildirim ön kontrolü ve tekrar güvenliği, kaynak arızası, kesinti sonrası
+devam, tarihî kanıt, günlük UTC sınırı, takvim/anahtar/yedek ve genel CLI
+testleri bu kapsamdadır. 65 komut örneği gerçek ayrıştırıcıyla, 63 yerel
+belge bağlantısı dosya hedefleriyle doğrulandı; compile, shell syntax ve
+diff denetimleri geçti. Canlı Tavily anahtarı veya kredi kullanılmadı;
+kullanıcı veritabanı ve mevcut araç ortamı değiştirilmedi.
+
+**Önceki teslim:** 0.144.0, isteğe bağlı Tavily ile seçilen firma,
 kayıtlı kuruluş veya tedarikçi hakkında gerçek web/haber araması ekler.
 `mentions configure/plan/search/list/show/status/run-show`, kaynaklı
 kalıcı sonuçlar, genel arama/engine ve mevcut kayıtlı arama bağlantısı
@@ -34,8 +69,8 @@ kayıtlı arama kapsamları kendiliğinden genişlemez. Yeni engine işlemi yokt
 Anahtar repodan/veritabanından ayrı özel kullanıcı dosyasında veya ortamda
 tutulur. `plan` ağsızdır; yerel sonuç okuma anahtar gerektirmez. Kredi
 sayacı yalnız bu veri alanında kaynakça bildirilen tüketimi gösterir;
-hesap bakiyesi veya fatura değildir. Kuruluş–tedarikçi toplu izleme,
-zamanlanmış arama ve müşteri yalıtımı bu teslimde uygulanmadı.
+hesap bakiyesi veya fatura değildir. Kuruluş–tedarikçi toplu izleme ve
+zamanlama 0.145.0'da eklendi; müşteri yalıtımı henüz uygulanmadı.
 
 **0.144.0 doğrulaması:** Tavily taşıması/anahtar, domain/depo/geçiş,
 servis/CLI, genel arama/engine ve ilgili mevcut kontrolleri içeren 115 test

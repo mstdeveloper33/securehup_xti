@@ -1,6 +1,6 @@
 # Firma ve tedarikçi hakkında internette içerik arama
 
-0.144.0 / şema 67. `mentions search`, seçtiğin firma için Tavily üzerinden
+0.145.0 / şema 68; tekil arama 0.144.0'da eklendi. `mentions search`, seçtiğin firma için Tavily üzerinden
 gerçek web veya haber araması yapar. `mentions list/show/run-show/status`
 kaydedilen sonuçları internet ve API anahtarı olmadan okur.
 
@@ -14,7 +14,7 @@ kontrol et. Anahtarı GitHub'a, komut argümanına veya sohbet mesajına yazma.
 Mevcut kayıt alanını güncelliyorsan önce `./xti migrate` çalıştır.
 Geçiş benzersiz yedek alır ve eski kayıtları korur. Yeni kurulumda normal
 `./setup` yeterlidir; yalnız bu modül için ek Python paketi gerekmez.
-Şema 67'den eski koda dönerken yedeği yeni veri dizinine aç;
+Şema 68'den eski koda dönerken yedeği yeni veri dizinine aç;
 [kurulum ve güncelleme rehberini](GETTING_STARTED.md) kullan.
 
 ```sh
@@ -66,9 +66,10 @@ hedefte yeni arama yapılmaz; eski sonuçlar okunur. `--domain` yalnız
 doğrudan `--name` ile kullanılır. En çok 10 domain ve 400 karakterlik
 sorgu kabul edilir; büyük kapsam sessizce daraltılmaz.
 
-Her komut tek seçilen hedefi arar. Tedarikçi seçmek onu bir kuruluşa
-otomatik bağlamaz; müşteri/tenant ayrımı oluşturmaz. Toplu müşteri–tedarikçi
-izleme tanımı ve zamanlanmış arama bu teslimin parçası değildir.
+Her tekil komut seçilen bir hedefi arar. Tedarikçi seçmek onu bir kuruluşa
+otomatik bağlamaz; müşteri/tenant ayrımı oluşturmaz. 0.145.0'daki
+[izleme grupları](MENTION_GROUPS.md), kuruluş ve seçilmiş tedarikçileri
+birlikte bütçeli toplar ve zamanlama dosyaları üretir.
 
 ## Çıktı, geçmiş ve yeni içerik
 

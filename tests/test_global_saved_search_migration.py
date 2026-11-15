@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from xti.adapters.global_saved_search_schema import GLOBAL_SAVED_SEARCH_DDL
-from xti.adapters.global_saved_search_schema_metadata import TABLES as NEW_TABLES
+from xti.adapters.global_saved_search_schema_metadata import LEGACY_TABLES as NEW_TABLES
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from tests.global_saved_search_legacy_fixture import remove_global_saved_search_schema

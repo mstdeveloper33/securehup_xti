@@ -13,9 +13,10 @@ from xti.adapters.case_public_notice_schema import (
 )
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, SchemaError, validate_schema
 from xti.adapters.supplier_watch_schema import SUPPLIER_WATCH_DDL
-from xti.adapters.global_saved_search_schema import GLOBAL_SAVED_SEARCH_DDL
+from xti.adapters.global_saved_search_schema import GLOBAL_SAVED_SEARCH_CURRENT_DDL
 from xti.adapters.news_schema import NEWS_DDL
 from xti.adapters.mentions_schema import MENTIONS_DDL
+from xti.adapters.mention_group_schema import MENTION_GROUP_DDL
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from tests import test_cases as fixtures
 from tests.case_evidence_v62_fixture import case_evidence_layout_v62
@@ -140,7 +141,7 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
         added = {key: value for key, value in after.items() if key not in before}
         # Include SQLite's constraint auto-indexes as well as named declarations.
         with closing(sqlite3.connect(":memory:")) as expected_connection:
-            for statement in (*SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_DDL, *NEWS_DDL, *MENTIONS_DDL):
+            for statement in (*SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
                 expected_connection.execute(statement)
             expected_added = {
                 (kind, name): declaration for kind, name, declaration in expected_connection.execute(

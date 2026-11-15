@@ -1,12 +1,13 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.144.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 67.
+**Uygulama:** 0.145.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 68.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
 kaynak durumu ve proje araç kataloğu. Mevcut terminal komutları ve `--json` çıktıları
 korunur. 0.143.0 `news`, 0.144.0 `mention` kayıt ailesini ekler; dört işlem
-değişmez. Yeni içerik geçmişi için gereken şema 66→67 geçişi ayrı ve açık
+değişmez. 0.145.0 grup toplama/zamanlama komutları yerel CLI sınırındadır;
+yeni engine işlemi eklenmez. Grup geçmişi için şema 67→68 geçişi ayrı ve açık
 `./xti migrate` adımıdır; [güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
 Bu okuma katmanı yeni internet toplaması başlatmaz. İnternetten veri alan
@@ -303,7 +304,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.144.0",
+  "engine_version": "0.145.0",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",
