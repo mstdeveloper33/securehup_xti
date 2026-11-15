@@ -323,11 +323,29 @@ def migrate_acceptance_data(environment, before_files, before_database):
     return backup, after_files
 
 
+def require_unsupported_schema_error(output):
+    """Decode the pinned old CLI's JSON error before matching its diagnosis."""
+    try:
+        response = json.loads(output)
+    except json.JSONDecodeError:
+        response = None
+    error = response.get("error") if isinstance(response, dict) else None
+    COMMON.require(
+        isinstance(response, dict) and response.get("ok") is False
+        and isinstance(error, dict) and error.get("code") == "storage_error"
+        and error.get("message") == (
+            "Veritabanı sürümü bu uygulamayla uyumlu değil. "
+            "Dosya değiştirilmedi; uygun uygulama sürümünü kullanın."
+        ),
+        "Old code failed for a reason other than unsupported new schema.",
+    )
+
+
 def restore_baseline_data(environment, backup, before_database, upgraded_files):
     """Old code rejects schema65; recovery uses its schema64 backup at a new path."""
     data = Path(environment["XTI_DATA_DIR"])
     error = command(["./xti", "--json", "doctor"], environment, expected=None)
-    COMMON.require("uyumlu değil" in error, "Old code failed for a reason other than unsupported new schema.")
+    require_unsupported_schema_error(error)
     COMMON.require(COMMON.snapshot(data) == upgraded_files, "Old code changed the upgraded database.")
     restored = dict(environment, XTI_DATA_DIR=str(data.parent / "rollback-restored"))
     target = Path(restored["XTI_DATA_DIR"]) / "xti.db"

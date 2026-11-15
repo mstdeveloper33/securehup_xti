@@ -1,6 +1,7 @@
 from contextlib import closing
 import fcntl
 import importlib.util
+import json
 import os
 from pathlib import Path
 import signal
@@ -231,6 +232,36 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
             self.assertEqual(command.call_count, 1)
             self.assertEqual(self.helper.COMMON.snapshot(data), before)
             self.assertFalse((Path(temporary) / "rollback-restored").exists())
+
+    def test_schema_rejection_decodes_pinned_baseline_unicode_json_error(self):
+        # 9cdf32c report_error emits ensure_ascii=True, including the Turkish diagnosis.
+        payload = {"ok": False, "error": {
+            "code": "storage_error",
+            "message": "Veritabanı sürümü bu uygulamayla uyumlu değil. "
+                       "Dosya değiştirilmedi; uygun uygulama sürümünü kullanın.",
+        }}
+        escaped = json.dumps(payload, ensure_ascii=True)
+        self.assertNotIn("uyumlu değil", escaped)
+        self.helper.require_unsupported_schema_error(escaped)
+        self.helper.require_unsupported_schema_error(json.dumps(payload, ensure_ascii=False))
+
+    def test_schema_rejection_requires_failed_storage_error_and_exact_diagnosis(self):
+        message = "Veritabanı sürümü bu uygulamayla uyumlu değil. " \
+                  "Dosya değiştirilmedi; uygun uygulama sürümünü kullanın."
+        for output in (
+            "not JSON",
+            "[]",
+            "null",
+            json.dumps({"ok": True, "error": {"code": "storage_error", "message": message}}),
+            json.dumps({"ok": 0, "error": {"code": "storage_error", "message": message}}),
+            json.dumps({"ok": False, "error": {"code": "filesystem_error", "message": message}}),
+            json.dumps({"ok": False, "error": {"code": "storage_error", "message": "Other failure"}}),
+            json.dumps({"ok": False, "error": {"code": "storage_error", "message": message + " Other failure"}}),
+            json.dumps({"ok": False, "error": "storage_error"}),
+        ):
+            with self.subTest(output=output):
+                with self.assertRaisesRegex(RuntimeError, "unsupported new schema"):
+                    self.helper.require_unsupported_schema_error(output)
 
     @unittest.skipUnless(sys.platform == "linux", "Requires real Linux /proc process ownership.")
     def test_command_captures_failure_and_times_out_owned_process(self):

@@ -3,6 +3,14 @@ name: XTI stabilization acceptance
 # Expensive real installation and endurance checks are explicit release checks.
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Acceptance jobs to run
+        type: choice
+        default: all
+        options:
+          - all
+          - upgrade
 
 permissions:
   contents: read
@@ -13,6 +21,7 @@ concurrency:
 
 jobs:
   verification:
+    if: ${{ inputs.scope != 'upgrade' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -58,6 +67,7 @@ jobs:
         run: ./scripts/bootstrap-python scripts/check-linux-upgrade.py --tool "$ACCEPTANCE_TOOL"
 
   operations:
+    if: ${{ inputs.scope != 'upgrade' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
