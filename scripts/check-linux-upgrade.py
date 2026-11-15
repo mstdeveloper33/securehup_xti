@@ -292,9 +292,9 @@ def require_preserved_tables(before, after):
                        f"Schema migration changed pre-existing table/evidence: {name}.")
 
 
-def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=66):
+def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=67):
     """Exercise a reviewed explicit schema64 upgrade, retaining its original backup."""
-    COMMON.require(target_schema in (65, 66), "Unsupported migration target.")
+    COMMON.require(target_schema in (65, 66, 67), "Unsupported migration target.")
     data = Path(environment["XTI_DATA_DIR"])
     error = command(["./setup", "--core-only"], environment, expected=None)
     COMMON.require("migrate" in error, "Old data was not rejected with explicit migration guidance.")
@@ -491,7 +491,7 @@ def main(arguments=None):
             stage = "candidate schema compatibility"
             command(["git", "checkout", "--detach", checked_commit(target)], environment)
             target_schema = int(command(["./scripts/python", "-c", "from xti.adapters.schema import SCHEMA_VERSION; print(SCHEMA_VERSION)"], environment))
-            COMMON.require(target_schema in (64, 65, 66), "Only reviewed schema64/schema65/schema66 candidates are supported by this acceptance.")
+            COMMON.require(target_schema in (64, 65, 66, 67), "Only reviewed schema64/schema65/schema66/schema67 candidates are supported by this acceptance.")
             backup, current_files = None, before
             if target_schema > 64:
                 stage = f"explicit schema64 to schema{target_schema} migration"
@@ -531,7 +531,7 @@ def main(arguments=None):
                 detail = COMMON.engine(environment, "record.get", {"reference": reference})
                 COMMON.require(detail["reference"] == reference, "Upgrade changed the existing record identity.")
                 current_environment = BRAND.environment_snapshot(canonical)
-                if label == "upgrade" and options.tool == "brand" and target_schema == 66:
+                if label == "upgrade" and options.tool == "brand" and target_schema >= 66:
                     COMMON.require(current_environment[:2] != baseline_installed[:2],
                                    "The new reader did not get a separate managed environment.")
                     retained_brand_backup = require_preserved_brand_backup(project, baseline_installed, baseline_backups)
@@ -550,7 +550,7 @@ def main(arguments=None):
 
             stage = "real package subprocess interruption and recovery"
             interrupt_real_install(project, options.tool, environment)
-        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit 64→65/66 migration with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
+        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit 64→65/66/67 migration with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
         return 0
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
         COMMON.summary(f"- RESULT: FAIL at {stage}: {error}")

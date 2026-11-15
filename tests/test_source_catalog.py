@@ -4,7 +4,7 @@ from xti.application.sources import SourceCatalogService
 
 
 class SourceCatalogTests(unittest.TestCase):
-    def test_catalog_has_unique_stable_entries_and_no_paid_dependency(self):
+    def test_catalog_has_unique_stable_entries_and_explicit_credentials(self):
         items = SourceCatalogService().list()
         self.assertEqual(
             [item.identifier for item in items],
@@ -16,10 +16,11 @@ class SourceCatalogTests(unittest.TestCase):
                 "mitre-attack-enterprise", "cisa-kev",
                 "first-epss", "nist-nvd-cve", "osv-dev", "canonical-ubuntu-osv",
                 "redhat-csaf-vex", "suse-csaf-vex", "news:cisa", "news:ncsc", "news:cert-fr",
+                "mentions:tavily",
             ],
         )
         self.assertEqual(len({item.identifier for item in items}), len(items))
-        self.assertTrue(all(not item.credential_required for item in items))
+        self.assertEqual([item.identifier for item in items if item.credential_required], ['mentions:tavily'])
         self.assertTrue(all(not item.paid_dependency for item in items))
 
     def test_only_explicit_active_check_claims_direct_target_contact(self):

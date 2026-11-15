@@ -1,12 +1,12 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.143.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 66.
+**Uygulama:** 0.144.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 67.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
 kaynak durumu ve proje araç kataloğu. Mevcut terminal komutları ve `--json` çıktıları
-korunur. 0.143.0 engine v1'e `news` kayıt ailesini ekler; dört işlem
-değişmez. Haber tabloları için gereken şema 65→66 geçişi ayrı ve açık
+korunur. 0.143.0 `news`, 0.144.0 `mention` kayıt ailesini ekler; dört işlem
+değişmez. Yeni içerik geçmişi için gereken şema 66→67 geçişi ayrı ve açık
 `./xti migrate` adımıdır; [güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
 Bu okuma katmanı yeni internet toplaması başlatmaz. İnternetten veri alan
@@ -109,12 +109,18 @@ değerlerini sabit tutmalı, kullanıcı metnini shell komutu olarak üretmemeli
 | Parametre | Kural |
 |---|---|
 | `query` | Zorunlu; normalleştirilmiş 2–200 görünür karakter |
-| `kinds` | İsteğe bağlı, boş olmayan kayıt türü listesi; verilmezse on bir aile |
+| `kinds` | İsteğe bağlı, boş olmayan kayıt türü listesi; verilmezse on iki aile |
 | `include_inactive` | Boolean; varsayılan `false` |
 | `offset` / `limit` | Sayfa başlangıcı ve boyutu; varsayılan `0` / `50` |
 
 On bir kayıt ailesi: `domain`, `finding`, `social`, `ransomware`, `public-notice`,
-`case`, `supplier`, `organization`, `cti`, `indicator`, `news`.
+`case`, `supplier`, `organization`, `cti`, `indicator`, `news`, `mention`.
+
+Firma/tedarikçi içerik referansı `kind="mention"`,
+`record_type="company_mention"`, `namespace="tavily"` kullanır.
+Kaynağın sonucu bir adaydır; kayıt ayrıntısı sorgu/hedef tanımını,
+görünür eşleşme gerekçesini ve o sorgunun son deneme/başarı durumunu
+korur. API anahtarı ve ham HTTP cevabı engine çıktısına girmez.
 
 Haber referansı `kind="news"`, `record_type="news_article"` ve yayıncının
 `cisa`, `ncsc` veya `cert-fr` namespace'ini taşır. `record_id`, kaynak ile
@@ -297,7 +303,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.143.0",
+  "engine_version": "0.144.0",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",

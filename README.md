@@ -290,6 +290,31 @@ uzaktaki mevcut aktör/kampanya/malware/rapor ilişkilerini dayanaklarıyla aça
 gösterir. Kayıt bulunmaması güvenli olduğu anlamına gelmez. Ayrıntı ve
 sayfalama [kuruluş rehberinde](docs/ORGANIZATION_REPORT.md) yer alır.
 
+## Firma ve tedarikçi hakkında içerik ara
+
+Tavily ile firma adına gerçek web/haber araması yapabilir, sonuçları
+kaynakları ve önceki halleriyle saklayabilirsin. Kendi Tavily hesabından
+API anahtarı gerekir; ücretsiz krediyle başlanabilir. Anahtarı repoya yazma.
+
+```sh
+./xti migrate
+./xti mentions configure
+./xti mentions plan --name "Örnek Firma" --domain example.com
+./xti mentions search --name "Örnek Firma" --domain example.com --topic news
+./xti mentions list
+./xti mentions status
+```
+
+`configure` gizli girişle özel anahtar dosyasını oluşturur. `plan` ağsızdır;
+`search` tek temel istek gönderir (belgelenen tüketim 1 kredi), otomatik tekrar
+yapmaz. `--organization KIMLIK` veya `--supplier KIMLIK` ile kayıtlı hedefler
+de seçilebilir. Başlık, bağlantı, açıklama, eşleşme gerekçesi ve yeni/değişen/aynı
+ayrımı gösterilir; sonuçlar doğrulanmış tehdit sayılmaz.
+
+Kayıtlar `search --kind mention`, mevcut kayıtlı arama ve engine v1 üzerinden
+de okunur. Okuma internet veya API anahtarı istemez. Geçiş önceki veriyi
+yedekler; Tavily için ek paket kurulmaz. [Kurulum, örnekler ve sınırlar](docs/MENTIONS.md).
+
 ## RSS ve Atom haberlerini topla
 
 Ücretsiz CISA, Birleşik Krallık NCSC ve Fransa CERT-FR yayınlarını

@@ -18,6 +18,7 @@ from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_jobs import SQLiteJobRepository
 from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
 from xti.adapters.sqlite_news import read_news_catalog
+from xti.adapters.sqlite_mentions import read_mentions_catalog
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
@@ -219,6 +220,18 @@ class SQLiteSourceReadinessRepository:
                    "Kayıt sayısı saklanan son bilinen haberlerdir; seçilen domainin eşleşme sayısı değildir.",
                    "Akıştan düşen eski haber korunur; başarısız deneme önceki kanıtı silmez."),
         ) for source in NEWS_SOURCES)
+        rows.append(_row(
+            'mentions:tavily', 'Tavily firma ve tedarikçi içerik araması',
+            'Açıkça seçilen hedeflerin arama geçmişi; domain filtresinden bağımsız',
+            './xti mentions status',
+            notes=(
+                'builtin yalnız adaptörün mevcut olduğunu belirtir; API anahtarı, hesap bakiyesi veya canlı erişim doğrulanmaz.',
+                'Son deneme/başarı farklı firma veya sorguya ait olabilir; her kaydın özgün arama kapsamını inceleyin.',
+                'Kayıt sayısı saklanan son bilinen adaylardır; bütün internetin veya bir firmanın toplam haber sayısı değildir.',
+                'Ücretsiz kredi kullanılabilir; hesap kotası ve ücretli kullanım ayarları Tavily tarafından yönetilir.',
+                'Arama sonucu adayı tehdit veya ihlal doğrulaması değildir.',
+            ),
+        ))
         for index, row in enumerate(rows):
             tool = row.identifier.split(":", 1)[1]
             if row.identifier in {"social:maigret", "social:sherlock", "surface:theharvester"}:
@@ -264,6 +277,7 @@ class SQLiteSourceReadinessRepository:
             self._claim_rows(connection, rows)
             self._public_notice_row(connection, rows)
             self._news_rows(connection, rows)
+            self._mention_row(connection, rows)
             self._attack_row(connection, rows)
             for item in connection.execute(
                 "SELECT provider, not_before, recorded_at, reason FROM provider_cooldowns"
@@ -412,3 +426,10 @@ class SQLiteSourceReadinessRepository:
             key = "news:" + status.source.key
             row = self._record(rows[key], status.latest_run, status.latest_complete_run)
             rows[key] = replace(row, record_count=status.article_count if status.latest_complete_run else None)
+
+    def _mention_row(self, connection, rows):
+        catalog = read_mentions_catalog(connection)
+        latest = catalog.runs[-1] if catalog.runs else None
+        success = next((run for run in reversed(catalog.runs) if run.status == 'complete'), None)
+        row = self._record(rows['mentions:tavily'], latest, success)
+        rows['mentions:tavily'] = replace(row, record_count=len(catalog.records) if success else None)

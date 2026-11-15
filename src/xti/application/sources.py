@@ -594,5 +594,25 @@ class SourceCatalogService:
             limits=(*NEWS_NOTES, source.attribution,
                     'Yalnız seçilen sabit yayıncı akışı alınır; keyfî adres, makale gövdesi veya ek dosya indirilmez.'),
             reference_url=source.homepage,
-        ) for source in NEWS_SOURCES)
+        ) for source in NEWS_SOURCES) + (
+            SourceCatalogEntry(
+                identifier='mentions:tavily', label='Tavily firma ve tedarikçi içerik araması',
+                kind='company_content_search',
+                purpose='Seçilen kuruluş veya tedarikçi adına web/haber araması yapar; bağlantı, başlık, sınırlı özet ve eşleşme nedenini saklar.',
+                access='Tavily hesabına ait API anahtarı gerekir. Ücretsiz kredi kullanılabilir; hesap kotası ve ücretli kullanım ayarları sağlayıcıda yönetilir.',
+                credential_required=True, paid_dependency=False, contacts_monitored_target=False,
+                commands=('mentions search --organization KURULUS_KIMLIGI',
+                          'mentions search --supplier TEDARIKCI_KIMLIGI',
+                          'mentions list', 'mentions status', 'search --kind mention'),
+                limits=(
+                    'Bir açık arama basic derinlikte tek istek yapar; otomatik tekrar veya ücretli paket yükseltme yoktur.',
+                    'En çok 20 sıralanmış sonuç alınır; bütün interneti veya tüm firma haberlerini kapsadığı iddia edilmez.',
+                    'Ad/domain eşleşmesi araştırma adayıdır; doğrulanmış kuruluş kimliği veya tehdit kararı değildir.',
+                    'Aranan firma bilgisi Tavily hizmetine gönderilir; XTI sonuç sayfalarını doğrudan ziyaret etmez.',
+                    'API anahtarı kaynak listesinde, kayıtlarda veya engine çıktısında bulunmaz.',
+                    'Ücretsiz kredi miktarı ve erişim koşulları değişebilir; kalan hesap bakiyesi yerel kayıtlardan kesin hesaplanamaz.',
+                ),
+                reference_url='https://docs.tavily.com/documentation/api-reference/endpoint/search',
+            ),
+        )
 

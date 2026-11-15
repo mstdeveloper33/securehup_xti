@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.143.0 · Şema 66.**
+**15 Kasım 2026 · 0.144.0 · Şema 67.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -11,10 +11,51 @@ aittir. Biz motoru, sürümlü sözleşmesini, örneklerini ve belgelerini
 sağlarız. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
-veya müşteri yalıtımı henüz uygulanmadı. 0.143.0 haberler için şema 66'ya
-açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
+veya müşteri yalıtımı henüz uygulanmadı. 0.144.0 firma içerik geçmişi için
+şema 67'ye açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
 
-**Güncel teslim:** 0.143.0, hazır `feedparser` ile RSS/Atom haberlerini
+**Güncel teslim:** 0.144.0, isteğe bağlı Tavily ile seçilen firma,
+kayıtlı kuruluş veya tedarikçi hakkında gerçek web/haber araması ekler.
+`mentions configure/plan/search/list/show/status/run-show`, kaynaklı
+kalıcı sonuçlar, genel arama/engine ve mevcut kayıtlı arama bağlantısı
+uygulanmıştır. Her toplama tek temel API isteğidir; otomatik tekrar ve
+LLM cevabı yoktur. Kullanıcının kendi API anahtarı gerekir; kaynak canlı
+kullanımı ve ücretsiz kredi bakiyesi bu teslimde doğrulanmış sayılmaz.
+[Kullanım ve sınırlar](MENTIONS.md), [karar](decisions/0149-tavily-company-mentions.md).
+
+Şema 67 tek eklemeli çalışma tablosu ekler; açık geçiş yeni yedek alır.
+Sorgu/hedef tanımı ve tam sınırlı yanıt geçmişte korunur; güncel görünüm
+denetlenmiş çalışmalardan üretilir. Kaynak hatası ve başarılı boş sorgu
+ayrıdır. Aynı URL aynı sorgu kapsamında tekrar kayıt oluşturmaz; yalnız
+puan değişimi anlamlı değişim sayılmaz. Görünür eşleşme gerekçesi ile
+yalnız sağlayıcı adayı ayrıdır; tehdit kararı verilmez. Eski 10/11 tür
+kayıtlı arama kapsamları kendiliğinden genişlemez. Yeni engine işlemi yoktur.
+
+Anahtar repodan/veritabanından ayrı özel kullanıcı dosyasında veya ortamda
+tutulur. `plan` ağsızdır; yerel sonuç okuma anahtar gerektirmez. Kredi
+sayacı yalnız bu veri alanında kaynakça bildirilen tüketimi gösterir;
+hesap bakiyesi veya fatura değildir. Kuruluş–tedarikçi toplu izleme,
+zamanlanmış arama ve müşteri yalıtımı bu teslimde uygulanmadı.
+
+**0.144.0 doğrulaması:** Tavily taşıması/anahtar, domain/depo/geçiş,
+servis/CLI, genel arama/engine ve ilgili mevcut kontrolleri içeren 115 test
+30,583 saniyede geçti. Bütün migration paketi 235/235 başarılıdır
+(71,337 saniye). Son API hata yönlendirmesi ve engine sorgu alanı dahil
+51 ilgili test ayrıca 5,135 saniyede geçti. 48 yerel belge bağlantısı,
+bir bölüm bağlantısı ve 29 komut örneği doğrulandı.
+
+Yerel genel tur macOS/Python 3.13 üzerinde 2.350 test çalıştırdı
+(965,516 saniye): 2.345 başarılı, üç Linux kontrolü atlandı; iki eski
+Linux yükseltme testi yeni şema 67 yerine 66'yı bekliyordu. Beklentiler
+67 ve desteklenmeyen sonraki sürüm 68 olarak düzeltildi; test dosyası
+hızlı CI kapsamına eklendi. Düzeltme sonrası yükseltme/CI/geçiş/engine
+paketinde 48 kontrolün 46'sı başarılı, Linux `/proc` isteyen ikisi
+yerelde atlandı (14,511 saniye). Genel tur yeniden çalıştırılmadı.
+Gerçek Tavily anahtarıyla dış arama yapılmadı ve kredi tüketilmedi;
+canlı kaynak kabulü kullanıcı anahtarı tanımlandıktan sonra yapılabilir.
+Kullanıcı veritabanı ve mevcut araç ortamı değiştirilmedi.
+
+**Önceki teslim:** 0.143.0, hazır `feedparser` ile RSS/Atom haberlerini
 internetten toplar; kaynaklı haberleri genel arama, engine ayrıntısı ve
 mevcut kayıtlı arama/bildirim yoluna bağlar. Kaynaklar arası olay adayları
 ve önceki izlemeler kullanılmaya devam eder.

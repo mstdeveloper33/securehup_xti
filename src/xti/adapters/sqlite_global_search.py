@@ -17,6 +17,7 @@ from xti.adapters.sqlite_findings import SQLiteFindingRepository, _FINDING_COLUM
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.adapters.sqlite_public_notices import read_public_notice_history
 from xti.adapters.sqlite_news import read_news_catalog
+from xti.adapters.sqlite_mentions import read_mentions_catalog
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_supplier_history import read_supplier_history
@@ -32,6 +33,8 @@ from xti.domain.global_search import (
 )
 from xti.domain.organization_report import ReportNavigation
 from xti.domain.organizations import normalize_organization_id
+from xti.domain.mentions import build_query
+from xti.domain.global_saved_searches import mention_semantic
 from xti.domain.ransomlook_ransomware import RANSOMLOOK_SOURCE_LICENSE
 from xti.domain.ransomware_claims import RANSOMWARE_SOURCE_LICENSE
 
@@ -343,6 +346,37 @@ class _SearchReader:
                        notes=(source.attribution, source.url, *catalog.notes,
                               'Kayıt sayısı saklanan son bilinen haberlerdir; yalnız son akış yanıtının boyutu değildir.'))
 
+    def mentions(self):
+        catalog = read_mentions_catalog(self.connection)
+        start = len(self.results)
+        for record in catalog.records:
+            request, hit = record.request, record.hit
+            self.add('mention', 'company_mention', record.id, hit.title,
+                     'search_candidate', True, record.last_changed_at, 'tavily',
+                     (('title', hit.title), ('summary', hit.summary), ('url', hit.url),
+                      ('target_name', request.target.name),
+                      ('target_domains', ', '.join(request.target.domains))),
+                     source_run_id=record.last_change_run_id,
+                     details=(f'Hedef: {request.target.name} ({request.target.kind})',
+                              f'Hedef kimliği: {request.target.id}',
+                              f'Arama: {build_query(request.target)} | kapsam: {request.topic} | sonuç sınırı: {request.max_results}',
+                              f'Özgün bağlantı: {hit.url}', f'Özet: {hit.summary}',
+                              f'Sağlayıcının tarih bilgisi: {hit.published_at or "belirtilmedi"}',
+                              'Eşleşen terimler: ' + (', '.join(record.matched_terms) or 'Görünür metinde eşleşme yok'),
+                              'Eşleşen alanlar: ' + (', '.join(record.match_fields) or 'Sağlayıcı arama adayı'),
+                              f'İlk toplama: {record.first_seen_at}', f'Son görülme: {record.last_seen_at}',
+                              'Arama sonucu adayı; doğrulanmış tehdit veya kesin kuruluş kimliği değildir.'),
+                     semantic=mention_semantic(record),
+                     navigation=(_nav('İçerik ayrıntısı', 'mentions', 'show', record.id),
+                                 _nav('Arama çalışma kanıtı', 'mentions', 'run-show', record.last_change_run_id)))
+        latest = catalog.runs[-1] if catalog.runs else None
+        success = next((run for run in reversed(catalog.runs) if run.status == 'complete'), None)
+        self.cover('mention', 'tavily', len(catalog.records), start, latest=latest, success=success,
+                   notes=('Yalnız açıkça aranmış hedeflerin saklanan son bilinen sonuçlarıdır.',
+                          'Kaynak son deneme/başarı zamanı başka bir hedef veya arama kapsamına ait olabilir.',
+                          'Her istek en çok 20 sıralanmış sonuç alır; sonuç yokluğu internette içerik yokluğu değildir.',
+                          'Aramadan düşen eski sonuç silinmez; bu arama interneti yeniden sorgulamaz.'))
+
     def cases(self):
         start = len(self.results)
         links = read_case_evidence_links(self.connection)
@@ -470,6 +504,7 @@ def read_global_search_snapshot(connection, path, query, *, kinds, include_inact
     reader = _SearchReader(connection, path, query, include_inactive, checked_at, tracking=tracking)
     handlers = {'domain': reader.domains, 'finding': reader.findings, 'social': reader.social,
                 'ransomware': reader.ransomware, 'public-notice': reader.public_notices, 'news': reader.news,
+                'mention': reader.mentions,
                 'case': reader.cases, 'supplier': reader.suppliers, 'organization': reader.organizations}
     for kind in kinds:
         if kind in handlers:

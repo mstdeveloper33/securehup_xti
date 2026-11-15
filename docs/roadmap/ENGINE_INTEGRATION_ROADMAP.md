@@ -1,13 +1,15 @@
 # XTI motoru yol haritası ve tüketici ekibe teslim sınırı
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.143.0 / şema 66.
+**Mevcut sürüm:** 0.144.0 / şema 67.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
 ENG-03'ün kaynaklar arası olay adayları ile kayıtlı genel arama ve yerel
 bildirim dilimleri uygulandı. ENG-04'ün ilk RSS/Atom haber teslimi de
-uygulandı; sonraki kapsam ölçülen kaynak boşlukları ve haberlerin toplama
-iş akışına bağlanmasıdır. Bu sonraki işler henüz uygulanmadı.
+uygulandı. 0.144.0 Tavily ile seçili firma/kuruluş/tedarikçi için tek
+istekli web/haber araması ve kaynaklı geçmiş ekler. Sonraki kapsam
+ölçülen kaynak boşlukları, kuruluş–tedarikçi toplu izleme tanımı ve
+haberlerin toplama iş akışına bağlanmasıdır. Bu sonraki işler henüz uygulanmadı.
 .NET tüketicisi henüz bağlı değildir; bağlantıyı repoyu kullanan ekip yapar.
 [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 

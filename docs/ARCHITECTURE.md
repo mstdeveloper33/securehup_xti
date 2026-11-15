@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.143.0, şema 66 ana proje yapısı.**
+**15 Kasım 2026 — 0.144.0, şema 67 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
@@ -21,7 +21,22 @@ iş/arama/sonuç sınırında da uygulanmalı ve ayrıca sınanmalıdır; bu yet
 sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
 [0142 kararı](decisions/0142-xti-engine-dotnet-host.md) ilk hedefi,
 [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
-Aşağıdaki bölümler mevcut 0.143.0 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut uygulamayı ve önceki teslimlerin sınırlarını anlatır.
+
+`MentionService`, seçilen kuruluş/tedarikçi tanımını küçük hedef portundan
+yazıcı kilidi altında alır; şema, kapsam ve kapasite doğrulanmadan ücretli
+HTTP isteği başlamaz. `TavilySearchSource` tek temel isteği sabit HTTPS
+adresine gönderir; kimlik bilgisi yalnız bu adaptörde kalır. İsteğe bağlı
+anahtar dosyası kullanıcı yapılandırma alanındadır. Yerel okuma anahtar
+ve ağ gerektirmez. Bir kaynak değişikliği portun arkasında kalır.
+
+Şema 67'nin `mentions_runs` tablosu hedef/sorgu ve yanıt kanıtını eklemeli
+olarak saklar. Güncel görünüm ve önce/sonra farkı denetlenmiş geçmişten
+üretilir; hata veya sonuç penceresinden çıkma kanıtı silmez. Sorgu kapsamı
+kimliğe girer; rank/puan değişimi anlamlı içerik değişimi sayılmaz.
+Genel arama ve mevcut kayıtlı arama yeni `mention` türünü destekler;
+engine v1 dört işlemle kalır. Kuruluş–tedarikçi toplu izleme tanımı ve
+tenant ayrımı henüz eklenmedi. [0149 kararı](decisions/0149-tavily-company-mentions.md).
 
 0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
 ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite

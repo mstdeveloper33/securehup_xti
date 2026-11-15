@@ -1,5 +1,22 @@
 # Üçüncü Taraf Yazılım ve Veri Bildirimi
 
+## Tavily arama hizmeti
+
+0.144.0, kullanıcının kendi hesabı ve API anahtarıyla isteğe bağlı
+[Tavily Search API](https://docs.tavily.com/documentation/api-reference/endpoint/search)
+kullanır. Bir arama motoru veya SDK kodu repoya kopyalanmaz; sabit HTTPS
+protokolünü kullanan küçük adaptör stdlib ile çalışır. Servis şartları ve
+ücretsiz/ücretli hesap hakları bir açık kaynak yazılım lisansı değildir.
+
+Yalnız seçilmiş firma adı ve domainleri gönderilir. Başlık, URL, sınırlı
+açıklama, sağlayıcı tarihi/puanı ve sorgu kanıtı saklanır; LLM cevabı ve
+tam sayfa istenmez. Anahtar kanıt veya loglara girmez.
+[Krediler](https://docs.tavily.com/documentation/api-credits),
+[saklama ve müşteriler arası kullanım](https://help.tavily.com/articles/1612400809-storing-caching-retaining-output),
+[hizmet şartları](https://www.tavily.com/terms).
+Sağlayıcının saklama açıklaması yayıncı içeriğine ait hakları devretmez.
+[Entegrasyon kararı](docs/decisions/0149-tavily-company-mentions.md).
+
 ## RSS/Atom ayrıştırıcısı ve haber kaynakları
 
 Normal `./setup`, `news` ekini Maigret/Sherlock ile aynı korumalı `.venv`

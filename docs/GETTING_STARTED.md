@@ -153,12 +153,16 @@ git pull
 `./setup` eski şemayı otomatik değiştirmez. Bir geçiş gerekiyorsa açıkça
 `./xti migrate` çalıştırmanı ister; böylece yerel verin sessizce değiştirilmez.
 
-0.143.0 için şema 65→66 geçişi gerekir. Güncel kodla `./xti migrate`
+0.144.0 için şema 66→67 geçişi gerekir. Güncel kodla `./xti migrate`
 çalıştırıldığında önce benzersiz bir kurtarma yedeği alınır; mevcut kayıtlar
-korunarak üç boş haber tablosu eklenir. Eski kod şema 66'yı açmaz.
+korunarak bir boş firma içerik araması tablosu eklenir. Daha eski
+şemalarda önceki gerekli adımlar da uygulanır. Eski kod şema 67'yi açmaz.
 Eski sürüme dönmek gerekiyorsa geçiş öncesi yedeği aşağıdaki geri yükleme
-akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 66 dosyasının üzerine
-yazma. Haber bağımlılıkları için geçişten sonra `./scripts/setup-brand`
+akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 67 dosyasının üzerine
+yazma. Tavily için ek paket kurulmaz; `./xti mentions configure` ile özel
+anahtarını tanımla. [Firma/tedarikçi araması](MENTIONS.md).
+
+0.143.0'daki RSS/Atom haber bağımlılıkları henüz yoksa `./scripts/setup-brand`
 çalıştır. Mevcut ortamda paketler yoksa kurucu eski ortamı yedekleyip yeni
 ortamı hazırlar; haber paketleri olan sağlıklı tekrar indirme yapmaz.
 Tam örnekler [haber kullanımında](../README.md#rss-ve-atom-haberlerini-topla).

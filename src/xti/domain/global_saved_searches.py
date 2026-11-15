@@ -16,6 +16,10 @@ from xti.domain.global_search import (
 from xti.domain.engine import EngineContractError, reference_for_result
 from xti.domain.organization_report import ReportNavigation
 from xti.domain.news import NewsArticle, validate_article
+from xti.domain.mentions import (
+    MentionHit, MentionRequest, MentionTarget, match_hit, result_id,
+    validate_hit, validate_request,
+)
 
 
 GLOBAL_SEARCH_WATCH_VERSION = "global-search-watch-v1"
@@ -193,6 +197,43 @@ class GlobalSavedSearchMatch:
     result: GlobalSearchResult
 
 
+def mention_semantic(record) -> dict:
+    """Stable source content and query context; ranking and collection times vary."""
+    hit = asdict(record.hit)
+    del hit['score']
+    return {'record_id': record.id, 'source_key': 'tavily',
+            'request': asdict(record.request), 'hit': hit,
+            'matched_terms': list(record.matched_terms), 'match_fields': list(record.match_fields)}
+
+
+def _validate_mention_match(result, semantic):
+    try:
+        if set(semantic) != {'record_id', 'source_key', 'request', 'hit', 'matched_terms', 'match_fields'}:
+            raise ValueError('Mention semantic fields differ')
+        target_data = dict(semantic['request']['target'])
+        target_data['domains'] = tuple(target_data['domains'])
+        target = MentionTarget(**target_data)
+        request_data = dict(semantic['request'])
+        request_data['target'] = target
+        request = validate_request(MentionRequest(**request_data))
+        hit = validate_hit(MentionHit(score=None, **semantic['hit']))
+        terms, match_fields = match_hit(target, hit)
+        if (result.kind != 'mention' or result.record_type != 'company_mention'
+                or result.source != 'tavily' or semantic['source_key'] != 'tavily'
+                or result.record_id != semantic['record_id']
+                or result.record_id != result_id(request, hit.url)
+                or result.display_value != hit.title or result.status != 'search_candidate'
+                or result.current is not True or semantic['matched_terms'] != list(terms)
+                or semantic['match_fields'] != list(match_fields)):
+            raise ValueError('Mention source context differs')
+        fields = {'title': hit.title, 'summary': hit.summary, 'url': hit.url,
+                  'target_name': target.name, 'target_domains': ', '.join(target.domains)}
+        if result.matched_field not in fields or result.matched_value != fields[result.matched_field]:
+            raise ValueError('Mention visible match differs')
+    except (TypeError, ValueError, KeyError, AttributeError) as error:
+        raise ValueError('Mention semantic state differs from its typed source evidence') from error
+
+
 def make_match(result: GlobalSearchResult, identity, semantic: dict) -> GlobalSavedSearchMatch:
     identity = tuple(identity)
     if not identity or any(not isinstance(item, str) or not item or len(item) > 2048 for item in identity):
@@ -233,6 +274,8 @@ def make_match(result: GlobalSearchResult, identity, semantic: dict) -> GlobalSa
                 or result.matched_field not in {"title", "summary", "url"}
                 or result.matched_value != getattr(article, result.matched_field)):
             raise ValueError("News search metadata differs from its typed publisher evidence")
+    if result.kind == 'mention' or result.record_type == 'company_mention':
+        _validate_mention_match(result, semantic)
     # Common visible matching/state fields are always part of the comparison.
     state = canonical_json({
         "rule_version": GLOBAL_SEARCH_WATCH_VERSION,

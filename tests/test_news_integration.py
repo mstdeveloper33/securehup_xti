@@ -74,11 +74,11 @@ class NewsIntegrationTests(unittest.TestCase):
         self.tick()
         return self.watches.run(identifier)
 
-    def test_three_news_sources_and_all_eleven_scopes_are_visible_without_collection(self):
+    def test_three_news_sources_and_all_current_scopes_are_visible_without_collection(self):
         before = self.path.read_bytes()
         empty = self.search.search('example')
         self.assertEqual(set(empty.kinds), set(GLOBAL_SEARCH_KINDS))
-        self.assertEqual(len(empty.kinds), 11)
+        self.assertEqual(len(empty.kinds), 12)
         self.assertEqual({item.source for item in empty.coverage if item.kind == 'news'}, {'cisa', 'ncsc', 'cert-fr'})
         self.assertTrue(all(item.latest_run_id is None for item in empty.coverage if item.kind == 'news'))
         self.assertEqual(self.path.read_bytes(), before)
@@ -105,7 +105,7 @@ class NewsIntegrationTests(unittest.TestCase):
         SQLiteNewsRepository(fixture.database).apply(feed((article(),), at=at), started_at=at, finished_at=at)
         before = fixture.files()
         result = fixture.service.search('example')
-        self.assertEqual({hit.kind for hit in result.results}, set(GLOBAL_SEARCH_KINDS))
+        self.assertEqual({hit.kind for hit in result.results}, set(LEGACY_SEARCH_KINDS) | {'news'})
         self.assertEqual({scope.kind for scope in result.coverage}, set(GLOBAL_SEARCH_KINDS))
         for hit in result.results:
             with self.subTest(kind=hit.kind, source=hit.source):

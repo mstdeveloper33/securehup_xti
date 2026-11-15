@@ -1,5 +1,22 @@
 # Değişiklik Kaydı
 
+## 0.144.0 — 15 Kasım 2026
+
+- Tavily ile firma, kayıtlı kuruluş ve tedarikçi hakkında gerçek web/haber
+  araması: `mentions configure/plan/search/list/show/status/run-show`.
+  Her komut tek temel istek gönderir; otomatik tekrar veya LLM cevabı yoktur.
+- API anahtarı repodan ve veritabanından ayrı özel dosyada veya ortamda
+  tutulur. Gizli terminal girişi, anahtar sızdırmayan hata mesajları,
+  sabit HTTPS adresi, yanıt ve süre sınırları uygulanır.
+- Sorgu/hedef, başlık, bağlantı, sınırlı açıklama ve eşleşme gerekçesi
+  kaydedilir. Tekrar, değişen içerik ve geçmiş kanıt korunur; boş başarı
+  erişim/kota hatasından ayrıdır. Kredi bilgisi hesap bakiyesi değildir.
+- Genel arama, kayıtlı arama ve engine v1'e `mention/company_mention`
+  eklenir. Önceki izleme kapsamları değişmez; engine'in dört işlemi korunur.
+- Şema 67 tek eklemeli çalışma tablosu ve açık yedekli geçiş ekler. Yeni
+  Python bağımlılığı, müşteri/oturum backend'i veya otomatik tarama yoktur.
+  [Kullanım](docs/MENTIONS.md), [karar](docs/decisions/0149-tavily-company-mentions.md).
+
 ## 0.143.0 — 15 Kasım 2026
 
 - `news sources/refresh/list/show/status/run-show`: CISA, UK NCSC ve

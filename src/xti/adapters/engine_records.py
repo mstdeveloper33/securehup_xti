@@ -20,6 +20,8 @@ from xti.adapters.sqlite_findings import SQLiteFindingRepository
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.adapters.sqlite_public_notices import read_public_notice_history
 from xti.adapters.sqlite_news import read_news_catalog
+from xti.adapters.sqlite_mentions import read_mentions_catalog
+from xti.domain.mentions import build_query
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_supplier_history import read_supplier_history
@@ -85,6 +87,9 @@ _WIRE_FIELDS = {
     'NewsArticle': ('id', 'source_key', 'source_entry_id', 'url', 'title', 'summary', 'summary_truncated', 'published_at', 'updated_at', 'published_raw', 'updated_raw'),
     'NewsSourceDefinition': ('key', 'name', 'url', 'homepage', 'attribution'),
     'NewsRun': ('sequence', 'id', 'source_key', 'status', 'started_at', 'finished_at', 'fetched_at', 'content_sha256', 'snapshot_sha256', 'article_count', 'added_count', 'updated_count', 'unchanged_count', 'error'),
+    'MentionTarget': ('kind', 'id', 'name', 'domains'),
+    'MentionRequest': ('target', 'topic', 'max_results'),
+    'MentionHit': ('url', 'title', 'summary', 'published_at', 'score', 'summary_truncated'),
     'RansomLookClaim': ('id', 'group', 'victim', 'discovered_at'),
     'RansomLookClaimRunItem': ('id', 'run_id', 'claim', 'action', 'state_sha256'),
     'RansomLookClaimRun': ('sequence', 'id', 'source_name', 'status', 'source_url', 'content_sha256', 'started_at', 'finished_at', 'fetched_at', 'window_days', 'source_record_count', 'claim_count', 'added_count', 'updated_count', 'unchanged_count', 'removed_count', 'error'),
@@ -161,6 +166,8 @@ class SQLiteEngineRecordRepository:
             valid = reference.record_type == 'ransomware_claim' and reference.namespace in {'threatcluster', 'ransomlook'}
         elif reference.kind == 'news':
             valid = reference.record_type == 'news_article' and reference.namespace in {'cisa', 'ncsc', 'cert-fr'}
+        elif reference.kind == 'mention':
+            valid = reference.record_type == 'company_mention' and reference.namespace == 'tavily'
         else:
             valid = _LOCAL_TYPES.get(key) == reference.namespace and key in _LOCAL_TYPES
         if not valid:
@@ -174,6 +181,8 @@ class SQLiteEngineRecordRepository:
                     record, sections, provenance, notes = self._catalog(connection, reference)
                 elif reference.kind == 'news':
                     record, sections, provenance, notes = self._news(connection, reference)
+                elif reference.kind == 'mention':
+                    record, sections, provenance, notes = self._mention(connection, reference)
                 else:
                     handlers = {'registered_domain': self._asset, 'surface_candidate': self._candidate,
                                 'brand_finding': self._finding, 'username_watch': self._watch,
@@ -205,6 +214,40 @@ class SQLiteEngineRecordRepository:
             'latest_attempt': status.latest_run, 'latest_success': status.latest_complete_run,
             'retention': 'rolling_feed_articles_retained',
         }, catalog.notes
+
+    @staticmethod
+    def _mention(connection, reference):
+        catalog = read_mentions_catalog(connection)
+        stored = next((record for record in catalog.records if record.id == reference.record_id), None)
+        if stored is None:
+            _not_found()
+        latest = next((run for run in reversed(catalog.runs)
+                       if run.request == stored.request), None)
+        success = next((run for run in reversed(catalog.runs)
+                        if run.request == stored.request and run.status == 'complete'), None)
+        def run_value(run):
+            if run is None:
+                return None
+            return {'id': run.id, 'status': run.status, 'started_at': run.started_at,
+                    'finished_at': run.finished_at, 'result_count': run.result_count,
+                    'error': run.error}
+        record = {'id': stored.id, 'request_key': stored.request_key,
+                  'query': build_query(stored.request.target),
+                  'request': stored.request, 'hit': stored.hit,
+                  'matched_terms': stored.matched_terms, 'match_fields': stored.match_fields}
+        return record, {}, {
+            'source': 'tavily', 'state_sha256': stored.state_sha256,
+            'first_run_id': stored.first_run_id, 'last_change_run_id': stored.last_change_run_id,
+            'last_seen_run_id': stored.last_seen_run_id, 'first_seen_at': stored.first_seen_at,
+            'last_changed_at': stored.last_changed_at, 'last_seen_at': stored.last_seen_at,
+            'latest_attempt': run_value(latest), 'latest_success': run_value(success),
+            'retention': 'bounded_search_results_retained',
+        }, (
+            'Kaynakla ilişkili arama adayıdır; doğrulanmış tehdit veya kuruluş kimliği değildir.',
+            'Son deneme/başarı bu kaydın hedef tanımı, arama konusu ve sonuç sınırıyla eşleşir.',
+            'Sıralama puanı sağlayıcının arama uygunluğudur; risk veya doğruluk puanı değildir.',
+            'Sağlayıcı tarihi tahmini yayın/güncelleme bilgisidir; XTI toplama zamanından ayrıdır.',
+        )
 
     @staticmethod
     def _asset(connection, identifier):

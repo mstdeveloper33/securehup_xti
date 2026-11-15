@@ -63,7 +63,7 @@ class NewsMigrationTests(unittest.TestCase):
         storage = self.legacy()
         before = manifest(self.path)
         result = storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (65, 66))
+        self.assertEqual((result['from_version'], result['to_version']), (65, SCHEMA_VERSION))
         self.assertEqual(VERSION_TABLES[66] - VERSION_TABLES[65], NEWS_TABLES.keys())
         self.assertEqual(manifest(self.path), before)
         self.assertEqual(manifest(result['backup']), before)

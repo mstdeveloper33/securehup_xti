@@ -1,10 +1,12 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.143.0 / şema 66.
+**Tarih:** 15 Kasım 2026. **Uygulama:** 0.144.0 / şema 67.
 **Durum:** Uygulanan bileşenler ile araştırmaya dayalı plan tercihleri ayrı gösterilir.
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). 0.143.0 haber modülü feedparser 6.0.14 ve
 feedparser-sgmllib 2.1.0 kullanır; mevcut üç aracın sürümleri korunur.
+0.144.0 kullanıcı tercihiyle Tavily Search API bağlantısını ekler;
+mevcut HTTP protokolü için ek SDK/paket bağımlılığı gerekmez.
 Diğer seçilmiş projeler ile test edilip kullanıma alınan sürümler ayrı durumlardır.
 
 **Son kapsam kararı:** Uygulama backend'i, kullanıcı oturumu ve web mevcut
@@ -32,6 +34,7 @@ kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 | Kaynaklar arası olay adayı | Mevcut XTI kaynak/domain/tarih kuralları | Kesin ve sınırlı noktalama düzenlemeli ad eşleştirmesi; ortak tam domain bağlamı | İlk dilim 0.141.0'da uygulandı; RapidFuzz gerekmedi ve kurulmadı. Yaklaşık ad benzerliği için ileride ölçümlü deney adayı |
 | Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | Kalıcı kimlik, değişmez tam sonuç/kapsam, fark ve yerel bildirim | 0.142.0 on türde uygulandı; 0.143.0 haber türünü açıkça ekler, eski tanımlar kendi kapsamını korur |
 | Haber/RSS/Atom okuma | **feedparser 6.0.14** + **feedparser-sgmllib 2.1.0** | XTI'nın indirdiği sınırlı yanıtı yalnız bellek akışından ayrıştırma | ENG-04 ilk teslimi 0.143.0'da CISA, UK NCSC ve CERT-FR için uygulandı |
+| Firma/tedarikçi web ve haber araması | **Tavily Search API** | Kullanıcı anahtarıyla tek temel arama; kaynaklı aday kayıtları | 0.144.0'da uygulandı; ücretsiz kredi/ücretli kullanım sağlayıcı hesabına bağlı, SDK zorunlu değil |
 | Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | RSS özeti yetersizse ikinci dilim; ilk haber tesliminin zorunlu parçası değil |
 | Motor bağlantı sözleşmesi | Sürümlü motor istek/sonuç sözleşmesi | Motorun desteklediği veri ve işlemler için sözleşme, örnek ve belge | ENG-01/05; son aşamada teslim hazırlığı. .NET adaptörü/gerçek bağlantı kabulü tüketici ekibin işi |
 | Geniş STIX nesne aktarımı | **stix2** | XTI kaydı ile standart nesneler arasında oluşturma/ayrıştırma | En sona ertelenen ENG-07 tercihi |
@@ -44,8 +47,8 @@ seçim değişirse gerekçe bu kayda eklenir.
 
 ## 2. İlk iki özellikte tekrar kullanılan yapı
 
-Mevcut [genel arama](../../src/xti/application/global_search.py), 0.143.0
-haber ekiyle on bir kayıt ailesini arar. [CTI kayıtlı aramalar](../../src/xti/application/cti_saved_searches.py)
+Mevcut [genel arama](../../src/xti/application/global_search.py), 0.144.0
+firma içerik ekiyle on iki kayıt ailesini arar. [CTI kayıtlı aramalar](../../src/xti/application/cti_saved_searches.py)
 tanım, çalışma ve fark desenini;
 [ransomware karşılaştırması](../../src/xti/application/ransomware_source_comparison.py)
 iki kaynağı gerekçeleriyle yan yana getirmeyi zaten sağlar.

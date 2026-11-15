@@ -32,6 +32,7 @@ from xti.adapters.schema import (
     create_supplier_watch_schema,
     create_global_saved_search_schema,
     create_news_schema,
+    create_mentions_schema,
     create_epss_schema,
     create_nvd_schema,
     create_nvd_window_schema,
@@ -216,6 +217,7 @@ class SQLiteAssetRepository:
                 create_supplier_watch_schema(connection)
                 create_global_saved_search_schema(connection)
                 create_news_schema(connection)
+                create_mentions_schema(connection)
                 connection.execute(f"PRAGMA application_id={APPLICATION_ID}")
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
@@ -568,6 +570,7 @@ class SQLiteAssetRepository:
             news_articles = connection.execute("SELECT COUNT(*) FROM news_articles").fetchone()[0]
             news_runs = connection.execute("SELECT COUNT(*) FROM news_runs").fetchone()[0]
             news_snapshots = connection.execute("SELECT COUNT(*) FROM news_snapshots").fetchone()[0]
+            mentions_runs = connection.execute("SELECT COUNT(*) FROM mentions_runs").fetchone()[0]
             global_saved_searches = connection.execute(
                 "SELECT COUNT(*) FROM global_saved_searches"
             ).fetchone()[0]
@@ -805,6 +808,7 @@ class SQLiteAssetRepository:
             "news_article_count": news_articles,
             "news_run_count": news_runs,
             "news_snapshot_count": news_snapshots,
+            "mention_run_count": mentions_runs,
             "global_saved_search_count": global_saved_searches,
             "active_global_saved_search_count": active_global_saved_searches,
             "global_saved_search_run_count": global_saved_search_runs,
@@ -1018,6 +1022,8 @@ class SQLiteAssetRepository:
                     create_global_saved_search_schema(connection)
                 if version < 66:
                     create_news_schema(connection)
+                if version < 67:
+                    create_mentions_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

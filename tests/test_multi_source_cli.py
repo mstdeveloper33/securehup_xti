@@ -227,6 +227,7 @@ class MultiSourceCLITests(unittest.TestCase):
                 "first-epss", "nist-nvd-cve", "osv-dev", "canonical-ubuntu-osv",
                 "redhat-csaf-vex", "suse-csaf-vex",
                 "news:cisa", "news:ncsc", "news:cert-fr",
+                "mentions:tavily",
             },
         )
         self.assertFalse(catalog["crt.sh"]["contacts_monitored_target"])

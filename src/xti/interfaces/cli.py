@@ -24,6 +24,7 @@ from xti.interfaces.event_candidates import (
     register_event_candidates_parser, make_event_candidate_service, execute_event_candidates_command,
 )
 from xti.interfaces.news import register_news_parser, make_news_service, execute_news_command
+from xti.interfaces.mentions import register_mentions_parser, make_mentions_service, execute_mentions_command
 from xti.adapters.sqlite import SCHEMA_VERSION, SQLiteAssetRepository, StorageError
 from xti.adapters.domain_file import read_domain_file
 from xti.adapters.public_suffix import PublicSuffixResolver
@@ -800,6 +801,7 @@ def build_parser() -> Parser:
     register_global_search_parser(commands)
     register_global_saved_search_parser(commands)
     register_news_parser(commands)
+    register_mentions_parser(commands)
     register_engine_parser(commands)
     register_components_parser(commands)
     register_event_candidates_parser(commands)
@@ -3475,6 +3477,14 @@ def run(args: argparse.Namespace) -> int | None:
             limit=args.limit, offset=args.offset,
         )
         emit(asdict(report), periodic_changes_lines(report), as_json=args.json)
+    elif args.command == "mentions":
+        data, lines, status = execute_mentions_command(
+            None if args.mentions_action == "configure" else make_mentions_service(
+                settings.database, search=args.mentions_action == "search",
+                api_key_file=getattr(args, "api_key_file", None)), args,
+        )
+        emit(data, lines, as_json=args.json, ok=status == 0)
+        return status
     elif args.command == "news":
         data, lines, status = execute_news_command(
             None if args.news_action == "sources" else make_news_service(

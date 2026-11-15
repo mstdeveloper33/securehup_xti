@@ -8,7 +8,8 @@ from xti.interfaces.text import safe_text
 _LABELS = {'domain': 'Domain / alt alan', 'finding': 'Marka bulgusu', 'social': 'Sosyal kayıt',
            'ransomware': 'Ransomware kaynak iddiası', 'public-notice': 'Kamu olayı',
            'case': 'Vaka', 'supplier': 'Tedarikçi', 'organization': 'Kuruluş',
-           'cti': 'CTI varlığı', 'indicator': 'IOC', 'news': 'Yayıncı haberi'}
+           'cti': 'CTI varlığı', 'indicator': 'IOC', 'news': 'Yayıncı haberi',
+           'mention': 'Firma/tedarikçi içerikleri'}
 _MATCH = {'exact': 'tam metin', 'prefix': 'başlangıç', 'contains': 'içerme'}
 
 
