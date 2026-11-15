@@ -9,7 +9,7 @@ from xti.domain.organization_report import ReportNavigation
 
 GLOBAL_SEARCH_KINDS = (
     'domain', 'finding', 'social', 'ransomware', 'public-notice', 'case',
-    'supplier', 'organization', 'cti', 'indicator',
+    'supplier', 'organization', 'cti', 'indicator', 'news',
 )
 MAX_SEARCH_ROWS = 50_000
 

@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.142.0 / şema 65.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.143.0 / şema 66.
 
 **Güncel karar:** Bu repo başka platformlara bağlanabilen profesyonel
 XTI veri toplama ve analiz motorudur. .NET adaptörü ve gerçek platform
@@ -11,8 +11,10 @@ ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
 [Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) güncel sırayı ve
 sınırları belirler; ENG kimlikleri korunur. Mevcut sağlamlaştırma paketi
 tamamlandı. Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da,
-kayıtlı genel arama ve yerel bildirimleri 0.142.0'da uygulandı. Sırada
-RSS/Atom haber kaynakları vardır. Entegrasyon teslim hazırlığı ile geniş paylaşım ve
+kayıtlı genel arama ve yerel bildirimleri 0.142.0'da uygulandı. 0.143.0,
+üç yayıncıdan ilk RSS/Atom haber toplama dilimini ekler. Sonraki kapsam,
+haberlerin toplama iş akışına bağlanması ve ölçülen kaynak boşluklarıdır.
+Entegrasyon teslim hazırlığı ile geniş paylaşım ve
 LLM en sondadır. Bu sıra önceki EIP
 sırasının ve bu belgedeki eski geniş
 ürün tasarımının yerine geçer. Hazır açık kaynak kütüphane/araçlar tercih
@@ -80,12 +82,32 @@ içinde tekilleştirilir, ayrı sonuç öğeleri tablosu bulunmaz. Geçiş açı
 geçiş yapmaz. Eski koda dönüş eski yedeği yeni bir konuma restore etmeyi
 gerektirir; şema 65 verisi korunur ve geçiş sonrası kayıtlar eski şemaya
 kendiliğinden taşınmaz. Yeni bağımlılık, ağ API'si veya engine v1 işlemi
-eklenmedi. Sıradaki özellik RSS/Atom haber kaynaklarıdır.
+eklenmedi; bu kayıt 0.142.0 teslimini anlatır.
+
+0.143.0, hazır `feedparser==6.0.14` ve `feedparser-sgmllib==2.1.0`
+paketleriyle CISA News, UK NCSC ve CERT-FR actualité haberlerini toplar.
+`news sources/refresh/list/show/status/run-show` kaynak, başlık, sınırlı
+düz metin özet, özgün bağlantı, yayıncı tarihi ve toplama zamanını gösterir.
+Haberin akıştan çıkması silinme/geri çekilme sayılmaz; önceki haberler
+aranabilir kalır. Kaynak hatası ile geçerli boş akış ayrı kaydedilir.
+
+Genel arama `news` türünü, engine v1 ise mevcut dört işlem içinde haber
+referansını/ayrıntısını ve kaynak durumunu destekler. Bildirim mevcut
+`search-watch → inbox` akışıdır; toplama ve aramayı çalıştırma ayrıdır.
+Eski kayıtlı aramalar somut tür listelerini korur; haberler kendiliğinden
+eski kapsama katılmaz. Şema 66 üç tablo ekler ve açık yedekli geçiş ister.
+Normal kurulum okuyucuyu kurar; `--core-only` paket indirmeyen çekirdeği
+korur. [0148 kararı](../decisions/0148-publisher-news-feeds.md).
+
+Bu ilk haber tesliminin ardından toplu kaynak yenilemesi, haberlerin
+`collect` profilleri/zamanlamasına katılması ve kuruluş raporuna eklenmesi
+ayrı sözleşme ve test gerektiren gelecek işlerdir. Yeni kaynak seçimi
+erişim, koşullar, farklı veri katkısı ve kesinti davranışı ölçülerek yapılır.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
 [bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.
-Bu plan araştırma sonucudur; yeni paket kurulmuş veya sürümü kabul
-edilmiş sayılmaz.
+Haber okuyucusunun yukarıdaki iki sürümü uygulanmıştır; diğer araştırma
+tercihleri kendiliğinden kurulu veya kabul edilmiş sayılmaz.
 
 0.88.0, güncel yerel IOC kaynak iddialarını yedi gösterge türünde STIX 2.1 Indicator Bundle dosyasına ağsız, salt-okunur ve atomik çıkarır. CTI nesne/ilişki kapsamı, TLP, içe aktarma ve TAXII ile kalıcı sistem zamanlaması/dış kanal aboneliği açık kalır.
 
@@ -209,8 +231,9 @@ ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
 arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
 HTML dışa aktarımı kullanılabilir. Olay adayları ve kaydedilmiş genel
-arama bildirimlerinin ilk dilimleri uygulandı; sırada RSS/Atom haber
-kaynakları vardır. Entegrasyon teslim hazırlığı ile
+arama bildirimlerinin ilk dilimleri ile üç kaynaklı RSS/Atom haber
+toplama uygulandı. Haberlerin toplama oturumuna bağlanması ve ölçülmüş
+kaynak genişlemesi sonraki işlerdir. Entegrasyon teslim hazırlığı ile
 geniş paylaşım/LLM en sondadır; .NET tüketicisini repoyu kullanan ekip
 geliştirir ve doğrular. Linux kullanım kabulü ve kaynak
 erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
@@ -628,9 +651,10 @@ ortak müşteri çalışması bütün erişim yolları doğrulanmadan açılmaz.
 ### R12 — AI destekli analiz ve denetimli iş akışları
 
 **Güncel sıra:** 15 Kasım 2026 son kullanıcı kararıyla en sona ertelendi.
-İlk olay adayı ve kayıtlı genel arama dilimleri uygulanmış olsa da
-sıradaki haber kaynaklarından önce model veya LLM entegrasyonu
-başlatılmaz; geniş paylaşım ve teslim hazırlığıyla birlikte en sonda kalır.
+İlk olay adayı, kayıtlı genel arama ve üç kaynaklı haber dilimleri
+uygulandı. Haberlerin toplama iş akışına katılması ve ölçülmüş kaynak
+genişlemesi önceliklidir; model/LLM entegrasyonu geniş paylaşım ve teslim
+hazırlığıyla birlikte en sonda kalır.
 
 **Plan durumu:** 13 Kasım 2026 kullanıcı kararıyla gelecekteki teslim planına isteğe bağlı LLM analiz desteği eklendi. Henüz model kurulmadı ve bu özellik uygulanmadı. İlk teslim kayıtlı kanıttan açıklama, günlük özet ve vaka taslağı üretir; web paneli, REST API veya tüm veri kaynaklarının tamamlanmasını gerektirmez. Araç kullanan çok adımlı otomasyon bu ilk kapsamın dışında kalır. Kullanım, aşamalar ve kabul ölçümleri [LLM planında](LLM_PLAN.md) tanımlıdır.
 

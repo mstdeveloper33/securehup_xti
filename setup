@@ -11,8 +11,8 @@ case "${1:-}" in
     --core-only) XTI_SETUP_MODE=core ;;
     --help|-h)
         echo "Kullanım: ./setup [--core-only]"
-        echo "Varsayılan kurulum çekirdekle birlikte Maigret ve Sherlock'u kurar."
-        echo "--core-only üçüncü taraf marka araçlarını kurmadan çekirdeği hazırlar."
+        echo "Varsayılan kurulum çekirdekle birlikte Maigret, Sherlock ve haber okuyucusunu kurar."
+        echo "--core-only marka araçlarını ve RSS/Atom okuyucusunu kurmadan çekirdeği hazırlar."
         exit 0
         ;;
     *)
@@ -33,8 +33,10 @@ fi
 printf '\nXTI kullanıma hazır.\n'
 if [ "$XTI_SETUP_MODE" = full ]; then
     printf 'Maigret ve Sherlock: doğrulandı.\n'
+    printf 'RSS/Atom haber okuyucusu: doğrulandı.\n'
 else
     printf 'Marka araçları: atlandı (--core-only).\n'
+    printf 'RSS/Atom kurulumu: atlandı (--core-only); gerekirse ./scripts/setup-brand çalıştır.\n'
 fi
 printf 'İlk domainini ekle: ./xti assets add example.com\n'
 printf 'Aramayı başlat:      ./xti scan example.com --typos\n'

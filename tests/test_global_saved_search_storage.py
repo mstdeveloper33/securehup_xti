@@ -80,7 +80,7 @@ class GlobalSavedSearchStorageTests(unittest.TestCase):
         self.seed()
         search = self.add().saved_search
         first = self.run_saved(search.id)
-        self.assertEqual({item.after.result.kind for item in first.items}, set(GLOBAL_SEARCH_KINDS))
+        self.assertEqual({item.after.result.kind for item in first.items}, set(fixtures.LEGACY_SEARCH_KINDS))
         self.assertEqual(first.run.total_count, len(first.items))
         self.assertIsNone(first.notification_id)
         self.assertIsNone(first.run.previous_run_id)

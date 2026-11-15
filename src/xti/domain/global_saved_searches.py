@@ -15,6 +15,7 @@ from xti.domain.global_search import (
 )
 from xti.domain.engine import EngineContractError, reference_for_result
 from xti.domain.organization_report import ReportNavigation
+from xti.domain.news import NewsArticle, validate_article
 
 
 GLOBAL_SEARCH_WATCH_VERSION = "global-search-watch-v1"
@@ -220,6 +221,18 @@ def make_match(result: GlobalSearchResult, identity, semantic: dict) -> GlobalSa
             raise ValueError("Search record identity is unsupported") from error
         if identity_fields != expected:
             raise ValueError("Search identity differs from its source record")
+    if result.kind == "news" or result.record_type == "news_article":
+        try:
+            article = validate_article(NewsArticle(**semantic))
+        except (TypeError, ValueError) as error:
+            raise ValueError("News semantic state is not a complete publisher article") from error
+        if (result.kind != "news" or result.record_type != "news_article"
+                or (result.record_id, result.source, result.display_value)
+                != (article.id, article.source_key, article.title)
+                or result.status != "publisher_metadata" or result.current is not True
+                or result.matched_field not in {"title", "summary", "url"}
+                or result.matched_value != getattr(article, result.matched_field)):
+            raise ValueError("News search metadata differs from its typed publisher evidence")
     # Common visible matching/state fields are always part of the comparison.
     state = canonical_json({
         "rule_version": GLOBAL_SEARCH_WATCH_VERSION,

@@ -17,6 +17,7 @@ from xti.adapters.sqlite_cti_feeds import SQLiteCtiFeedRepository, _RUN_SELECT a
 from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_jobs import SQLiteJobRepository
 from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
+from xti.adapters.sqlite_news import read_news_catalog
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
@@ -30,6 +31,7 @@ from xti.domain.component_pins import HARVESTER_PIN, MAIGRET_PIN, SHERLOCK_PIN
 from xti.domain.cti_attack import ATTACK_SOURCE_NAME
 from xti.domain.cti_feeds import CTI_FEED_POLICIES
 from xti.domain.public_notices import HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_URL
+from xti.domain.news import NEWS_SOURCES
 from xti.domain.source_readiness import SourceReadinessEvidence, SourceReadinessSnapshot
 from xti.ports.discovery import SourceError
 
@@ -209,6 +211,14 @@ class SQLiteSourceReadinessRepository:
                 "Son başarı alanı yalnız son kayıtlı kaynak kanıtının zamanıdır; boş başarılı senkron görünmeyebilir.",
             ),
         ), latest_status="unknown"))
+        rows.extend(_row(
+            f"news:{source.key}", source.name, "Ortak haber kaynağı; domain filtresinden bağımsız",
+            f"./xti news refresh --source {source.key}",
+            notes=(source.attribution, source.url,
+                   "Yalnız saklanan kaynak geçmişi gösterilir; canlı internet erişimi denenmez.",
+                   "Kayıt sayısı saklanan son bilinen haberlerdir; seçilen domainin eşleşme sayısı değildir.",
+                   "Akıştan düşen eski haber korunur; başarısız deneme önceki kanıtı silmez."),
+        ) for source in NEWS_SOURCES)
         for index, row in enumerate(rows):
             tool = row.identifier.split(":", 1)[1]
             if row.identifier in {"social:maigret", "social:sherlock", "surface:theharvester"}:
@@ -253,6 +263,7 @@ class SQLiteSourceReadinessRepository:
             self._social_rows(connection, rows)
             self._claim_rows(connection, rows)
             self._public_notice_row(connection, rows)
+            self._news_rows(connection, rows)
             self._attack_row(connection, rows)
             for item in connection.execute(
                 "SELECT provider, not_before, recorded_at, reason FROM provider_cooldowns"
@@ -395,3 +406,9 @@ class SQLiteSourceReadinessRepository:
         complete = snapshot.latest_complete_run
         row = self._record(rows["notices:hibp"], snapshot.latest_run, complete)
         rows["notices:hibp"] = replace(row, record_count=complete.notice_count if complete else None)
+
+    def _news_rows(self, connection, rows):
+        for status in read_news_catalog(connection).sources:
+            key = "news:" + status.source.key
+            row = self._record(rows[key], status.latest_run, status.latest_complete_run)
+            rows[key] = replace(row, record_count=status.article_count if status.latest_complete_run else None)

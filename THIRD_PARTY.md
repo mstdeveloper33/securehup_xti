@@ -1,5 +1,33 @@
 # Üçüncü Taraf Yazılım ve Veri Bildirimi
 
+## RSS/Atom ayrıştırıcısı ve haber kaynakları
+
+Normal `./setup`, `news` ekini Maigret/Sherlock ile aynı korumalı `.venv`
+ortamına kurar. `--core-only` bu kurulumu atlar. XTI bu kütüphanelerin
+kaynak kodunu deposuna kopyalamaz; PyPI'daki sabit paketleri kullanır.
+
+| Paket | Sürüm | Lisans | Resmî sürüm kaydı |
+|---|---|---|---|
+| feedparser | 6.0.14 | BSD-2-Clause | [PyPI](https://pypi.org/pypi/feedparser/6.0.14/json) |
+| feedparser-sgmllib | 2.1.0 | PSF-2.0 | [PyPI](https://pypi.org/pypi/feedparser-sgmllib/2.1.0/json) |
+
+Wheel SHA-256 değerleri [requirements/news.txt](requirements/news.txt)
+içindedir. Kurulum doğrulaması sürümü, ortam sahipliğini ve ağsız
+RSS/Atom örneklerini denetler; kütüphanelerin tüm geçişli kaynak koduna
+bağımsız güvenlik denetimi yapıldığı iddiası değildir.
+
+Haberlerde yayıncı adı, özgün makale bağlantısı, kaynak tarihleri ve
+sınırlı yayın özeti korunur. Makale sayfası, resim veya logo indirilmez.
+Desteklenen yayınlar CISA News, UK NCSC ve CERT-FR actualité'dir.
+NCSC içeriği aksi belirtilmedikçe Open Government Licence v3.0,
+CERT-FR içeriği aksi belirtilmedikçe Licence Ouverte v2.0 kapsamındadır;
+üçüncü taraf materyal ve logolar için aynı izin varsayılmaz.
+[NCSC koşulları](https://www.ncsc.gov.uk/section/about-this-website/terms-and-conditions),
+[CERT-FR koşulları](https://cert.cyber.gouv.fr/mentions-legales/).
+CISA akışının açık erişimli olması bütün içeriğin sınırsız yeniden
+dağıtılabileceği iddiası değildir. Kaynak erişimi/kapsamı yayıncıya bağlıdır.
+[Entegrasyon kararı](docs/decisions/0148-publisher-news-feeds.md).
+
 ## theHarvester pasif arşiv aracı
 
 İsteğe bağlı `./scripts/setup-harvester`, theHarvester'ı resmî

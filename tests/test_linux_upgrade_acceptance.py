@@ -214,9 +214,40 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
                     environment, before_files, before_database,
                 )
             self.assertEqual(self.helper.database_manifest(backup), before_database)
-            self.assertEqual(self.helper.database_manifest(database)[0], 65)
+            self.assertEqual(self.helper.database_manifest(database)[0], 66)
             self.assertEqual(self.helper.COMMON.snapshot(data), after_files)
             self.assertEqual((data / "upgrade-evidence.bin").read_bytes(), b"preserved external evidence")
+
+    def test_news_environment_upgrade_requires_one_exact_preserved_baseline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project = Path(temporary)
+            canonical = project / ".venv"
+            canonical.mkdir()
+            (canonical / "retained").write_bytes(b"old environment")
+            original = self.helper.BRAND.environment_snapshot(canonical)
+            existing = project / ".venv-backup-earlier"
+            existing.mkdir()
+            previous = {existing}
+            with self.assertRaisesRegex(RuntimeError, "one unique"):
+                self.helper.require_preserved_brand_backup(project, original, previous)
+            retained = project / ".venv-backup-upgrade"
+            canonical.rename(retained)
+            canonical.mkdir()
+            (canonical / "news-reader").write_bytes(b"new environment")
+            self.assertEqual(self.helper.require_preserved_brand_backup(project, original, previous), retained)
+            (retained / "retained").write_bytes(b"changed old environment")
+            with self.assertRaisesRegex(RuntimeError, "retained previous"):
+                self.helper.require_preserved_brand_backup(project, original, previous)
+            (retained / "retained").write_bytes(b"old environment")
+            (project / ".venv-backup-unexpected").mkdir()
+            with self.assertRaisesRegex(RuntimeError, "one unique"):
+                self.helper.require_preserved_brand_backup(project, original, previous)
+
+    def test_unsupported_migration_target_stops_before_running_cli(self):
+        with patch.object(self.helper, "command") as command:
+            with self.assertRaisesRegex(RuntimeError, "Unsupported migration target"):
+                self.helper.migrate_acceptance_data({}, {}, (64, {}), target_schema=67)
+        command.assert_not_called()
 
     def test_schema_rollback_does_not_accept_an_unrelated_old_code_failure(self):
         with tempfile.TemporaryDirectory() as temporary:

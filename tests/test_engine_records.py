@@ -51,7 +51,7 @@ class EngineRecordTests(unittest.TestCase):
 
     def test_every_search_family_and_subtype_resolves_structured_evidence_without_writes(self):
         hits = self.seed_all()
-        self.assertEqual({hit.kind for hit in hits}, set(GLOBAL_SEARCH_KINDS))
+        self.assertEqual({hit.kind for hit in hits}, set(global_fixtures.LEGACY_SEARCH_KINDS))
         self.assertTrue({'registered_domain', 'surface_candidate', 'username_watch', 'social_profile'} <= {hit.record_type for hit in hits})
         before, calls = self.files(), (len(self.maigret.calls), self.threatcluster.calls, self.ransomlook.calls)
         with patch.object(SQLiteAssetRepository, 'initialize', side_effect=AssertionError('Read must not initialize')):

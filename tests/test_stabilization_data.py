@@ -85,7 +85,7 @@ class StabilizationDataTests(unittest.TestCase):
         before = database_snapshot(self.database)
         source_bytes = self.database.read_bytes()
         search = self.engine("search", {"query": "example", "limit": 100})["data"]
-        self.assertEqual({hit["reference"]["kind"] for hit in search["results"]}, set(GLOBAL_SEARCH_KINDS))
+        self.assertEqual({hit["reference"]["kind"] for hit in search["results"]}, set(search_fixtures.LEGACY_SEARCH_KINDS))
         references = [hit["reference"] for hit in search["results"]]
         original = [self.engine("record.get", {"reference": ref})["data"] for ref in references]
         backup = self.root / "mixed.db"

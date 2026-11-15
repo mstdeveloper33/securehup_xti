@@ -7,6 +7,8 @@ on:
       - ".github/workflows/brand-install.yml"
       - "constraints/brand.txt"
       - "pyproject.toml"
+      - "requirements/news.txt"
+      - "tests/test_news_installation.py"
       - "setup"
       - "xti"
       - "scripts/python"
@@ -42,6 +44,8 @@ on:
       - ".github/workflows/brand-install.yml"
       - "constraints/brand.txt"
       - "pyproject.toml"
+      - "requirements/news.txt"
+      - "tests/test_news_installation.py"
       - "setup"
       - "xti"
       - "scripts/python"
@@ -102,6 +106,11 @@ jobs:
           cache: pip
       - name: Select the configured Python for XTI
         run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install the reviewed RSS/Atom test dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/news.txt
       - name: Verify installer and runtime recovery regressions offline
         id: offline
         env:
@@ -109,6 +118,7 @@ jobs:
         run: |
           ./scripts/python -m unittest -v \
             tests/test_setup.py \
+            tests/test_news_installation.py \
             tests/test_setup_brand.py \
             tests/test_brand_runtime.py \
             tests/test_tool_installation.py \

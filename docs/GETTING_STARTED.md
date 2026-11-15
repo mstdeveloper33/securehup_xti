@@ -7,7 +7,7 @@ internet bağlantısı gerekir. Ubuntu 24.04 x86_64 üzerinde Python 3.11 ve
 bu sürümün kapsamını gösterir. Diğer Python/işletim sistemi sürümleri için
 aynı kurulum sonucu varsayılmaz.
 
-Global Python ortamına paket kurulmaz; Maigret ve Sherlock
+Global Python ortamına paket kurulmaz; Maigret, Sherlock ve haber ayrıştırıcısı
 proje içindeki `.venv` ortamında tutulur. İsteğe bağlı theHarvester ayrı
 `.tools/theharvester` ortamını kullanır; kurulumu ve kaynakları
 [günlük kullanım rehberinde](DAILY_USE.md) anlatılır.
@@ -22,7 +22,7 @@ cd securehup_xti
 
 `./setup`, sağlıklı mevcut ortamı tekrar indirmez. Kurulum gerektiğinde
 `.venv` ortamını benzersiz geri dönüş kopyası olarak koruyup sabitlenmiş
-Maigret ve Sherlock ortamını aynı kararlı yolda kurar. Eski ve başarısız
+Maigret, Sherlock ve `news` paketlerinin ortamını aynı kararlı yolda kurar. Eski ve başarısız
 kopyalar otomatik silinmez. Normal hatada önceki ortam geri getirilir;
 ani veya durumu belirsiz kesintide `./scripts/setup-brand --recover`
 kullanılır. Ardından `.xti-data` içindeki yerel
@@ -124,7 +124,9 @@ tahmin ederek silme; [kurulum ve kurtarma rehberi](BRAND_INSTALLATION.md)
 korunan dosyaları ve yarım kurulum adımlarını açıklar.
 Yalnız domain, vaka, IOC, CTI, tedarikçi ve dış yüzey çekirdeğini
 istiyorsan ilk kurulumda `./setup --core-only` diyebilirsin; daha sonra
-`./scripts/setup-brand` ile sosyal araçları ekleyebilirsin.
+`./scripts/setup-brand` ile sosyal araçları ve RSS/Atom ayrıştırıcısını ekleyebilirsin.
+Haberlerin kayıtlı halini okumak paket kurulumu istemez; internetten yeni
+haber almak `news` paketlerini gerektirir.
 
 Kullanıcı adı aramasında varsayılan dar kapsam `safe` profilidir. İncelenmiş
 geniş kapsam için:
@@ -151,12 +153,15 @@ git pull
 `./setup` eski şemayı otomatik değiştirmez. Bir geçiş gerekiyorsa açıkça
 `./xti migrate` çalıştırmanı ister; böylece yerel verin sessizce değiştirilmez.
 
-0.142.0 için şema 64→65 geçişi gerekir. Güncel kodla `./xti migrate`
+0.143.0 için şema 65→66 geçişi gerekir. Güncel kodla `./xti migrate`
 çalıştırıldığında önce benzersiz bir kurtarma yedeği alınır; mevcut kayıtlar
-korunarak beş boş arama-izleme tablosu eklenir. Eski kod şema 65'i açmaz.
+korunarak üç boş haber tablosu eklenir. Eski kod şema 66'yı açmaz.
 Eski sürüme dönmek gerekiyorsa geçiş öncesi yedeği aşağıdaki geri yükleme
-akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 65 dosyasının üzerine
-yazma. Kaydedilmiş arama kullanımı [günlük rehberde](DAILY_USE.md#genel-aramayı-kaydet-ve-bildirim-al).
+akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 66 dosyasının üzerine
+yazma. Haber bağımlılıkları için geçişten sonra `./scripts/setup-brand`
+çalıştır. Mevcut ortamda paketler yoksa kurucu eski ortamı yedekleyip yeni
+ortamı hazırlar; haber paketleri olan sağlıklı tekrar indirme yapmaz.
+Tam örnekler [haber kullanımında](../README.md#rss-ve-atom-haberlerini-topla).
 
 ## Sorun sonrası kaldığın yerden devam et
 

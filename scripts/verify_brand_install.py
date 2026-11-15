@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import fcntl
 import hashlib
+import importlib
 from importlib.metadata import PackageNotFoundError, distribution
 from importlib.resources import files
+from io import BytesIO
 import json
 import os
 from pathlib import Path
@@ -52,6 +54,9 @@ TOOLS = tuple(
         "catalog_sha256": pin.catalog_sha256,
     } for pin in (MAIGRET_PIN, SHERLOCK_PIN)
 )
+
+NEWS_PACKAGES = (("feedparser", "6.0.14", "feedparser"),
+                 ("feedparser-sgmllib", "2.1.0", "feedparser_sgmllib"))
 
 
 class VerificationError(RuntimeError):
@@ -193,6 +198,44 @@ def _verify_distribution(tool: dict[str, object], prefix: Path) -> None:
         raise VerificationError(f"{name} site kataloğu özeti uyuşmuyor")
 
 
+def _verify_news_runtime(prefix: Path) -> None:
+    """Require the optional reader in this environment, with a local format smoke test."""
+    for name, expected, module_name in NEWS_PACKAGES:
+        try:
+            installed = distribution(name)
+        except PackageNotFoundError as error:
+            raise VerificationError(f"{name} paketi eksik; ./scripts/setup-brand çalıştır") from error
+        if installed.version != expected:
+            raise VerificationError(f"{name} sürümü uyuşmuyor: {installed.version} != {expected}")
+        if not _inside(Path(installed.locate_file("")), prefix):
+            raise VerificationError(f"{name} proje sanal ortamının dışında bulundu")
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError as error:
+            raise VerificationError(f"{name} modülü yüklenemedi") from error
+        filename = getattr(module, "__file__", None)
+        if not isinstance(filename, str) or not _inside(Path(filename), prefix):
+            raise VerificationError(f"{name} modülü proje sanal ortamının dışında bulundu")
+    parser = importlib.import_module("feedparser")
+    for content in (
+        b'<rss version="2.0"><channel><title>XTI test</title><link>https://example.com/</link>'
+        b'<description>Local fixture</description><item><guid>urn:xti:test</guid>'
+        b'<title>Local test</title><link>https://example.com/item</link></item></channel></rss>',
+        b'<feed xmlns="http://www.w3.org/2005/Atom"><id>urn:xti:feed</id><title>XTI test</title>'
+        b'<updated>2026-01-01T00:00:00Z</updated><entry><id>urn:xti:test</id><title>Local test</title>'
+        b'<updated>2026-01-01T00:00:00Z</updated><link href="https://example.com/item"/></entry></feed>',
+    ):
+        try:
+            result = parser.parse(BytesIO(content))
+            valid = (not result.bozo and len(result.entries) == 1
+                     and result.entries[0].id == "urn:xti:test"
+                     and result.entries[0].link == "https://example.com/item")
+        except (AttributeError, TypeError, ValueError, IndexError) as error:
+            raise VerificationError("RSS/Atom okuyucusu yerel örnekleri okuyamadı") from error
+        if not valid:
+            raise VerificationError("RSS/Atom okuyucusu yerel örneklerle uyuşmuyor")
+
+
 def verify(prefix: Path, *, installation_lock_fd: int | None = None) -> None:
     if installation_lock_fd is not None:
         _validate_installation_lock(installation_lock_fd)
@@ -229,6 +272,7 @@ def _verify_locked(prefix: Path, descriptor: int) -> None:
     if Path(sys.prefix).resolve() != prefix.resolve():
         raise VerificationError("doğrulayıcı hedef sanal ortamdan çalıştırılmadı")
     _verify_constraints(CONSTRAINTS)
+    _verify_news_runtime(prefix)
     for tool in TOOLS:
         _verify_distribution(tool, prefix)
 
@@ -291,7 +335,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(
         f"Marka araçları doğrulandı: Maigret {MAIGRET_VERSION}, "
-        f"Sherlock {SHERLOCK_VERSION}."
+        f"Sherlock {SHERLOCK_VERSION}; RSS/Atom okuyucusu feedparser {NEWS_PACKAGES[0][1]}."
     )
     return 0
 

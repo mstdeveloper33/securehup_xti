@@ -21,6 +21,7 @@ RECORD_NAMESPACES = {
     ('social', 'social_profile'): ('local-social',),
     ('ransomware', 'ransomware_claim'): ('threatcluster', 'ransomlook'),
     ('public-notice', 'public_breach_notice'): ('hibp',),
+    ('news', 'news_article'): ('cisa', 'ncsc', 'cert-fr'),
     ('case', 'case'): ('local-case-management',),
     ('supplier', 'supplier'): ('local-suppliers',),
     ('organization', 'organization'): ('local-organizations',),
@@ -82,7 +83,7 @@ def reference_for_result(result) -> EngineRecordReference:
     namespaces = RECORD_NAMESPACES.get((result.kind, result.record_type))
     if not namespaces:
         raise EngineContractError('internal_error', 'Kayıt türü motor sözleşmesiyle uyuşmuyor.')
-    namespace = result.source if result.kind == 'ransomware' else namespaces[0]
+    namespace = result.source if result.kind in {'ransomware', 'news'} else namespaces[0]
     return parse_record_reference({'kind': result.kind, 'record_type': result.record_type,
                                    'namespace': namespace, 'record_id': result.record_id})
 

@@ -12,13 +12,15 @@ from xti.adapters.supplier_watch_schema import SUPPLIER_WATCH_DDL
 from xti.adapters import supplier_watch_schema_metadata
 from xti.adapters.global_saved_search_schema import GLOBAL_SAVED_SEARCH_DDL
 from xti.adapters import global_saved_search_schema_metadata
+from xti.adapters.news_schema import NEWS_DDL
+from xti.adapters import news_schema_metadata
 from xti.adapters.collection_public_notice_schema import (
     COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V60_DDL,
     COLLECTION_RECEIPT_V60_COLUMNS, migrate_collection_public_notice_schema,
 )
 
 
-SCHEMA_VERSION = 65
+SCHEMA_VERSION = 66
 
 ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
 APPLICATION_ID = 0x58544901
@@ -1366,6 +1368,7 @@ VULNERABILITY_REMEDIATION_DDL = (
 TABLES = {
     **supplier_watch_schema_metadata.TABLES,
     **global_saved_search_schema_metadata.TABLES,
+    **news_schema_metadata.TABLES,
     'public_notice_watches': [('id', 'TEXT', 1, 1), ('organization_id', 'TEXT', 1, 0), ('active', 'INTEGER', 1, 0), ('revision', 'INTEGER', 1, 0), ('created_at', 'TEXT', 1, 0), ('updated_at', 'TEXT', 1, 0)],
     'public_notice_watch_events': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('watch_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('action', 'TEXT', 1, 0), ('revision', 'INTEGER', 1, 0), ('reason', 'TEXT', 1, 0), ('recorded_at', 'TEXT', 1, 0)],
     'public_notice_watch_runs': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('watch_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('source_run_id', 'TEXT', 1, 0), ('watch_event_id', 'TEXT', 1, 0), ('previous_run_id', 'TEXT', 0, 0), ('recorded_at', 'TEXT', 1, 0), ('scope_json', 'TEXT', 1, 0), ('scope_sha256', 'TEXT', 1, 0), ('result_sha256', 'TEXT', 1, 0), ('matched_count', 'INTEGER', 1, 0), ('baseline_count', 'INTEGER', 1, 0), ('added_count', 'INTEGER', 1, 0), ('updated_count', 'INTEGER', 1, 0), ('removed_count', 'INTEGER', 1, 0), ('unchanged_count', 'INTEGER', 1, 0)],
@@ -2238,6 +2241,7 @@ ALLOWLIST_V8_TABLES = {
 UNIQUE_KEYS = {
     **supplier_watch_schema_metadata.UNIQUE_KEYS,
     **global_saved_search_schema_metadata.UNIQUE_KEYS,
+    **news_schema_metadata.UNIQUE_KEYS,
     'public_notice_watches': {('organization_id',), ('id',)},
     'public_notice_watch_events': {('id',), ('watch_id', 'revision')},
     'public_notice_watch_runs': {('id',), ('watch_id', 'source_run_id')},
@@ -2414,6 +2418,7 @@ UNIQUE_KEYS = {
 INDEXES = {
     **supplier_watch_schema_metadata.INDEXES,
     **global_saved_search_schema_metadata.INDEXES,
+    **news_schema_metadata.INDEXES,
     'public_notice_watches_active_organization': ('public_notice_watches', ('active', 'organization_id')),
     'public_notice_watch_events_watch_sequence': ('public_notice_watch_events', ('watch_id', 'sequence')),
     'public_notice_watch_runs_watch_sequence': ('public_notice_watch_runs', ('watch_id', 'sequence')),
@@ -2704,6 +2709,7 @@ INDEXES = {
 FOREIGN_KEYS = {
     **supplier_watch_schema_metadata.FOREIGN_KEYS,
     **global_saved_search_schema_metadata.FOREIGN_KEYS,
+    **news_schema_metadata.FOREIGN_KEYS,
     'public_notice_watches': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT')},
     'public_notice_watch_events': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watches', 'watch_id', 'id', 'NO ACTION', 'RESTRICT')},
     'public_notice_watch_runs': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watches', 'watch_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watch_events', 'watch_event_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watch_runs', 'previous_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_runs', 'source_run_id', 'id', 'NO ACTION', 'RESTRICT')},
@@ -3239,7 +3245,11 @@ VERSION_TABLES = {
     63: frozenset(TABLES),
     64: frozenset(TABLES),
     65: frozenset(TABLES),
+    66: frozenset(TABLES),
 }
+
+for _legacy_version in range(1, 66):
+    VERSION_TABLES[_legacy_version] -= news_schema_metadata.TABLES.keys()
 
 for _legacy_version in range(1, 65):
     VERSION_TABLES[_legacy_version] -= global_saved_search_schema_metadata.TABLES.keys()
@@ -3434,6 +3444,11 @@ for _legacy_version in range(1, 39):
         "webhook_destinations", "webhook_destination_events",
         "webhook_deliveries", "webhook_delivery_attempts",
     }
+
+
+def create_news_schema(connection: sqlite3.Connection) -> None:
+    for statement in NEWS_DDL:
+        connection.execute(statement)
 
 
 def create_global_saved_search_schema(connection: sqlite3.Connection) -> None:
@@ -3907,6 +3922,14 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
     expected = {(name, "table") for name in tables} | {(name, "index") for name in indexes}
     if objects != expected:
         raise SchemaError("Veritabanının kayıt düzeni beklenen biçimde değil.")
+    if "news_runs" in tables:
+        for statement in NEWS_DDL:
+            object_type, name = statement.split()[1].lower(), statement.split()[2]
+            declaration = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE name=? AND type=?", (name, object_type),
+            ).fetchone()
+            if declaration is None or " ".join(declaration[0].split()) != " ".join(statement.split()):
+                raise SchemaError("Haber kayıt düzeni beklenen biçimde değil.")
     if "global_saved_searches" in tables:
         for statement in GLOBAL_SAVED_SEARCH_DDL:
             object_type, name = statement.split()[1].lower(), statement.split()[2]

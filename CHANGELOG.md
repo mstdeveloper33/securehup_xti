@@ -1,5 +1,26 @@
 # Değişiklik Kaydı
 
+## 0.143.0 — 15 Kasım 2026
+
+- `news sources/refresh/list/show/status/run-show`: CISA, UK NCSC ve
+  CERT-FR sabit HTTPS yayınları; gerçek `feedparser` ile RSS/Atom okuma.
+  Yayıncı kimliği/atıfı, başlık, sınırlı düz metin özet, özgün bağlantı,
+  ham ve ayrıştırılmış kaynak tarihleri ayrı tutulur.
+- Akış penceresinden düşen haberler korunur. Kaynak kimliğiyle tekilleştirme,
+  tarihî önce/sonra kanıtı, aynı haber tekrarında değişiklik üretmeme,
+  son deneme/son başarı ayrımı ve sayfalı terminal/JSON çıktısı.
+- Genel aramaya `news`, engine'in mevcut dört işlemine haber kayıt türü
+  eklenir. Mevcut kayıtlı arama/inbox yolu yeniden kullanılır; eski on türün
+  kayıtlı kapsamı ve kanıtı değiştirilmez. Toplama ve izleme ayrı komutlardır.
+- Şema 66 üç boş haber tablosu ekler; açık geçiş yedek alır. Normal kurulum
+  `news` ek bağımlılıklarını mevcut kurtarılabilir araç ortamına kurar;
+  önceki ortam korunur. `--core-only` paket indirmez. Sabit sürümler ve
+  lisanslar [üçüncü taraf kaydında](THIRD_PARTY.md).
+- Haber bağlantıları/ekleri takip edilmez; DTD/entity, yönlendirme,
+  bozuk XML, yanıt/saklama sınırı ve hatada kısmi kayıt reddedilir.
+  [Kullanım](README.md#rss-ve-atom-haberlerini-topla),
+  [doğrulama kapsamı](docs/STATUS.md).
+
 ## 0.142.0 — 15 Kasım 2026
 
 - `search-watch add/list/show/disable/run/run-show/monitor`: on yerel kayıt

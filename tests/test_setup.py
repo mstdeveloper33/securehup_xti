@@ -26,6 +26,7 @@ class SetupScriptTests(unittest.TestCase):
             self.assertEqual(first.returncode, 0, first.stderr)
             self.assertIn("XTI kullanıma hazır", first.stdout)
             self.assertIn("Marka araçları: atlandı", first.stdout)
+            self.assertIn("RSS/Atom kurulumu: atlandı", first.stdout)
             self.assertTrue((data_dir / "xti.db").is_file())
 
             second = subprocess.run(
@@ -83,6 +84,7 @@ class SetupScriptTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(order.read_text().splitlines(), ["brand", "core:init"])
             self.assertIn("Maigret ve Sherlock: doğrulandı", result.stdout)
+            self.assertIn("RSS/Atom haber okuyucusu: doğrulandı", result.stdout)
 
 
 

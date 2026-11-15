@@ -16,6 +16,7 @@ from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_findings import SQLiteFindingRepository, _FINDING_COLUMNS
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.adapters.sqlite_public_notices import read_public_notice_history
+from xti.adapters.sqlite_news import read_news_catalog
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_supplier_history import read_supplier_history
@@ -316,6 +317,32 @@ class _SearchReader:
                      runs=history.runs, changes=history.changes, value_of=lambda item: item.notice,
                      license_note=history.attribution + ' | ' + history.license)
 
+    def news(self):
+        catalog = read_news_catalog(self.connection)
+        for status in catalog.sources:
+            start = len(self.results)
+            source = status.source
+            records = tuple(record for record in catalog.articles if record.article.source_key == source.key)
+            for record in records:
+                article = record.article
+                self.add('news', 'news_article', article.id, article.title,
+                         'publisher_metadata', True, record.last_changed_at, source.key,
+                         (('title', article.title), ('summary', article.summary), ('url', article.url)),
+                         source_run_id=record.last_change_run_id,
+                         details=(f'Özet: {article.summary}', f'Özet sınırlandı: {article.summary_truncated}',
+                                  f'Özgün haber: {article.url}', f'Yayıncı: {source.name}', source.attribution,
+                                  f'Kaynak yayın tarihi: {article.published_at or article.published_raw or "belirtilmedi"}',
+                                  f'Kaynak güncelleme tarihi: {article.updated_at or article.updated_raw or "belirtilmedi"}',
+                                  f'İlk toplama: {record.first_seen_at}', f'Son görülme: {record.last_seen_at}',
+                                  'Son bilinen haber; akış penceresinden düşmesi silinme veya geri çekilme sayılmaz.'),
+                         semantic=asdict(article),
+                         navigation=(_nav('Haber ayrıntısı', 'news', 'show', article.id),
+                                     _nav('Kaynak çalışma kanıtı', 'news', 'run-show', record.last_change_run_id)))
+            self.cover('news', source.key, len(records), start,
+                       latest=status.latest_run, success=status.latest_complete_run,
+                       notes=(source.attribution, source.url, *catalog.notes,
+                              'Kayıt sayısı saklanan son bilinen haberlerdir; yalnız son akış yanıtının boyutu değildir.'))
+
     def cases(self):
         start = len(self.results)
         links = read_case_evidence_links(self.connection)
@@ -442,7 +469,7 @@ def read_global_search_snapshot(connection, path, query, *, kinds, include_inact
     """Compose all selected families inside the caller's existing transaction."""
     reader = _SearchReader(connection, path, query, include_inactive, checked_at, tracking=tracking)
     handlers = {'domain': reader.domains, 'finding': reader.findings, 'social': reader.social,
-                'ransomware': reader.ransomware, 'public-notice': reader.public_notices,
+                'ransomware': reader.ransomware, 'public-notice': reader.public_notices, 'news': reader.news,
                 'case': reader.cases, 'supplier': reader.suppliers, 'organization': reader.organizations}
     for kind in kinds:
         if kind in handlers:

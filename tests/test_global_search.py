@@ -28,6 +28,12 @@ from tests import test_collection_watch_cli as fixtures
 from tests.test_discovery import batch, document
 
 
+# The historical fixture intentionally contains no post-schema65 news rows;
+# older migration fixtures reuse it and may discard only empty new tables.
+LEGACY_SEARCH_KINDS = ('domain', 'finding', 'social', 'ransomware', 'public-notice',
+                       'case', 'supplier', 'organization', 'cti', 'indicator')
+
+
 class GlobalSearchTests(unittest.TestCase):
     invoke = fixtures.CollectionWatchCLITests.invoke
     result = fixtures.CollectionWatchCLITests.result
@@ -97,7 +103,7 @@ class GlobalSearchTests(unittest.TestCase):
         before, calls = self.files(), tuple(self.maigret.calls)
         with patch.object(SQLiteAssetRepository, 'initialize', side_effect=AssertionError('No initialization')):
             report = self.service.search('example')
-        self.assertEqual({item.kind for item in report.results}, set(GLOBAL_SEARCH_KINDS))
+        self.assertEqual({item.kind for item in report.results}, set(LEGACY_SEARCH_KINDS))
         self.assertEqual({item.kind for item in report.coverage}, set(GLOBAL_SEARCH_KINDS))
         self.assertEqual([item.source for item in report.results if item.kind == 'ransomware'],
                          ['ransomlook', 'threatcluster'])

@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.142.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 65.
+**Sürüm:** 0.143.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 66.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Bu repo
@@ -29,8 +29,8 @@ Engine'in ilk sürümlü bağlantısı kullanılabilir: `./xti engine --describe
 desteklenen işlemleri gösterir. `./xti engine`, standart girdiden tek JSON
 isteği alarak kayıtlı verilerde arama, kayıt ayrıntısı, kaynak durumu ve
 projedeki araçların kurulum bilgisini okur. Eski komutlar ve `--json` çıktıları korunur. Bu bağlantı toplama
-başlatmaz; mevcut toplama komutları kullanılmaya devam eder. Yeni paket
-veya veritabanı geçişi gerekmez. [Engine kullanım ve sözleşme rehberi](docs/ENGINE_CONTRACT.md).
+başlatmaz; mevcut toplama komutları kullanılmaya devam eder. Dört işlem
+korunur; 0.143.0 haber kayıt türünü ekler. [Engine kullanım ve sözleşme rehberi](docs/ENGINE_CONTRACT.md).
 
 Bağlı açık kaynak araçlarını tek yerde görmek için:
 
@@ -62,7 +62,7 @@ Aktif ürün kapsamı dış kaynaklı OSINT/XTI'dır. Sunucu içine ajan kurulma
 kurulumu Ubuntu 24.04 x86_64 üzerinde Python 3.11 ve 3.12 ile doğrulandı;
 ayrıntılar aşağıdaki [ortam tablosundadır](#sınanmış-ortamlar).
 Kurulum global Python ortamına paket kurmaz; sosyal kullanıcı adı araçlarını
-proje içindeki `.venv` ortamına kurar:
+ve haber ayrıştırıcısını proje içindeki `.venv` ortamına kurar:
 
 ```sh
 git clone https://github.com/mstdeveloper33/securehup_xti.git
@@ -94,7 +94,7 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 65 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 66 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
@@ -290,9 +290,91 @@ uzaktaki mevcut aktör/kampanya/malware/rapor ilişkilerini dayanaklarıyla aça
 gösterir. Kayıt bulunmaması güvenli olduğu anlamına gelmez. Ayrıntı ve
 sayfalama [kuruluş rehberinde](docs/ORGANIZATION_REPORT.md) yer alır.
 
+## RSS ve Atom haberlerini topla
+
+Ücretsiz CISA, Birleşik Krallık NCSC ve Fransa CERT-FR yayınlarını
+internetten okuyabilirsin. RSS/Atom ayrıştırıcısı hazır `feedparser`
+kütüphanesidir; toplama, kanıt, arama ve bildirim bağlantısı XTI'dadır.
+Normal `./setup` sabit sürümleri kurar. Önceki kurulumunu güncellerken:
+
+```sh
+git pull --ff-only
+./xti migrate
+./scripts/setup-brand
+```
+
+Geçiş yedek alır. Kurucu, haber paketleri eksikse mevcut araç ortamını
+benzersiz yedekte koruyarak yeniler. Sağlıklı tekrar paket indirmez.
+`./setup --core-only` ek paket kurmaz; haber toplamak için yukarıdaki
+kurulum gerekir. Haber kaydı okuma/aramanın kendisi parser istemez.
+
+Kaynak seç ve haberleri getir:
+
+```sh
+./xti news sources
+./xti news refresh --source cisa
+./xti news refresh --source ncsc
+./xti news refresh --source cert-fr
+./xti news list
+./xti news list "example.com" --limit 20
+./xti news status
+```
+
+Yalnız `refresh` internete çıkar. Her komut bir kaynağı bir kez okur;
+haber sayfaları, resimler ve ekler açılmaz. Başlık, yayıncının sunduğu
+en fazla 2.000 karakterlik düz metin özet, özgün bağlantı ve kaynak
+tarihleri saklanır. Özet kısaltılmışsa açıkça gösterilir. Eksik veya
+ayrıştırılamayan tarih bilinmiyor olarak kalır; toplama tarihi yayın
+tarihi yapılmaz. Yayıncının ham tarih metni ayrıca görülebilir.
+
+```sh
+./xti news show HABER_KIMLIGI
+./xti news run-show CALISMA_KIMLIGI --offset 0 --limit 20
+./xti news status --source ncsc --offset 0 --limit 20
+./xti search "example.com" --kind news
+./xti --json news list "example.com"
+```
+
+Kimlikleri komut çıktısından al. Gösterim sınırı toplama kapsamını kesmez;
+sonraki sayfa komutu veri dizini ve filtreleri korur. Çalışma ayrıntısı
+o sırada alınan haberleri, aynı olanlar dahil, önce/sonra kanıtıyla açar.
+`news show` haberin son bilinen halini; `run-show` tarihî kanıtı gösterir.
+Akıştan çıkan eski haber silinmez. Başka yayıncı aynı kimliği kullanırsa
+ayrı kayıttır. Aynı haberin tekrar alınması yeni haber sayılmaz; başlık,
+özet veya kaynak tarihi değişirse yeni içerik hali kaydedilir.
+
+Bir kuruluş veya domain için yerel bildirim takibi:
+
+```sh
+./xti search-watch add "Markam haberleri" "example.com" --kind news
+./xti search-watch run ARAMA_KIMLIGI
+./xti news refresh --source ncsc
+./xti search-watch run ARAMA_KIMLIGI
+./xti inbox
+```
+
+İlk arama çalışması sessiz başlangıçtır; sonraki yeni/anlamlı değişen
+eşleşmeler yerel kutuya gelir. Kaynak yenileme tek başına izlemeyi
+çalıştırmaz. `search-watch monitor` yerel karşılaştırmayı tekrarlar;
+haberleri internetten yenilemez. Eski kayıtlı aramaların somut tür listesi
+korunur; haber eklemek açık yeni tanım veya aynı adla `add` gerektirir.
+Bir marka adının haber içinde geçmesi doğrulanmış ihlal anlamına gelmez.
+
+Her kaynak için hiç toplanmadı, başarılı boş yanıt ve hata ayrıdır;
+son hata önceki başarılı kayıtları silmez. Kaynaklar yayınlarını veya
+erişim kurallarını değiştirebilir; ücretsiz olması sınırsız erişim
+garantisi değildir. İlk sürüm sabit üç HTTPS yayını destekler, serbest URL
+veya makale tarayıcısı değildir. `collect` profil işlerine henüz eklenmedi.
+
+Yanıt en fazla 4 MiB/2.000 haber; saklanan haber 50.000, çalışma 10.000,
+tek kanıt görüntüsü 8 MiB ve toplam görüntü/projeksiyon ayrı ayrı 64 MiB
+ile sınırlıdır. Aşımda kısmi sonuç kaydedilmez veya eski veri silinmez.
+Bunlar koruma sınırlarıdır, ölçülmüş kapasite garantisi değildir.
+[Karar ve kaynaklar](docs/decisions/0148-publisher-news-feeds.md).
+
 ## Genel aramayı kaydet ve değişiklikleri izle
 
-`search QUERY` ile aradığın on kayıt ailesini bir ad altında izleyebilirsin.
+`search QUERY` ile aradığın on bir kayıt ailesini bir ad altında izleyebilirsin.
 Mevcut internet toplayıcıları kayıtları günceller; aşağıdaki komutlar bu
 yerel kayıtların tamamını karşılaştırır ve sonuç farkını yerel kutuya yazar.
 Kuruluş/marka adı, domain veya başka bir arama metni kullanabilirsin:
@@ -2115,10 +2197,11 @@ ve mimariler için aynı kurulum başarısı bu tabloyla doğrulanmış sayılma
 desteklenmez. Gerçek kaynak erişimi ve Linux hizmet işletimi kendi kabul
 sonuçlarıyla [durum belgesinde](docs/STATUS.md) izlenir.
 
-Çekirdek özellikler ek Python paketi istemez. Normal `./setup`, resmî
-Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine önceki
-ortamı koruyarak kurar; sürüm, commit ve katalog bütünlüğünü doğrular.
-Yalnız çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar
+Mevcut yerel çekirdek ek Python paketi istemez; haber toplama için
+`feedparser` ve `feedparser-sgmllib` gerekir. Normal `./setup`, bu sabit
+paketleri ve Maigret/Sherlock depolarının sabit commit'lerini `.venv` içine
+önceki ortamı koruyarak kurar; sürüm, commit ve katalog bütünlüğünü doğrular.
+Ek araçları kurmadan çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar
 internet ister; geçmiş kayıtları okuma ve yerel kuyruk yönetimi internetsiz
 çalışır. Genel regresyon testleri ağsızdır; gerçek temiz kurulum kabulü
 paketleri indirmek için internet kullanır. Public Suffix List, Unicode ve

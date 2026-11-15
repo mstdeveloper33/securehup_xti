@@ -35,6 +35,11 @@ jobs:
           python-version: "3.11"
       - name: Select the configured Python for XTI
         run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install the reviewed RSS/Atom test dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/news.txt
       - name: Verify the complete offline suite
         run: ./scripts/check
 

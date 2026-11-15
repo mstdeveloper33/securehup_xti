@@ -1,11 +1,11 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.142.0 / şema 65.
-**Durum:** Yeni bileşenler için araştırmaya dayalı plan tercihleri.
+**Tarih:** 15 Kasım 2026. **Uygulama:** 0.143.0 / şema 66.
+**Durum:** Uygulanan bileşenler ile araştırmaya dayalı plan tercihleri ayrı gösterilir.
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
-[uygulandı](../COMPONENTS.md). Bu teslim yeni paket kurmaz veya mevcut
-araç sürümlerini yükseltmez. Seçilen proje ile test edilip kullanıma alınan
-sürüm ayrı durumlardır.
+[uygulandı](../COMPONENTS.md). 0.143.0 haber modülü feedparser 6.0.14 ve
+feedparser-sgmllib 2.1.0 kullanır; mevcut üç aracın sürümleri korunur.
+Diğer seçilmiş projeler ile test edilip kullanıma alınan sürümler ayrı durumlardır.
 
 **Son kapsam kararı:** Uygulama backend'i, kullanıcı oturumu ve web mevcut
 .NET platformundadır. Bu belge [motor planının](ENGINE_INTEGRATION_ROADMAP.md)
@@ -17,7 +17,9 @@ sonuçları ortak modele alınarak .NET'e kararlı sözleşmeyle sunulur.
 Mevcut SQLite motorunun 11 maddelik sağlamlaştırma paketi tamamlandı.
 Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da, kayıtlı genel
 arama ve yerel bildirimleri 0.142.0'da uygulandı; yeni kütüphane
-gerektirmedi. Sırada RSS/Atom haber kaynakları var. Entegrasyon teslim
+gerektirmedi. RSS/Atom haberlerinin ilk dilimi 0.143.0'da uygulandı.
+Sonraki işler haberlerin toplama oturumuna bağlanması ve ölçülmüş katkıyla
+kaynak genişlemesidir. Entegrasyon teslim
 hazırlığı ile geniş paylaşım/LLM en sona kalır.
 .NET adaptörü ve platform PostgreSQL yerleşimi/veri geçişi repoyu
 kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
@@ -28,8 +30,8 @@ kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 |---|---|---|---|
 | Sosyal kullanıcı adı ve mevcut arşiv keşfi | Mevcut Sherlock, Maigret ve theHarvester adaptörleri | Şimdiden belirlenmiş kaynak/iş kapsamı | 0.140.0 ortak pin ve kurulum kataloğu var; mevcut sürümler korunur |
 | Kaynaklar arası olay adayı | Mevcut XTI kaynak/domain/tarih kuralları | Kesin ve sınırlı noktalama düzenlemeli ad eşleştirmesi; ortak tam domain bağlamı | İlk dilim 0.141.0'da uygulandı; RapidFuzz gerekmedi ve kurulmadı. Yaklaşık ad benzerliği için ileride ölçümlü deney adayı |
-| Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türünde kalıcı kimlik, değişmez tam sonuç/kapsam, fark ve yerel bildirim | 0.142.0'da `search-watch` ve sınırlı ön plan tekrarı uygulandı; yeni arama motoru/harici platform yok |
-| Haber/RSS/Atom okuma | **feedparser** | XTI'nın indirdiği sınırlı yanıtı ayrıştırma | Haber modülü ENG-04 için seçildi |
+| Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | Kalıcı kimlik, değişmez tam sonuç/kapsam, fark ve yerel bildirim | 0.142.0 on türde uygulandı; 0.143.0 haber türünü açıkça ekler, eski tanımlar kendi kapsamını korur |
+| Haber/RSS/Atom okuma | **feedparser 6.0.14** + **feedparser-sgmllib 2.1.0** | XTI'nın indirdiği sınırlı yanıtı yalnız bellek akışından ayrıştırma | ENG-04 ilk teslimi 0.143.0'da CISA, UK NCSC ve CERT-FR için uygulandı |
 | Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | RSS özeti yetersizse ikinci dilim; ilk haber tesliminin zorunlu parçası değil |
 | Motor bağlantı sözleşmesi | Sürümlü motor istek/sonuç sözleşmesi | Motorun desteklediği veri ve işlemler için sözleşme, örnek ve belge | ENG-01/05; son aşamada teslim hazırlığı. .NET adaptörü/gerçek bağlantı kabulü tüketici ekibin işi |
 | Geniş STIX nesne aktarımı | **stix2** | XTI kaydı ile standart nesneler arasında oluşturma/ayrıştırma | En sona ertelenen ENG-07 tercihi |
@@ -42,8 +44,8 @@ seçim değişirse gerekçe bu kayda eklenir.
 
 ## 2. İlk iki özellikte tekrar kullanılan yapı
 
-Mevcut [genel arama](../../src/xti/application/global_search.py) on kayıt
-ailesini arar. [CTI kayıtlı aramalar](../../src/xti/application/cti_saved_searches.py)
+Mevcut [genel arama](../../src/xti/application/global_search.py), 0.143.0
+haber ekiyle on bir kayıt ailesini arar. [CTI kayıtlı aramalar](../../src/xti/application/cti_saved_searches.py)
 tanım, çalışma ve fark desenini;
 [ransomware karşılaştırması](../../src/xti/application/ransomware_source_comparison.py)
 iki kaynağı gerekçeleriyle yan yana getirmeyi zaten sağlar.
@@ -131,10 +133,15 @@ port/adaptör sınırları kullanılır. Arama kapasitesi ihtiyacı ayrıca öl�
 
 ## 3. Seçilen diğer parçaların sınırları
 
-**feedparser:** Kaynak listesi ve HTTP alma XTI'da kalır. Sınırlı yanıt
-`feedparser.parse` ile ayrıştırılıp kaynak, adres, başlık, tarih ve özet
-alanlarına dönüştürülür. Paket haber kaynağı veya internet arama motoru
-değildir. Tekrar önleme, kuruluş eşleştirme, kaynak hatası ve bildirim XTI'dır.
+**feedparser — uygulandı:** Kaynak listesi ve HTTP alma XTI'da kalır.
+Sınırlı yanıt `io.BytesIO` üzerinden `feedparser.parse` ile ayrıştırılır;
+URL veya yerel dosya yolu doğrudan parsere verilmez. CISA, UK NCSC ve
+CERT-FR için kaynak, bağlantı, başlık, düz metin özet ve ayrı tarih
+alanları saklanır. Makale sayfaları ve ekler otomatik alınmaz.
+Akıştan düşen eski haber korunur; tekrar önleme, kaynak hatası ve genel
+arama XTI'dadır. Bildirim açık `search-watch` çalışmasıyla mevcut inbox'a
+girer. Paket haber kaynağı veya internet arama motoru değildir.
+[0148 kararı](../decisions/0148-publisher-news-feeds.md),
 [Resmî API](https://feedparser.readthedocs.io/en/latest/introduction/).
 
 **Trafilatura:** `extract`/`bare_extraction` ile XTI'nın aldığı HTML işlenir.
@@ -188,8 +195,9 @@ geçerlidir. Çalışan araştırma ve sonuç kaydı XTI'da kalır.
 
 ## 5. Yayın kanıtı ile kurulum kilidi ayrı
 
-Aşağıdakiler 15 Kasım 2026'da resmî paket sayfalarındaki yayın bilgileridir;
-XTI'da kurulmuş, test edilmiş veya kilitlenmiş sürümler değildir. FastAPI
+Aşağıdakiler 15 Kasım 2026'da resmî paket sayfalarındaki yayın bilgileridir.
+Feedparser 6.0.14, aşağıda anlatılan 0.143.0 kurulumuna alınmıştır;
+diğer araştırma satırları kurulmuş/test edilmiş sürüm sayılmaz. FastAPI
 ve Pydantic satırları geri çekilen backend seçiminin tarihî araştırmasıdır.
 
 | Paket | Gözlenen sürüm / yayın | Bildirilen Python tabanı | Lisans / kaynak |
@@ -221,16 +229,27 @@ Seçim yalnız yıldız sayısı veya "en yeni sürüm" etiketine dayanmaz.
 2. Ayrı geçici ortamda desteklenen Python sürümleri ve Linux kurulumu
    denenir; ağ gerektirmeyen eski işlevler ve isteğe bağlı modüller korunur.
 3. Tam çözülmüş sürümler ve dosya bütünlükleri doğrulanıp uygun kilit kaydı
-   oluşturulur. Bugün bir kurulum kilidi oluşturulmuş değildir.
+   oluşturulur. Haber okuyucusunun iki saf Python wheel'i için
+   [requirements/news.txt](../../requirements/news.txt) sürüm/SHA-256 kaydı
+   vardır; CI bu dosyayla yalnız doğrulanmış wheel'leri kurar.
 4. Seçilen modülün kurulumu XTI reposundan yönetilir. Kullanıcı upstream
    repoyu geliştirmez; `main/latest` kendiliğinden güncellenmez. Yeni paket
    uygun aşamada [üçüncü taraf bildirimlerine](../../THIRD_PARTY_NOTICES.md)
-   eklenir; bu plan henüz kurulu bağımlılık bildirimini değiştirmez.
+   eklenir; haber okuyucusunun iki paketi bu bildirimde kayıtlıdır.
 5. Güncellemede aynı kabul örnekleri, eski kayıtların okunması ve geri
    dönüş denenir. Bileşen hatası kaynağın boş/temiz sonucu sayılmaz.
 
+Normal `./setup`, `news` ve `brand` eklerini aynı kurtarılabilir proje
+ortamında kurar. Yeni haber bağımlılıkları yoksa mevcut ortam yerinde pip
+ile değiştirilmez; önceki ortam korunarak yenisi oluşturulur ve doğrulanır.
+`--check` eksik okuyucuyu reddeder, kendiliğinden kurmaz. `--core-only`
+haber paketi indirmeyen çekirdek seçimi olarak kalır; eksik parser yalnız
+haber toplamayı kontrollü kurulum hatasıyla durdurur. Saklı haber okuması
+ve diğer çekirdek işlemler parser gerektirmez. Gerçek ortam/kurtarma
+kabulünün sonucu [STATUS](../STATUS.md) içindedir.
+
 Somut bağımlılık farkı: feedparser 6.0.14 yayını `feedparser-sgmllib`
-gerektirir. Trafilatura 2.3.1 ise lxml ve ek ayrıştırma/ağ yardımcılarıyla
+gerektirir; XTI'da bu bağımlılık 2.1.0'a sabitlendi. Trafilatura 2.3.1 ise lxml ve ek ayrıştırma/ağ yardımcılarıyla
 daha geniş bir bağımlılık kümesi getirir; bu nedenle ilk RSS işi için
 ikisini birlikte kurma kararı verilmez.
 [feedparser release metadata](https://pypi.org/pypi/feedparser/6.0.14/json),
@@ -240,8 +259,11 @@ ikisini birlikte kurma kararı verilmez.
 
 [Motor planındaki](ENGINE_INTEGRATION_ROADMAP.md) mevcut STB paketi
 tamamlandı. Olay adaylarının ilk dilimi 0.141.0'da, genel kayıtlı arama
-ve yerel bildirimleri 0.142.0'da ek bağımlılık olmadan uygulandı. Sırada
-RSS/Atom haber modülü var. Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve
+ve yerel bildirimleri 0.142.0'da ek bağımlılık olmadan uygulandı. 0.143.0,
+ilk üç RSS/Atom kaynağını hazır ayrıştırıcıyla bağladı. Sonraki işler
+haberlerin toplu/zamanlı toplama oturumuna katılması ve ölçülmüş veri
+boşluğuna kaynak eklenmesidir; bunlar henüz uygulanmadı.
+Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve
 ölçülmüş faydayla ele alınır. Tercihler somut katkı/kabul koşullarıyla yeniden değerlendirilir.
 ENG-01'in yerel okuma sınırı 0.139.0'da
 [uygulandı](../ENGINE_CONTRACT.md); ENG-02 mevcut araç düzeni 0.140.0'da
@@ -249,7 +271,8 @@ ENG-01'in yerel okuma sınırı 0.139.0'da
 Entegrasyon teslim hazırlığı ve paylaşım/LLM en sondadır; gerçek .NET
 bağlantısı, backend/panel ve platform PostgreSQL işleri tüketici ekibe aittir.
 
-Yeni kütüphane tercihleri hâlâ plandır; haber, yaklaşık benzerlik ve geniş
-paylaşım özellikleri bu seçim belgesiyle uygulanmış sayılmaz. Araştırma ve
-yerel kod incelemesi entegre bileşenlerin gerçek kabul testinden ayrıdır. Bu güncelleme canlı
-hedef sorgusu, ücretli hizmet veya bağımlılık yükseltmesi içermez.
+Haber okuyucusu dışındaki yeni kütüphane tercihleri hâlâ plandır;
+yaklaşık benzerlik, tam makale çıkarımı ve geniş paylaşım bu seçim
+belgesiyle uygulanmış sayılmaz. Araştırma ve yerel kod incelemesi entegre
+bileşenlerin gerçek kabul testinden ayrıdır. Ücretsiz yayın erişimi
+sürekli hizmet veya sınırsız yeniden kullanım garantisi değildir.

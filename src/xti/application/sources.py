@@ -1,6 +1,7 @@
 """The reviewed source catalog, independent from terminal and persistence."""
 
 from xti.domain.sources import SourceCatalogEntry
+from xti.domain.news import NEWS_SOURCES, NEWS_NOTES
 
 
 _CATALOG = (
@@ -583,5 +584,15 @@ class SourceCatalogService:
     """Return the reviewed catalog without network or storage access."""
 
     def list(self) -> tuple[SourceCatalogEntry, ...]:
-        return _CATALOG
+        return _CATALOG + tuple(SourceCatalogEntry(
+            identifier='news:' + source.key, label=source.name, kind='publisher_news_feed',
+            purpose='RSS/Atom başlık, sınırlı özet, yayın tarihi ve özgün bağlantıyı kaynaklı yerel kanıt olarak saklar.',
+            access='Herkese açık HTTPS akışı; ücretli anahtar kullanılmaz. Yayıncının kota ve erişim koşulları geçerlidir.',
+            credential_required=False, paid_dependency=False, contacts_monitored_target=False,
+            commands=('news sources', 'news refresh --source ' + source.key,
+                      'news list --source ' + source.key, 'search --kind news'),
+            limits=(*NEWS_NOTES, source.attribution,
+                    'Yalnız seçilen sabit yayıncı akışı alınır; keyfî adres, makale gövdesi veya ek dosya indirilmez.'),
+            reference_url=source.homepage,
+        ) for source in NEWS_SOURCES)
 

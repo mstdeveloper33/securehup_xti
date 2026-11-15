@@ -4,13 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xti-local"
-version = "0.142.0"
+version = "0.143.0"
 description = "Terminal-first external threat intelligence engine"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
+news = [
+    "feedparser==6.0.14",
+    "feedparser-sgmllib==2.1.0",
+]
 brand = [
     "maigret @ git+https://github.com/soxoj/maigret.git@b8747b98820f4df9d1baf23235db7b2cb55d0198",
     "sherlock-project @ git+https://github.com/sherlock-project/sherlock.git@a38ba54fda799cd786a2ab67a50143e1a63169e6",

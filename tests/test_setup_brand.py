@@ -93,6 +93,8 @@ if os.environ.get("XTI_TEST_BLOCK") == stage:
         time.sleep(0.05)
 if os.environ.get("XTI_TEST_FAIL") == stage:
     raise SystemExit(7)
+if stage == "verify" and (Path(__file__).parents[1] / "missing-news").exists():
+    raise SystemExit("feedparser paketi eksik")
 if stage == "venv":
     target = Path(args[2])
     (target / "bin").mkdir()
@@ -160,7 +162,7 @@ elif stage == "verify":
         command = calls[1]["args"]
         self.assertIn("--isolated", command)
         self.assertEqual(command[command.index("--constraint") + 1], str(self.root / "constraints/brand.txt"))
-        self.assertEqual(command[-1], str(self.root) + "[brand]")
+        self.assertEqual(command[-1], str(self.root) + "[brand,news]")
         self.assertIn(str(self.venv / "bin"), (self.venv / "bin/maigret").read_text())
 
     def test_force_preserves_exact_previous_environment_and_old_backups(self):
@@ -182,6 +184,22 @@ elif stage == "verify":
                 self.assert_success(self.run_setup(*arguments))
         self.assertEqual([row["stage"] for row in self.calls()], ["pip-check", "verify"] * 2)
         self.assertEqual(self.snapshot(self.venv), before)
+
+    def test_missing_news_check_preserves_old_environment_and_default_setup_upgrades_it(self):
+        self.existing()
+        (self.venv / "missing-news").write_text("Old environment has no reader")
+        before = self.snapshot(self.venv)
+        result = self.run_setup("--check")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.snapshot(self.venv), before)
+        self.assertFalse(list(self.root.glob(".venv-backup-*")))
+        self.assert_success(self.run_setup())
+        backups = list(self.root.glob(".venv-backup-*"))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(self.snapshot(backups[0]), before)
+        self.assertFalse((self.venv / "missing-news").exists())
+        self.assertEqual([row["stage"] for row in self.calls()],
+                         ["pip-check", "verify", "pip-check", "verify", "venv", "install", "pip-check", "verify"])
 
     def test_failed_create_install_dependency_check_or_verifier_restores_exact_old_environment(self):
         before = self.existing()

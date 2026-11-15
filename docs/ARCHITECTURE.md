@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.142.0, şema 65 ana proje yapısı.**
+**15 Kasım 2026 — 0.143.0, şema 66 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
@@ -21,7 +21,7 @@ iş/arama/sonuç sınırında da uygulanmalı ve ayrıca sınanmalıdır; bu yet
 sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
 [0142 kararı](decisions/0142-xti-engine-dotnet-host.md) ilk hedefi,
 [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
-Aşağıdaki bölümler mevcut 0.142.0 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.143.0 uygulamasını anlatır.
 
 0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
 ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite
@@ -56,6 +56,30 @@ engine kaynak durumu bütün kaynaklar için tek snapshot değildir. Mevcut
 terminal ve `--json` zarfı değişmedi.
 [0143 kararı](decisions/0143-versioned-engine-read-contract.md)
 ve [v1 kullanım rehberi](ENGINE_CONTRACT.md).
+
+`NewsService` küçük haber kaynak/depo portları ve ortak yazıcı kilidiyle
+çalışır. Şema ağdan önce doğrulanır; saat kilit alındıktan sonra örneklenir.
+`RssAtomNewsSource` yalnız sabit yayıncı HTTPS adreslerini sınırlarla alır;
+`feedparser` gecikmeli yüklenir ve yalnız bellek akışı ayrıştırır.
+Yönlendirme, DTD/entity ve bozuk XML reddedilir; makale/ek indirilmez.
+Ham/ayrıştırılmış kaynak tarihi ile XTI toplama zamanı ayrıdır.
+
+Şema 66, çalışma zinciri, içerik adresli tam akış kanıtı ve güncel haber
+görünümü için üç tablo ekler. `SQLiteNewsRepository` aynı transaction'da
+kanıt, sayaç ve görünümü yazar; okuyucu tam geçmişten görünümü denetler.
+Akış dönen pencere olduğundan eksikleşen eski haber silinmez. Tam yanıt
+saklama veya kapasite sınırını aşarsa kısmi başarı yoktur. Tarihî çalışma
+raporu güncel haberden yeniden kurulmaz; aynı haberler dahil gözlenen
+tam kapsam sayfalı gösterilir.
+
+Genel arama aynı bağlantıda `read_news_catalog` kullanır; `news` on birinci
+türdür. Eski kayıtlı aramaların somut tür listesi, kimliği ve hash politikası
+korunur. Yeni haber kimliği ile anlamlı içerik ayrıdır; görülme/çalışma
+zamanı farkı bildirim üretmez. Engine'in dört işlemi aynı kalır; kontrollü
+haber kayıt türü ve kaynak namespace'leri eklenir. Toplama komutu mevcut
+`search-watch` karşılaştırmasını kendiliğinden çalıştırmaz. Kaynaklı haber
+ve ücretsiz erişim doğrulanmış ihlal veya 7/24 hizmet iddiası değildir.
+[0148 kararı](decisions/0148-publisher-news-feeds.md).
 
 `EventCandidateService` küçük `EventCandidateRepository` portundan üç
 kaynağın denetlenmiş son başarılı kayıtlarını ve önceki ransomware karar

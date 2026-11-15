@@ -23,6 +23,7 @@ from xti.interfaces.components import register_components_parser, make_component
 from xti.interfaces.event_candidates import (
     register_event_candidates_parser, make_event_candidate_service, execute_event_candidates_command,
 )
+from xti.interfaces.news import register_news_parser, make_news_service, execute_news_command
 from xti.adapters.sqlite import SCHEMA_VERSION, SQLiteAssetRepository, StorageError
 from xti.adapters.domain_file import read_domain_file
 from xti.adapters.public_suffix import PublicSuffixResolver
@@ -798,6 +799,7 @@ def build_parser() -> Parser:
     register_organizations_parser(commands)
     register_global_search_parser(commands)
     register_global_saved_search_parser(commands)
+    register_news_parser(commands)
     register_engine_parser(commands)
     register_components_parser(commands)
     register_event_candidates_parser(commands)
@@ -3473,6 +3475,13 @@ def run(args: argparse.Namespace) -> int | None:
             limit=args.limit, offset=args.offset,
         )
         emit(asdict(report), periodic_changes_lines(report), as_json=args.json)
+    elif args.command == "news":
+        data, lines, status = execute_news_command(
+            None if args.news_action == "sources" else make_news_service(
+                settings.database, refresh=args.news_action == "refresh"), args,
+        )
+        emit(data, lines, as_json=args.json, ok=status == 0)
+        return status
     elif args.command == "notices":
         if args.notice_action in {"watch", "watch-run-show"}:
             data, lines = execute_public_notice_watch_command(

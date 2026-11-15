@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.142.0 · Şema 65.**
+**15 Kasım 2026 · 0.143.0 · Şema 66.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -11,13 +11,13 @@ aittir. Biz motoru, sürümlü sözleşmesini, örneklerini ve belgelerini
 sağlarız. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
-veya müşteri yalıtımı henüz uygulanmadı. 0.142.0 yerel kayıtlı arama için
-şema 65'e açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
+veya müşteri yalıtımı henüz uygulanmadı. 0.143.0 haberler için şema 66'ya
+açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
 
-**Güncel teslim:** 0.142.0, on kayıt ailesini kapsayan `search-watch`
-komutlarını ve yerel değişiklik bildirimini ekler. İlk ölçüm sessizdir;
-sonraki yeni/anlamlı değişen eşleşmeler bildirilir. 0.141.0'ın kaynaklar
-arası olay adayları kullanılmaya devam eder.
+**Güncel teslim:** 0.143.0, hazır `feedparser` ile RSS/Atom haberlerini
+internetten toplar; kaynaklı haberleri genel arama, engine ayrıntısı ve
+mevcut kayıtlı arama/bildirim yoluna bağlar. Kaynaklar arası olay adayları
+ve önceki izlemeler kullanılmaya devam eder.
 
 **Tamamlanan temel:** Mevcut SQLite motoru için tanımlanan 11 maddelik
 sağlamlaştırma paketi, aşağıdaki ortam ve kabul senaryolarında tamamlandı.
@@ -34,10 +34,57 @@ tesliminde kesin host ve mevcut ad/grup/zaman kuralları ile sınırlı
 noktalama düzenlemesi yeterli olduğu için RapidFuzz kurulmadı; genel
 yaklaşık eşleştirme ölçümlü ayrı çalışma olarak kaldı. Önceki FastAPI/Keycloak/panel
 tercihleri bu repo kapsamından çıkarıldı. Mevcut genel arama/CTI kayıtlı
-arama/bildirim desenleri 0.142.0'da tekrar kullanıldı. Bu bileşen araştırmasının paketleri
-kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
+arama/bildirim desenleri 0.142.0'da tekrar kullanıldı. 0.143.0 haberler için
+`feedparser==6.0.14` ve `feedparser-sgmllib==2.1.0` kullanır; RapidFuzz,
+Trafilatura ve diğer gelecek tercihler kurulmuş sayılmaz.
 
 ## Çalışanlar
+
+- `news sources/refresh/list/show/status/run-show`: CISA, UK NCSC ve
+  CERT-FR yayınlarını sabit HTTPS adreslerinden açıkça toplama; başlık,
+  sınırlı düz metin özet, özgün bağlantı ve kaynak tarihlerini araştırma.
+- Haber kimliği kaynak + yayıncı GUID/ID'si, bu yoksa bağlantıdır. Aynı
+  haber tekrarında yeni kayıt oluşmaz; başlık/özet/tarih değişimi ayrı
+  kanıttır. Akıştan çıkan eski haber silinmez. Kaynak hatası ve başarılı
+  boş akış ayrı tutulur, önceki başarı korunur.
+- Her çalışma aynı olanlar dahil bütün gözlenen haberleri sayfalı
+  önce/sonra kanıtıyla gösterir. Güncel haber sonraki sürümde değişse de
+  eski çalışma kanıtı değiştirilmez. İlk görülme, son içerik değişimi,
+  son görülme ve kaynağın yayın/güncelleme tarihleri ayrıdır.
+- Genel arama on birinci tür olarak `news` destekler. Engine v1'in dört
+  işlemi korunur; kaynak namespace'iyle haber kayıt ayrıntısı eklenir.
+  Eski kayıtlı aramaların on türlük somut kapsamı kendiliğinden genişlemez.
+  Yeni haber kapsamı açık tanım gerektirir; mevcut `search-watch → inbox`
+  ilk sessiz başlangıç ve yeni/anlamlı değişiklik kurallarını kullanır.
+- Haber toplama izlemeyi otomatik çalıştırmaz; `collect` profillerine
+  henüz eklenmedi. Haber sayfaları/ekler açılmaz. Kaynaklar üç sabit
+  yayıncıyla sınırlıdır; her haber eşleşmesi araştırma bağlamıdır.
+- Şema 66 üç boş tablo ekler; açık migration ve yeni dizine yedekten
+  dönüş uygulanır. Güncel görünüm, tam akış görüntüleri ve çalışma
+  zincirinden denetlenir. 4 MiB yanıt/2.000 haber, toplam 50.000 haber/
+  10.000 çalışma, 8 MiB görüntü ve 64 MiB toplam görüntü/projeksiyon
+  sınırlarında aşım kısmi kayda veya eski verinin silinmesine yol açmaz.
+- Normal kurulum haber kütüphanelerini sabit sürümle mevcut korumalı
+  ortamda kurar; eski ortam yedekte kalır. `--core-only` paket indirmez.
+  Parser gecikmeli yüklendiği için yokluğu diğer komutları engellemez.
+  `sources.status` içindeki `builtin` haber adaptörünü ifade eder; parser
+  kurulum doğrulaması değildir. Gerçek yenileme eksik/uyumsuz paketi
+  açıklamalı hata olarak bildirir; kurucu sürüm ve yerel RSS/Atom örneğini
+  ayrıca doğrular.
+
+**0.143.0 doğrulaması:** Haber parser/servis/depo/geçiş/arama/terminal/
+kurulum ve mimari testlerini kapsayan 61 test, 11,080 saniyede geçti.
+Son eklenen genel arama veri-dizini regresyonu ayrı entegrasyon turunda
+doğrulandı. Tüm migration paketi 229/229 başarılıdır (60,738 saniye).
+Mevcut genel arama/engine/izleme/kaynak durumu paketinde 119 test geçti.
+Yeni adaptörle üç gerçek HTTPS yayını 10 CISA, 20 NCSC ve 40 CERT-FR
+haberi döndürdü; kaynak tarihleri ayrıştırıldı. Bu anlık kaynak erişimidir.
+Kullanıcı veritabanı veya mevcut araç ortamı değiştirilmedi. Genel test
+ve gerçek Linux kurulum/güncelleme kabulü tamamlanınca sonuçları eklenecek.
+[Kullanım](../README.md#rss-ve-atom-haberlerini-topla),
+[karar](decisions/0148-publisher-news-feeds.md).
+
+**0.142.0'da eklenen arama izlemesi ve o sürümün doğrulamaları:**
 
 - `search-watch add/list/show/disable/run/run-show/monitor`: on yerel
   kayıt ailesinin tam sonucunu izleme; ad/tür/etkinlik filtresi, sayfalı

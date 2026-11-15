@@ -1,6 +1,6 @@
 # Bağlı açık kaynak araçlarını görme
 
-**Uygulama:** 0.142.0 · **Bileşen kataloğu:** 1 · **Şema:** 65.
+**Uygulama:** 0.143.0 · **Bileşen kataloğu:** 1 · **Şema:** 66.
 
 `components`, XTI'ın bağlı olduğu Maigret, Sherlock ve theHarvester için
 beklenen sürümü, kullanım kapsamını ve bu projedeki kurulum durumunu gösterir:
@@ -31,9 +31,13 @@ aralık 5–30 saniyedir. theHarvester sonucu varsayılan 250, en fazla 500
 kayıttır; bu entegrasyon aktif hedef kontrolü yapmaz.
 
 Bu liste yalnız mevcut üç harici araçtır. Bütün veri kaynakları, Python
-paketleri veya ileride düşünülen RapidFuzz/feedparser gibi bileşenler için
+paketleri veya ileride düşünülen RapidFuzz gibi bileşenler için
 kurulum envanteri değildir. Kayıt alanı hazırken `./xti sources` kaynak
 listesini, kayıtlı son arama sonuçlarını ve bekleme bilgilerini gösterir.
+0.143.0'daki `feedparser` ve `feedparser-sgmllib`, haber ayrıştırma
+kütüphaneleridir; bu üç araçlık kataloğa araçmış gibi eklenmez.
+Normal kurulum bunların sabit sürümlerini doğrular; `./xti news sources`
+desteklenen yayıncıları, `./xti news status` saklanan kaynak durumunu gösterir.
 
 ## Kurulum durumunu nasıl okuyacağım?
 

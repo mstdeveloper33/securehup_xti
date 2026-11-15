@@ -19,6 +19,7 @@ from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_findings import SQLiteFindingRepository
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.adapters.sqlite_public_notices import read_public_notice_history
+from xti.adapters.sqlite_news import read_news_catalog
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_supplier_history import read_supplier_history
@@ -81,6 +82,9 @@ _WIRE_FIELDS = {
     'PublicNotice': ('id', 'title', 'domain', 'breach_date', 'added_at', 'modified_at', 'pwn_count', 'data_classes', 'is_verified', 'is_fabricated', 'is_sensitive', 'is_retired', 'is_spam_list', 'is_malware', 'is_stealer_log', 'source_attribution', 'source_url'),
     'PublicNoticeRun': ('sequence', 'id', 'status', 'started_at', 'finished_at', 'fetched_at', 'content_sha256', 'snapshot_sha256', 'notice_count', 'added_count', 'updated_count', 'unchanged_count', 'removed_count', 'error'),
     'PublicNoticeChange': ('run_id', 'action', 'notice', 'state_sha256'),
+    'NewsArticle': ('id', 'source_key', 'source_entry_id', 'url', 'title', 'summary', 'summary_truncated', 'published_at', 'updated_at', 'published_raw', 'updated_raw'),
+    'NewsSourceDefinition': ('key', 'name', 'url', 'homepage', 'attribution'),
+    'NewsRun': ('sequence', 'id', 'source_key', 'status', 'started_at', 'finished_at', 'fetched_at', 'content_sha256', 'snapshot_sha256', 'article_count', 'added_count', 'updated_count', 'unchanged_count', 'error'),
     'RansomLookClaim': ('id', 'group', 'victim', 'discovered_at'),
     'RansomLookClaimRunItem': ('id', 'run_id', 'claim', 'action', 'state_sha256'),
     'RansomLookClaimRun': ('sequence', 'id', 'source_name', 'status', 'source_url', 'content_sha256', 'started_at', 'finished_at', 'fetched_at', 'window_days', 'source_record_count', 'claim_count', 'added_count', 'updated_count', 'unchanged_count', 'removed_count', 'error'),
@@ -155,6 +159,8 @@ class SQLiteEngineRecordRepository:
             valid = reference.record_type in INDICATOR_TYPES and reference.namespace == 'local-ioc'
         elif reference.kind == 'ransomware':
             valid = reference.record_type == 'ransomware_claim' and reference.namespace in {'threatcluster', 'ransomlook'}
+        elif reference.kind == 'news':
+            valid = reference.record_type == 'news_article' and reference.namespace in {'cisa', 'ncsc', 'cert-fr'}
         else:
             valid = _LOCAL_TYPES.get(key) == reference.namespace and key in _LOCAL_TYPES
         if not valid:
@@ -166,6 +172,8 @@ class SQLiteEngineRecordRepository:
                     record, sections, provenance, notes = self._intelligence(connection, reference)
                 elif reference.kind in {'public-notice', 'ransomware'}:
                     record, sections, provenance, notes = self._catalog(connection, reference)
+                elif reference.kind == 'news':
+                    record, sections, provenance, notes = self._news(connection, reference)
                 else:
                     handlers = {'registered_domain': self._asset, 'surface_candidate': self._candidate,
                                 'brand_finding': self._finding, 'username_watch': self._watch,
@@ -179,6 +187,24 @@ class SQLiteEngineRecordRepository:
             raise
         except (TypeError, ValueError, KeyError, IndexError, AttributeError, OverflowError) as error:
             raise StorageError('Engine kayıt ayrıntısı veya kaynak bağlantıları bozuk; kısmi sonuç üretilmedi.') from error
+
+    @staticmethod
+    def _news(connection, reference):
+        catalog = read_news_catalog(connection)
+        stored = next((value for value in catalog.articles
+                       if value.article.id == reference.record_id
+                       and value.article.source_key == reference.namespace), None)
+        if stored is None:
+            _not_found()
+        status = next(item for item in catalog.sources if item.source.key == reference.namespace)
+        return stored.article, {}, {
+            'source': status.source, 'state_sha256': stored.state_sha256,
+            'first_run_id': stored.first_run_id, 'last_change_run_id': stored.last_change_run_id,
+            'last_seen_run_id': stored.last_seen_run_id, 'first_seen_at': stored.first_seen_at,
+            'last_changed_at': stored.last_changed_at, 'last_seen_at': stored.last_seen_at,
+            'latest_attempt': status.latest_run, 'latest_success': status.latest_complete_run,
+            'retention': 'rolling_feed_articles_retained',
+        }, catalog.notes
 
     @staticmethod
     def _asset(connection, identifier):

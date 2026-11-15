@@ -1,7 +1,7 @@
 # XTI günlük kullanım
 
-Bu belge 0.137.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
-çalıştır; şema 63 geçişi önce geri dönüş yedeği alır.
+Bu belge 0.143.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
+çalıştır; şema 66 geçişi önce geri dönüş yedeği alır.
 
 Kuruluşa özel HIBP bildirimleri için `./xti notices watch enable KURULUS_KIMLIGI`
 ile açık izleme seçilir. Katalog yenilenince ilk ölçüm sessizdir; sonraki
@@ -64,6 +64,31 @@ Yalnız ilk komut internete çıkar. Olay metadata kayıtları tam domain
 eşleşmesiyle kuruluş raporuna katılır; e-posta/parola sorgulanmaz.
 İlk alımdaki tarihî olaylar yeni yaşanmış ihlaller değildir. Kullanım,
 sayfalama ve CTI ilişkilerine geçiş [kuruluş rehberindedir](ORGANIZATION_REPORT.md).
+
+### Haber ve güvenlik duyurularını oku
+
+```sh
+./xti news sources
+./xti news refresh --source ncsc
+./xti news list "example.com"
+./xti search "example.com" --kind news
+./xti news status
+```
+
+`refresh` internetten seçili yayını alır; diğerleri kayıtları okur.
+`cisa` ve `cert-fr` diğer kaynaklardır. Yayınların eski haberleri akıştan
+çıkarması yerel kanıtı silmez. Kaynak hatası önceki başarıdan ayrı görünür.
+
+```sh
+./xti search-watch add "Markam haberleri" "example.com" --kind news
+./xti search-watch run ARAMA_KIMLIGI
+```
+
+Kimliği `add` çıktısından al. İlk çalışma sessiz başlangıçtır. Daha sonra
+haber kaynağını yenile ve aynı aramayı yeniden çalıştır; yeni/anlamlı
+değişmiş eşleşmeler `./xti inbox` içinde görünür. Kaynak toplama ve yerel
+karşılaştırma ayrı komutlardır. Tam kullanım, kurulum ve sınırlar
+[haber rehberindedir](../README.md#rss-ve-atom-haberlerini-topla).
 
 ## 2. Domain için veri topla
 

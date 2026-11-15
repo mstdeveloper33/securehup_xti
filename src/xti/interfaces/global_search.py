@@ -8,7 +8,7 @@ from xti.interfaces.text import safe_text
 _LABELS = {'domain': 'Domain / alt alan', 'finding': 'Marka bulgusu', 'social': 'Sosyal kayıt',
            'ransomware': 'Ransomware kaynak iddiası', 'public-notice': 'Kamu olayı',
            'case': 'Vaka', 'supplier': 'Tedarikçi', 'organization': 'Kuruluş',
-           'cti': 'CTI varlığı', 'indicator': 'IOC'}
+           'cti': 'CTI varlığı', 'indicator': 'IOC', 'news': 'Yayıncı haberi'}
 _MATCH = {'exact': 'tam metin', 'prefix': 'başlangıç', 'contains': 'içerme'}
 
 
@@ -21,7 +21,8 @@ def register_global_search_parser(commands):
     parser.add_argument('--limit', type=int, default=50)
 
 
-def global_search_lines(report):
+def global_search_lines(report, *, data_dir=None):
+    launcher = ('./xti', '--data-dir', str(data_dir)) if data_dir is not None else ('./xti',)
     lines = [f'Platform genelinde yerel arama: {safe_text(report.query)}',
              f'Toplam eşleşme: {report.total_match_count} | gösterilen: {len(report.results)} | başlangıç: {report.offset}',
              'Kapsam: ' + ', '.join(_LABELS[kind] for kind in report.kinds),
@@ -47,9 +48,9 @@ def global_search_lines(report):
             lines.append('  Kaynak çalışma: ' + safe_text(record.source_run_id))
         lines.extend('  ' + safe_text(value) for value in record.details)
         for nav in record.navigation:
-            lines.append('  ' + safe_text(nav.label) + ': ' + safe_text(shlex.join(('./xti', *nav.arguments))))
+            lines.append('  ' + safe_text(nav.label) + ': ' + safe_text(shlex.join((*launcher, *nav.arguments))))
     if report.has_more:
-        args = ['./xti', 'search', report.query, '--offset', str(report.offset + len(report.results)), '--limit', str(report.limit)]
+        args = [*launcher, 'search', report.query, '--offset', str(report.offset + len(report.results)), '--limit', str(report.limit)]
         for kind in report.kinds: args.extend(('--kind', kind))
         if report.include_inactive: args.append('--all')
         lines.append('Sonraki sayfa: ' + safe_text(shlex.join(args)))
@@ -60,4 +61,4 @@ def global_search_lines(report):
 def execute_global_search_command(service, args):
     result = service.search(args.query, kinds=args.kinds, include_inactive=args.include_inactive,
                             offset=args.offset, limit=args.limit)
-    return asdict(result), global_search_lines(result)
+    return asdict(result), global_search_lines(result, data_dir=getattr(args, 'data_dir', None))

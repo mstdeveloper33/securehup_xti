@@ -1,12 +1,12 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.142.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 65.
+**Uygulama:** 0.143.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 66.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
 kaynak durumu ve proje araç kataloğu. Mevcut terminal komutları ve `--json` çıktıları
-korunur. 0.142.0 engine v1'e yeni işlem, paket veya HTTP sunucusu eklemez.
-Yerel kayıtlı arama için gereken şema 64→65 geçişi ayrı ve açık
+korunur. 0.143.0 engine v1'e `news` kayıt ailesini ekler; dört işlem
+değişmez. Haber tabloları için gereken şema 65→66 geçişi ayrı ve açık
 `./xti migrate` adımıdır; [güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
 Bu okuma katmanı yeni internet toplaması başlatmaz. İnternetten veri alan
@@ -109,12 +109,20 @@ değerlerini sabit tutmalı, kullanıcı metnini shell komutu olarak üretmemeli
 | Parametre | Kural |
 |---|---|
 | `query` | Zorunlu; normalleştirilmiş 2–200 görünür karakter |
-| `kinds` | İsteğe bağlı, boş olmayan kayıt türü listesi; verilmezse on aile |
+| `kinds` | İsteğe bağlı, boş olmayan kayıt türü listesi; verilmezse on bir aile |
 | `include_inactive` | Boolean; varsayılan `false` |
 | `offset` / `limit` | Sayfa başlangıcı ve boyutu; varsayılan `0` / `50` |
 
-On kayıt ailesi: `domain`, `finding`, `social`, `ransomware`, `public-notice`,
-`case`, `supplier`, `organization`, `cti`, `indicator`.
+On bir kayıt ailesi: `domain`, `finding`, `social`, `ransomware`, `public-notice`,
+`case`, `supplier`, `organization`, `cti`, `indicator`, `news`.
+
+Haber referansı `kind="news"`, `record_type="news_article"` ve yayıncının
+`cisa`, `ncsc` veya `cert-fr` namespace'ini taşır. `record_id`, kaynak ile
+yayıncı kimliğinden türetilmiş 64 haneli kimliktir; içerik özeti değildir.
+`record.get` kontrollü haber alanlarını, ilk/son görülme ve son içerik
+değişimi bağlarını, kaynak son deneme/son başarı bilgisini verir. `current`
+son bilinen yerel haber halidir; akışta hâlâ bulunma veya doğrulanmış
+tehdit iddiası değildir. Yayıncı atfı ve kaynak tarihinin ham metni korunur.
 
 Sonuç `query`, `kinds`, `include_inactive`, `checked_at`,
 `total_match_count`, `offset`, `limit`, `has_more`, `results`, `coverage`,
@@ -289,7 +297,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.142.0",
+  "engine_version": "0.143.0",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",

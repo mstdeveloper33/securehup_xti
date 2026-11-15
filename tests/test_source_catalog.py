@@ -15,7 +15,7 @@ class SourceCatalogTests(unittest.TestCase):
                 "ransomlook-ransomware-posts",
                 "mitre-attack-enterprise", "cisa-kev",
                 "first-epss", "nist-nvd-cve", "osv-dev", "canonical-ubuntu-osv",
-                "redhat-csaf-vex", "suse-csaf-vex",
+                "redhat-csaf-vex", "suse-csaf-vex", "news:cisa", "news:ncsc", "news:cert-fr",
             ],
         )
         self.assertEqual(len({item.identifier for item in items}), len(items))

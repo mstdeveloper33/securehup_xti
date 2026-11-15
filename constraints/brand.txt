@@ -27,6 +27,8 @@ colorama==0.4.6
 curl_cffi==0.17.0
 et_xmlfile==2.0.0
 executing==2.3.0
+feedparser==6.0.14
+feedparser-sgmllib==2.1.0
 frozenlist==1.8.0
 graphemeu==0.7.2
 html5lib==1.1
