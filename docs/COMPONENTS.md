@@ -1,6 +1,6 @@
 # Bağlı açık kaynak araçlarını görme
 
-**Uygulama:** 0.140.2 · **Bileşen kataloğu:** 1 · **Şema:** 64.
+**Uygulama:** 0.140.3 · **Bileşen kataloğu:** 1 · **Şema:** 64.
 
 `components`, XTI'ın bağlı olduğu Maigret, Sherlock ve theHarvester için
 beklenen sürümü, kullanım kapsamını ve bu projedeki kurulum durumunu gösterir:
@@ -13,6 +13,8 @@ beklenen sürümü, kullanım kapsamını ve bu projedeki kurulum durumunu göst
 Bu komut internete çıkmaz, araç çalıştırmaz veya kurulum başlatmaz.
 Veritabanı kurulmamışken de kullanılabilir; kayıt dizini oluşturmaz.
 İnternetten yeni bilgi toplamak için mevcut toplama komutları kullanılır.
+Proje başlatıcısı çalışan Python ortamını korumak için ilk çağrıda kalıcı
+`.brand-install.lock` dosyasını oluşturabilir; bu bir araç kurulumu değildir.
 
 ## Gösterilen araçlar
 
@@ -50,6 +52,9 @@ eksik kurulumda sonraki kontrollerin tümü yürütülmez.
 Maigret ve Sherlock için proje `.venv` içindeki paket sürümü, Git kaynak
 kaydı, katalog boyutu/özeti ve çalıştırıcı dosyaları incelenir. `XTI_PYTHON`
 veya `PATH` ile seçilmiş başka bir ortam bu gözlemle doğrulanmış olmaz.
+Yarım marka kurulumu veya tanınmayan eski kurulum kalıntısı `invalid`
+olarak görünür. Aktif marka kurulumu varsa `./xti` başlatıcısı görünüm
+oluşmadan meşgul hatasıyla durabilir; bu durum kayıtların silindiği anlamına gelmez.
 theHarvester denetimi yarım kurulum günlüğü, varsa kurulum kilidi, HEAD
 işareti ile çalıştırıcı/interpreter konumunu inceler; bütün kaynak ağacının
 veya bağımlılıkların bütünlüğünü kanıtlamaz. Bekleyen kurtarma veya meşgul
@@ -63,6 +68,8 @@ tek anlık kesit garantisi yoktur.
 
 Çıktıdaki kurulum ve doğrulama komutları yalnız yol gösterir. Maigret ve
 Sherlock için ayrı `./scripts/setup-brand --check` kontrolü vardır.
+[Marka kurulum rehberi](BRAND_INSTALLATION.md) yeniden kurulum, kurtarma
+ve çalışan XTI komutlarının korunmasını açıklar.
 theHarvester için `./scripts/setup-harvester --check` Git kaynağını,
 commit'i, izlenen yerel değişiklikleri ve `--help` çalışmasını kontrol eder.
 Bu ayrı komut aracı çalıştırır; tüm bağımlılık bütünlüğünü veya canlı arşiv
@@ -110,7 +117,7 @@ bulunur. Katalog kapsamı `project-managed-tools` değeridir.
 
 Bu teslim araç sürümlerini yükseltmez, bağımlılık eklemez veya şemayı
 değiştirmez. Bütün geçişli bağımlılıkların tam bütünlük kabulü ayrı işletim
-işidir. theHarvester kesinti sonrası geri dönüşü 0.140.2'de eklenmiştir;
+işidir. theHarvester kesinti sonrası geri dönüşü 0.140.3'de eklenmiştir;
 doğrulama kapsamı [güncel durumda](STATUS.md) kayıtlıdır.
 [Katalog kararı](decisions/0144-reviewed-component-catalog.md)
 ve [motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md).

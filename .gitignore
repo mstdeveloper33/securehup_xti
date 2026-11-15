@@ -5,6 +5,12 @@ __pycache__/
 .venv-backup.*/
 .venv-backup/
 .venv-install.lock/
+.brand-install.lock
+.brand-install.json
+.venv-backup-*/
+.venv-candidate-*/
+.venv-failed-*/
+.venv-journal-*.tmp
 .tools/
 .pytest_cache/
 .ruff_cache/

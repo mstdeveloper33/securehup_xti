@@ -7,18 +7,20 @@ candidates are retained; recovery never recursively deletes user content.
 """
 
 import argparse
-from contextlib import contextmanager
-import json
 import os
 from pathlib import Path
 import shutil
-import signal
-import stat
 import subprocess
 import sys
 import tempfile
-import time
-import uuid
+
+from xti.adapters.installation_process import (
+    SetupInterrupted, ProcessCleanupError, interruption_handlers,
+    terminate_group as _terminate_group, run_command as _run_command,
+)
+from xti.adapters.installation_transaction import (
+    DirectoryInstallation, identity, sync_directory, move_directory,
+)
 
 from xti.adapters.tool_installation import (
     JOURNAL_NAME,
@@ -35,253 +37,24 @@ SYNC_TIMEOUT = 900
 SMOKE_TIMEOUT = 60
 OUTPUT_LIMIT = 1024 * 1024
 
-
-class SetupInterrupted(ToolInstallationError):
-    pass
-
-
-class ProcessCleanupError(ToolInstallationError):
-    """Do not restore directories while an unconfirmed child may still write."""
-
-
-@contextmanager
-def interruption_handlers():
-    def interrupted(number, _frame):
-        raise SetupInterrupted(f"Kurulum sinyal nedeniyle kesildi ({number}).")
-
-    previous = {}
-    try:
-        for number in (signal.SIGTERM, signal.SIGHUP):
-            previous[number] = signal.signal(number, interrupted)
-        yield
-    finally:
-        for number, handler in previous.items():
-            signal.signal(number, handler)
-
-
-def sync_directory(path):
-    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
-    try:
-        os.fsync(descriptor)
-    finally:
-        os.close(descriptor)
-
-
-def identity(path):
-    try:
-        metadata = path.lstat()
-    except FileNotFoundError:
-        return None
-    if not stat.S_ISDIR(metadata.st_mode):
-        raise ToolInstallationError(f"Gerçek dizin bekleniyor: {path.name}; değiştirilmedi.")
-    return [metadata.st_dev, metadata.st_ino]
-
-
-def journal_paths(parent, transaction):
-    return {
-        "canonical": parent / "theharvester",
-        "backup": parent / f".theharvester-backup-{transaction}",
-        "candidate": parent / f".theharvester-candidate-{transaction}",
-        "failed": parent / f".theharvester-failed-{transaction}",
-    }
-
-
-def unique_fields(pairs):
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("duplicate field")
-        result[key] = value
-    return result
-
-
-def load_journal(parent):
-    try:
-        descriptor = os.open(parent / JOURNAL_NAME, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-        with os.fdopen(descriptor, "rb") as stream:
-            metadata = os.fstat(stream.fileno())
-            if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
-                raise ValueError("not a private regular journal")
-            payload = stream.read(16385)
-        if len(payload) > 16384:
-            raise ValueError("journal too large")
-        data = json.loads(payload, object_pairs_hook=unique_fields)
-        if not isinstance(data, dict) or set(data) != {"version", "transaction", "phase", "old", "new"}:
-            raise ValueError("unknown journal fields")
-        if type(data["version"]) is not int or data["version"] != 1:
-            raise ValueError("unsupported journal version")
-        transaction = data["transaction"]
-        if not isinstance(transaction, str) or str(uuid.UUID(transaction)) != transaction:
-            raise ValueError("invalid transaction")
-        if data["phase"] not in ("prepared", "committed"):
-            raise ValueError("unknown phase")
-        for field in ("old", "new"):
-            value = data[field]
-            if field == "old" and value is None:
-                continue
-            if not isinstance(value, list) or len(value) != 2 or any(
-                type(item) is not int or item < 0 for item in value
-            ):
-                raise ValueError("invalid directory identity")
-        if data["old"] == data["new"]:
-            raise ValueError("duplicate directory identity")
-        return data
-    except (OSError, ValueError, TypeError, UnicodeError) as error:
-        raise ToolInstallationError(
-            "Kurulum günlüğü güvenle okunamadı; dosyalara dokunulmadı. "
-            "Elle inceleme gerekiyor: .tools/" + JOURNAL_NAME
-        ) from error
-
-
-def write_journal(parent, data, *, initial=False):
-    journal = parent / JOURNAL_NAME
-    temporary = parent / f".theharvester-journal-{uuid.uuid4()}.tmp"
-    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(data, stream, sort_keys=True)
-            stream.write("\n")
-            stream.flush()
-            os.fsync(stream.fileno())
-        if initial:
-            # All cooperating writers hold the persistent exclusive lock.
-            # Atomic publication leaves either no journal or a complete one.
-            if os.path.lexists(journal):
-                raise ToolInstallationError("Kurulum günlüğü zaten var; üzerine yazılmadı.")
-            os.replace(temporary, journal)
-        else:
-            existing = load_journal(parent)
-            if existing != dict(data, phase="prepared"):
-                raise ToolInstallationError("Kurulum günlüğü değişmiş; üzerine yazılmadı.")
-            os.replace(temporary, journal)
-        sync_directory(parent)
-    finally:
-        if temporary.exists():
-            temporary.unlink()
-
-
-def clear_journal(parent, expected):
-    if load_journal(parent) != expected:
-        raise ToolInstallationError("Kurulum günlüğü değişmiş; silinmedi.")
-    (parent / JOURNAL_NAME).unlink()
-    sync_directory(parent)
-
-
-def move_directory(source, destination, expected):
-    if identity(source) != expected or os.path.lexists(destination):
-        raise ToolInstallationError("Kurulum dizininin kimliği veya hedefi değişmiş; işlem durduruldu.")
-    os.rename(source, destination)
-    sync_directory(source.parent)
-
-
-def recover(parent):
-    """Recover only recognized transaction directories, including partial rollback."""
-    data = load_journal(parent)
-    paths = journal_paths(parent, data["transaction"])
-    observed = {name: identity(path) for name, path in paths.items()}
-    old, new = data["old"], data["new"]
-    for name, actual in observed.items():
-        allowed = {"canonical": (old, new), "backup": (old,), "candidate": (new,), "failed": (new,)}[name]
-        if actual is not None and actual not in allowed:
-            raise ToolInstallationError("Kurtarma yolunda tanınmayan dizin var; hiçbir dizin taşınmadı.")
-    new_locations = [name for name, actual in observed.items() if actual == new]
-    old_locations = [name for name, actual in observed.items() if old is not None and actual == old]
-    if len(new_locations) != 1 or (old is not None and len(old_locations) != 1):
-        raise ToolInstallationError("Kurtarma dizinlerinin kimliği eksik veya çakışıyor; değiştirilmedi.")
-    if data["phase"] == "committed":
-        if new_locations != ["canonical"] or (old is not None and old_locations != ["backup"]):
-            raise ToolInstallationError("Tamamlanmış kurulumun dizin düzeni değişmiş; değiştirilmedi.")
-        clear_journal(parent, data)
-        print("Tamamlanmış kurulumun günlüğü temizlendi; mevcut kurulum korundu.")
-        return
-    location = new_locations[0]
-    if location not in ("canonical", "candidate", "failed"):
-        raise ToolInstallationError("Aday kurulum beklenmeyen yerde; değiştirilmedi.")
-    if old is not None and old_locations[0] not in ("canonical", "backup"):
-        raise ToolInstallationError("Önceki kurulum beklenmeyen yerde; değiştirilmedi.")
-    if location != "failed":
-        move_directory(paths[location], paths["failed"], new)
-    if old is not None and old_locations == ["backup"]:
-        move_directory(paths["backup"], paths["canonical"], old)
-    clear_journal(parent, data)
-    print("Yarım kalan kurulum geri alındı; önceki kurulum varsa aynı konumuna döndürüldü.")
-    print(f"Başarısız aday korundu: {paths['failed']}")
+TRANSACTION = DirectoryInstallation(canonical_name="theharvester", prefix=".theharvester",
+                                    journal_name=JOURNAL_NAME)
+RECOVERY_COMMAND = "./scripts/setup-harvester --recover"
+journal_paths = TRANSACTION.paths
+load_journal = TRANSACTION.load
+write_journal = TRANSACTION.write
+clear_journal = TRANSACTION.clear
+recover = TRANSACTION.recover
 
 
 def terminate_group(process):
-    # A second Ctrl-C/TERM must not interrupt shutdown and let recovery race
-    # with a child still writing into the canonical installation directory.
-    previous = {number: signal.signal(number, signal.SIG_IGN)
-                for number in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)}
-    try:
-        try:
-            os.killpg(process.pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            pass
-        # The leader can exit before its children. Kill the owned group too.
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        process.wait()
-    except OSError as error:
-        raise ProcessCleanupError(
-            "Araç alt süreçleri güvenle durdurulamadı; otomatik geri dönüş yapılmadı. "
-            "Süreçler tamamlandıktan sonra ./scripts/setup-harvester --recover çalıştır."
-        ) from error
-    finally:
-        for number, handler in previous.items():
-            signal.signal(number, handler)
+    return _terminate_group(process, recovery_command=RECOVERY_COMMAND)
 
 
 def run_command(arguments, *, cwd, lock_fd, timeout, environment=None):
-    with tempfile.TemporaryFile() as output:
-        process = None
-        try:
-            process = subprocess.Popen(
-                [str(item) for item in arguments], cwd=cwd, env=environment,
-                stdin=subprocess.DEVNULL, stdout=output, stderr=output,
-                pass_fds=(lock_fd,), start_new_session=True,
-            )
-            deadline = time.monotonic() + timeout
-            while True:
-                if os.fstat(output.fileno()).st_size > OUTPUT_LIMIT:
-                    raise ToolInstallationError("Araç yanıtı boyut sınırını aştı.")
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    raise subprocess.TimeoutExpired(arguments, timeout)
-                try:
-                    process.wait(timeout=min(0.1, remaining))
-                    break
-                except subprocess.TimeoutExpired:
-                    continue
-            # Keep normal cleanup in this try: interruption between leader exit
-            # and cleanup must not let a background descendant race with rollback.
-            terminate_group(process)
-        except ProcessCleanupError:
-            raise
-        except BaseException as error:
-            if process is None:
-                if isinstance(error, (SetupInterrupted, KeyboardInterrupt)):
-                    # Popen may already have spawned the child before returning
-                    # its handle. Its inherited lock must gate later recovery.
-                    raise ProcessCleanupError(
-                        "Araç başlatılırken kesinti oldu; alt süreç durumu doğrulanamadı. "
-                        "Süreçler tamamlandıktan sonra ./scripts/setup-harvester --recover çalıştır."
-                    ) from error
-            else:
-                terminate_group(process)
-            raise
-        if process.returncode:
-            raise ToolInstallationError(f"{Path(arguments[0]).name} komutu başarısız (çıkış {process.returncode}).")
-        if output.tell() > OUTPUT_LIMIT:
-            raise ToolInstallationError("Araç yanıtı boyut sınırını aştı.")
-        output.seek(0)
-        return output.read().decode("utf-8", errors="strict").strip()
+    return _run_command(arguments, cwd=cwd, lock_fd=lock_fd, timeout=timeout,
+                        environment=environment, output_limit=OUTPUT_LIMIT,
+                        recovery_command=RECOVERY_COMMAND)
 
 
 def executable_path(name):
@@ -358,20 +131,10 @@ def verify(git, checkout, lock_fd):
 
 def install(parent, git, uv, lock_fd):
     checkout = parent / "theharvester"
-    old = identity(checkout)
-    transaction = str(uuid.uuid4())
-    paths = journal_paths(parent, transaction)
-    if any(os.path.lexists(paths[name]) for name in ("backup", "candidate", "failed")):
-        raise ToolInstallationError("Yeni işlem için ayrılan dizin zaten var; değiştirilmedi.")
-    paths["candidate"].mkdir(mode=0o700)
-    sync_directory(parent)
-    data = {"version": 1, "transaction": transaction, "phase": "prepared",
-            "old": old, "new": identity(paths["candidate"])}
-    write_journal(parent, data, initial=True)
+    data = TRANSACTION.prepare(parent)
+    paths = TRANSACTION.paths(parent, data["transaction"])
     try:
-        if old is not None:
-            move_directory(checkout, paths["backup"], old)
-        move_directory(paths["candidate"], checkout, data["new"])
+        TRANSACTION.activate(parent, data)
         run_command(
             [git, "clone", "--filter=blob:none", "--no-checkout", HARVESTER_PIN.repository, checkout],
             cwd=parent, lock_fd=lock_fd, timeout=GIT_TIMEOUT, environment=git_environment(),
@@ -389,9 +152,7 @@ def install(parent, git, uv, lock_fd):
                     lock_fd=lock_fd, timeout=SYNC_TIMEOUT, environment=environment)
         validate_checkout(git, checkout, lock_fd)
         verify(git, checkout, lock_fd)
-        committed = dict(data, phase="committed")
-        write_journal(parent, committed)
-        clear_journal(parent, committed)
+        TRANSACTION.commit(parent, data)
     except ProcessCleanupError:
         # The journal and inherited lock keep runtime/recovery out until the
         # remaining child has actually stopped. Never rename its writable cwd.
@@ -401,7 +162,7 @@ def install(parent, git, uv, lock_fd):
         if pending_installation(parent):
             recover(parent)
         raise
-    if old is not None:
+    if data["old"] is not None:
         print(f"Önceki kurulum korundu: {paths['backup']}")
 
 

@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.140.2, şema 64 ana proje yapısı.**
+**15 Kasım 2026 — 0.140.3, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 hedef kararı — .NET bağlantısı henüz uygulanmadı:** Bu repo mevcut
@@ -16,7 +16,7 @@ Kuruluş grupları müşteri erişim yalıtımı değildir. .NET'in doğruladı�
 kapsam motorun iş/arama/sonuç sınırında da uygulanır; serbest kurum etiketi
 yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
 ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
-Aşağıdaki bölümler mevcut 0.140.2 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.140.3 uygulamasını anlatır.
 
 Güncel çalışma önceliği mevcut motorun sağlamlaştırılmasıdır. SQLite
 geliştirme, deneme ve kişisel kullanım için korunur. .NET/PostgreSQL
@@ -426,19 +426,26 @@ Ayrıntılar [pasif kaynak bütünlüğü kararındadır](decisions/0124-passive
 
 `BrandSourceCoverageService`, ikinci kaynak kararını düzeltilmiş ve sabitlenmiş `free-social-source-coverage-gate-v2` kanıtından ağsız üretir. Paketli kanıt tam SHA-256, boyut, tekrar alan reddi, alan kümeleri, HTTPS başvuruları, kaynak rolleri ve çapraz sayaç bağlarıyla doğrulanır. Maigret ve Sherlock'un sabit kataloglarından geliştirme zamanında türetilen ölçüm yalnız etkin HTTPS kullanıcı adı tanımlarını alır; normalleştirilmiş ad veya paketli Public Suffix List kayıt kökü ortak sayılır. Sherlock'un 455 uygun tanımından 103'ü/101 kayıt kökü eşleşmeyen kapsamdır. İlk kabul sekiz platformluk kısa listeyle yapılmıştır; 0.125.0'da iki kaynak için URL/host bazında yeniden incelenen geniş profiller eklenmiştir. v2 kanıtı CLI'ın gizli sürüm isteğini kabul etmez; yalnız seçilen yerel katalog nesneleriyle yalıtılmış kütüphane işçisini ve XTI NDJSON sözleşmesini kaydeder. Servis üçüncü taraf aracı çalıştırmaz, katalog indirmez ve depolama açmaz. Ayrıntılar [ikinci sosyal kaynak kapsam kararında](decisions/0114-second-social-source-coverage-gate.md) ve [doğrulanmış kurulum/profil kararında](decisions/0123-verified-brand-toolchain-and-profiles.md) bulunur.
 
-`setup-brand`, mevcut `.venv` ortamını sabit adlı proje-içi geri dönüş kopyasına
+`setup-brand`, mevcut `.venv` ortamını benzersiz proje-içi geri dönüş kopyasına
 taşır ve yeni ortamı kararlı `.venv` yolunda kurar. Paket bağımlılıklarını,
 dağıtım sürümünü, resmî depo adresini, istenen ve çözülen tam Git commit'ini,
 katalog dosyası türü/boyutu/SHA-256 özetini, bütün geniş profil URL izinlerini
 ve Maigret çalıştırıcısını doğrular. Geçişli bağımlılıklar sürümlü constraint
 dosyasına bağlıdır; yalıtılmış pip çalışması resmî PyPI indeksini ve Git
-yapılandırmasından yalıtılmış resmî GitHub URL'lerini kullanır. Başarısızlık
-veya yakalanan sinyalde kısmi
-ortam kaldırılıp eski ortam geri konur. PID kilidi eşzamanlı kurulumu engeller;
-yetim işaretli kurulum sonraki denemede geri alınır. Çalıştırıcı, kurulum
-işaretli `.venv` yerine sistemdeki desteklenen Python'a düşer. Geçerli ortam
-tekrar indirilmez. `./setup` bunu varsayılan çalıştırır; `--core-only`,
-`--check` ve `--force` açık alternatiflerdir.
+yapılandırmasından yalıtılmış resmî GitHub URL'lerini kullanır. Kimlik/günlük
+ve alt süreç temizliği theHarvester ile ortak adaptör yordamlarıdır. Eski
+ve başarısız klasörler korunur; tanınan kesinti `--recover` ile geri alınır.
+Çocuk süreç durumu kesinleşmediyse otomatik geri dönüş yapılmaz.
+
+Kalıcı `.brand-install.lock`, kurucuya özel, XTI başlatıcısına ve sosyal
+adaptörlere paylaşımlı sahiplik verir. Başlatıcı kilidi ortam seçmeden
+alır; yönetilen ortam dışındaki temel Python kurulum/kurtarmayı yürütür.
+Aktif kurulumda başlatıcı meşgul hatası verebilir. Yalnız yarım günlük
+kalmışsa varsayılan çekirdek temel Python'la çalışır; sosyal adaptörler
+durur. Eski PID kilidi/yedek sahiplik kanıtı kabul edilmez ve silinmez.
+Geçerli ortam tekrar indirilmez. `./setup` varsayılan kurulumdur;
+`--core-only`, marka `--check`, `--force` ve `--recover` açık seçimlerdir.
+[0147 kararı](decisions/0147-recoverable-brand-environment.md).
 
 `BrandUsernamePreviewService`, tek kullanıcı adını, `safe`/`extended`/özel
 platform seçimini ve süre sınırını dış adaptörden önce doğrular. Maigret'in

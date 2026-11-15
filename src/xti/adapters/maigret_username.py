@@ -17,6 +17,9 @@ import tempfile
 from typing import Callable
 from urllib.parse import urlsplit
 
+from xti.adapters.tool_installation import (
+    ToolInstallationError, brand_installation_lock, brand_installation_pending,
+)
 from xti.domain.brand_username import (
     PLATFORM_HOSTS,
     BrandProfileMatch,
@@ -191,7 +194,9 @@ class MaigretUsernameSource:
         database_locator: Callable[[], Path | None] | None = None,
         database_sha256: str = REVIEWED_DATABASE_SHA256,
         clock: Callable[[], datetime] | None = None,
+        project_dir: Path | None = None,
     ):
+        self._project_dir = Path(project_dir) if project_dir is not None else Path(__file__).resolve().parents[3]
         self._runner = runner or subprocess.run
         self._executable_locator = executable_locator or self._locate_executable
         self._database_locator = database_locator or self._locate_database
@@ -261,7 +266,7 @@ class MaigretUsernameSource:
             encoding="utf-8",
         )
 
-    def _run(self, command: list[str], *, cwd: str, timeout: int):
+    def _run(self, command: list[str], *, cwd: str, timeout: int, lock_fd: int):
         try:
             result = self._runner(
                 command,
@@ -271,6 +276,7 @@ class MaigretUsernameSource:
                 capture_output=True,
                 check=False,
                 timeout=timeout,
+                pass_fds=(lock_fd,),
             )
         except subprocess.TimeoutExpired as error:
             raise SourceError("Maigret süre sınırında tamamlanamadı.") from error
@@ -283,12 +289,26 @@ class MaigretUsernameSource:
             raise SourceError("Maigret işlem çıktısı güvenli boyut sınırını aştı.")
         return result
 
-    def preview(
+    def preview(self, username: str, *, platforms: tuple[str, ...],
+                request_timeout: int) -> BrandUsernamePreview:
+        try:
+            with brand_installation_lock(self._project_dir, exclusive=False) as lock_fd:
+                if brand_installation_pending(self._project_dir):
+                    raise ToolInstallationError(
+                        "Marka ortamı kurtarma bekliyor; ./scripts/setup-brand --recover çalıştır."
+                    )
+                return self._preview_locked(username, platforms=platforms,
+                                            request_timeout=request_timeout, lock_fd=lock_fd)
+        except ToolInstallationError as error:
+            raise SourceError(str(error)) from error
+
+    def _preview_locked(
         self,
         username: str,
         *,
         platforms: tuple[str, ...],
         request_timeout: int,
+        lock_fd: int,
     ) -> BrandUsernamePreview:
         executable = self._executable_locator()
         if not executable:
@@ -302,7 +322,7 @@ class MaigretUsernameSource:
             directory = Path(temporary)
             self._write_safe_settings(directory)
             version = self._run(
-                [executable, "--version"], cwd=temporary, timeout=15,
+                [executable, "--version"], cwd=temporary, timeout=15, lock_fd=lock_fd,
             )
             first_line = version.stdout.splitlines()[0] if version.stdout else ""
             if version.returncode != 0 or first_line != f"maigret {SOURCE_VERSION}":
@@ -338,7 +358,7 @@ class MaigretUsernameSource:
                 request_timeout * math.ceil(len(platforms) / 4) + 30,
             )
             result = self._run(
-                command, cwd=temporary, timeout=process_timeout,
+                command, cwd=temporary, timeout=process_timeout, lock_fd=lock_fd,
             )
             if result.returncode != 0:
                 raise SourceError("Maigret taraması tamamlanamadı; sonuç üretilmedi.")

@@ -14,10 +14,12 @@ cd securehup_xti
 ./setup
 ```
 
-`./setup`, mevcut `.venv` ortamını geçici geri dönüş kopyası olarak koruyup
-sabitlenmiş Maigret ve Sherlock ortamını aynı kararlı yolda kurar. Bütün
-doğrulamalar geçerse eski kopyayı kaldırır; indirme veya doğrulama yarıda
-kalırsa önceki ortamı geri getirir. Ardından `.xti-data` içindeki yerel
+`./setup`, sağlıklı mevcut ortamı tekrar indirmez. Kurulum gerektiğinde
+`.venv` ortamını benzersiz geri dönüş kopyası olarak koruyup sabitlenmiş
+Maigret ve Sherlock ortamını aynı kararlı yolda kurar. Eski ve başarısız
+kopyalar otomatik silinmez. Normal hatada önceki ortam geri getirilir;
+ani veya durumu belirsiz kesintide `./scripts/setup-brand --recover`
+kullanılır. Ardından `.xti-data` içindeki yerel
 veritabanını hazırlar. Kullanıcı verisini silmez ve eski veritabanını
 kendiliğinden taşımaz. Eski sürüm uyarısı görürsen önce:
 
@@ -110,7 +112,11 @@ adresi, tam commit ve site kataloğu özeti şu komutla ağsız doğrulanabilir:
 ```
 
 Onarım veya bilinçli temiz yeniden kurulum için `./scripts/setup-brand --force`
-kullanılır. Yalnız domain, vaka, IOC, CTI, tedarikçi ve dış yüzey çekirdeğini
+kullanılır. Çalışan XTI komutu varken ortam değiştirilmez; uzun izlemeyi
+bitirdikten sonra yeniden kurulumu başlat. Eski kilit/yedek dosyalarını
+tahmin ederek silme; [kurulum ve kurtarma rehberi](BRAND_INSTALLATION.md)
+korunan dosyaları ve yarım kurulum adımlarını açıklar.
+Yalnız domain, vaka, IOC, CTI, tedarikçi ve dış yüzey çekirdeğini
 istiyorsan ilk kurulumda `./setup --core-only` diyebilirsin; daha sonra
 `./scripts/setup-brand` ile sosyal araçları ekleyebilirsin.
 
@@ -128,6 +134,7 @@ aynı komutta kullanılamaz.
 
 ## Güncelleme
 
+Önce eski sürümle açık kalan uzun izleme/toplama komutlarını bitir.
 Yeni geliştirmeleri aldıktan sonra:
 
 ```sh

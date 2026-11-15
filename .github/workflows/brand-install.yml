@@ -10,6 +10,23 @@ on:
       - "setup"
       - "xti"
       - "scripts/python"
+      - "scripts/bootstrap-python"
+      - "scripts/run_python.py"
+      - "scripts/check-linux-brand-install.py"
+      - "scripts/check-linux-install.py"
+      - "scripts/setup_brand.py"
+      - "src/xti/adapters/tool_installation.py"
+      - "src/xti/adapters/installation_*.py"
+      - "src/xti/adapters/source_readiness.py"
+      - "tests/test_setup_brand.py"
+      - "tests/test_brand_runtime.py"
+      - "tests/test_ci_configuration.py"
+      - "tests/test_setup.py"
+      - "tests/test_component_pins.py"
+      - "tests/test_maigret_username.py"
+      - "tests/test_sherlock_username.py"
+      - "tests/test_tool_installation.py"
+      - "tests/test_source_readiness_adapter.py"
       - "scripts/setup-brand"
       - "scripts/verify-brand"
       - "scripts/verify_brand_install.py"
@@ -28,6 +45,23 @@ on:
       - "setup"
       - "xti"
       - "scripts/python"
+      - "scripts/bootstrap-python"
+      - "scripts/run_python.py"
+      - "scripts/check-linux-brand-install.py"
+      - "scripts/check-linux-install.py"
+      - "scripts/setup_brand.py"
+      - "src/xti/adapters/tool_installation.py"
+      - "src/xti/adapters/installation_*.py"
+      - "src/xti/adapters/source_readiness.py"
+      - "tests/test_setup_brand.py"
+      - "tests/test_brand_runtime.py"
+      - "tests/test_ci_configuration.py"
+      - "tests/test_setup.py"
+      - "tests/test_component_pins.py"
+      - "tests/test_maigret_username.py"
+      - "tests/test_sherlock_username.py"
+      - "tests/test_tool_installation.py"
+      - "tests/test_source_readiness_adapter.py"
       - "scripts/setup-brand"
       - "scripts/verify-brand"
       - "scripts/verify_brand_install.py"
@@ -50,7 +84,7 @@ concurrency:
 jobs:
   brand-install:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -61,7 +95,35 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install and verify the pinned brand toolchain
-        run: ./setup
-      - name: Recheck without downloading
-        run: ./scripts/setup-brand --check
+      - name: Verify installer and runtime recovery regressions offline
+        id: offline
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          ./scripts/python -m unittest -v \
+            tests/test_setup.py \
+            tests/test_setup_brand.py \
+            tests/test_brand_runtime.py \
+            tests/test_tool_installation.py \
+            tests/test_component_pins.py \
+            tests/test_maigret_username.py \
+            tests/test_sherlock_username.py \
+            tests/test_source_readiness_adapter.py \
+            tests/test_ci_configuration.py
+      - name: Accept clean brand installation and preserve temporary records
+        id: acceptance
+        run: ./scripts/bootstrap-python scripts/check-linux-brand-install.py
+      - name: Record brand acceptance scope and outcome
+        if: always()
+        env:
+          OFFLINE_RESULT: ${{ steps.offline.outcome }}
+          ACCEPTANCE_RESULT: ${{ steps.acceptance.outcome }}
+        run: |
+          {
+            echo "### Linux brand installation job"
+            echo "- Offline installer/runtime/recovery tests: $OFFLINE_RESULT"
+            echo "- Real clean installation and local data acceptance: $ACCEPTANCE_RESULT"
+            echo "- All database/evidence acceptance data is temporary."
+            echo "- No username lookup, source collection or active scan runs here."
+            echo "- Persistent service and 24/7 acceptance remain separate."
+          } >> "$GITHUB_STEP_SUMMARY"

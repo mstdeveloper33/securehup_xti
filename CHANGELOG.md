@@ -1,5 +1,21 @@
 # Değişiklik Kaydı
 
+## 0.140.3 — 15 Kasım 2026
+
+- Maigret/Sherlock ortamında kalıcı kilit, kimlik günlüğü ve `--recover`;
+  önceki/başarısız ortamların korunması ve belirsiz eski yapıların reddi.
+- XTI başlatıcısı Python ortamını seçmeden kilit alır; çalışan komutun
+  kullandığı ortam değiştirilmez. Yarım kurulumda çekirdek temel Python'a
+  döner, sosyal araçlar kurtarma tamamlanana kadar çalışmaz.
+- Harvester ve marka kurulumları ortak süreç ve kurtarma bileşenlerini
+  kullanır. Alt süreçlerde kilit korunur, belirsiz sonlandırmada geri
+  dönüş yapılmaz. İncelenmiş araç pinleri ve şema 64 değişmedi.
+- Marka Ubuntu kabulü geçici veride kurulum, tekrar, engine ve yedekten
+  dönüş zincirini kapsar. Gerçek çalıştırma sonuçları [STATUS](docs/STATUS.md)
+  içinde ayrıca kaydedilir; [kullanım rehberi](docs/BRAND_INSTALLATION.md).
+- Genel test turu: 2.069 test, 2.068 başarılı, macOS'ta bir Linux kontrolü
+  atlandı. Son düzeltmeler ayrıca güncel 18 runtime ve 26 kurulum testiyle geçti.
+
 ## 0.140.2 — 15 Kasım 2026
 
 - theHarvester kurulumunda eski ortamı koruma, hata sonrası geri dönüş,

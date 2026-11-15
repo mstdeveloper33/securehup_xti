@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.140.2 · Şema 64.**
+**15 Kasım 2026 · 0.140.3 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -25,6 +25,41 @@ arama/bildirim desenleri kullanılacak. Bu bileşen araştırmasının paketleri
 kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
+
+- 0.140.3 Maigret/Sherlock ortamına kalıcı kilit, kimlik kontrollü günlük
+  ve açık `--recover` ekler. Sağlıklı tekrar paket indirmez; `--check` ve
+  `verify-brand` aynı korumalı doğrulama yoludur. Eski ve başarısız ortamlar
+  benzersiz klasörlerde tutulur; otomatik silinmez.
+- XTI başlatıcısı ortamı seçmeden önce paylaşımlı kilidi alır. Aktif marka
+  kurulumunda komut başlangıcı meşgul hatası verebilir; yarım günlük kalmış
+  ama kurulum durmuşsa varsayılan çekirdek sağlam temel Python ile çalışır.
+  Sosyal adaptörler kurtarma tamamlanmadan araç çalıştırmaz. Çocuk süreç
+  kilidi devralır; alt sürecin durumu belirsizken ortam taşınmaz.
+- theHarvester ve marka kurucusu aynı süreç/kimlik/günlük yardımcılarını
+  kullanır. Eski PID kilidi veya eski sabit yedek sahiplik kanıtı sayılmaz;
+  yeni günlükle birlikte bulunsa da otomatik silinmez veya geri alınmaz.
+  [Marka kurulum rehberi](BRAND_INSTALLATION.md),
+  [0147 kararı](decisions/0147-recoverable-brand-environment.md).
+- Marka Ubuntu kabul işi geçici SQLite ve örnek kanıtı kurulumdan önce
+  oluşturup kurulum/tekrar sonrası içerik özetlerini karşılaştırır;
+  varsayılan başlatıcı, engine okuma ve yedekten dönüşü sınar. Ortak dosya
+  değişiklikleri marka ve Harvester CI filtrelerine dahildir.
+
+**0.140.3 doğrulaması:** Yerel gerçek `setup-brand --check`, Maigret 0.6.6
+ve Sherlock 0.16.2'yi indirmesiz doğruladı; son başlatıcı değişikliğinden
+sonra `verify-brand` da geçti. Genel `./scripts/check` turu 705,163 saniyede
+2.069 test çalıştırdı: 2.068 geçti, macOS'ta `systemd-analyze` bulunmadığı
+için bir test atlandı. Tur başladıktan sonra tamamlanan kilit öncesi
+çalıştırıcı seçimi ve aşırı iç içe bozuk günlük düzeltmeleri ayrıca sınandı:
+güncel 18 runtime testi 9,394 saniyede, 26 marka kurulum testi 13,188
+saniyede geçti. Bu son üç yeni regresyon genel turun keşfine dahil değildir.
+CLI ve engine bileşen satırları eşleşti; seçilen eksik veri dizini oluşmadı.
+Kabuk sözdizimi, Python derleme ve on belgenin bağlantıları doğrulandı.
+
+Önceki 0.140.2'nin gerçek Ubuntu ve marka kurulum işleri bu çalışma sırasında
+başarılı olarak doğrulandı. Yeni 0.140.3'ün GitHub kabul sonucu yayımdan
+sonra ayrıca kaydedilecek. Kalıcı hizmet ve 7×24 kabulü açık kalır.
+Araç pinleri, şema 64 ve mevcut kullanıcı kayıtları korunur.
 
 - 0.140.2 theHarvester kurulumu eski ortamı korur; hata halinde geri
   getirir. Ani kesinti için kalıcı günlük ve açık `--recover`, ağsız yerel
@@ -55,10 +90,14 @@ zinciri geçti; özgün veritabanı ve örnek
 kanıt dosyası özetleri korundu. Kabuk sözdizimi, Python derleme, değişiklik
 boşlukları ve dokuz belgenin yerel bağlantıları kontrol edildi.
 
-Gerçek Linux/Actions sonucu bu yerel ortamdan doğrulanmadı: kullanılabilir
-Linux çalıştırıcısı ve kimlikli GitHub Actions okuma oturumu yok. Ubuntu
-kontrolü [iş akışı dosyasında](../.github/workflows/harvester-install.yml)
-hazırdır; kalıcı hizmet/yeniden başlama/7×24 kabulü ayrıca açıktır.
+Bu teslim anında gerçek Linux/Actions sonucu okunamamıştı. 0.140.3
+çalışması sırasında `9cdf32c` commit'inin
+[Ubuntu kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43700800551),
+[marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43700800538)
+ve [hızlı kontrolleri](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43700800548)
+başarılı olarak doğrulandı. Ubuntu işinin hem çevrimdışı regresyon hem
+gerçek temiz kurulum adımı geçti. Bu kayıt yalnız belirtilen commit
+içindir; kalıcı hizmet/yeniden başlama/7×24 kabulü ayrıca açıktır.
 Kullanıcı verileri, şema 64 ve incelenmiş araç sürümleri korunur.
 
 - 0.140.1 hızlı CI paketine `engine_contract`, `engine_records`,
@@ -1804,8 +1843,9 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 15 Kasım 2026 son kullanıcı kararı: yeni özelliklerden önce mevcut motor
 sağlamlaştırılır. [Güncel STB sırası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. Sürümlü yerel okuma ve ortak araç kataloğu kullanılabilir;
-0.140.2 theHarvester kesinti/geri dönüşünü ekler; temiz Linux kurulum,
-güncelleme ve bütün araç zincirinin kabulü henüz kapanmış değildir.
+0.140.2 theHarvester, 0.140.3 marka araçları ve XTI başlatıcısının
+kesinti/geri dönüşünü ekler; gerçek temiz Linux kurulum ve güncelleme
+kabulü henüz kapanmış değildir.
 SQLite ile kullanım devam eder. .NET/PostgreSQL
 gelecekteki platformdur; gerçek bağlantı ve gerekiyorsa veri geçişi ayrı
 kabul işidir. Uygulama backend'i, oturum ve panel .NET tarafındadır.

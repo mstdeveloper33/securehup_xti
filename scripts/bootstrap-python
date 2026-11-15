@@ -1,0 +1,97 @@
+#!/bin/sh
+# The installer and launcher must not run from the environment they may replace.
+set -eu
+XTI_PROJECT_DIR=$(CDPATH= cd -P -- "$(dirname -- "$0")/.." && pwd -P)
+
+# Inspect aliases without executing the interpreter being protected. Activated
+# virtualenvs may put managed stubs first in PATH, not only interpreter symlinks.
+resolve_external_python() {
+    XTI_RESOLVE_PATH=$1
+    XTI_LINK_COUNT=0
+    while :; do
+        case "$XTI_RESOLVE_PATH" in
+            */*) ;;
+            *) XTI_RESOLVE_PATH="./$XTI_RESOLVE_PATH" ;;
+        esac
+        XTI_RESOLVE_PARENT=$(CDPATH= cd -P -- "${XTI_RESOLVE_PATH%/*}" 2>/dev/null && pwd -P) || return 1
+        XTI_RESOLVE_PATH="$XTI_RESOLVE_PARENT/${XTI_RESOLVE_PATH##*/}"
+        if [ -L "$XTI_RESOLVE_PATH" ]; then
+            [ "$XTI_LINK_COUNT" -lt 40 ] || return 1
+            XTI_LINK_TARGET=$(/usr/bin/readlink "$XTI_RESOLVE_PATH") || return 1
+            case "$XTI_LINK_TARGET" in
+                /*) XTI_RESOLVE_PATH=$XTI_LINK_TARGET ;;
+                *) XTI_RESOLVE_PATH="$XTI_RESOLVE_PARENT/$XTI_LINK_TARGET" ;;
+            esac
+            XTI_LINK_COUNT=$((XTI_LINK_COUNT + 1))
+            continue
+        fi
+        case "$XTI_RESOLVE_PATH" in
+            "$XTI_PROJECT_DIR/.venv"|"$XTI_PROJECT_DIR/.venv/"*|\
+            "$XTI_PROJECT_DIR/.venv-backup"*|"$XTI_PROJECT_DIR/.venv-candidate"*|\
+            "$XTI_PROJECT_DIR/.venv-failed"*) return 1 ;;
+        esac
+        [ -f "$XTI_RESOLVE_PATH" ] && [ -x "$XTI_RESOLVE_PATH" ] || return 1
+        printf '%s\n' "$XTI_RESOLVE_PATH"
+        return 0
+    done
+}
+
+try_python_path() {
+    XTI_EXTERNAL_PYTHON=$(resolve_external_python "$1") || return 1
+    shift
+    XTI_REPORTED_BASE=$("$XTI_EXTERNAL_PYTHON" -I -S -c \
+        'import sys; sys.exit(1) if sys.version_info < (3, 11) else print(sys._base_executable)' \
+        2>/dev/null) || return 1
+    [ -n "$XTI_REPORTED_BASE" ] || return 1
+    XTI_BASE_PYTHON=$(resolve_external_python "$XTI_REPORTED_BASE") || return 1
+    if "$XTI_BASE_PYTHON" -I -S -c '
+import os, sys
+root = os.path.realpath(sys.argv[1])
+paths = (os.path.abspath(sys.executable), os.path.realpath(sys.executable), os.path.abspath(sys.prefix))
+def managed(path):
+    if not path.startswith(root + os.sep):
+        return False
+    first = path[len(root) + 1:].split(os.sep, 1)[0]
+    return first == ".venv" or first.startswith((".venv-backup", ".venv-candidate", ".venv-failed"))
+sys.exit(sys.version_info < (3, 11) or any(managed(path) for path in paths))
+' "$XTI_PROJECT_DIR" 2>/dev/null; then
+        unset PYTHONHOME PYTHONSTARTUP
+        export PYTHONNOUSERSITE=1
+        export XTI_RUNTIME_PYTHONPATH="${PYTHONPATH:-}"
+        export PYTHONPATH="$XTI_PROJECT_DIR/src"
+        exec "$XTI_BASE_PYTHON" -S "$@"
+    fi
+    return 1
+}
+
+# Preserve the original target arguments while candidate paths are passed to
+# the helper. No candidate code runs from a managed directory before the lock.
+try_python_command() {
+    XTI_COMMAND_NAME=$1
+    shift
+    case "$XTI_COMMAND_NAME" in
+        */*) try_python_path "$XTI_COMMAND_NAME" "$@" || return 1 ;;
+        *)
+            XTI_PATH_REMAINDER=${PATH:-}
+            while :; do
+                case "$XTI_PATH_REMAINDER" in
+                    *:*)
+                        XTI_PATH_ENTRY=${XTI_PATH_REMAINDER%%:*}
+                        XTI_PATH_REMAINDER=${XTI_PATH_REMAINDER#*:}
+                        XTI_PATH_MORE=1
+                        ;;
+                    *) XTI_PATH_ENTRY=$XTI_PATH_REMAINDER; XTI_PATH_MORE=0 ;;
+                esac
+                try_python_path "${XTI_PATH_ENTRY:-.}/$XTI_COMMAND_NAME" "$@" || true
+                [ "$XTI_PATH_MORE" = 1 ] || return 1
+            done
+            ;;
+    esac
+}
+
+for XTI_CANDIDATE in "${XTI_PYTHON:-}" python3.14 python3.13 python3.12 python3.11 python3; do
+    [ -n "$XTI_CANDIDATE" ] || continue
+    try_python_command "$XTI_CANDIDATE" "$@" || true
+done
+echo "Yönetilen .venv dışında çalışan Python 3.11 veya daha yeni bir temel kurulum gerekiyor." >&2
+exit 1

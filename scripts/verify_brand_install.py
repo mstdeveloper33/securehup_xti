@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 from importlib.metadata import PackageNotFoundError, distribution
 from importlib.resources import files
@@ -26,6 +27,10 @@ from xti.application.brand_username import (
     SHERLOCK_EXTENDED_PLATFORMS,
 )
 from xti.domain.component_pins import MAIGRET_PIN, SHERLOCK_PIN
+from xti.adapters.tool_installation import (
+    BRAND_LOCK_NAME, ToolInstallationError,
+    brand_installation_lock, brand_installation_pending,
+)
 
 
 MAIGRET_DATABASE_SHA256 = MAIGRET_PIN.catalog_sha256
@@ -54,6 +59,7 @@ class VerificationError(RuntimeError):
 
 
 CONSTRAINTS = Path(__file__).resolve().parents[1] / "constraints" / "brand.txt"
+PROJECT = Path(__file__).resolve().parents[1]
 
 
 def _json_object(pairs):
@@ -160,7 +166,37 @@ def _verify_distribution(tool: dict[str, object], prefix: Path) -> None:
         raise VerificationError(f"{name} site kataloğu özeti uyuşmuyor")
 
 
-def verify(prefix: Path) -> None:
+def verify(prefix: Path, *, installation_lock_fd: int | None = None) -> None:
+    if installation_lock_fd is not None:
+        _validate_installation_lock(installation_lock_fd)
+        _verify_locked(prefix, installation_lock_fd)
+        return
+    with brand_installation_lock(PROJECT, exclusive=False) as descriptor:
+        if brand_installation_pending(PROJECT):
+            raise VerificationError("Marka ortamı kurtarma bekliyor; ./scripts/setup-brand --recover çalıştır.")
+        _verify_locked(prefix, descriptor)
+
+
+def _validate_installation_lock(descriptor: int) -> None:
+    if type(descriptor) is not int or not 0 <= descriptor <= 2**31 - 1:
+        raise VerificationError("Kurulum kilidi descriptor'ı doğrulanamadı.")
+    try:
+        metadata = os.fstat(descriptor)
+        expected = (PROJECT / BRAND_LOCK_NAME).lstat()
+        if (
+            not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1
+            or not stat.S_ISREG(expected.st_mode) or expected.st_nlink != 1
+            or (metadata.st_dev, metadata.st_ino) != (expected.st_dev, expected.st_ino)
+        ):
+            raise VerificationError("Kurulum kilidi descriptor'ı doğrulanamadı.")
+        # Same open description as the installer; never acquire another SH
+        # descriptor or downgrade/unlock the installer's exclusive lock.
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as error:
+        raise VerificationError("Kurulum kilidi descriptor'ı doğrulanamadı.") from error
+
+
+def _verify_locked(prefix: Path, descriptor: int) -> None:
     if sys.version_info < (3, 11):
         raise VerificationError("Python 3.11 veya daha yeni bir sürüm gerekiyor")
     if Path(sys.prefix).resolve() != prefix.resolve():
@@ -204,6 +240,7 @@ def verify(prefix: Path) -> None:
                 text=True,
                 check=False,
                 timeout=15,
+                pass_fds=(descriptor,),
             )
         except (OSError, subprocess.TimeoutExpired) as error:
             raise VerificationError("Maigret sürüm kontrolü çalıştırılamadı") from error
@@ -215,10 +252,14 @@ def verify(prefix: Path) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--prefix", required=True, type=Path)
+    parser.add_argument("--installation-lock-fd", type=int)
     args = parser.parse_args(argv)
     try:
-        verify(args.prefix)
-    except VerificationError as error:
+        if args.installation_lock_fd is None:
+            verify(args.prefix)
+        else:
+            verify(args.prefix, installation_lock_fd=args.installation_lock_fd)
+    except (VerificationError, ToolInstallationError) as error:
         print(f"Marka araçları doğrulanamadı: {error}", file=sys.stderr)
         return 1
     print(

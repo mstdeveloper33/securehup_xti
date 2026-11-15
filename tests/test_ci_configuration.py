@@ -23,6 +23,15 @@ def linux_acceptance():
     return module
 
 
+def brand_acceptance():
+    spec = importlib.util.spec_from_file_location(
+        "brand_acceptance", PROJECT_ROOT / "scripts/check-linux-brand-install.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 class CiConfigurationTests(unittest.TestCase):
     def test_every_push_runs_only_the_fast_offline_gate(self) -> None:
         workflow = (PROJECT_ROOT / ".github/workflows/check.yml").read_text(
@@ -41,8 +50,11 @@ class CiConfigurationTests(unittest.TestCase):
 
         self.assertIn('      - "constraints/brand.txt"', workflow)
         self.assertIn('      - "scripts/setup-brand"', workflow)
-        self.assertIn("run: ./setup", workflow)
-        self.assertIn("run: ./scripts/setup-brand --check", workflow)
+        self.assertIn("run: ./scripts/bootstrap-python scripts/check-linux-brand-install.py", workflow)
+        self.assertIn("timeout-minutes: 20", workflow)
+        self.assertIn("GITHUB_STEP_SUMMARY", workflow)
+        self.assertIn("tests/test_setup_brand.py", workflow)
+        self.assertIn("tests/test_brand_runtime.py", workflow)
 
     def test_release_requires_the_complete_suite(self) -> None:
         workflow = (PROJECT_ROOT / ".github/workflows/full-check.yml").read_text(
@@ -64,6 +76,13 @@ class CiConfigurationTests(unittest.TestCase):
             "scripts/setup-brand",
             "constraints/brand.txt",
             "xti",
+            "scripts/bootstrap-python", "scripts/run_python.py", "scripts/setup_brand.py",
+            "scripts/check-linux-brand-install.py", "scripts/check-linux-install.py",
+            "src/xti/adapters/tool_installation.py",
+            "src/xti/adapters/installation_process.py", "src/xti/adapters/installation_transaction.py",
+            "src/xti/adapters/source_readiness.py",
+            "tests/test_setup_brand.py", "tests/test_brand_runtime.py", "tests/test_ci_configuration.py",
+            "tests/test_component_pins.py", "tests/test_maigret_username.py", "tests/test_sherlock_username.py",
         )
         for event in ("push", "pull_request"):
             with self.subTest(event=event):
@@ -115,6 +134,8 @@ class CiConfigurationTests(unittest.TestCase):
             "tests/test_component_pins.py", "tests/test_theharvester_archive.py",
             "tests/test_theharvester_archive_repeats.py", "tests/test_source_readiness_adapter.py",
             "tests/test_ci_configuration.py",
+            "scripts/bootstrap-python", "scripts/run_python.py",
+            "src/xti/adapters/installation_process.py", "src/xti/adapters/installation_transaction.py",
         )
         for event in ("push", "pull_request"):
             block = re.search(rf"(?ms)^  {event}:\n(.*?)(?=^  [a-z_]+:|\Z)", workflow)
@@ -175,6 +196,7 @@ class CiConfigurationTests(unittest.TestCase):
 
     def test_linux_local_smoke_preserves_bytes_and_restores_real_engine_records(self) -> None:
         helper = linux_acceptance()
+        brand = brand_acceptance()
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             data = root / "data"
@@ -186,14 +208,90 @@ class CiConfigurationTests(unittest.TestCase):
             before = helper.snapshot(data)
             helper.local_asset(environment)
             helper.run(["./setup", "--core-only"], environment)
-            backup = root / "backup.db"
-            helper.run(["./xti", "backup", "--output", str(backup)], environment)
-            restored = dict(environment, XTI_DATA_DIR=str(root / "restored"))
-            helper.run(["./xti", "restore", str(backup)], restored)
-            helper.local_asset(restored)
+            brand.local_round_trip(environment, root)
             self.assertEqual(helper.snapshot(data), before)
             marker.write_bytes(b"modified")
             self.assertNotEqual(helper.snapshot(data), before)
+
+    def test_brand_acceptance_refuses_existing_state_but_preserves_valid_persistent_lock(self) -> None:
+        helper = brand_acceptance()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with patch.object(helper.sys, "platform", "darwin"):
+                with self.assertRaisesRegex(RuntimeError, "real Linux"):
+                    helper.fresh_brand_checkout(root)
+            self.assertEqual(list(root.iterdir()), [])
+            with patch.object(helper.sys, "platform", "linux"):
+                helper.fresh_brand_checkout(root)
+                lock = root / ".brand-install.lock"
+                lock.write_bytes(b"preserved lock contents")
+                identity = lock.stat().st_ino
+                helper.fresh_brand_checkout(root)
+                self.assertEqual(lock.stat().st_ino, identity)
+                self.assertEqual(lock.read_bytes(), b"preserved lock contents")
+                alias = root / "lock-alias"
+                os.link(lock, alias)
+                with self.assertRaisesRegex(RuntimeError, "single-link regular"):
+                    helper.fresh_brand_checkout(root)
+                alias.unlink()
+                for name in (".venv", ".venv-backup", ".venv-install.lock", ".brand-install.json"):
+                    with self.subTest(name=name):
+                        path = root / name
+                        path.symlink_to(root / "missing")
+                        with self.assertRaisesRegex(RuntimeError, "disposable checkout"):
+                            helper.fresh_brand_checkout(root)
+                        self.assertTrue(path.is_symlink())
+                        path.unlink()
+                lock.unlink()
+                lock.symlink_to(root / "missing")
+                with self.assertRaisesRegex(RuntimeError, "single-link regular"):
+                    helper.fresh_brand_checkout(root)
+
+    def test_brand_environment_snapshot_detects_changed_bytes_mode_identity_and_links(self) -> None:
+        helper = brand_acceptance()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            venv = root / ".venv"
+            venv.mkdir()
+            executable = venv / "launcher"
+            executable.write_bytes(b"original")
+            outside = root / "outside"
+            outside.write_bytes(b"not followed")
+            link = venv / "python"
+            link.symlink_to(outside)
+            original = helper.environment_snapshot(venv)
+            outside.write_bytes(b"still not followed")
+            self.assertEqual(helper.environment_snapshot(venv), original)
+            link.unlink()
+            link.symlink_to(root / "different-target")
+            self.assertNotEqual(helper.environment_snapshot(venv), original)
+            link.unlink()
+            link.symlink_to(outside)
+            executable.write_bytes(b"modified")
+            self.assertNotEqual(helper.environment_snapshot(venv), original)
+            executable.write_bytes(b"original")
+            executable.chmod(0o700)
+            self.assertNotEqual(helper.environment_snapshot(venv), original)
+            alias = root / "alias"
+            alias.symlink_to(venv, target_is_directory=True)
+            with self.assertRaisesRegex(RuntimeError, "real directory"):
+                helper.environment_snapshot(alias)
+            saved = root / "saved"
+            venv.rename(saved)
+            venv.mkdir()
+            self.assertNotEqual(helper.environment_snapshot(venv)[:2], original[:2])
+
+    def test_brand_repeat_guard_blocks_downloader_executables_without_touching_environment(self) -> None:
+        helper = brand_acceptance()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            environment = helper.repeat_environment(root / "guards", dict(os.environ))
+            for name in ("git", "pip", "pip3"):
+                result = subprocess.run([str(root / "guards" / name), "install"], env=environment,
+                                        text=True, capture_output=True, timeout=10)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("blocked a downloader", result.stderr)
+            self.assertEqual(sorted(path.name for path in root.iterdir()), ["guards"])
 
 
 if __name__ == "__main__":

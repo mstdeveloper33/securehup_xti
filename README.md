@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.140.2 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+**Sürüm:** 0.140.3 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Gelecekteki
@@ -533,7 +533,13 @@ bu araçları denetlemek veya onarmak için:
 ```sh
 ./scripts/setup-brand --check
 ./scripts/setup-brand --force
+./scripts/setup-brand --recover
 ```
+
+Kurulum eski ortamı korur; ani kesinti sonrası `--recover` kullanılır.
+Çalışan XTI komutlarıyla ortam değişikliği ortak kilitle ayrılır. Önceki
+ve başarısız ortamlar otomatik silinmez. Ayrıntılar
+[marka araçları kurulum rehberinde](docs/BRAND_INSTALLATION.md).
 
 Ardından bir marka kullanıcı adını seçili herkese açık platformlarda araştır:
 
@@ -1953,7 +1959,7 @@ GitHub'daki temiz Maigret/Sherlock kurulumu yalnız ilgili kurulum, sürüm veya
 marka adaptörü dosyaları değiştiğinde tekrar çalışır. `v*` etiketi ancak tam
 paket başarılı olursa GitHub sürümüne dönüştürülür.
 
-Python 3.11+ gerekir; başlatıcı uygun sürümü seçer. Doğrulanan ortam macOS/Python 3.13.3'tür. Çalıştırıcı kilidi macOS/Linux içindir; Windows çalıştırıcısı henüz desteklenmez. Çekirdek özellikler ek Python paketi istemez. Normal `./setup`, resmî Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine atomik kurar; sürüm, commit ve katalog bütünlüğünü doğrular. Yalnız çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar internet ister; testler ve geçmiş/kuyruk işlemleri internetsiz çalışır. Public Suffix List, Unicode ve sosyal kaynak/lisans bilgileri [THIRD_PARTY.md](THIRD_PARTY.md) içindedir.
+Python 3.11+ gerekir; başlatıcı uygun sürümü seçer. Doğrulanan ortam macOS/Python 3.13.3'tür. Çalıştırıcı kilidi macOS/Linux içindir; Windows çalıştırıcısı henüz desteklenmez. Çekirdek özellikler ek Python paketi istemez. Normal `./setup`, resmî Maigret ve Sherlock depolarının sabit commit'lerini `.venv` içine önceki ortamı koruyarak kurar; sürüm, commit ve katalog bütünlüğünü doğrular. Yalnız çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar internet ister; testler ve geçmiş/kuyruk işlemleri internetsiz çalışır. Public Suffix List, Unicode ve sosyal kaynak/lisans bilgileri [THIRD_PARTY.md](THIRD_PARTY.md) içindedir.
 
 Geliştirme için tekrarlanabilir, tamamen geçici verili kontrol:
 

@@ -1,6 +1,6 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.140.2 · **Sözleşme:** 1 · **Veritabanı şeması:** 64.
+**Uygulama:** 0.140.3 · **Sözleşme:** 1 · **Veritabanı şeması:** 64.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
@@ -279,7 +279,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.140.2",
+  "engine_version": "0.140.3",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",

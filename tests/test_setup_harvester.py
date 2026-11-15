@@ -51,8 +51,11 @@ class HarvesterSetupTests(unittest.TestCase):
         self.scripts.mkdir(parents=True)
         for relative in (
             "scripts/setup-harvester", "scripts/setup_harvester.py", "scripts/python",
+            "scripts/bootstrap-python", "scripts/run_python.py",
             "src/xti/__init__.py", "src/xti/adapters/__init__.py",
             "src/xti/adapters/tool_installation.py", "src/xti/domain/__init__.py",
+            "src/xti/adapters/installation_process.py",
+            "src/xti/adapters/installation_transaction.py",
             "src/xti/domain/component_pins.py",
         ):
             destination = self.root / relative

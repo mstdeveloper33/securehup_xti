@@ -23,6 +23,7 @@ from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateReposit
 from xti.adapters.theharvester_archive import TheHarvesterArchiveSource
 from xti.adapters.tool_installation import (
     ToolInstallationError, pending_installation, tool_installation_lock,
+    brand_installation_lock, brand_installation_pending,
 )
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.component_pins import HARVESTER_PIN, MAIGRET_PIN, SHERLOCK_PIN
@@ -79,6 +80,21 @@ class LocalSourceInstallationInspector:
             except (OSError, SourceError, ToolInstallationError) as error:
                 return "invalid", str(error)
             return "ready", None
+        if source not in {MAIGRET_PIN.identifier, SHERLOCK_PIN.identifier}:
+            raise ValueError("Unknown local source tool")
+        if brand_installation_pending(self.project_dir):
+            return "invalid", "Marka ortamı kurtarma bekliyor; ./scripts/setup-brand --recover çalıştır."
+        if not self.project_dir.exists():
+            return "missing", "Proje marka araç ortamı kurulmamış."
+        try:
+            with brand_installation_lock(self.project_dir, exclusive=False, create=False):
+                if brand_installation_pending(self.project_dir):
+                    return "invalid", "Marka ortamı kurtarma bekliyor; ./scripts/setup-brand --recover çalıştır."
+                return self._inspect_brand(source)
+        except ToolInstallationError as error:
+            return "invalid", str(error)
+
+    def _inspect_brand(self, source: str) -> tuple[str, str | None]:
         tools = {
             pin.identifier: (
                 pin.distribution, pin.package, pin.version, pin.commit,
@@ -89,12 +105,10 @@ class LocalSourceInstallationInspector:
         if source not in tools:
             raise ValueError("Unknown local source tool")
         venv = self.project_dir / ".venv"
+        if venv.is_symlink() or (os.path.lexists(venv) and not venv.is_dir()):
+            return "invalid", "Proje .venv ortamı gerçek bir dizin olmalı; değiştirilmedi."
         if not venv.exists():
             return "missing", "Proje marka araç ortamı kurulmamış."
-        if (venv / ".xti-installing").exists() or (
-            self.project_dir / ".venv-install.lock"
-        ).exists():
-            return "invalid", "Marka aracı kurulumu tamamlanmamış veya sürüyor."
         name, package, version, commit, repository, size, digest = tools[source]
         try:
             if not os.access(venv / "bin" / "python", os.X_OK):

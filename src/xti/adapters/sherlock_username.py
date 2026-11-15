@@ -17,6 +17,9 @@ import sys
 import tempfile
 from urllib.parse import urlsplit
 
+from xti.adapters.tool_installation import (
+    ToolInstallationError, brand_installation_lock, brand_installation_pending,
+)
 from xti.domain.brand_username import (
     SHERLOCK_PLATFORM_HOSTS as PLATFORM_HOSTS,
     BrandProfileMatch,
@@ -204,7 +207,9 @@ class SherlockUsernameSource:
         database_locator: Callable[[], Path | None] | None = None,
         database_sha256: str = REVIEWED_DATABASE_SHA256,
         clock: Callable[[], datetime] | None = None,
+        project_dir: Path | None = None,
     ) -> None:
+        self._project_dir = Path(project_dir) if project_dir is not None else Path(__file__).resolve().parents[3]
         self._runner = runner or subprocess.run
         self._python_locator = python_locator or self._locate_python
         self._version_locator = version_locator or self._installed_version
@@ -249,7 +254,7 @@ class SherlockUsernameSource:
         })
         return environment
 
-    def _run(self, command: list[str], *, cwd: str, timeout: int):
+    def _run(self, command: list[str], *, cwd: str, timeout: int, lock_fd: int):
         try:
             result = self._runner(
                 command,
@@ -259,6 +264,7 @@ class SherlockUsernameSource:
                 capture_output=True,
                 check=False,
                 timeout=timeout,
+                pass_fds=(lock_fd,),
             )
         except subprocess.TimeoutExpired as error:
             raise SourceError("Sherlock süre sınırında tamamlanamadı.") from error
@@ -271,12 +277,26 @@ class SherlockUsernameSource:
             raise SourceError("Sherlock işlem çıktısı güvenli boyut sınırını aştı.")
         return result
 
-    def preview(
+    def preview(self, username: str, *, platforms: tuple[str, ...],
+                request_timeout: int) -> BrandUsernamePreview:
+        try:
+            with brand_installation_lock(self._project_dir, exclusive=False) as lock_fd:
+                if brand_installation_pending(self._project_dir):
+                    raise ToolInstallationError(
+                        "Marka ortamı kurtarma bekliyor; ./scripts/setup-brand --recover çalıştır."
+                    )
+                return self._preview_locked(username, platforms=platforms,
+                                            request_timeout=request_timeout, lock_fd=lock_fd)
+        except ToolInstallationError as error:
+            raise SourceError(str(error)) from error
+
+    def _preview_locked(
         self,
         username: str,
         *,
         platforms: tuple[str, ...],
         request_timeout: int,
+        lock_fd: int,
     ) -> BrandUsernamePreview:
         python = self._python_locator()
         installed_version = self._version_locator()
@@ -313,7 +333,7 @@ class SherlockUsernameSource:
                 100,
                 request_timeout * math.ceil(len(platforms) / 20) + 25,
             )
-            result = self._run(command, cwd=temporary, timeout=process_timeout)
+            result = self._run(command, cwd=temporary, timeout=process_timeout, lock_fd=lock_fd)
             if result.returncode != 0:
                 raise SourceError("Sherlock taraması tamamlanamadı; sonuç üretilmedi.")
             try:

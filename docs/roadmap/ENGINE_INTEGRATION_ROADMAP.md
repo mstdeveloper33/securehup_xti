@@ -1,7 +1,7 @@
 # XTI motoru ve mevcut .NET platformuna entegrasyon
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.140.2 / şema 64.
+**Mevcut sürüm:** 0.140.3 / şema 64.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı. Yeni istihbarat özelliklerinden önce aşağıdaki STB sağlamlaştırma
 sırası geçerlidir. .NET tüketicisi henüz bağlı değildir.
@@ -216,6 +216,8 @@ belgesi açıklarını kapatır. 0.140.2, STB-02 içinde theHarvester için
 korunan eski ortam, ortak çalışma kilidi, kesinti günlüğü ve kurtarma
 komutlarını ekler. Gerçek Ubuntu kurulumu için ayrı kabul işi eklendi;
 çalıştırma sonucu [güncel durumda](../STATUS.md) ayrıca kaydedilir.
+0.140.3 marka araçlarını ve XTI başlatıcısını aynı kurtarma/kilit düzenine
+alır; marka Ubuntu kabulü veri korunması ve tekrar kontrolüyle genişletilir.
 STB-02–06 henüz tamamlanmış değildir. Yerel motor kabulü ile gerçek .NET
 üretim kabulü ayrı kaydedilir. SQLite ile STB-02–04 ilerleyebilir;
 gelecekteki PostgreSQL dağıtımını bugün kurmak ön koşul değildir. Mevcut
@@ -243,10 +245,11 @@ abonelik yönetimi .NET tarafının kararıdır.
 ## 8. İlk sonraki iş
 
 **Temiz kurulum ve güncelleme kabulünü tamamlama (STB-02):** hazırlanmış
-Ubuntu kabul işinin sonucunu doğrulama; kalan marka araç zincirini aynı
-kesinti ve eski ortamı koruma ölçütüyle inceleme. theHarvester dilimi
-0.140.2'de uygulanmıştır. Gerçek Linux kabulü çalıştırılmadan ve ilgili
-zincirlerin sonuçları görülmeden aşama tamamlandı sayılmaz.
+Ubuntu kabul işlerinin gerçek sonuçlarını doğrulama. theHarvester dilimi
+0.140.2'de, marka ortamı ve başlatıcı koruması 0.140.3'te uygulanmıştır.
+İki zincirin temiz kurulum, tekrar, kayıt korunması ve kurtarma sonuçları
+görülmeden aşama tamamlandı sayılmaz. Sonrasında STB-03 kapsamında kalıcı
+kanıt/iş kesintisi, yedek ve geri yükleme zincirinin birlikte kabulü gelir.
 
 V1 yerel okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir.
 .NET/PostgreSQL bağlantısı henüz uygulanmadı. Şema ve mevcut veriler korunur.
