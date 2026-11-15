@@ -18,6 +18,7 @@ from xti.adapters.sqlite_vulnerability_notifications import (
     SQLiteVulnerabilityNotificationRepository,
 )
 from xti.adapters.sqlite_cti_saved_searches import SQLiteCtiSavedSearchRepository
+from xti.adapters.sqlite_global_saved_searches import SQLiteGlobalSavedSearchRepository
 from xti.adapters.sqlite_ransomware_watches import SQLiteRansomwareWatchRepository
 from xti.adapters.sqlite_ransomlook_watches import SQLiteRansomLookWatchRepository
 from xti.adapters.sqlite_public_notice_watches import SQLitePublicNoticeWatchRepository
@@ -37,7 +38,7 @@ from xti.domain.inbox import (
 )
 
 
-_COMBINED_NOTIFICATIONS = (
+_EXISTING_NOTIFICATIONS = (
     "SELECT sequence, id, finding_id, NULL AS candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
     "NULL AS ransomware_run_id, NULL AS brand_candidate_id, "
@@ -98,6 +99,14 @@ _COMBINED_NOTIFICATIONS = (
     "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
     "NULL AS public_notice_watch_run_id, run_id AS supplier_watch_run_id FROM supplier_watch_notifications"
 )
+_COMBINED_NOTIFICATIONS = (
+    "SELECT *, NULL AS global_search_run_id FROM (" + _EXISTING_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, NULL AS evidence_id, "
+    "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
+    "NULL AS ransomware_run_id, NULL AS brand_candidate_id, event_type, origin, created_at, read_at, "
+    "NULL AS ransomlook_run_id, NULL AS public_notice_watch_run_id, NULL AS supplier_watch_run_id, "
+    "run_id AS global_search_run_id FROM global_saved_search_notifications"
+)
 _TIMESTAMP = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
     r"(?:\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})\Z"
@@ -151,7 +160,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, candidate_id,
                 evidence_id, evidence_type, exposure_id, cti_run_id, ransomware_run_id,
                 brand_candidate_id, event_type, origin, created, read_at, ransomlook_run_id,
-                public_notice_watch_run_id, supplier_watch_run_id,
+                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id,
             ) = row
             if type(sequence) is not int or not 1 <= sequence <= _MAX_SEQUENCE:
                 raise ValueError("Invalid notification sequence")
@@ -161,7 +170,7 @@ class SQLiteInboxRepository:
                 for value in (
                     finding_id, candidate_id, evidence_id, exposure_id,
                     cti_run_id, ransomware_run_id, brand_candidate_id, ransomlook_run_id,
-                    public_notice_watch_run_id, supplier_watch_run_id,
+                    public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id,
                 )
             )
             if subjects != 1:
@@ -184,6 +193,8 @@ class SQLiteInboxRepository:
                 _identifier(public_notice_watch_run_id)
             if supplier_watch_run_id is not None:
                 _identifier(supplier_watch_run_id)
+            if global_search_run_id is not None:
+                _identifier(global_search_run_id)
             if brand_candidate_id is not None:
                 _identifier(brand_candidate_id)
             if (
@@ -218,6 +229,9 @@ class SQLiteInboxRepository:
                 supplier_watch_run_id is not None
                 and (event_type != "supplier_watch_changed" or origin != "new")
             ) or (
+                global_search_run_id is not None
+                and (event_type != "global_saved_search_changed" or origin != "new")
+            ) or (
                 brand_candidate_id is not None
                 and (
                     event_type != "social_profile_possible_impersonation"
@@ -234,7 +248,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, event_type, origin, created, read_at,
                 candidate_id, evidence_id, evidence_type, exposure_id, cti_run_id,
                 ransomware_run_id, brand_candidate_id, ransomlook_run_id,
-                public_notice_watch_run_id, supplier_watch_run_id,
+                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id,
             )
         except (ValueError, TypeError, OverflowError) as error:
             raise StorageError(
@@ -357,15 +371,21 @@ class SQLiteInboxRepository:
                 "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
                 "FROM supplier_watch_notifications"
             ).fetchone()
+            global_search_total, global_search_unread = connection.execute(
+                "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
+                "FROM global_saved_search_notifications"
+            ).fetchone()
             total = (
                 finding_total + candidate_total + change_total + vulnerability_total
                 + cti_total + ransomware_total + brand_total + ransomlook_total
                 + public_notice_total + supplier_total
+                + global_search_total
             )
             unread = (
                 finding_unread + candidate_unread + change_unread
                 + vulnerability_unread + cti_unread + ransomware_unread
                 + brand_unread + ransomlook_unread + public_notice_unread + supplier_unread
+                + global_search_unread
             )
             matching = (
                 total if status == "all"
@@ -399,6 +419,13 @@ class SQLiteInboxRepository:
             supplier_evidence = (
                 SQLiteSupplierWatchRepository.notification_evidences(connection, supplier_ids)
                 if supplier_ids else {}
+            )
+            global_search_ids = tuple(
+                notice.id for notice in notifications if notice.global_search_run_id is not None
+            )
+            global_search_evidence = (
+                SQLiteGlobalSavedSearchRepository.notification_evidences(connection, global_search_ids)
+                if global_search_ids else {}
             )
             items = []
             for notification in notifications:
@@ -457,6 +484,10 @@ class SQLiteInboxRepository:
                 elif notification.supplier_watch_run_id is not None:
                     items.append(InboxItem(
                         notification, None, supplier_change=supplier_evidence[notification.id],
+                    ))
+                elif notification.global_search_run_id is not None:
+                    items.append(InboxItem(
+                        notification, None, global_search_change=global_search_evidence[notification.id],
                     ))
                 else:
                     brand_review = (
@@ -542,6 +573,13 @@ class SQLiteInboxRepository:
                         connection, notification.id,
                     ),
                 )
+            elif notification.global_search_run_id is not None:
+                result = InboxDetails(
+                    notification, None,
+                    global_search_change=SQLiteGlobalSavedSearchRepository.notification_evidence(
+                        connection, notification.id,
+                    ),
+                )
             else:
                 result = InboxDetails(
                     notification, None, None, None, None, None, None,
@@ -578,6 +616,8 @@ class SQLiteInboxRepository:
                 if notification.public_notice_watch_run_id is not None
                 else "supplier_watch_notifications"
                 if notification.supplier_watch_run_id is not None
+                else "global_saved_search_notifications"
+                if notification.global_search_run_id is not None
                 else "brand_username_review_notifications"
             )
             # Table names are fixed above; only values are external input.
@@ -622,6 +662,11 @@ class SQLiteInboxRepository:
                 )
                 if supplier_ids:
                     SQLiteSupplierWatchRepository.notification_evidences(connection, supplier_ids)
+                global_search_ids = tuple(
+                    notice.id for notice in selected if notice.global_search_run_id is not None
+                )
+                if global_search_ids:
+                    SQLiteGlobalSavedSearchRepository.notification_evidences(connection, global_search_ids)
                 for notification in selected:
                     if notification.ransomlook_run_id is not None:
                         SQLiteRansomLookWatchRepository.notification_evidence(connection, notification.id)

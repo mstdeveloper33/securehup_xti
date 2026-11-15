@@ -1,5 +1,26 @@
 # Değişiklik Kaydı
 
+## 0.142.0 — 15 Kasım 2026
+
+- `search-watch add/list/show/disable/run/run-show/monitor`: on yerel kayıt
+  ailesi için kayıtlı genel arama, tam sonuç farkı, tarihî kanıt ve sınırlı
+  terminal izlemesi. İlk çalışma, yeni tanım ve yeniden etkinleştirme
+  sessiz başlangıçtır; sonraki yeni/anlamlı değişen sonuçlar yerel kutuya
+  çalışma başına tek bildirim üretir. Yalnız çıkarılma geçmişte gösterilir.
+- Sosyal profilde kalıcı izleme/tanım/platform kimliği; kaynak kimlikleri
+  ve çalışma/zaman kanıtları ayrı tutulur. Toplama zamanı veya çalışma
+  kimliği değişmesi tek başına bildirim üretmez.
+- Tanım, tam sonuç, kaynak kapsamı ve önce/sonra farkı saklanır. Aynı
+  kanıt görüntüsü içerik özetiyle tekrar kullanılır; sayfalama saklanan
+  sonucu kesmez. Bildirim okundu durumu, genel sayaçlar, yedek/geri dönüş
+  ve mevcut açık webhook kuyruğu yeni türü destekler.
+- Şema 65 beş boş tablo ekler; `./xti migrate` benzersiz yedekle açık
+  geçiştir. Eski kodun yeni şemayı reddi ve geçiş öncesi yedeğin yeni veri
+  dizinine geri yüklenmesi kabul akışına eklenir. Otomatik geçiş yoktur.
+- Yeni paket, ücretli API veya engine v1 işlemi eklenmedi. Kullanım
+  [README](README.md#genel-aramayı-kaydet-ve-değişiklikleri-izle), gerçek
+  doğrulama sonuçları [STATUS](docs/STATUS.md) içindedir.
+
 ## 0.141.0 — 15 Kasım 2026
 
 - `events candidates`: ThreatCluster, RansomLook ve HIBP'nin mevcut yerel

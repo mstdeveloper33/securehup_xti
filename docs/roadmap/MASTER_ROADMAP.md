@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.141.0 / şema 64.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.142.0 / şema 65.
 
 **Güncel karar:** Bu repo başka platformlara bağlanabilen profesyonel
 XTI veri toplama ve analiz motorudur. .NET adaptörü ve gerçek platform
@@ -10,9 +10,9 @@ sürümlü sözleşmesini, örneklerini ve belgelerini sağlarız. Motor kaynakl
 ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
 [Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) güncel sırayı ve
 sınırları belirler; ENG kimlikleri korunur. Mevcut sağlamlaştırma paketi
-tamamlandı. Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da
-uygulandı. Sırada kayıtlı genel arama bildirimleri, ardından haber
-kaynakları vardır. Entegrasyon teslim hazırlığı ile geniş paylaşım ve
+tamamlandı. Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da,
+kayıtlı genel arama ve yerel bildirimleri 0.142.0'da uygulandı. Sırada
+RSS/Atom haber kaynakları vardır. Entegrasyon teslim hazırlığı ile geniş paylaşım ve
 LLM en sondadır. Bu sıra önceki EIP
 sırasının ve bu belgedeki eski geniş
 ürün tasarımının yerine geçer. Hazır açık kaynak kütüphane/araçlar tercih
@@ -23,7 +23,7 @@ CVE/KEV/EPSS kapsamı ile otomatik HTML rapor arşivi hâlâ aktif plan dışıd
 Gerçek teslimler [STATUS.md](../STATUS.md) içinde izlenir.
 
 Gelecekteki platform .NET ve PostgreSQL kullanacak. SQLite ile bugünkü
-geliştirme/deneme/kullanım sürer; şimdi veri geçişi başlatılmaz. Yerel motor
+geliştirme/deneme/kullanım sürer; PostgreSQL'e veri geçişi başlatılmaz. Yerel motor
 kabulü bu repoda; gerçek .NET/PostgreSQL bağlantısı, platform yerleşimi
 ve veri geçişi repoyu kullanan ekipte kalır.
 [Öncelik kararı](../decisions/0145-stabilization-first-local-engine.md).
@@ -63,8 +63,24 @@ birleştirme veya yeni alarm üretilmez.
 Bu görünüm son başarılı yerel kayıtları salt okunur karşılaştırır;
 kaynak yenileme ayrı komutlarla yapılır. Tam domain filtresi, sayfalama,
 özgün kaynak kayıtları ve kaynak sağlığı görünürdür. Yeni engine v1
-işlemi, şema değişikliği veya RapidFuzz bağımlılığı eklenmedi; şema 64
-korunur. Yaklaşık ad eşleştirmesi ileride ölçülmüş ihtiyaçla ele alınır.
+işlemi, şema değişikliği veya RapidFuzz bağımlılığı eklenmedi; 0.141.0'da
+şema 64 korundu. Yaklaşık ad eşleştirmesi ileride ölçülmüş ihtiyaçla ele alınır.
+
+0.142.0, `search-watch` ile genel aramayı kalıcı tanım, çalışma geçmişi,
+ortak yerel bildirim ve sonlu ön plan `monitor` akışına bağlar. İlk ölçüm,
+tanım değişikliği ve yeniden etkinleştirme sessiz başlangıçtır. Sonraki
+yeni veya anlamlı değişmiş eşleşmeler bildirim üretir; yalnız çıkarılma
+geçmişte gösterilir. Mevcut CTI arama bildirimleri değişmez. Tanım,
+tam sonuç ve kaynak kapsamı çalışma anında dondurulur; ekran sayfaları
+bu kanıtı daraltmaz. Monitor yerel aramayı tekrarlar; kaynak toplamaz.
+
+Şema 65 beş yeni tablo ekler; aynı tam kanıt `global_search_snapshots`
+içinde tekilleştirilir, ayrı sonuç öğeleri tablosu bulunmaz. Geçiş açık
+`migrate` ve önceki-sürüm yedeğiyle yapılır; `setup` veya okuma otomatik
+geçiş yapmaz. Eski koda dönüş eski yedeği yeni bir konuma restore etmeyi
+gerektirir; şema 65 verisi korunur ve geçiş sonrası kayıtlar eski şemaya
+kendiliğinden taşınmaz. Yeni bağımlılık, ağ API'si veya engine v1 işlemi
+eklenmedi. Sıradaki özellik RSS/Atom haber kaynaklarıdır.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
 [bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.
@@ -192,9 +208,9 @@ vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN
 ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
 arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
-HTML dışa aktarımı kullanılabilir. Olay adaylarının ilk dilimi uygulandı;
-güncel sıra kaydedilmiş genel arama bildirimleri, ardından haber
-kaynaklarıdır. Entegrasyon teslim hazırlığı ile
+HTML dışa aktarımı kullanılabilir. Olay adayları ve kaydedilmiş genel
+arama bildirimlerinin ilk dilimleri uygulandı; sırada RSS/Atom haber
+kaynakları vardır. Entegrasyon teslim hazırlığı ile
 geniş paylaşım/LLM en sondadır; .NET tüketicisini repoyu kullanan ekip
 geliştirir ve doğrular. Linux kullanım kabulü ve kaynak
 erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
@@ -612,9 +628,9 @@ ortak müşteri çalışması bütün erişim yolları doğrulanmadan açılmaz.
 ### R12 — AI destekli analiz ve denetimli iş akışları
 
 **Güncel sıra:** 15 Kasım 2026 son kullanıcı kararıyla en sona ertelendi.
-İlk olay adayı dilimi uygulanmış olsa da sıradaki kayıtlı genel arama
-bildirimleri ve haber kaynaklarından önce model veya LLM entegrasyonu
-başlatılmaz.
+İlk olay adayı ve kayıtlı genel arama dilimleri uygulanmış olsa da
+sıradaki haber kaynaklarından önce model veya LLM entegrasyonu
+başlatılmaz; geniş paylaşım ve teslim hazırlığıyla birlikte en sonda kalır.
 
 **Plan durumu:** 13 Kasım 2026 kullanıcı kararıyla gelecekteki teslim planına isteğe bağlı LLM analiz desteği eklendi. Henüz model kurulmadı ve bu özellik uygulanmadı. İlk teslim kayıtlı kanıttan açıklama, günlük özet ve vaka taslağı üretir; web paneli, REST API veya tüm veri kaynaklarının tamamlanmasını gerektirmez. Araç kullanan çok adımlı otomasyon bu ilk kapsamın dışında kalır. Kullanım, aşamalar ve kabul ölçümleri [LLM planında](LLM_PLAN.md) tanımlıdır.
 

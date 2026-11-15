@@ -151,6 +151,13 @@ git pull
 `./setup` eski şemayı otomatik değiştirmez. Bir geçiş gerekiyorsa açıkça
 `./xti migrate` çalıştırmanı ister; böylece yerel verin sessizce değiştirilmez.
 
+0.142.0 için şema 64→65 geçişi gerekir. Güncel kodla `./xti migrate`
+çalıştırıldığında önce benzersiz bir kurtarma yedeği alınır; mevcut kayıtlar
+korunarak beş boş arama-izleme tablosu eklenir. Eski kod şema 65'i açmaz.
+Eski sürüme dönmek gerekiyorsa geçiş öncesi yedeği aşağıdaki geri yükleme
+akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 65 dosyasının üzerine
+yazma. Kaydedilmiş arama kullanımı [günlük rehberde](DAILY_USE.md#genel-aramayı-kaydet-ve-bildirim-al).
+
 ## Sorun sonrası kaldığın yerden devam et
 
 Önce `./xti doctor` ve `./xti sources status` ile yerel veri ve kaynak

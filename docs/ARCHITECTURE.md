@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.141.0, şema 64 ana proje yapısı.**
+**15 Kasım 2026 — 0.142.0, şema 65 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
@@ -21,7 +21,7 @@ iş/arama/sonuç sınırında da uygulanmalı ve ayrıca sınanmalıdır; bu yet
 sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
 [0142 kararı](decisions/0142-xti-engine-dotnet-host.md) ilk hedefi,
 [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
-Aşağıdaki bölümler mevcut 0.141.0 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.142.0 uygulamasını anlatır.
 
 0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
 ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite
@@ -71,6 +71,38 @@ her eski çalışmanın tam katalog kopyasını saklamaz. Eski karşılaştırma
 okuyucusunun varsayılan davranışı ve dondurulmuş karar kanıtı korunur.
 `events candidates` terminal/JSON bağlamasıdır. Bu teslim yeni engine v1
 işlemi, genel aday kararı, alarm veya şema eklemez. [Kullanım](../README.md#kaynaklar-arası-olay-adaylarını-incele).
+
+`GlobalSavedSearchService`, ayrı küçük `GlobalSavedSearchRepository`
+portu ve ortak yazıcı kilidiyle tanım/çalışma işlemlerini yönetir.
+`SQLiteGlobalSavedSearchRepository`, mevcut genel aramanın aynı bağlantıda
+çalışan tam okuyucusunu kullanır; ayrı sayfaları birleştirmez. Tanım,
+kaynak okuması, tam fark, çalışma ve bildirim tek `BEGIN IMMEDIATE` içinde
+tutarlıdır. Liste ve tarihî ayrıntılar salt okunur işlemde açılır.
+
+Şema 65 güncel tanım, eklemeli tanım olayı, içerik adresli kanıt görüntüsü,
+çalışma ve bildirim tablolarını ekler. Bir tanım olayı tam sürümlü tanımı
+saklar; A→B→A ve kapat/aç geçişleri eski başlangıcı devralmaz. Run önceki
+aynı olay sürümünün son çalışmasına bağlanır. Snapshot tam arama kanıtını
+ve kaynak kapsamını saklar; değişmeyen snapshot tekrar yazılmaz.
+Gösterim sayfaları tam karşılaştırmadan sonra oluşturulur.
+
+`global-search-watch-v1` karşılaştırma politikası kaynakla birlikte kayıt
+kimliğini, sosyal profilde araç/izleme/tanım/platformu kullanır. Tipli
+anlamlı içerik özeti, tam kanıttan ayrıdır: çalışma kimliği, toplama zamanı
+ve gezinme komutu değişikliği bildirim üretmez. Önce/sonra kanıtları tam
+korunur. İlk ölçüm sessizdir; yalnız yeni/anlamlı değişen sonuçlar sonraki
+çalışmada bildirilir. Artık eşleşmeyen kayıt çözülmüş tehdit sayılmaz.
+
+Okuyucu tanım zincirini, sürüm/kapsam bağlarını, snapshot ve durum
+özetlerini, önceki tam durumdan türetilmiş fark/sayaçları ve beklenen tekil
+bildirimleri doğrular. Geçmiş rapor güncel kaynakla yeniden oluşturulmaz.
+Kapasite sınırları aşılınca kısmi çalışma veya geçmiş silme yapılmaz.
+Ortak inbox okundu durumunu bağımsız tutar; sayfadaki yeni bildirimlerin
+kanıtı topluca okunur. Sınırlı ön plan monitor'ü her turdan sonra kilidi
+bırakır; internet toplaması veya kalıcı servis kurulumu yapmaz.
+[Kullanım ve sınırlar](../README.md#genel-aramayı-kaydet-ve-değişiklikleri-izle).
+Eski CTI kayıtlı arama şeması ve davranışı, engine v1 işlemleri ve kaynak
+toplayıcıları kendi sınırlarında kalır.
 
 `domain.component_pins`, mevcut üç harici aracın incelenmiş kimliğini
 adaptörler, kurulum denetimi ve sosyal doğrulayıcıyla paylaşır. Bağımsız

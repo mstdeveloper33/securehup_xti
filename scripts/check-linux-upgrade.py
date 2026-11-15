@@ -7,7 +7,7 @@ path, so installed entry-point paths remain valid. No collector is invoked.
 """
 
 import argparse
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 import fcntl
 import importlib.util
 import json
@@ -17,6 +17,7 @@ import platform
 import re
 import shutil
 import signal
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -267,6 +268,80 @@ def live_identity(expected):
     return same_process(expected, actual) and actual.state != "Z"
 
 
+def database_manifest(path):
+    """Read all synthetic rows/rowids/DDL without creating a database."""
+    path = Path(path)
+    COMMON.require(path.is_file() and not path.is_symlink(), "Acceptance database is missing or linked.")
+    with closing(sqlite3.connect(path.absolute().as_uri() + "?mode=ro", uri=True)) as connection:
+        connection.execute("PRAGMA trusted_schema=OFF")
+        connection.execute("BEGIN")
+        tables = {}
+        for (name,) in connection.execute("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name"):
+            quoted = '"' + name.replace('"', '""') + '"'
+            tables[name] = (
+                connection.execute(f"PRAGMA table_info({quoted})").fetchall(),
+                connection.execute(f"SELECT rowid,* FROM {quoted} ORDER BY rowid").fetchall(),
+                connection.execute("SELECT type,name,sql FROM sqlite_schema WHERE tbl_name=? ORDER BY name", (name,)).fetchall(),
+            )
+        return connection.execute("PRAGMA user_version").fetchone()[0], tables
+
+
+def require_preserved_tables(before, after):
+    for name, expected in before[1].items():
+        COMMON.require(after[1].get(name) == expected,
+                       f"Schema migration changed pre-existing table/evidence: {name}.")
+
+
+def migrate_acceptance_data(environment, before_files, before_database):
+    """Exercise explicit schema64→65 migration, retaining its original backup."""
+    data = Path(environment["XTI_DATA_DIR"])
+    error = command(["./setup", "--core-only"], environment, expected=None)
+    COMMON.require("migrate" in error, "Old data was not rejected with explicit migration guidance.")
+    COMMON.require(COMMON.snapshot(data) == before_files, "Failed setup changed old data.")
+    response = json.loads(command(["./xti", "--json", "migrate"], environment))
+    result = response["data"]
+    COMMON.require(response.get("ok") is True and result.get("changed") is True,
+                   "Migration did not report an explicit successful change.")
+    COMMON.require((result.get("from_version"), result.get("to_version")) == (64, 65),
+                   "Acceptance only supports the reviewed schema64 to schema65 transition.")
+    backup = Path(result["backup"])
+    COMMON.require(backup.parent == data / "backups" and backup.is_file() and not backup.is_symlink(),
+                   "Migration backup escaped the disposable data directory.")
+    COMMON.require(database_manifest(backup) == before_database, "Pre-migration backup changed original evidence.")
+    current = database_manifest(data / "xti.db")
+    COMMON.require(current[0] == 65, "Candidate did not publish schema65.")
+    require_preserved_tables(before_database, current)
+    after_files = COMMON.snapshot(data)
+    for name, value in before_files.items():
+        if name != "xti.db":
+            COMMON.require(after_files.get(name) == value, "Migration changed original non-database evidence.")
+    repeated = json.loads(command(["./xti", "--json", "migrate"], environment))["data"]
+    COMMON.require(repeated.get("changed") is False and repeated.get("backup") is None,
+                   "Repeated migration was not a no-op.")
+    COMMON.require(COMMON.snapshot(data) == after_files, "Repeated migration changed database or backup bytes.")
+    COMMON.summary("- PASS: schema64 setup refused without writes; explicit schema65 migration preserved all old rows/rowids/DDL and created an unchanged schema64 backup.")
+    return backup, after_files
+
+
+def restore_baseline_data(environment, backup, before_database, upgraded_files):
+    """Old code rejects schema65; recovery uses its schema64 backup at a new path."""
+    data = Path(environment["XTI_DATA_DIR"])
+    error = command(["./xti", "--json", "doctor"], environment, expected=None)
+    COMMON.require("uyumlu değil" in error, "Old code failed for a reason other than unsupported new schema.")
+    COMMON.require(COMMON.snapshot(data) == upgraded_files, "Old code changed the upgraded database.")
+    restored = dict(environment, XTI_DATA_DIR=str(data.parent / "rollback-restored"))
+    target = Path(restored["XTI_DATA_DIR"]) / "xti.db"
+    COMMON.require(not target.parent.exists(), "Rollback restore directory already exists.")
+    command(["./xti", "restore", backup], restored)
+    COMMON.require(database_manifest(target) == before_database, "Old-code restore did not preserve schema64 evidence.")
+    COMMON.local_asset(restored)
+    error = command(["./xti", "restore", backup], restored, expected=None)
+    COMMON.require("zaten var" in error, "Repeated restore failed for a reason other than existing destination.")
+    COMMON.require(database_manifest(target) == before_database, "Repeated restore overwrote recovered evidence.")
+    COMMON.require(COMMON.snapshot(data) == upgraded_files, "Rollback recovery changed retained schema65 data.")
+    COMMON.summary("- PASS: old code rejected schema65; its pre-migration backup restored only into a new data directory; schema65 data retained. Later schema65 writes are outside schema64 rollback.")
+
+
 def interrupt_real_install(project, tool, environment):
     canonical, lock, journal, installer = tool_paths(project, tool)
     before = BRAND.environment_snapshot(canonical)
@@ -360,13 +435,30 @@ def main(arguments=None):
             COMMON.local_asset(environment)
             reference = COMMON.engine(environment, "search", {"query": "example.com", "kinds": ["domain"]})["results"][0]["reference"]
             installed = BRAND.environment_snapshot(canonical)
+            before_database = database_manifest(data / "xti.db")
+            COMMON.require(before_database[0] == 64, "The published baseline must use schema64.")
             COMMON.require(COMMON.snapshot(data) == before, "Baseline tool setup changed original data.")
             COMMON.summary("- PASS: previous release installed actual pinned tools; sample record and evidence preserved.")
 
-            for revision, label in ((target, "upgrade"), (BASELINE, "same-schema code rollback"),
+            stage = "candidate schema compatibility"
+            command(["git", "checkout", "--detach", checked_commit(target)], environment)
+            target_schema = int(command(["./scripts/python", "-c", "from xti.adapters.schema import SCHEMA_VERSION; print(SCHEMA_VERSION)"], environment))
+            COMMON.require(target_schema in (64, 65), "Only reviewed schema64/schema65 candidates are supported by this acceptance.")
+            backup, current_files = None, before
+            if target_schema == 65:
+                stage = "explicit schema64 to schema65 migration"
+                backup, current_files = migrate_acceptance_data(environment, before, before_database)
+
+            for revision, label in ((target, "upgrade"), (BASELINE, "baseline rollback"),
                                     (target, "return to candidate")):
                 stage = label
                 command(["git", "checkout", "--detach", checked_commit(revision)], environment)
+                if revision == BASELINE and backup is not None:
+                    restore_baseline_data(environment, backup, before_database, current_files)
+                    command([installer, "--check"], environment, timeout=120)
+                    COMMON.require(BRAND.environment_snapshot(canonical) == installed,
+                                   "Schema rollback changed the installed tool environment.")
+                    continue
                 command(["./setup", "--core-only"], environment)
                 command([installer], environment, timeout=120)
                 command([installer, "--check"], environment, timeout=120)
@@ -375,12 +467,12 @@ def main(arguments=None):
                 COMMON.require(detail["reference"] == reference, "Upgrade changed the existing record identity.")
                 COMMON.require(BRAND.environment_snapshot(canonical) == installed,
                                f"{label} replaced or changed the existing tool environment.")
-                COMMON.require(COMMON.snapshot(data) == before, f"{label} changed existing data bytes.")
+                COMMON.require(COMMON.snapshot(data) == current_files, f"{label} changed existing data bytes.")
                 COMMON.summary(f"- PASS: {label}; same tool identity/files and engine record/evidence bytes.")
 
             stage = "real package subprocess interruption and recovery"
             interrupt_real_install(project, options.tool, environment)
-        COMMON.summary("- RESULT: PASS. Scope: same schema/pinned tools; process crash, not hardware power loss; no target scan or source collection.")
+        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit 64→65 migration with new-path backup recovery; pinned tools; process crash, not hardware power loss; no target scan or source collection.")
         return 0
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
         COMMON.summary(f"- RESULT: FAIL at {stage}: {error}")

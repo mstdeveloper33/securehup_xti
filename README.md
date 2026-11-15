@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.141.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+**Sürüm:** 0.142.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 65.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Bu repo
@@ -94,7 +94,7 @@ kaydederken `collect` ile aynı `--task` ve izleme seçeneklerini verebilirsin.
 Aynı adla yeniden kaydetmek **tam seçimi değiştirir**; eski seçenekler otomatik
 eklenmez. Değişiklikler geçmişte korunur. `profiles list` kayıtları gösterir;
 `profiles revoke gunluk --reason "Şimdilik kapalı"` çalıştırmayı kapatır.
-Eski kurulumda şema 64 için önce `./xti migrate` çalıştır; geri dönüş yedeği
+Eski kurulumda şema 65 için önce `./xti migrate` çalıştır; geri dönüş yedeği
 otomatik alınır. Sekiz teslimin durumu [sıralı plandadır](docs/roadmap/ORDERED_INTEGRATION_PLAN.md).
 
 Her yeni toplama bir oturum kimliği verir. Geçmişini açabilir ve eksik
@@ -289,6 +289,82 @@ uzaktaki mevcut aktör/kampanya/malware/rapor ilişkilerini dayanaklarıyla aça
 İlişkiyi sistem kendisi çıkarmaz; kaynağın iddiasını ve etkinlik durumunu
 gösterir. Kayıt bulunmaması güvenli olduğu anlamına gelmez. Ayrıntı ve
 sayfalama [kuruluş rehberinde](docs/ORGANIZATION_REPORT.md) yer alır.
+
+## Genel aramayı kaydet ve değişiklikleri izle
+
+`search QUERY` ile aradığın on kayıt ailesini bir ad altında izleyebilirsin.
+Mevcut internet toplayıcıları kayıtları günceller; aşağıdaki komutlar bu
+yerel kayıtların tamamını karşılaştırır ve sonuç farkını yerel kutuya yazar.
+Kuruluş/marka adı, domain veya başka bir arama metni kullanabilirsin:
+
+```sh
+./xti search-watch add "Markam" "example.com"
+./xti search-watch list
+./xti search-watch run ARAMA_KIMLIGI
+./xti search-watch monitor ARAMA_KIMLIGI --cycles 10 --interval 60 --duration 600
+./xti inbox
+```
+
+`example.com` yerine arama metnini, `ARAMA_KIMLIGI` yerine ilk komutun
+verdiği kimliği yaz. İlk `run` mevcut sonuçları sessiz başlangıç olarak
+kaydeder. Sonraki çalışmada yeni veya anlamlı biçimde değişen eşleşme
+varsa çalışma başına bir bildirim üretir. Değişmeyen tekrar veya yalnız
+artık eşleşmeyen kayıt olması bildirim üretmez; farklar geçmişte görünür.
+Bu, yerel arama sonucunun değişmesidir; olayın yeni gerçekleştiği veya
+kaydın güvenlik tehdidi olduğu anlamına gelmez. Sonradan ilk kez alınan
+bir kaynaktaki eski olay da yerel aramaya yeni girmiş olabilir.
+
+`monitor` terminal açıkken seçilen aramayı tekrarlar; her turdan sonra
+yazma kilidini bırakır. Kaynak yenileme komutları aralarda çalışabilir.
+Toplayıcıları kendiliğinden çalıştırmaz, arka plan hizmeti kurmaz.
+`Ctrl+C` ile durdurabilirsin; tamamlanmış çalışmalar korunur. Süre sınırı
+yeni tur başlatmayı sınırlar, başlamış veritabanı işlemini yarıda kesmez.
+
+Kapsamı daraltma ve geçmişi açma:
+
+```sh
+./xti search-watch add "Markam" "example.com" --kind ransomware --kind public-notice
+./xti search-watch show ARAMA_KIMLIGI
+./xti search-watch run-show CALISMA_KIMLIGI --offset 0 --limit 50
+./xti search-watch disable ARAMA_KIMLIGI --reason "İzleme tamamlandı"
+./xti search-watch list --all
+./xti --json search-watch run-show CALISMA_KIMLIGI
+```
+
+Aynı adla `add` tanımı günceller veya kapalı aramayı yeniden etkinleştirir.
+Tanım/etkinlik sürümü değişince yeni sessiz başlangıç yapılır; A→B→A
+şeklinde eski sorguya dönmek veya kapatıp açmak eski başlangıcı sürdürmez.
+Aynı tanımı yeniden eklemek değişiklik oluşturmaz. Kapatma geçmişi ve
+bildirimleri silmez. `add --all` etkin olmayan kayıtların son bilinen
+durumunu da kapsar; bütün eski sürümleri tek tek aramaz.
+
+Her çalışmanın o günkü sorgusu, filtreleri, kaynak kapsamı ve önce/sonra
+kanıtı saklanır. Sonradan kaynağın veya arama tanımının değişmesi eski
+raporu değiştirmez. Sayfa sınırı yalnız gösterimi etkiler; karşılaştırma
+tam sonuç üzerinden yapılır. Devam komutları filtreleri ve seçilmiş veri
+dizinini korur. `show` için `--event-offset/--event-limit` ve
+`--run-offset/--run-limit`, sonuçlar için `--offset/--limit` vardır.
+
+Yalnız toplama zamanı, çalışma kimliği veya ayrıntı komutunun değişmesi
+alarm oluşturmaz. Sosyal profiller değişen çalışma-öğe kimliğiyle değil,
+araç/izleme/tanım/platform kimliğiyle izlenir. Profil durumu ve insan
+kararı değişiklikleri karşılaştırılır. Ransomware kaynaklarının aynı ham
+kimliği ayrı tutulur; yalnız `last_seen_at` yenilenmesi alarm oluşturmaz.
+Kaynak hatası ve boş sonuç, çalışmanın kaynak kapsamında ayrı gösterilir;
+son başarılı kanıt korunur. `inbox read` yalnız okundu durumudur.
+
+Değişmeyen kanıt, içerik özetiyle tekrar kullanılır. Bu ilk yerel sürümde
+en fazla 1.000 arama, 10.000 tanım olayı, 20.000 çalışma, çalışma başına
+50.000 eşleşme, tek kanıt görüntüsünde 16 MiB ve toplam görüntülerde
+64 MiB sınırı vardır. Aşım kısmi sonuç veya kayıt silme yerine açık hata
+verir. Her okuma saklanan geçmişin bütünlüğünü denetler; bu sınırlar
+performans garantisi değildir. İzleme 1–1.000 tur, 1–86.400 saniye aralık
+ve 1–604.800 saniye süre kabul eder; görünüm sınırı 1–500'dür.
+
+Şema 65 beş boş tablo ekler. Mevcut kurulumda `./xti migrate` açık ve
+yedekli geçiştir; okuma otomatik geçiş yapmaz. Eski kod şema 65'i açamaz;
+geri dönüş gerekiyorsa geçiş öncesi yedek ayrı, yeni bir veri dizinine
+geri yüklenir. Yeni ücretli API veya paket bağımlılığı eklenmedi.
 
 ## Kaynaklar arası olay adaylarını incele
 

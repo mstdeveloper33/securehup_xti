@@ -1,9 +1,11 @@
+from contextlib import closing
 import fcntl
 import importlib.util
 import os
 from pathlib import Path
 import signal
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -150,6 +152,85 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
         finally:
             if retained is not None:
                 shutil.rmtree(retained)
+
+    def test_database_manifest_preserves_rowids_and_schema_and_never_creates_missing_paths(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            database = Path(temporary) / "xti.db"
+            with self.assertRaisesRegex(RuntimeError, "missing"):
+                self.helper.database_manifest(database)
+            self.assertFalse(database.exists())
+            with closing(sqlite3.connect(database)) as connection, connection:
+                connection.execute('CREATE TABLE "odd""name" (value TEXT)')
+                connection.execute('INSERT INTO "odd""name" (rowid,value) VALUES (99,?)', ("preserved",))
+                connection.execute("PRAGMA user_version=64")
+            before = self.helper.database_manifest(database)
+            self.assertEqual(before[0], 64)
+            self.assertEqual(before[1]['odd"name'][1], [(99, "preserved")])
+            self.helper.require_preserved_tables(before, before)
+            with closing(sqlite3.connect(database)) as connection, connection:
+                connection.execute('UPDATE "odd""name" SET value=?', ("changed",))
+            after = self.helper.database_manifest(database)
+            with self.assertRaisesRegex(RuntimeError, "pre-existing table"):
+                self.helper.require_preserved_tables(before, after)
+            linked = database.with_name("linked.db")
+            linked.symlink_to(database)
+            with self.assertRaisesRegex(RuntimeError, "linked"):
+                self.helper.database_manifest(linked)
+
+    def test_actual_cli_explicit_schema_upgrade_preserves_old_backup_and_evidence(self):
+        from xti.adapters.sqlite import SQLiteAssetRepository
+        from tests.global_saved_search_legacy_fixture import remove_global_saved_search_schema
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            environment = self.helper.acceptance_environment(root)
+            data = Path(environment["XTI_DATA_DIR"])
+            database = data / "xti.db"
+            storage = SQLiteAssetRepository(database)
+            storage.initialize()
+            storage.add("example.com")
+            with closing(sqlite3.connect(database)) as connection, connection:
+                remove_global_saved_search_schema(connection)
+                connection.execute("PRAGMA user_version=64")
+            # CLI mutators use this existing ownership lock; include it in the manifest.
+            (data / "xti.db.worker.lock").touch(mode=0o600)
+            (data / "upgrade-evidence.bin").write_bytes(b"preserved external evidence")
+            before_files = self.helper.COMMON.snapshot(data)
+            before_database = self.helper.database_manifest(database)
+
+            def portable_command(arguments, environment, *, expected=0, **kwargs):
+                # Real CLI/SQLite migration, without Linux-only /proc process supervision.
+                result = subprocess.run([str(value) for value in arguments], cwd=PROJECT,
+                    env=environment, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    timeout=30)
+                self.assertEqual(result.returncode, expected if expected is not None else 1,
+                                 result.stdout + result.stderr)
+                return (result.stdout + result.stderr).strip()
+
+            with patch.object(self.helper, "command", side_effect=portable_command), \
+                    patch.object(self.helper.COMMON, "summary"):
+                backup, after_files = self.helper.migrate_acceptance_data(
+                    environment, before_files, before_database,
+                )
+            self.assertEqual(self.helper.database_manifest(backup), before_database)
+            self.assertEqual(self.helper.database_manifest(database)[0], 65)
+            self.assertEqual(self.helper.COMMON.snapshot(data), after_files)
+            self.assertEqual((data / "upgrade-evidence.bin").read_bytes(), b"preserved external evidence")
+
+    def test_schema_rollback_does_not_accept_an_unrelated_old_code_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            data = Path(temporary) / "data"
+            data.mkdir()
+            (data / "xti.db").write_bytes(b"retained new-schema data")
+            before = self.helper.COMMON.snapshot(data)
+            with patch.object(self.helper, "command", return_value="An unrelated failure") as command:
+                with self.assertRaisesRegex(RuntimeError, "unsupported new schema"):
+                    self.helper.restore_baseline_data(
+                        {"XTI_DATA_DIR": str(data)}, Path(temporary) / "backup.db", (64, {}), before,
+                    )
+            self.assertEqual(command.call_count, 1)
+            self.assertEqual(self.helper.COMMON.snapshot(data), before)
+            self.assertFalse((Path(temporary) / "rollback-restored").exists())
 
     @unittest.skipUnless(sys.platform == "linux", "Requires real Linux /proc process ownership.")
     def test_command_captures_failure_and_times_out_owned_process(self):

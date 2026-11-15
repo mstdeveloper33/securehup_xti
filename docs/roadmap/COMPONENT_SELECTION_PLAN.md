@@ -1,6 +1,6 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.141.0 / şema 64.
+**Tarih:** 15 Kasım 2026. **Uygulama:** 0.142.0 / şema 65.
 **Durum:** Yeni bileşenler için araştırmaya dayalı plan tercihleri.
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). Bu teslim yeni paket kurmaz veya mevcut
@@ -15,10 +15,10 @@ bu repo için geri çekilmiştir. Her motor bileşeninin görevi sınırlıdır;
 sonuçları ortak modele alınarak .NET'e kararlı sözleşmeyle sunulur.
 
 Mevcut SQLite motorunun 11 maddelik sağlamlaştırma paketi tamamlandı.
-Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da uygulandı; yeni
-kütüphane gerektirmedi. Sırada kayıtlı genel arama bildirimleri, ardından
-haber kaynakları var. Entegrasyon teslim hazırlığı ile geniş paylaşım/LLM
-en sona kalır.
+Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da, kayıtlı genel
+arama ve yerel bildirimleri 0.142.0'da uygulandı; yeni kütüphane
+gerektirmedi. Sırada RSS/Atom haber kaynakları var. Entegrasyon teslim
+hazırlığı ile geniş paylaşım/LLM en sona kalır.
 .NET adaptörü ve platform PostgreSQL yerleşimi/veri geçişi repoyu
 kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 
@@ -28,7 +28,7 @@ kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 |---|---|---|---|
 | Sosyal kullanıcı adı ve mevcut arşiv keşfi | Mevcut Sherlock, Maigret ve theHarvester adaptörleri | Şimdiden belirlenmiş kaynak/iş kapsamı | 0.140.0 ortak pin ve kurulum kataloğu var; mevcut sürümler korunur |
 | Kaynaklar arası olay adayı | Mevcut XTI kaynak/domain/tarih kuralları | Kesin ve sınırlı noktalama düzenlemeli ad eşleştirmesi; ortak tam domain bağlamı | İlk dilim 0.141.0'da uygulandı; RapidFuzz gerekmedi ve kurulmadı. Yaklaşık ad benzerliği için ileride ölçümlü deney adayı |
-| Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türü için kalıcı kimlik, tam sonuç farkı ve bildirim | Yeni arama motoru/harici platform eklenmez; onaylı ENG-03 |
+| Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türünde kalıcı kimlik, değişmez tam sonuç/kapsam, fark ve yerel bildirim | 0.142.0'da `search-watch` ve sınırlı ön plan tekrarı uygulandı; yeni arama motoru/harici platform yok |
 | Haber/RSS/Atom okuma | **feedparser** | XTI'nın indirdiği sınırlı yanıtı ayrıştırma | Haber modülü ENG-04 için seçildi |
 | Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | RSS özeti yetersizse ikinci dilim; ilk haber tesliminin zorunlu parçası değil |
 | Motor bağlantı sözleşmesi | Sürümlü motor istek/sonuç sözleşmesi | Motorun desteklediği veri ve işlemler için sözleşme, örnek ve belge | ENG-01/05; son aşamada teslim hazırlığı. .NET adaptörü/gerçek bağlantı kabulü tüketici ekibin işi |
@@ -40,7 +40,7 @@ sürümünün XTI'da çalıştığı veya özelliğin tamamlandığı anlamına 
 Gerekli olmadığı kanıtlanan bileşen sırf listede yer aldığı için kurulmaz;
 seçim değişirse gerekçe bu kayda eklenir.
 
-## 2. İlk iki özellikte neyi tekrar kullanacağız?
+## 2. İlk iki özellikte tekrar kullanılan yapı
 
 Mevcut [genel arama](../../src/xti/application/global_search.py) on kayıt
 ailesini arar. [CTI kayıtlı aramalar](../../src/xti/application/cti_saved_searches.py)
@@ -67,9 +67,9 @@ tarih türü kabul edilmez. RansomLook domain taşımadığından HIBP ile ad
 
 `events candidates` terminal/JSON görünümü son başarılı yerel kayıtları
 tek tutarlı okumada değerlendirir; domain filtresi ve sayfalama sunar.
-Kaynak toplama ayrı işlemdir. Komut ağ veya veri yazımı yapmaz; yeni
-engine v1 işlemi eklemez ve şema 64'ü korur. Kaynak iddiası doğrulanmış
-ihlale dönüşmez; kayıt birleştirme ve alarm üretimi yoktur.
+Kaynak toplama ayrı işlemdir. Komut ağ veya veri yazımı yapmaz; 0.141.0
+teslimi yeni engine v1 işlemi eklemedi ve şema 64'ü korudu. Kaynak iddiası
+doğrulanmış ihlale dönüşmez; kayıt birleştirme ve alarm üretimi yoktur.
 
 Bu ilk kapsam kesin kurallarla karşılandığı için RapidFuzz kurulmadı;
 yaklaşık eşleştirme deneyi yapıldığı veya faydasının ölçüldüğü iddia
@@ -94,27 +94,36 @@ kesin kurallarla karşılaştırılır. Kabul eşikleri ölçümden önce iş ka
 yazılır; sonucu gördükten sonra kabul için değiştirilmez. Deney, otomatik
 olay birleştirme veya alarm verme yetkisi kazandırmaz.
 
-### Genel arama: eksik iş bir paketle çözülmüyor
+### Uygulanan genel arama izlemesi — 0.142.0
 
-Arama ve bildirim mekanizmaları mevcut; yeni iş genel aramayı güvenilir
-bir izleme tanımına dönüştürmektir. Mevcut CTI kayıtlı arama şeması CTI
-türlerine bağlıdır; bütün türlere sessizce genişletilmez.
+`search-watch` mevcut genel arama ve bildirim desenleriyle on kayıt
+ailesini izler. Mevcut CTI kayıtlı arama şeması ve eski bildirim davranışı
+değiştirilmedi; ayrı yaşam döngüsü ve kanıt kayıtları eklendi.
 
 - Kalıcı kayıt kimliği ile her kaynak çalışmasının kimliği ayrılır.
   Örneğin [genel arama adaptöründe](../../src/xti/adapters/sqlite_global_search.py)
   sosyal sonuçların çalışma öğesi kimliği yenilenebilir. Aynı profil yeni
-  bir çalışma kimliği aldı diye tekrar yeni eşleşme bildirimi çıkmamalı.
+  bir çalışma kimliği aldı diye tekrar yeni eşleşme bildirimi çıkmaz.
 - Tam sonuç aynı veritabanı okuma anından alınır. Ayrı zamanlarda alınan
   500'er satırlık ekran sayfaları birleştirilerek geçmiş oluşturulmaz.
   Görüntüleme sınırı saklanan karşılaştırmayı kesmez.
-- İlk ölçüm sessizdir; tekrar ve kaynak hatası yeni sonuç/kaybolma sayılmaz.
-  Sorgu revizyonu, kanıt, fark ve bildirim aynı kayıt kurallarını izler.
-- İlk genel arama izlemesinde bildirim yalnız yeni eşleşme içindir;
-  içerik değişimi ve çıkarılma çalışma farkında gösterilir. Mevcut CTI
-  kayıtlı aramasının çıkarılmada da bildiren davranışı aynen kopyalanmaz
-  ve eski CTI davranışı bu yeni özellik nedeniyle değiştirilmez.
-- Kalıcı iş/çalışma ve bildirim tutarlılığı, yeniden başlatma ve yedekli
-  şema geçişi korunur. Yeni tablo gerekiyorsa açık migration yapılır.
+- İlk ölçüm, tanım değişikliği ve yeniden etkinleştirme sessizdir.
+  Tanım sürümü, tam sonuç ve kaynak kapsamı çalışma kanıtında dondurulur;
+  tekrar veya kaynak hatası tek başına yeni eşleşme sayılmaz.
+- Bildirim yeni **veya anlamlı biçimde değişmiş** eşleşme içindir.
+  Yalnız çıkarılma çalışma farkında kalır ve alarm üretmez. Mevcut CTI
+  kayıtlı aramasının çıkarılmada da bildiren davranışı değiştirilmez.
+- Şema 65, tanım/olay/snapshot/çalışma/bildirim için beş tablo ekler.
+  `global_search_snapshots` aynı tam kanıtı içerik özetiyle tekilleştirir;
+  öğe tablosu yoktur. Fark kaydedilmiş snapshot'lardan hesaplanır ve
+  gerekli bildirim çalışma ile aynı transaction'da yazılır.
+- Geçiş açık `migrate` ile benzersiz eski-sürüm yedeği aldıktan sonra
+  yapılır. Okuma/kurulum otomatik geçiş yapmaz. Eski koda geri dönüş,
+  önceki yedeği yeni veri yoluna restore ederek gerçekleştirilir;
+  mevcut şema 65 verisinin üstüne yazılmaz.
+- CLI/JSON ve ortak yerel inbox kullanılır. Sonlu `monitor` yalnız
+  terminal açıkken yerel aramayı tekrarlar; internet toplaması veya
+  daemon değildir. Yeni ağ API'si veya engine v1 işlemi eklenmedi.
 
 Bu nedenle ilk iki özellik için Elasticsearch/OpenSearch, yeni bir grafik
 veritabanı veya dinamik eklenti yükleme çatısı seçmiyoruz. Mevcut küçük
@@ -230,10 +239,10 @@ ikisini birlikte kurma kararı verilmez.
 ## 7. Bu seçimden sonraki teslim
 
 [Motor planındaki](ENGINE_INTEGRATION_ROADMAP.md) mevcut STB paketi
-tamamlandı. Olay adaylarının ilk dilimi 0.141.0'da ek bağımlılık olmadan
-uygulandı. Sırada genel kayıtlı arama bildirimleri, ardından haber modülü
-var. Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve ölçülmüş faydayla ele
-alınır. Tercihler somut katkı/kabul koşullarıyla yeniden değerlendirilir.
+tamamlandı. Olay adaylarının ilk dilimi 0.141.0'da, genel kayıtlı arama
+ve yerel bildirimleri 0.142.0'da ek bağımlılık olmadan uygulandı. Sırada
+RSS/Atom haber modülü var. Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve
+ölçülmüş faydayla ele alınır. Tercihler somut katkı/kabul koşullarıyla yeniden değerlendirilir.
 ENG-01'in yerel okuma sınırı 0.139.0'da
 [uygulandı](../ENGINE_CONTRACT.md); ENG-02 mevcut araç düzeni 0.140.0'da
 [kataloğa](../COMPONENTS.md) bağlandı. 0.140.1 doğrulama/belge düzeltmesidir.

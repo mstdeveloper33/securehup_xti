@@ -1,11 +1,11 @@
 # XTI motoru yol haritası ve tüketici ekibe teslim sınırı
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.141.0 / şema 64.
+**Mevcut sürüm:** 0.142.0 / şema 65.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
-ENG-03'ün kaynaklar arası olay adayları ilk dilimi uygulandı. Sırada
-kaydedilmiş genel arama bildirimleri, ardından haber kaynakları var.
+ENG-03'ün kaynaklar arası olay adayları ile kayıtlı genel arama ve yerel
+bildirim dilimleri uygulandı. Sırada ENG-04 RSS/Atom haber kaynakları var.
 .NET tüketicisi henüz bağlı değildir; bağlantıyı repoyu kullanan ekip yapar.
 [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 
@@ -119,8 +119,11 @@ sunar. İstek sürümü/kimliği, izinli işlem/parametreler, yapılandırılmı
 kayıt referansı, kaynak durumu, sayfalama ve hata kodları uygulanmıştır.
 0.140.0 aynı v1 sınırına proje araçlarını okuyan `components.list` ekler;
 önceki üç işlemin biçimi korunur.
-0.141.0'daki `events candidates` yerel CLI/JSON komutudur; engine v1'e
-yeni işlem eklemez. Dört mevcut v1 okuma işlemi ve şema 64 korunur.
+0.141.0'daki `events candidates` yerel CLI/JSON komutudur; o teslim
+engine v1'e yeni işlem eklemedi ve şema 64'ü korudu. 0.142.0'daki
+`search-watch` da yerel CLI/JSON sınırındadır; dört mevcut engine v1
+işlemi korunur. Kayıtlı arama geçmişi için şema 65'e açık, yedekli geçiş
+gerekir; yeni ağ API'si veya engine işlemi eklenmez.
 `request_id` yalnız ilişkilendirmedir; iş kimliği ve kalıcı tekrar önleme
 henüz yoktur. Kapsam güvenilen başlatıcının seçtiği kişisel kayıt alanıdır;
 paylaşımlı müşteri yetkisi tamamlandı sayılmaz. Daha geniş sözleşme sınırları:
@@ -193,15 +196,14 @@ bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
 ## 6. Uygulama sırası
 
 ENG kimlikleri önceki işleri takip etmek için korunur. Mevcut STB paketi
-ve ENG-03'ün ilk olay adayı dilimi tamamlandı; yakın sıra ENG-03'ün
-kayıtlı genel arama bildirimi, ardından ENG-04'tür. Entegrasyon için
+ve ENG-03'ün iki ilk teslimi tamamlandı; sıradaki özellik ENG-04'tür. Entegrasyon için
 teslim hazırlığı ve ENG-07 en sondadır; gerçek .NET uygulaması dış ekibe aittir.
 
 | Adım | Teslim | Tamamlanma ölçütü |
 |---|---|---|
 | **ENG-01 — Motor/.NET sözleşmesi** | 0.139.0: sürümlü yerel `search`, `record.get`, `sources.status` ve örnekleri uygulandı | Salt okuma, eski komut uyumu, tam/boş/hatalı/eski kaynak, kapsam reddi ve kayıt referansı kabulü; gerçek .NET tüketicisi ENG-05'te açık |
 | **ENG-02 — Bileşen ve kaynak düzeni** | 0.140.0: üç mevcut araç için ortak pin, açık yapılandırma ve yerel kurulum kataloğu; CLI/engine okuması uygulandı | Kurulum gözlemi canlı kaynak durumundan ayrı, araç yokken eski kanıt okunabilir, pin kayması testli; yeni araçlar aynı sınırla eklenir |
-| **ENG-03 — Olay adayları ve genel arama izlemesi** | 0.141.0: kaynaklar arası olay adayları ilk dilimi uygulandı; sırada kaydedilmiş genel arama bildirimleri | Uygulanan dilimde kaynak/tarih ayrımı, tutarlı yerel okuma ve önceki insan kararının ayrı kanıtı; bekleyen izlemede sessiz başlangıç, tekrar önleme ve tam sonuç farkı |
+| **ENG-03 — Olay adayları ve genel arama izlemesi** | 0.141.0: olay adayları; 0.142.0: `search-watch`, yerel inbox ve sınırlı ön plan tekrarı uygulandı | Kaynak/tarih ayrımı, değişmez tanım ve tam sonuç/kapsam kanıtı, sessiz başlangıç, yeni/anlamlı değişmiş eşleşmede atomik bildirim; yalnız çıkarılma geçmişte kalır |
 | **ENG-04 — Bekleyen haber ve kaynak genişlemesi** | feedparser ile RSS/Atom; sonra kanıtlanmış kapsam boşluğuna yeni kaynaklar | Kaynak atfı, tarih, tekilleştirme ve gerçek erişim; hata ile sonuç yokluğu ayrı |
 | **ENG-05 — Tüketici ekibe teslim; en sonda** | Bu repo sözleşme, örnekler ve belgeleri sağlar; .NET adaptörünü ve gerçek bağlantı kabulünü repoyu kullanan ekip yapar | Motorun kendi sözleşme testleri korunur; platform sürüm/taşıma/kapsam ve iki taraflı kabulü tüketici ekibin sorumluluğudur |
 | **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü; araç kurulum bütünlüğü ve kesinti sonrası geri dönüş | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
@@ -210,8 +212,8 @@ teslim hazırlığı ve ENG-07 en sondadır; gerçek .NET uygulaması dış ekib
 ENG-01'in ilk yerel okuma teslimi ve ENG-02'nin mevcut araç düzeni
 tamamlandı. [Bileşen kataloğu](../COMPONENTS.md) tam bağımlılık/kurulum
 bütünlüğü veya canlı çalışma kabulü değildir; ileri işletim işleri ENG-06'da
-açıktır. İlk olay adayı dilimi tamamlandı; genel arama bildirimi ve RSS
-sıradaki motor özellikleridir. Geniş paylaşım ve LLM en sondadır. Mevcut
+açıktır. İlk olay adayı ve genel arama bildirimi dilimleri tamamlandı;
+RSS/Atom sıradaki motor özelliğidir. Geniş paylaşım ve LLM en sondadır. Mevcut
 özelliklerin kullanımı devam eder.
 
 ### ENG-03 ilk teslimi — 0.141.0
@@ -241,8 +243,40 @@ değiştirmez.
 
 RapidFuzz bu teslim için gerekmedi ve kurulmadı. Yeni yaklaşık ad
 eşleştirmesi ancak [ölçüm koşullarıyla](COMPONENT_SELECTION_PLAN.md)
-yeniden değerlendirilir. Sıradaki uygulama kayıtlı genel arama
-bildirimleri, ardından RSS/Atom haber kaynaklarıdır.
+yeniden değerlendirilir. Bu teslimin ardından kayıtlı genel arama
+bildirimleri 0.142.0'da eklendi; sırada RSS/Atom haber kaynakları var.
+
+### ENG-03 ikinci teslimi — 0.142.0
+
+`search-watch` genel aramanın on kayıt ailesini kalıcı bir izleme tanımına
+bağlar. Ekleme/güncelleme, liste/ayrıntı, açık çalıştırma, çalışma kanıtı,
+devre dışı bırakma ve sınırlı `monitor` komutları terminal/JSON üzerinden
+kullanılır. Monitor yalnız terminal açıkken sonlu tur/süre bütçesiyle
+yerel aramayı tekrarlar; internetten kaynak toplamaz veya daemon kurmaz.
+
+- İlk çalışma, tanım değişikliği ve yeniden etkinleştirme sessiz bir
+  başlangıçtır. Aynı tanımın sonraki ölçümünde yeni veya anlamlı biçimde
+  değişmiş eşleşme ortak yerel kutuya bildirim ekler. Yalnız çıkarılma
+  çalışma farkında kalır; yeni alarm üretmez. CTI kayıtlı aramalarının
+  mevcut bildirim davranışı değiştirilmez.
+- Her çalışma özgün tanım sürümünü, tam eşleşmeleri ve kaynak kapsamını
+  dondurur. Sayfalama yalnız görünümü sınırlar; daha sonra kaynak veya
+  tanım değişmesi eski çalışma kanıtını değiştirmez. Kaynak çalışması ya
+  da toplama zamanı yenilendi diye aynı kayıt yeni eşleşmeye dönüşmez.
+- Şema 65 beş boş tablo ekler: tanımlar, tanım olayları, tam sonuç
+  snapshot'ları, çalışmalar ve bildirimler. `global_search_snapshots`
+  aynı kanıtı içerik özetiyle tekilleştirir; ayrı bir sonuç öğeleri tablosu
+  yoktur. Farklar kaydedilmiş tam snapshot'lardan üretilir; çalışma ve
+  gerekli bildirim aynı transaction'da saklanır.
+- Mevcut veriye geçiş açık `migrate` ile, benzersiz önceki-sürüm yedeği
+  oluşturulduktan sonra yapılır. Okuma ve `setup` otomatik geçiş yapmaz.
+  Şema 65'i desteklemeyen eski kod yeni veriyi açmaz; geri dönüş eski
+  yedeği yeni bir veri yoluna restore ederek yapılır. Bu dönüş geçişten
+  sonraki yeni kayıtları eski şemaya taşımaz; şema 65 verisi korunur.
+
+Yeni kütüphane, ağ API'si veya engine v1 işlemi eklenmedi. Sonraki özellik
+RSS/Atom haber kaynaklarıdır; .NET bağlantısını tüketici ekip geliştirir.
+Entegrasyon teslim hazırlığı, geniş paylaşım ve LLM en sonda kalır.
 
 ### Tamamlanan sağlamlaştırma ve korunan işletim sınırı
 
@@ -304,12 +338,13 @@ abonelik yönetimi .NET tarafının kararıdır.
 Mevcut motorun 11 maddelik kabul paketi tamamlandı. Kullanıcı
 [başlangıç rehberiyle](../GETTING_STARTED.md) kurup terminalden çalışabilir;
 güncelleme, yarım iş ve yedekten dönüş adımları aynı rehberdedir. V1 yerel
-okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir. Şema 64 ve
-mevcut veriler korunur.
+okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir. 0.140.4'ün
+sağlamlaştırma ve 0.141.0'ın olay adayı teslimi şema 64 kapsamındaydı;
+0.142.0, mevcut kayıtları koruyan açık/yedekli şema 65 geçişini ekler.
 
 Gerçek .NET/PostgreSQL bağlantısını hedef platform hazır olduğunda repoyu
-kullanan ekip yapar. ENG-03'ün olay adayı dilimi 0.141.0'da uygulandı;
-yakın sıra kayıtlı genel arama bildirimleri ve ENG-04 haber kaynaklarıdır.
+kullanan ekip yapar. ENG-03'ün olay adayı ve kayıtlı genel arama dilimleri
+uygulandı; yakın sıra ENG-04 haber kaynaklarıdır.
 Entegrasyon teslim hazırlığı, geniş paylaşım ve LLM en sona ertelenmiştir. Sonraki
 değişiklikler aynı hata/kesinti/veri koruma ve kurulum kabulünden geçer.
 
@@ -413,9 +448,9 @@ müşteri yalıtımı davranışını var sayamaz.
 
 ### Sağlamlaştırmadan sonraki özellik sırası
 
-ENG-03'ün kaynaklar arası olay adayları ilk dilimi 0.141.0'da tamamlandı.
-Sırada ENG-03 kayıtlı genel arama bildirimleri, ardından ENG-04 RSS/Atom
-ve ölçülmüş katkısı olan kaynaklar var. Entegrasyon teslim
+ENG-03'ün kaynaklar arası olay adayları ilk dilimi 0.141.0'da, kayıtlı
+genel arama ve yerel bildirimleri 0.142.0'da tamamlandı. Sırada ENG-04
+RSS/Atom ve ölçülmüş katkısı olan kaynaklar var. Entegrasyon teslim
 hazırlığı ile ENG-07 geniş paylaşım ve isteğe bağlı LLM desteği en sona
 kalır. Gerçek .NET bağlantısı dış ekibin işidir. Her yeni açık kaynak
 bileşende görev, lisans, sabit sürüm, veri katkısı ve hata halinde çekirdek

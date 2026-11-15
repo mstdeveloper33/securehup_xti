@@ -4,6 +4,7 @@ from xti.domain.inbox import InboxDetails, InboxPage
 from xti.interfaces.text import safe_text
 from xti.interfaces.public_notice_watches import change_lines as public_notice_change_lines
 from xti.interfaces.supplier_watches import watch_run_lines as supplier_watch_run_lines
+from xti.interfaces.global_saved_searches import run_lines as global_search_run_lines, search_watch_command
 
 
 ORIGIN_LABELS = {"new": "Yeni aday", "existing": "Önceki kayıttan"}
@@ -100,6 +101,17 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
                 f"artık eşleşmeyen {evidence.removed_count}",
                 f"  Çalışma zamanı: {safe_text(evidence.executed_at)}",
             ])
+        elif item.global_search_change is not None:
+            evidence = item.global_search_change
+            run = evidence.run
+            lines.extend([
+                "",
+                f"{read_state} | Genel arama eşleşmeleri değişti | {safe_text(evidence.saved_search.display_name)}",
+                f"  Bildirim: {safe_text(notice.id)} | sorgu: {safe_text(evidence.saved_search.query)}",
+                f"  Yeni {run.added_count} | değişen {run.updated_count} | artık eşleşmeyen {run.removed_count}",
+                f"  Çalışma zamanı: {safe_text(run.executed_at)} | çalışma: {safe_text(run.id)}",
+                "  Çalışma anındaki tanım ve kanıt; eşleşme yeni veya doğrulanmış ihlal değildir.",
+            ])
         elif item.ransomware_change is not None:
             evidence = item.ransomware_change
             lines.extend([
@@ -173,8 +185,17 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
     return lines
 
 
-def detail_lines(item: InboxDetails) -> list[str]:
+def detail_lines(item: InboxDetails, *, data_dir=None) -> list[str]:
     notice = item.notification
+    if item.global_search_change is not None:
+        return [
+            f"Bildirim: {safe_text(notice.id)} | Genel arama eşleşmeleri değişti",
+            f"Kutuda oluşturulma: {safe_text(notice.created_at)}",
+            f"Okundu zamanı: {safe_text(notice.read_at or 'Henüz okunmadı')}",
+            *global_search_run_lines(item.global_search_change, data_dir=data_dir),
+            "Tam çalışma: " + search_watch_command("run-show", item.global_search_change.run.id, data_dir=data_dir),
+            "Ayrıntıya bakmak bildirimi okundu işaretlemez; tarihî kanıt değişmez.",
+        ]
     if item.supplier_change is not None:
         return [
             f"Bildirim: {safe_text(notice.id)} | Tedarikçi kaynak eşleşmeleri değişti",

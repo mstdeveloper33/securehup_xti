@@ -182,6 +182,10 @@ from xti.interfaces.organizations import register_organizations_parser, execute_
 from xti.application.global_search import GlobalSearchService
 from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
 from xti.interfaces.global_search import register_global_search_parser, execute_global_search_command
+from xti.interfaces.global_saved_searches import (
+    register_global_saved_search_parser, make_global_saved_search_service,
+    execute_global_saved_search_command,
+)
 from xti.application.asset_relations import AssetRelationsService
 from xti.adapters.sqlite_asset_relations import SQLiteAssetRelationsRepository
 from xti.interfaces.asset_relations import register_asset_relations_parser, execute_asset_relations_command
@@ -793,6 +797,7 @@ def build_parser() -> Parser:
     register_history_parser(commands)
     register_organizations_parser(commands)
     register_global_search_parser(commands)
+    register_global_saved_search_parser(commands)
     register_engine_parser(commands)
     register_components_parser(commands)
     register_event_candidates_parser(commands)
@@ -3518,6 +3523,12 @@ def run(args: argparse.Namespace) -> int | None:
         emit(data, lines, as_json=args.json)
     elif args.command == "events":
         data, lines = execute_event_candidates_command(make_event_candidate_service(settings.database), args)
+        emit(data, lines, as_json=args.json)
+    elif args.command == "search-watch":
+        data, lines = execute_global_saved_search_command(
+            make_global_saved_search_service(settings.database), args,
+            progress=terminal_progress(args.json),
+        )
         emit(data, lines, as_json=args.json)
     elif args.command == "organizations":
         if args.organization_action == "report":
@@ -6594,7 +6605,7 @@ def run(args: argparse.Namespace) -> int | None:
                  inbox_page_lines(page, status=args.status, next_command=next_command), as_json=args.json)
         elif args.inbox_action == "show":
             item = inbox.show(args.notification_id)
-            emit(asdict(item), inbox_detail_lines(item), as_json=args.json)
+            emit(asdict(item), inbox_detail_lines(item, data_dir=settings.data_dir), as_json=args.json)
         elif args.inbox_action in {"read", "unread"}:
             result = inbox.mark(args.notification_ids, read=args.inbox_action == "read")
             label = "okundu" if args.inbox_action == "read" else "okunmamış"

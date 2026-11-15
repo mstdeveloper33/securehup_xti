@@ -3,6 +3,7 @@
 Existing source readers own history validation. This adapter composes their
 records; it never collects a source, initializes storage or persists a view.
 """
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,6 +24,7 @@ from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.brand_username_reviews import brand_username_review_candidate_id
 from xti.domain.cases import canonical_snapshot
 from xti.domain.cti_knowledge import search_query_key
+from xti.domain.engine import reference_for_result
 from xti.domain.global_search import (
     GLOBAL_SEARCH_KINDS, MAX_SEARCH_ROWS, GlobalSearchCoverage, GlobalSearchReport,
     GlobalSearchResult, global_match, normalize_global_kinds, normalize_global_query,
@@ -54,23 +56,35 @@ def _nav(label, *arguments):
 
 
 class _SearchReader:
-    def __init__(self, connection, path, query, include_inactive, checked_at):
+    def __init__(self, connection, path, query, include_inactive, checked_at, *, tracking=False):
         self.connection, self.path, self.query = connection, path, query
         self.include_inactive, self.checked_at = include_inactive, checked_at
         self.results, self.coverage = [], []
+        self.observations = [] if tracking else None
+
+    def track(self, result, *, identity=None, semantic=None):
+        if self.observations is None:
+            return
+        if len(self.observations) >= MAX_SEARCH_ROWS:
+            raise StorageError('Kayıtlı genel arama tam sonuç sınırını aşıyor; kısmi çalışma kaydedilmedi.')
+        identity = identity or reference_for_result(result).to_dict()
+        self.observations.append((result, identity, semantic or {}))
 
     def add(self, kind, record_type, record_id, display_value, status, current,
-            recorded_at, source, fields, *, source_run_id=None, details=(), navigation=()):
+            recorded_at, source, fields, *, source_run_id=None, details=(), navigation=(),
+            tracking_identity=None, semantic=None):
         recorded_at = _time(recorded_at)
         match = global_match(self.query, fields)
         if match is None:
             return
         match_type, matched_field, matched_value = match
-        self.results.append(GlobalSearchResult(
+        result = GlobalSearchResult(
             kind, record_type, record_id, display_value, matched_field, matched_value,
             match_type, status, current, recorded_at, source, source_run_id,
             tuple(details), tuple(navigation),
-        ))
+        )
+        self.results.append(result)
+        self.track(result, identity=tracking_identity, semantic=semantic)
 
     def cover(self, kind, source, count, start, *, latest=None, success=None, notes=()):
         notes = list(notes)
@@ -132,6 +146,8 @@ class _SearchReader:
                      (('domain', value.domain), ('root_domain', value.asset_value)),
                      details=(f'Kök domain: {value.asset_value}', f'İnsan gerekçesi: {value.reason}',
                               'Kaynaklar: ' + ', '.join(sorted({source.provider for source in data.sources}))),
+                     semantic={'root_domain': value.asset_value, 'reason': value.reason,
+                               'providers': sorted({source.provider for source in data.sources})},
                      navigation=(_nav('Aday ve kaynakları', 'surface', 'candidate', 'show', value.id),))
         self.cover('domain', 'passive-discovery', len(rows), start,
                    notes=('Pasif alt alan adaylarıdır; aday kaydı güncel kontrol veya sahiplik kanıtı değildir.',
@@ -153,6 +169,7 @@ class _SearchReader:
                      value.last_seen_at, 'local-match',
                      (('domain', value.domain), ('asset_domain', value.asset_value)),
                      details=(f'İzlenen domain: {value.asset_value}',) + value.reasons,
+                     semantic={'asset_domain': value.asset_value, 'reasons': value.reasons},
                      navigation=(_nav('Bulgu ve insan kararı', 'findings', 'show', value.id),))
         self.cover('finding', 'local-match', len(rows), start,
                    notes=('Tüm insan kararları, dismissed dahil, korunur; eşleşme taklit hükmü değildir.',))
@@ -180,6 +197,7 @@ class _SearchReader:
                          watch.source_key, (('watch_name', watch.display_name), ('username', watch.username)),
                          details=(f'Kullanıcı adı: {watch.username}', f'Güncel tanım: {definition}',
                                   'İzleme tanımıdır; hesap bulunduğu anlamına gelmez.'),
+                         semantic={'username': watch.username, 'definition_sha256': definition},
                          navigation=(_nav('İzleme', 'brand', 'watch-show', watch.id),))
             for (item_definition, _), item in sorted(latest_items.items()):
                 run = runs[item.run_id]
@@ -190,6 +208,7 @@ class _SearchReader:
                            f'Platform: {item.platform}', f'Çalışma tanımı: {item_definition}',
                            f'Değişim: {item.action}']
                 navigation = [_nav('Kaynak çalışması', 'brand', 'watch-run-show', run.id)]
+                review_state = None
                 if item.status == 'found_unverified':
                     candidate_id = brand_username_review_candidate_id(
                         watch_id=watch.id, definition_sha256=item_definition,
@@ -199,10 +218,18 @@ class _SearchReader:
                         review = SQLiteBrandUsernameReviewRepository._state(candidate_id, reviews[candidate_id], candidates)
                         details.extend((f'İnsan kararı: {review.decision}', f'Gerekçe: {review.reason}'))
                         navigation.append(_nav('İnsan incelemesi', 'brand', 'watch-review-show', candidate_id))
+                        review_state = {'decision': review.decision, 'reason': review.reason}
                 self.add('social', 'social_profile', item.id, item.profile_url or f'{run.username} / {item.platform}',
                          item.status, current, run.recorded_at, run.source_name,
                          (('username', run.username), ('profile_url', item.profile_url), ('platform', item.platform)),
-                         source_run_id=run.id, details=details, navigation=navigation)
+                         source_run_id=run.id, details=details, navigation=navigation,
+                         tracking_identity={'kind': 'social', 'record_type': 'social_profile',
+                                            'namespace': watch.source_key, 'watch_id': watch.id,
+                                            'definition_sha256': item_definition, 'platform': item.platform},
+                         semantic={'username': run.username, 'platform': item.platform,
+                                   'profile_url': item.profile_url, 'review': review_state,
+                                   'watch_id': watch.id, 'definition_sha256': item_definition,
+                                   'source_key': watch.source_key})
             notes = [f'İzleme: {watch.display_name} ({watch.id}); etkin={watch.active}.',
                      'Varsayılan: güncel tanımın son başarılı çalışması; --all: her tanım/platformun son bilinen kaydı.',
                      'unreported hesap yokluğu/silinmesi değildir; bulunan profil kimliği veya taklidi doğrulamaz.']
@@ -256,10 +283,17 @@ class _SearchReader:
                 display, record_type = value.title, 'public_breach_notice'
                 navigation = ((_nav('Kamu olay kanıtı', 'notices', 'show', identifier),) if is_current else
                               (_nav('Katalogdan çıkarılma kanıtı', 'notices', 'run-show', run.id),))
+            semantic = asdict(value)
+            if kind == 'ransomware':
+                semantic.pop('last_seen_at', None)
+            else:
+                # Category order is publisher presentation, not a change in
+                # exposed data. The exact original order remains in details.
+                semantic['data_classes'] = sorted(value.data_classes)
             self.add(kind, record_type, identifier, display,
                      'source_claim' if is_current else 'withdrawn_from_catalog', is_current,
                      run.finished_at, source, fields, source_run_id=run.id,
-                     details=details, navigation=navigation)
+                     details=details, navigation=navigation, semantic=semantic)
         notes = [license_note, 'Varsayılan son başarılı katalog; --all çıkarılmış kimliklerin son bilinen kaydını da içerir.',
                  'Aynı kimliğin eski sürümleri ve her çalışma ayrı arama satırı değildir.',
                  'Sıfır eşleşme ihlal olmadığını kanıtlamaz; kaynakta kaldırılma çözüm anlamına gelmez.']
@@ -311,6 +345,10 @@ class _SearchReader:
                      details=(f'Öncelik: {value.priority}', f'Özet: {value.summary}',
                               f'Vaka durumu zamanı: {lifecycle[-1][0].recorded_at}',
                               f'Son vaka etkinliği: {timeline[-1][0].recorded_at}') + evidence_details,
+                     semantic={'priority': value.priority, 'summary': value.summary, 'resolution': value.resolution,
+                               'links': [{'id': link.id, 'evidence_type': link.evidence_type,
+                                          'evidence_id': link.evidence_id, 'display_value': link.display_value,
+                                          'active': link.active} for link in sorted(selected_links, key=lambda item: item.id)]},
                      navigation=(_nav('Vaka', 'cases', 'show', value.id),))
         self.cover('case', 'local-case-management', len(rows), start,
                    notes=('Kişisel çalışma alanının tüm vaka durumları aranır; başlık, özet ve açık kanıt bağlantıları eşleşir.',
@@ -328,6 +366,8 @@ class _SearchReader:
                      'local-suppliers', (('name', value.display_name), ('domain', value.primary_domain)),
                      details=(f'Birincil domain: {value.primary_domain}', f'İlişki: {value.relationship_type}',
                               f'Önem: {value.criticality}'),
+                     semantic={'domain': value.primary_domain, 'relationship_type': value.relationship_type,
+                               'criticality': value.criticality},
                      navigation=(_nav('Tedarikçi', 'suppliers', 'show', value.id),))
         self.cover('supplier', 'local-suppliers', len(values), start,
                    notes=('Yerel tedarikçi tanımıdır; risk veya ihlal kararı değildir.',))
@@ -342,6 +382,7 @@ class _SearchReader:
                      'active' if value.active else 'inactive', value.active, value.updated_at,
                      'local-organizations', (('name', value.display_name),),
                      details=(f'Tanım sürümü: {value.revision}',),
+                     semantic={'revision': value.revision},
                      navigation=(_nav('Kuruluş', 'organizations', 'show', value.id),))
         self.cover('organization', 'local-organizations', len(values), start,
                    notes=('Kişisel kuruluş gruplarıdır; müşteri ayrımı veya sahiplik doğrulaması değildir.',))
@@ -379,13 +420,40 @@ class _SearchReader:
                 details = (f'Etkin kaynak iddiası: {result.current_assertion_count}/{result.total_assertion_count}',
                            f'En yüksek etkin kaynak güveni: {result.max_current_confidence}',) + tuple(
                     f'Kaynak: {value.source_name} | {value.source_reference} | etkin={value.active}' for value in assertions)
-                self.results.append(GlobalSearchResult(kind, result.record_type, result.record_id, result.display_value,
+                value = GlobalSearchResult(kind, result.record_type, result.record_id, result.display_value,
                     result.matched_field, result.matched_value, result.match_type,
                     'active_source_assertions' if current else 'inactive_source_assertions', current,
-                    _time(at), sources, details=details, navigation=navigation))
+                    _time(at), sources, details=details, navigation=navigation)
+                self.results.append(value)
+                self.track(value, semantic={
+                    'current_assertion_count': result.current_assertion_count,
+                    'total_assertion_count': result.total_assertion_count,
+                    'max_current_confidence': result.max_current_confidence,
+                    'sources': [{'source_name': item.source_name, 'source_reference': item.source_reference,
+                                 'active': item.active} for item in sorted(assertions, key=lambda item: item.id)],
+                })
             self.cover(kind, 'local-cti', count, start,
                        notes=('Mevcut cti search araması ve kaynak geçmişi denetimi kullanılır; açıklama gövdeleri aranmaz.',
                               'Varsayılan etkin/geçerli kaynak iddiaları; --all etkin olmayan kimlik ve kaynak alanlarını da içerir.'))
+
+
+def read_global_search_snapshot(connection, path, query, *, kinds, include_inactive, checked_at,
+                                tracking=False):
+    """Compose all selected families inside the caller's existing transaction."""
+    reader = _SearchReader(connection, path, query, include_inactive, checked_at, tracking=tracking)
+    handlers = {'domain': reader.domains, 'finding': reader.findings, 'social': reader.social,
+                'ransomware': reader.ransomware, 'public-notice': reader.public_notices,
+                'case': reader.cases, 'supplier': reader.suppliers, 'organization': reader.organizations}
+    for kind in kinds:
+        if kind in handlers:
+            handlers[kind]()
+    if 'cti' in kinds or 'indicator' in kinds:
+        reader.intelligence(kinds)
+    reader.results.sort(key=lambda value: (
+        ('exact', 'prefix', 'contains').index(value.match_type), GLOBAL_SEARCH_KINDS.index(value.kind),
+        value.record_type, value.display_value.casefold(), value.source, value.record_id,
+    ))
+    return reader
 
 
 class SQLiteGlobalSearchRepository:
@@ -404,19 +472,9 @@ class SQLiteGlobalSearchRepository:
         try:
             with self._storage._connection(readonly=True) as connection:
                 connection.execute('BEGIN')
-                reader = _SearchReader(connection, self._storage.path, query, include_inactive, checked_at)
-                handlers = {'domain': reader.domains, 'finding': reader.findings, 'social': reader.social,
-                            'ransomware': reader.ransomware, 'public-notice': reader.public_notices,
-                            'case': reader.cases, 'supplier': reader.suppliers, 'organization': reader.organizations}
-                for kind in kinds:
-                    if kind in handlers:
-                        handlers[kind]()
-                if 'cti' in kinds or 'indicator' in kinds:
-                    reader.intelligence(kinds)
-                ordered = sorted(reader.results, key=lambda value: (
-                    ('exact', 'prefix', 'contains').index(value.match_type), GLOBAL_SEARCH_KINDS.index(value.kind),
-                    value.record_type, value.display_value.casefold(), value.source, value.record_id,
-                ))
+                reader = read_global_search_snapshot(connection, self._storage.path, query,
+                    kinds=kinds, include_inactive=include_inactive, checked_at=checked_at)
+                ordered = reader.results
                 selected = tuple(ordered[offset:offset + limit])
                 return GlobalSearchReport(query, kinds, include_inactive, checked_at, len(ordered), offset, limit,
                     offset + len(selected) < len(ordered), selected, tuple(reader.coverage), (

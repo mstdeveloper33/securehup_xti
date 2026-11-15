@@ -307,6 +307,31 @@ Bulunanlar kaynak iddialarıdır; doğrulanmış ihlal değildir.
 bildirim üretmez. Okundu işareti iddiayı doğrulamaz; kaynakların kimlikleri
 ayrı kalır. Eski çalışmalara geriye dönük bildirim eklenmez.
 
+### Genel aramayı kaydet ve bildirim al
+
+Mevcut toplayıcılarla verileri yeniledikten sonra:
+
+```sh
+./xti search-watch add "Markam" "example.com"
+./xti search-watch run ARAMA_KIMLIGI
+./xti search-watch monitor ARAMA_KIMLIGI --cycles 10 --interval 60 --duration 600
+./xti inbox
+./xti inbox show BILDIRIM_KIMLIGI
+./xti search-watch run-show CALISMA_KIMLIGI --limit 50
+```
+
+Arama kimliği `add` çıktısındadır. İlk çalışma sessizdir; sonraki yeni veya
+değişen eşleşmeler tek yerel bildirimde toplanır. Yalnız artık eşleşmeyen
+kayıtlar geçmişe yazılır, bildirim oluşturmaz. Her iki durumun eski/yeni
+kanıtı gösterilir. Bu, yerel kayıt değişimidir; yeni ihlal hükmü değildir.
+
+`monitor` kaynakları internetten yenilemez; terminal açıkken karşılaştırır.
+İnternet toplayıcılarını ayrı çalıştırabilirsin. Aynı adla `add` tanımı
+günceller; yeni tanım veya yeniden etkinleştirme sessiz başlangıç yapar.
+`search-watch disable ARAMA_KIMLIGI --reason "İzleme tamamlandı"` geçmişi
+silmeden durdurur. Eski kurulumda önce `./xti migrate` gerekir.
+[Kapsam, sayfalama ve sınırlar](../README.md#genel-aramayı-kaydet-ve-değişiklikleri-izle).
+
 ### Farklı kaynaklardaki olayları birlikte incele
 
 Ransomware kaynaklarını yukarıdaki komutlarla, kamu ihlal kataloğunu

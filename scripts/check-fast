@@ -69,6 +69,11 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_case_public_notice_migration.py \
     tests/test_organization_export.py \
     tests/test_global_search.py \
+    tests/test_global_saved_searches.py \
+    tests/test_global_saved_search_storage.py \
+    tests/test_global_saved_search_cli.py \
+    tests/test_global_saved_search_notifications.py \
+    tests/test_global_saved_search_migration.py \
     tests/test_event_candidate_rules.py \
     tests/test_event_candidate_storage.py \
     tests/test_event_candidates.py \

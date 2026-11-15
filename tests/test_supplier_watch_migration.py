@@ -67,7 +67,7 @@ class SupplierWatchMigrationTests(unittest.TestCase):
         self.assertEqual(manifest(self.path), before)
         self.assertEqual(manifest(result["backup"]), before)
         with closing(sqlite3.connect(self.path)) as connection:
-            self.assertEqual(validate_schema(connection), 64)
+            self.assertEqual(validate_schema(connection), SCHEMA_VERSION)
             self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])
             for table in NEW_TABLES:
                 self.assertEqual(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0], 0)

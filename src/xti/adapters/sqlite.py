@@ -30,6 +30,7 @@ from xti.adapters.schema import (
     create_public_notice_schema,
     create_public_notice_watch_schema,
     create_supplier_watch_schema,
+    create_global_saved_search_schema,
     create_epss_schema,
     create_nvd_schema,
     create_nvd_window_schema,
@@ -212,6 +213,7 @@ class SQLiteAssetRepository:
                 create_cti_hunting_journal_schema(connection)
                 create_webhook_schema(connection)
                 create_supplier_watch_schema(connection)
+                create_global_saved_search_schema(connection)
                 connection.execute(f"PRAGMA application_id={APPLICATION_ID}")
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
@@ -561,6 +563,24 @@ class SQLiteAssetRepository:
             unread_supplier_watch_notifications = connection.execute(
                 "SELECT COUNT(*) FROM supplier_watch_notifications WHERE read_at IS NULL"
             ).fetchone()[0]
+            global_saved_searches = connection.execute(
+                "SELECT COUNT(*) FROM global_saved_searches"
+            ).fetchone()[0]
+            active_global_saved_searches = connection.execute(
+                "SELECT COUNT(*) FROM global_saved_searches WHERE active=1"
+            ).fetchone()[0]
+            global_saved_search_runs = connection.execute(
+                "SELECT COUNT(*) FROM global_saved_search_runs"
+            ).fetchone()[0]
+            global_search_snapshots = connection.execute(
+                "SELECT COUNT(*) FROM global_search_snapshots"
+            ).fetchone()[0]
+            global_saved_search_notifications = connection.execute(
+                "SELECT COUNT(*) FROM global_saved_search_notifications"
+            ).fetchone()[0]
+            unread_global_saved_search_notifications = connection.execute(
+                "SELECT COUNT(*) FROM global_saved_search_notifications WHERE read_at IS NULL"
+            ).fetchone()[0]
             ransomware_watch_notifications = connection.execute(
                 "SELECT COUNT(*) FROM ransomware_watch_notifications"
             ).fetchone()[0]
@@ -669,6 +689,7 @@ class SQLiteAssetRepository:
                 + vulnerability_change_notifications + cti_saved_search_notifications
                 + ransomware_watch_notifications + ransomlook_watch_notifications
                 + public_notice_watch_notifications + supplier_watch_notifications
+                + global_saved_search_notifications
                 + brand_username_review_notifications
             ),
             "unread_notification_count": (
@@ -678,6 +699,7 @@ class SQLiteAssetRepository:
                 + unread_cti_saved_search_notifications
                 + unread_ransomware_watch_notifications + unread_ransomlook_watch_notifications
                 + unread_public_notice_watch_notifications + unread_supplier_watch_notifications
+                + unread_global_saved_search_notifications
                 + unread_brand_username_review_notifications
             ),
             "surface_change_notification_count": surface_change_notifications,
@@ -775,6 +797,12 @@ class SQLiteAssetRepository:
             "supplier_watch_run_count": supplier_watch_runs,
             "supplier_watch_notification_count": supplier_watch_notifications,
             "unread_supplier_watch_notification_count": unread_supplier_watch_notifications,
+            "global_saved_search_count": global_saved_searches,
+            "active_global_saved_search_count": active_global_saved_searches,
+            "global_saved_search_run_count": global_saved_search_runs,
+            "global_search_snapshot_count": global_search_snapshots,
+            "global_saved_search_notification_count": global_saved_search_notifications,
+            "unread_global_saved_search_notification_count": unread_global_saved_search_notifications,
             "unread_ransomlook_watch_notification_count": unread_ransomlook_watch_notifications,
             "ransomware_watch_notification_count": ransomware_watch_notifications,
             "unread_ransomware_watch_notification_count": (
@@ -978,6 +1006,8 @@ class SQLiteAssetRepository:
                     migrate_case_public_notice_schema(connection)
                 if version < 64:
                     create_supplier_watch_schema(connection)
+                if version < 65:
+                    create_global_saved_search_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

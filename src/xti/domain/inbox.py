@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from xti.domain.findings import Finding, FindingDetails
 from xti.domain.surface import SurfaceCandidate, SurfaceCandidateDetails
 from xti.domain.cti_saved_searches import CtiSavedSearchChangeEvidence
+from xti.domain.global_saved_searches import GlobalSavedSearchRunReport
 from xti.domain.ransomware_watches import RansomwareWatchChangeEvidence
 from xti.domain.ransomlook_watches import RansomLookWatchChangeEvidence
 from xti.domain.public_notice_watches import PublicNoticeWatchChangeEvidence
@@ -33,6 +34,7 @@ class Notification:
     ransomlook_run_id: str | None = None
     public_notice_watch_run_id: str | None = None
     supplier_watch_run_id: str | None = None
+    global_search_run_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +85,7 @@ class InboxItem:
     ransomlook_change: RansomLookWatchChangeEvidence | None = None
     public_notice_change: PublicNoticeWatchChangeEvidence | None = None
     supplier_change: SupplierWatchRunReport | None = None
+    global_search_change: GlobalSavedSearchRunReport | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,6 +110,7 @@ class InboxDetails:
     ransomlook_change: RansomLookWatchChangeEvidence | None = None
     public_notice_change: PublicNoticeWatchChangeEvidence | None = None
     supplier_change: SupplierWatchRunReport | None = None
+    global_search_change: GlobalSavedSearchRunReport | None = None
 
 
 @dataclass(frozen=True, slots=True)

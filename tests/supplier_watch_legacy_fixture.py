@@ -2,6 +2,8 @@
 
 
 def remove_supplier_watch_schema(connection):
+    from tests.global_saved_search_legacy_fixture import remove_global_saved_search_schema
+    remove_global_saved_search_schema(connection)
     tables = (
         "supplier_watch_notifications", "supplier_watch_runs",
         "supplier_watch_events", "supplier_watches",

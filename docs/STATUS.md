@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.141.0 · Şema 64.**
+**15 Kasım 2026 · 0.142.0 · Şema 65.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -11,11 +11,13 @@ aittir. Biz motoru, sürümlü sözleşmesini, örneklerini ve belgelerini
 sağlarız. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
-veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
+veya müşteri yalıtımı henüz uygulanmadı. 0.142.0 yerel kayıtlı arama için
+şema 65'e açık yedekli geçiş ekler; engine v1'in dört işlemi korunur.
 
-**Güncel teslim:** 0.141.0, üç açık kaynağın yerel kayıtlarını birlikte
-inceleyen `events candidates` komutunu ekler. Olası aynı olay ile yalnız
-ortak kuruluş/domain bağlamı ayrı gösterilir; aşağıdaki kapsam geçerlidir.
+**Güncel teslim:** 0.142.0, on kayıt ailesini kapsayan `search-watch`
+komutlarını ve yerel değişiklik bildirimini ekler. İlk ölçüm sessizdir;
+sonraki yeni/anlamlı değişen eşleşmeler bildirilir. 0.141.0'ın kaynaklar
+arası olay adayları kullanılmaya devam eder.
 
 **Tamamlanan temel:** Mevcut SQLite motoru için tanımlanan 11 maddelik
 sağlamlaştırma paketi, aşağıdaki ortam ve kabul senaryolarında tamamlandı.
@@ -32,10 +34,53 @@ tesliminde kesin host ve mevcut ad/grup/zaman kuralları ile sınırlı
 noktalama düzenlemesi yeterli olduğu için RapidFuzz kurulmadı; genel
 yaklaşık eşleştirme ölçümlü ayrı çalışma olarak kaldı. Önceki FastAPI/Keycloak/panel
 tercihleri bu repo kapsamından çıkarıldı. Mevcut genel arama/CTI kayıtlı
-arama/bildirim desenleri kullanılacak. Bu bileşen araştırmasının paketleri
+arama/bildirim desenleri 0.142.0'da tekrar kullanıldı. Bu bileşen araştırmasının paketleri
 kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
+
+- `search-watch add/list/show/disable/run/run-show/monitor`: on yerel
+  kayıt ailesinin tam sonucunu izleme; ad/tür/etkinlik filtresi, sayfalı
+  liste, tanım/çalışma geçmişi, önce/sonra kanıt ve kaynak kapsamı.
+- Tanımı kaydetmek kaynak toplamaz veya başlangıç çalışması yapmaz.
+  İlk `run`, tanım değişimi veya yeniden etkinleştirme sessiz başlangıçtır.
+  Aynı tanımı tekrar kaydetmek yeni sürüm oluşturmaz. Arada çalışma
+  olmasa da A→B→A veya kapat/aç yeni başlangıçtır; eski kanıt korunur.
+- Sonraki yeni/anlamlı değişen eşleşmeler çalışma başına bir yerel bildirim
+  üretir. Aynı tekrar ve yalnız artık eşleşmeyen sonuç bildirim üretmez.
+  Bunlar yerel arama farklarıdır; yeni ihlal veya çözülmüş tehdit hükmü
+  değildir. Sonradan toplanan eski bir olay yerel aramaya yeni girebilir.
+- Sosyal profiller araç/izleme/tanım/platform kimliğiyle karşılaştırılır;
+  güncel çalışma-öğe kimliği ayrıca kanıtta saklanır. Kaynak yenileme
+  zamanı/çalışma kimliği ve gezinme değişikliği alarm üretmez. Yalnız
+  ransomware `last_seen_at` yenilenmesi de anlamlı değişim sayılmaz.
+- Tanım, tam arama görüntüsü, kaynak kapsamı ve fark aynı yazma işleminde
+  bildirimle birlikte kaydedilir. İçerik özeti aynı olan görüntü tekrar
+  kullanılır. Eski rapor bugünkü tanım veya kaynakla yeniden yazılmaz.
+  Gösterim limiti karşılaştırmanın tamamını kesmez.
+- Ortak inbox sayfalaması, bildirim sırası, okundu durumu, status/doctor
+  sayaçları ve açık webhook kuyruğu yeni bildirim türünü kapsar. Otomatik
+  uzak bildirim gönderimi yoktur; `monitor` yalnız terminal açıkken yerel
+  karşılaştırmayı tekrarlar ve her tur sonunda yazıcı kilidini bırakır.
+- Şema 65 beş boş tablo ekler; açık `migrate` benzersiz yedekle geçer.
+  Eski kod yeni şemayı reddeder; önceki sürüme geri dönüş yedeği yeni
+  veri dizinine açarak yapılır. Yeni bağımlılık veya engine v1 işlemi yoktur.
+- Sınırlar: 1.000 tanım, 10.000 tanım olayı, 20.000 çalışma; çalışma
+  başına 50.000 eşleşme, görüntü başına 16 MiB ve toplam görüntülerde
+  64 MiB. Aşımda kısmi sonuç veya veri silme yapılmaz. Geçmiş okuması
+  doğrulama maliyeti taşır; ölçülmüş kurumsal kapasite iddiası değildir.
+
+**0.142.0 hedefli doğrulaması:** Yeni kimlik/fark, depolama, terminal,
+bildirim ve geçiş testleri; mevcut genel arama, engine sözleşmesi/kayıtları
+ve mimariyle birlikte 103 testte, 36,593 saniyede geçti. Tüm migration
+paketi ayrıca 223/223 başarılıdır. Yeni geçiş kabul betiğinin 14 testinden
+12'si geçti; Linux `/proc` isteyen ikisi Mac'te atlandı. Gerçek CLI ile
+geçici şema 64 verisinin açık geçişi, tam eski tablo/rowid/SQL/kanıt
+koruması ve geçiş öncesi yedeği doğrulandı. Genel test ve gerçek Linux
+güncelleme/kurtarma sonuçları tamamlanınca ayrıca kaydedilecek.
+[Kullanım](../README.md#genel-aramayı-kaydet-ve-değişiklikleri-izle).
+
+**0.141.0 teslimi ve o sürümün kabulü:**
 
 - `events candidates`, ThreatCluster/RansomLook/HIBP kanıtını tek SQLite
   okuma anında kullanır. Kaynak yenileme ayrı mevcut internet komutlarıdır;
@@ -292,7 +337,8 @@ kendi sürümüyle korunur. Kullanıcı verisi, şema ve araç sürümleri deği
   ağacı/geçişli bağımlılık bütünlüğü bu okumayla doğrulanmaz. Eski kanıtlar
   araç eksikken de okunabilir. theHarvester kesinti/geri dönüş dilimi
   0.140.2'de eklendi; tanımlanan Linux işletim kabulü 0.140.4'te tamamlandı.
-  ENG-03'ün olay adayı dilimi 0.141.0'da eklendi; kayıtlı arama ve RSS sıradadır.
+  ENG-03'ün olay adayı dilimi 0.141.0'da, kayıtlı arama 0.142.0'da eklendi;
+  RSS/haber sıradadır.
 - Sosyal kurulum doğrulayıcısı, Git kaynak bilgisindeki nesne dışı JSON'u
   beklenmedik istisna yerine kontrollü hata olarak bildirir. Araç yükseltmesi,
   paket veya şema değişikliği yoktur.
@@ -2008,8 +2054,8 @@ güncelleme/kurtarma, karma kayıtların geri yüklenmesi, kesilmiş işin devam
 gizlilik, gerçek systemd ve ölçümlü kapasite kabulü yukarıda kayıtlıdır.
 [Motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) her işin bitiş kanıtını
 ve sınırını gösterir. SQLite ile kişisel kullanım devam eder. Olay
-adaylarının ilk dilimi 0.141.0'da eklendi. Sıradaki motor işi genel kayıtlı
-arama bildirimleri, ardından RSS/haber takibidir.
+adaylarının ilk dilimi 0.141.0'da, genel kayıtlı arama bildirimleri
+0.142.0'da eklendi. Sıradaki motor işi RSS/Atom haber takibidir.
 Entegrasyon için teslim hazırlığı, geniş paylaşım ve LLM en sondadır.
 .NET bağlantısını, platform PostgreSQL yerleşimini ve veri geçişini
 repoyu kullanan ekip yapar; bu repo motor, sözleşme, örnek ve belge sağlar.
