@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.140.4, şema 64 ana proje yapısı.**
+**15 Kasım 2026 — 0.141.0, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
@@ -21,7 +21,7 @@ iş/arama/sonuç sınırında da uygulanmalı ve ayrıca sınanmalıdır; bu yet
 sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
 [0142 kararı](decisions/0142-xti-engine-dotnet-host.md) ilk hedefi,
 [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
-Aşağıdaki bölümler mevcut 0.140.4 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.141.0 uygulamasını anlatır.
 
 0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
 ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite
@@ -49,12 +49,28 @@ mevcut kanıt okuyucularıyla çözer; dışarı çıkan alanlar v1 için açık
 Kaynak adının gösterim metni kayıt namespace'i değildir. Katalog geçmişi,
 sosyal çalışma öğesi ve insan kararı kendi bağlarını korur.
 
-İstek yalnız güvenilen başlatıcının seçtiği kişisel kayıt alanını okur;
-JSON dosya yolu/tenant/serbest komut kabul etmez. Yeni iş, ağ erişimi veya
-kimlik sistemi yoktur. Arama sayfaları ve ayrıntı ayrı okumalardır; kaynak
-durumu bütün kaynaklar için tek snapshot değildir. Mevcut terminal ve
-`--json` zarfı değişmedi. [0143 kararı](decisions/0143-versioned-engine-read-contract.md)
+Engine isteği yalnız güvenilen başlatıcının seçtiği kişisel kayıt alanını
+okur; JSON dosya yolu/tenant/serbest komut kabul etmez. Yeni iş, ağ erişimi
+veya kimlik sistemi yoktur. Arama sayfaları ve ayrıntı ayrı okumalardır;
+engine kaynak durumu bütün kaynaklar için tek snapshot değildir. Mevcut
+terminal ve `--json` zarfı değişmedi.
+[0143 kararı](decisions/0143-versioned-engine-read-contract.md)
 ve [v1 kullanım rehberi](ENGINE_CONTRACT.md).
+
+`EventCandidateService` küçük `EventCandidateRepository` portundan üç
+kaynağın denetlenmiş son başarılı kayıtlarını ve önceki ransomware karar
+bağlarını alır. `SQLiteEventCandidateRepository` bunları tek readonly
+transaction'da okur. Domain kuralları mevcut kesin ransomware karşılaştırma
+fonksiyonunu korur; noktalama düzenlenmiş ad + aynı grup + 72 saat ve tam
+TC website hostu/HIBP domain bağlamı ayrı gerekçelerdir. Kaynak namespace'i,
+çalışma kimliği ve içerik hash'i korunur; aday kimliği ile kanıt hash'i
+ayrıdır. Sayfalama tam sonuçtan sonra uygulanır; sınır aşımı sessiz kesilmez.
+Kompakt kaynak okuyucusu tüm kaynak geçmişini denetlerken yalnız son tam
+katalogları ve önceki kararların ihtiyaç duyduğu tekil kayıtları tutar;
+her eski çalışmanın tam katalog kopyasını saklamaz. Eski karşılaştırma
+okuyucusunun varsayılan davranışı ve dondurulmuş karar kanıtı korunur.
+`events candidates` terminal/JSON bağlamasıdır. Bu teslim yeni engine v1
+işlemi, genel aday kararı, alarm veya şema eklemez. [Kullanım](../README.md#kaynaklar-arası-olay-adaylarını-incele).
 
 `domain.component_pins`, mevcut üç harici aracın incelenmiş kimliğini
 adaptörler, kurulum denetimi ve sosyal doğrulayıcıyla paylaşır. Bağımsız

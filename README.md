@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.140.4 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+**Sürüm:** 0.141.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Bu repo
@@ -289,6 +289,55 @@ uzaktaki mevcut aktör/kampanya/malware/rapor ilişkilerini dayanaklarıyla aça
 İlişkiyi sistem kendisi çıkarmaz; kaynağın iddiasını ve etkinlik durumunu
 gösterir. Kayıt bulunmaması güvenli olduğu anlamına gelmez. Ayrıntı ve
 sayfalama [kuruluş rehberinde](docs/ORGANIZATION_REPORT.md) yer alır.
+
+## Kaynaklar arası olay adaylarını incele
+
+Önce mevcut internet toplayıcılarıyla kayıtları yenile:
+
+```sh
+./xti ransomware refresh --source threatcluster
+./xti ransomware refresh --source ransomlook
+./xti notices refresh
+```
+
+Sonra kayıtlı kanıtları birlikte incele:
+
+```sh
+./xti events candidates
+./xti events candidates --domain example.com
+./xti events candidates --offset 50 --limit 50
+./xti --json events candidates --domain example.com --stale-hours 48
+```
+
+`example.com` yerine ilgili domaini yaz. Yenileme komutları internete çıkar;
+`events candidates` tek yerel okuma anından rapor üretir. Kaynakları
+kendiliğinden yenilemez; kayıt, karar veya alarm yazmaz.
+
+| Görünen tür | Neden gösterilir? |
+|---|---|
+| Aynı olay olabilir | ThreatCluster ve RansomLook'ta aynı kuruluş adı, aynı grup ve en fazla 72 saat farkla kaynak keşif zamanı vardır. Adın yalnız harf büyüklüğü/boşluk/noktalama farkı da ayrı kural olarak desteklenir |
+| Ortak kuruluş/domain bağlamı | HIBP domaini ile ThreatCluster website hostu tam aynıdır; veya mevcut ransomware karşılaştırması yalnız daha zayıf ad/grup/zaman bağlamı sağlar. Aynı olay olarak sınıflandırılmaz |
+
+Her çiftin iki kaynak kaydı, nedenleri, çelişen/eksik alanları, tarihlerin
+anlamları, kaynak bağlantıları ve çalışma kimlikleri ayrı gösterilir.
+HIBP'nin tahmini olay günü ransomware keşif zamanına eşitlenmez. RansomLook
+domain sağlamaz; ona domain ataması veya üç kaynağı geçişli birleştirme
+yapılmaz. `--domain` tam host filtresidir; `www` veya alt domain genişletmez.
+72 saat bir aday seçme kuralıdır; doğruluk yüzdesi değildir. Genel yaklaşık
+isim eşleştirmesi, sözcük/sonek çıkarma veya yeni bağımlılık eklenmedi.
+
+Önceden verilmiş ransomware kaynak karşılaştırması kararı kendi dondurulmuş
+kanıtıyla ilişkilendirilir; güncel içerik farklıysa açıkça belirtilir.
+Yeni genel adayın kimliği `ransomware source-review` kimliği değildir.
+Mevcut `source-compare/source-review` davranışı korunur; bu yeni görünüm
+genel adaylar için karar kaydetme işlemi eklemez.
+
+Eksik, hatalı ve eski kaynaklar ayrı görünür. `--stale-hours` 1–8760,
+`--limit` 1–500, `--offset` 0–1.000.000 olabilir; limit yalnız gösterimi
+sınırlar, toplamı kesmez. Sayfalar ayrı okumalardır; arada kaynak yenilenirse
+sonuç sırası değişebilir. Güncel kaynak kayıtları 50.000, karşılaştırma
+referansları 100.000 veya adaylar 50.000 sınırını aşarsa kısmi rapor
+yerine açık hata verilir. Yeni tablo, migration veya engine v1 işlemi yoktur.
 
 ## Bir domain için kaynakları birlikte çalıştır
 

@@ -97,7 +97,13 @@ class SQLiteRansomwareSourceReviewRepository:
         self._storage = SQLiteAssetRepository(path)
 
     @staticmethod
-    def _snapshots(runs, items):
+    def _snapshots(runs, items, selection=None):
+        """Audit every replay state; optionally retain only requested evidence.
+
+        A selected run with value None needs its complete snapshot. A set of
+        claim identities retains only those records for frozen review checks.
+        The default preserves the full historical snapshot behavior.
+        """
         current = {}
         by_run = {}
         for item in items:
@@ -113,7 +119,12 @@ class SQLiteRansomwareSourceReviewRepository:
                     current.pop(item.claim.id, None)
             if len(current) != run.claim_count:
                 raise StorageError("Kaynak karşılaştırma snapshot'ı yeniden kurulamadı.")
-            snapshots[run.id] = dict(current)
+            if selection is None or run.id in selection:
+                wanted = selection.get(run.id) if selection is not None else None
+                snapshots[run.id] = (
+                    dict(current) if wanted is None
+                    else {identifier: current[identifier] for identifier in wanted if identifier in current}
+                )
         return snapshots
 
     @staticmethod
@@ -213,7 +224,7 @@ class SQLiteRansomwareSourceReviewRepository:
         return evidence
 
     @classmethod
-    def _audit(cls, connection):
+    def _audit(cls, connection, *, compact=False):
         threatcluster_runs_tuple, threatcluster_items = (
             SQLiteRansomwareClaimRepository._audit(connection)
         )
@@ -222,12 +233,6 @@ class SQLiteRansomwareSourceReviewRepository:
         )
         threatcluster_runs = {run.id: run for run in threatcluster_runs_tuple}
         ransomlook_runs = {run.id: run for run in ransomlook_runs_tuple}
-        threatcluster_snapshots = cls._snapshots(
-            threatcluster_runs_tuple, threatcluster_items,
-        )
-        ransomlook_snapshots = cls._snapshots(
-            ransomlook_runs_tuple, ransomlook_items,
-        )
         rows = connection.execute(
             f"SELECT {_SELECT} FROM ransomware_source_review_events "
             "ORDER BY sequence LIMIT ?", (_MAX_EVENTS + 1,),
@@ -236,6 +241,30 @@ class SQLiteRansomwareSourceReviewRepository:
             raise StorageError(
                 "Kaynak karşılaştırma karar geçmişi güvenli sınırı aşıyor."
             )
+        threatcluster_selection = ransomlook_selection = None
+        if compact:
+            threatcluster_selection, ransomlook_selection = {}, {}
+            try:
+                for row in rows:
+                    threatcluster_selection.setdefault(_uuid(row[3]), set()).add(_sha256(row[5]))
+                    ransomlook_selection.setdefault(_uuid(row[4]), set()).add(_sha256(row[6]))
+            except (TypeError, ValueError, OverflowError) as error:
+                raise StorageError(
+                    "Kaynak karşılaştırma karar geçmişi bozuk; işlem durduruldu."
+                ) from error
+            for runs, selection in (
+                (threatcluster_runs_tuple, threatcluster_selection),
+                (ransomlook_runs_tuple, ransomlook_selection),
+            ):
+                latest = next((run for run in reversed(runs) if run.status == "complete"), None)
+                if latest is not None:
+                    selection[latest.id] = None
+        threatcluster_snapshots = cls._snapshots(
+            threatcluster_runs_tuple, threatcluster_items, threatcluster_selection,
+        )
+        ransomlook_snapshots = cls._snapshots(
+            ransomlook_runs_tuple, ransomlook_items, ransomlook_selection,
+        )
         records = []
         evidences = {}
         try:

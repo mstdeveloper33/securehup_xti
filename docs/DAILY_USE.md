@@ -307,6 +307,32 @@ Bulunanlar kaynak iddialarıdır; doğrulanmış ihlal değildir.
 bildirim üretmez. Okundu işareti iddiayı doğrulamaz; kaynakların kimlikleri
 ayrı kalır. Eski çalışmalara geriye dönük bildirim eklenmez.
 
+### Farklı kaynaklardaki olayları birlikte incele
+
+Ransomware kaynaklarını yukarıdaki komutlarla, kamu ihlal kataloğunu
+`./xti notices refresh` ile yeniledikten sonra:
+
+```sh
+./xti events candidates
+./xti events candidates --domain example.com --limit 20
+```
+
+`example.com` yerine ilgili domaini yaz. Bu görünüm yalnız kayıtlı veriyi
+okur; sonuçtaki kaynak zamanı verinin ne kadar güncel olduğunu gösterir.
+Henüz toplanmamış veya son denemesi hatalı kaynaklar ayrıca yazılır.
+
+- **Aynı olay olabilir:** İki ransomware kaynağında kuruluş adı ve grup
+  eşleşir, kaynak keşif zamanları en fazla 72 saat aralığındadır.
+- **Ortak kuruluş/domain bağlamı:** Örneğin kamu kataloğundaki eski bir
+  olayla yeni ransomware iddiasında aynı domain geçer; bu, aynı olay demek
+  değildir. Tarihler kendi anlamlarıyla yan yana gösterilir.
+
+Komut her çiftin kaynak bağlantısını, özgün kayıtlarını ve gerekçesini
+gösterir. Güncel kaynak kaydı eski kararın dondurulmuş kanıtından farklıysa
+bunu belirtir.
+Kayıtları birleştirmez, alarm veya yeni insan kararı yazmaz. Diğer sayfa
+varsa çıktının sonundaki komutu kullan. [Kural ve kapsam ayrıntıları](../README.md#kaynaklar-arası-olay-adaylarını-incele).
+
 ### MITRE tehdit bilgi tabanı
 
 Tehdit grubu, kampanya, zararlı yazılım, teknik ve taktik kayıtlarını araştırmak için:

@@ -1,6 +1,6 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.140.4 / şema 64.
+**Tarih:** 15 Kasım 2026. **Uygulama:** 0.141.0 / şema 64.
 **Durum:** Yeni bileşenler için araştırmaya dayalı plan tercihleri.
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). Bu teslim yeni paket kurmaz veya mevcut
@@ -15,8 +15,10 @@ bu repo için geri çekilmiştir. Her motor bileşeninin görevi sınırlıdır;
 sonuçları ortak modele alınarak .NET'e kararlı sözleşmeyle sunulur.
 
 Mevcut SQLite motorunun 11 maddelik sağlamlaştırma paketi tamamlandı.
-Sırada olay adayları, kayıtlı genel arama bildirimleri ve haber kaynakları
-var. Entegrasyon teslim hazırlığı ile geniş paylaşım/LLM en sona kalır.
+Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da uygulandı; yeni
+kütüphane gerektirmedi. Sırada kayıtlı genel arama bildirimleri, ardından
+haber kaynakları var. Entegrasyon teslim hazırlığı ile geniş paylaşım/LLM
+en sona kalır.
 .NET adaptörü ve platform PostgreSQL yerleşimi/veri geçişi repoyu
 kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 
@@ -25,7 +27,7 @@ kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 | İş | Plan tercihi | Hangi parçası kullanılacak? | Zamanı ve durumu |
 |---|---|---|---|
 | Sosyal kullanıcı adı ve mevcut arşiv keşfi | Mevcut Sherlock, Maigret ve theHarvester adaptörleri | Şimdiden belirlenmiş kaynak/iş kapsamı | 0.140.0 ortak pin ve kurulum kataloğu var; mevcut sürümler korunur |
-| Kaynaklar arası olay adayı | XTI kaynak/domain/tarih kuralları; ek ad benzerliği için **RapidFuzz** | Yalnız ad/başlık benzerliği hesaplama ve aday sıralama | İlk dar karşılaştırma deneyi için seçildi; fayda kabulünden önce üretime alınmaz |
+| Kaynaklar arası olay adayı | Mevcut XTI kaynak/domain/tarih kuralları | Kesin ve sınırlı noktalama düzenlemeli ad eşleştirmesi; ortak tam domain bağlamı | İlk dilim 0.141.0'da uygulandı; RapidFuzz gerekmedi ve kurulmadı. Yaklaşık ad benzerliği için ileride ölçümlü deney adayı |
 | Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türü için kalıcı kimlik, tam sonuç farkı ve bildirim | Yeni arama motoru/harici platform eklenmez; onaylı ENG-03 |
 | Haber/RSS/Atom okuma | **feedparser** | XTI'nın indirdiği sınırlı yanıtı ayrıştırma | Haber modülü ENG-04 için seçildi |
 | Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | RSS özeti yetersizse ikinci dilim; ilk haber tesliminin zorunlu parçası değil |
@@ -46,14 +48,33 @@ tanım, çalışma ve fark desenini;
 [ransomware karşılaştırması](../../src/xti/application/ransomware_source_comparison.py)
 iki kaynağı gerekçeleriyle yan yana getirmeyi zaten sağlar.
 
-### Olay adayı ve RapidFuzz
+### Uygulanan olay adayı dilimi ve ileride RapidFuzz değerlendirmesi
 
-İlk dayanaklar tam domain, açık kuruluş bağlantısı, özgün kaynak kimliği
-ve anlamı korunmuş tarih alanlarıdır. HIBP olay günü, kataloğa eklenme günü
-ve ransomware keşif zamanı aynı tarih türü kabul edilmez. Kaynak iddiası
-doğrulanmış ihlale dönüşmez; aynı kuruluşun iki olayı ayrı kalabilir.
+0.141.0, mevcut ransomware kesin karşılaştırmasını değiştirmeden tekrar
+kullanır. ThreatCluster–RansomLook'ta aynı grup ve en fazla 72 saat
+keşif farkı varsa kesin ad eşleşmesi “aynı olay olabilir” adayıdır.
+Yeni dar ad kuralı yalnız NFKC/harf büyüklüğü, boşluk ve noktalama
+düzenlemesi yapar; şirket eki veya sözcük çıkarmaz, harf çevirisi yapmaz.
+Bu kural da aynı grup ve 72 saat koşulunu gerektirir. Eski kuralın diğer
+eşleşmeleri yalnız kuruluş bağlamı olarak korunur.
 
-RapidFuzz bu dayanakların yanında yalnız ad/başlık benzerliğiyle aday
+ThreatCluster–HIBP tam website hostu/domain eşitliği yalnız ortak domain
+bağlamıdır. Ana domain/alt domain veya `www` genişletmesi yapılmaz.
+HIBP olay günü, kataloğa eklenme günü ve ransomware keşif zamanı aynı
+tarih türü kabul edilmez. RansomLook domain taşımadığından HIBP ile ad
+üzerinden veya üçüncü kaynağa geçişli bağ kurulmaz. Önceki insan kararı
+özgün karşılaştırma kanıtına aittir; yeni adayın otomatik kararı olmaz.
+
+`events candidates` terminal/JSON görünümü son başarılı yerel kayıtları
+tek tutarlı okumada değerlendirir; domain filtresi ve sayfalama sunar.
+Kaynak toplama ayrı işlemdir. Komut ağ veya veri yazımı yapmaz; yeni
+engine v1 işlemi eklemez ve şema 64'ü korur. Kaynak iddiası doğrulanmış
+ihlale dönüşmez; kayıt birleştirme ve alarm üretimi yoktur.
+
+Bu ilk kapsam kesin kurallarla karşılandığı için RapidFuzz kurulmadı;
+yaklaşık eşleştirme deneyi yapıldığı veya faydasının ölçüldüğü iddia
+edilmez. İleride somut ad benzerliği ihtiyacı oluşursa RapidFuzz
+bu dayanakların yanında yalnız ad/başlık benzerliğiyle aday
 sıralayabilir. XTI normalleştirme, aday azaltma, eşik ve insan kararını
 yönetir. İlk deneyde `fuzz.ratio` gibi tam metin karşılaştırması esas
 alınır; seçilen yöntem ve sürümü sonuçta kaydedilir. Skor aynı olay olma
@@ -63,11 +84,11 @@ kümesiyken 100 verebilir; bu değer kimlik veya olay eşitliği sayılmaz.
 
 Mevcut [domain eşleştirme kuralları](../../src/xti/domain/matching.py),
 IDN/public suffix davranışı ve kayıtlı kararlar topluca değiştirilmez.
-Kesin kurallar ilk teslimi karşılıyorsa RapidFuzz çalışma bağımlılığı
-olmaz; yeni ad benzerliği ihtiyacı için deney sonucu saklanır.
+İlk teslimde RapidFuzz çalışma bağımlılığı değildir; ileride yapılacak
+ad benzerliği deneyi için sonuç ve kabul gerekçesi ayrıca saklanır.
 
-Deneyde aynı isim/farklı kuruluş, aynı kuruluş/farklı olay, Türkçe harfler,
-kısaltma, eski yeniden yayın ve çelişen tarihler bulunur. Ayarlama ve kabul
+Gelecekteki deneyde aynı isim/farklı kuruluş, aynı kuruluş/farklı olay,
+Türkçe harfler, kısaltma, eski yeniden yayın ve çelişen tarihler bulunur. Ayarlama ve kabul
 örnekleri ayrılır. Yeni doğru/yanlış aday, inceleme yükü, süre ve bellek
 kesin kurallarla karşılaştırılır. Kabul eşikleri ölçümden önce iş kartına
 yazılır; sonucu gördükten sonra kabul için değiştirilmez. Deney, otomatik
@@ -209,16 +230,17 @@ ikisini birlikte kurma kararı verilmez.
 ## 7. Bu seçimden sonraki teslim
 
 [Motor planındaki](ENGINE_INTEGRATION_ROADMAP.md) mevcut STB paketi
-tamamlandı. Önce olay adayları ve ölçülmüş faydası varsa RapidFuzz,
-sonra genel kayıtlı arama ve haber modülü ele alınır. Tercihler somut
-katkı/kabul koşullarıyla yeniden değerlendirilir.
+tamamlandı. Olay adaylarının ilk dilimi 0.141.0'da ek bağımlılık olmadan
+uygulandı. Sırada genel kayıtlı arama bildirimleri, ardından haber modülü
+var. Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve ölçülmüş faydayla ele
+alınır. Tercihler somut katkı/kabul koşullarıyla yeniden değerlendirilir.
 ENG-01'in yerel okuma sınırı 0.139.0'da
 [uygulandı](../ENGINE_CONTRACT.md); ENG-02 mevcut araç düzeni 0.140.0'da
 [kataloğa](../COMPONENTS.md) bağlandı. 0.140.1 doğrulama/belge düzeltmesidir.
 Entegrasyon teslim hazırlığı ve paylaşım/LLM en sondadır; gerçek .NET
 bağlantısı, backend/panel ve platform PostgreSQL işleri tüketici ekibe aittir.
 
-Yeni kütüphane tercihleri hâlâ plandır; haber/benzerlik/paylaşım özellikleri
-bu seçim belgesiyle uygulanmış sayılmaz. Araştırma ve yerel kod incelemesi
-entegre bileşenlerin gerçek kabul testinden ayrıdır. Bu güncelleme canlı
+Yeni kütüphane tercihleri hâlâ plandır; haber, yaklaşık benzerlik ve geniş
+paylaşım özellikleri bu seçim belgesiyle uygulanmış sayılmaz. Araştırma ve
+yerel kod incelemesi entegre bileşenlerin gerçek kabul testinden ayrıdır. Bu güncelleme canlı
 hedef sorgusu, ücretli hizmet veya bağımlılık yükseltmesi içermez.

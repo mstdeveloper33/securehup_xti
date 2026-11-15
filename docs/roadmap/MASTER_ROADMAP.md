@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.4 / şema 64.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.141.0 / şema 64.
 
 **Güncel karar:** Bu repo başka platformlara bağlanabilen profesyonel
 XTI veri toplama ve analiz motorudur. .NET adaptörü ve gerçek platform
@@ -10,7 +10,8 @@ sürümlü sözleşmesini, örneklerini ve belgelerini sağlarız. Motor kaynakl
 ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
 [Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) güncel sırayı ve
 sınırları belirler; ENG kimlikleri korunur. Mevcut sağlamlaştırma paketi
-tamamlandı. Sırada olay adayları, kayıtlı arama bildirimleri ve haber
+tamamlandı. Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da
+uygulandı. Sırada kayıtlı genel arama bildirimleri, ardından haber
 kaynakları vardır. Entegrasyon teslim hazırlığı ile geniş paylaşım ve
 LLM en sondadır. Bu sıra önceki EIP
 sırasının ve bu belgedeki eski geniş
@@ -36,7 +37,7 @@ Motorun kalıcı iş sözleşmesi henüz uygulanmadı; ayrıca ele alınır.
 pinler, kullanım kapsamı ve yerel kurulum kataloğu CLI/engine üzerinden
 okunur. Kurulum bilgisi canlı kaynak başarısından ayrıdır; tam bağımlılık
 bütünlüğü ve ileri işletim kabulü ayrı izlenir.
-[Kullanım ve sınırlar](../COMPONENTS.md). ENG-03 yeni özellikleri bekler.
+[Kullanım ve sınırlar](../COMPONENTS.md).
 0.140.1 hızlı CI/belge tutarlılığını düzeltir. 0.140.2–0.140.3 araç
 kurulumlarının kilit, kesinti günlüğü ve kurtarma düzenini ekler. Gerçek
 temiz Ubuntu kurulumları, tekrar, kayıt koruma ve yedekten dönüş kabulü
@@ -47,6 +48,23 @@ Tanımlanan 11 maddelik mevcut motor paketi tamamlandı; gerçek .NET/
 PostgreSQL platform kabulü repoyu kullanan ekibin sorumluluğudur.
 Kapasite kabulü 5.000 sentetik
 domain ve 10 dakikalık ölçüme dayanır; 7/24 hizmet seviyesi değildir.
+
+0.141.0, ENG-03'ün ilk dilimi olarak `events candidates` yerel CLI/JSON
+görünümünü ekler. ThreatCluster–RansomLook için kesin ad veya yalnız
+noktalama/boşluk/harf büyüklüğü düzenlemesiyle eşit ad, aynı grup ve en
+fazla 72 saat keşif farkı “aynı olay olabilir” adayıdır. Mevcut kesin
+karşılaştırmanın diğer eşleşmeleri yalnız kuruluş bağlamında kalır.
+ThreatCluster–HIBP tam website hostu/domain eşitliği yalnız ortak domain
+bağlamıdır; farklı anlamdaki tarihleri aynı olay zamanı saymaz.
+RansomLook–HIBP ve geçişli kaynak birleştirmesi yoktur. Önceki insan
+kararı özgün karşılaştırma ve kanıtıyla ayrı gösterilir; otomatik hüküm,
+birleştirme veya yeni alarm üretilmez.
+
+Bu görünüm son başarılı yerel kayıtları salt okunur karşılaştırır;
+kaynak yenileme ayrı komutlarla yapılır. Tam domain filtresi, sayfalama,
+özgün kaynak kayıtları ve kaynak sağlığı görünürdür. Yeni engine v1
+işlemi, şema değişikliği veya RapidFuzz bağımlılığı eklenmedi; şema 64
+korunur. Yaklaşık ad eşleştirmesi ileride ölçülmüş ihtiyaçla ele alınır.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
 [bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.
@@ -174,8 +192,9 @@ vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN
 ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
 arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
-HTML dışa aktarımı kullanılabilir. Güncel sıra olay adayları, kaydedilmiş
-genel aramalar ve haber kaynaklarıdır. Entegrasyon teslim hazırlığı ile
+HTML dışa aktarımı kullanılabilir. Olay adaylarının ilk dilimi uygulandı;
+güncel sıra kaydedilmiş genel arama bildirimleri, ardından haber
+kaynaklarıdır. Entegrasyon teslim hazırlığı ile
 geniş paylaşım/LLM en sondadır; .NET tüketicisini repoyu kullanan ekip
 geliştirir ve doğrular. Linux kullanım kabulü ve kaynak
 erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
@@ -592,9 +611,10 @@ ortak müşteri çalışması bütün erişim yolları doğrulanmadan açılmaz.
 
 ### R12 — AI destekli analiz ve denetimli iş akışları
 
-**Güncel sıra:** 15 Kasım 2026 son kullanıcı kararıyla en sona ertelendi;
-olay adayları, kayıtlı genel arama bildirimleri ve haber kaynaklarından
-önce model veya LLM entegrasyonu başlatılmaz.
+**Güncel sıra:** 15 Kasım 2026 son kullanıcı kararıyla en sona ertelendi.
+İlk olay adayı dilimi uygulanmış olsa da sıradaki kayıtlı genel arama
+bildirimleri ve haber kaynaklarından önce model veya LLM entegrasyonu
+başlatılmaz.
 
 **Plan durumu:** 13 Kasım 2026 kullanıcı kararıyla gelecekteki teslim planına isteğe bağlı LLM analiz desteği eklendi. Henüz model kurulmadı ve bu özellik uygulanmadı. İlk teslim kayıtlı kanıttan açıklama, günlük özet ve vaka taslağı üretir; web paneli, REST API veya tüm veri kaynaklarının tamamlanmasını gerektirmez. Araç kullanan çok adımlı otomasyon bu ilk kapsamın dışında kalır. Kullanım, aşamalar ve kabul ölçümleri [LLM planında](LLM_PLAN.md) tanımlıdır.
 

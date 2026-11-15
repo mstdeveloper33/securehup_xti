@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.140.4 · Şema 64.**
+**15 Kasım 2026 · 0.141.0 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -13,7 +13,11 @@ geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
 veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
 
-**Güncel teslim:** Mevcut SQLite motoru için tanımlanan 11 maddelik
+**Güncel teslim:** 0.141.0, üç açık kaynağın yerel kayıtlarını birlikte
+inceleyen `events candidates` komutunu ekler. Olası aynı olay ile yalnız
+ortak kuruluş/domain bağlamı ayrı gösterilir; aşağıdaki kapsam geçerlidir.
+
+**Tamamlanan temel:** Mevcut SQLite motoru için tanımlanan 11 maddelik
 sağlamlaştırma paketi, aşağıdaki ortam ve kabul senaryolarında tamamlandı.
 Kişisel terminal kullanımı, kurulum/güncelleme ve kurtarma yolu hazırdır.
 Gelecekteki .NET bağlantısı ve platform PostgreSQL yerleşimi/veri geçişi
@@ -22,13 +26,50 @@ paylaşım ve LLM en sona ertelendi. [0145 kararı](decisions/0145-stabilization
 ve motor planındaki sınırlar geçerlidir.
 
 **Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
-olay adaylarında RapidFuzz deneyi, haber modülünde feedparser ve sonraki
-motor/paylaşım tercihlerini kaydeder. Önceki FastAPI/Keycloak/panel
+olay adaylarında yaklaşık ad eşleştirme deneyini, haber modülünde
+feedparser ve sonraki motor/paylaşım tercihlerini kaydeder. İlk aday
+tesliminde kesin host ve mevcut ad/grup/zaman kuralları ile sınırlı
+noktalama düzenlemesi yeterli olduğu için RapidFuzz kurulmadı; genel
+yaklaşık eşleştirme ölçümlü ayrı çalışma olarak kaldı. Önceki FastAPI/Keycloak/panel
 tercihleri bu repo kapsamından çıkarıldı. Mevcut genel arama/CTI kayıtlı
 arama/bildirim desenleri kullanılacak. Bu bileşen araştırmasının paketleri
 kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
+
+- `events candidates`, ThreatCluster/RansomLook/HIBP kanıtını tek SQLite
+  okuma anında kullanır. Kaynak yenileme ayrı mevcut internet komutlarıdır;
+  karşılaştırma ağa çıkmaz, veri tabanı oluşturmaz/göç ettirmez ve yazmaz.
+- Aynı kuruluş adı/grup ve en fazla 72 saat keşif farkı olan ThreatCluster–
+  RansomLook çiftleri `possible_same_event` üretir. Yalnız harf/boşluk/
+  noktalama farkı ayrı kuralla desteklenir; sözcük/sonek atılmaz. 72 saat
+  bir aday kuralıdır, doğruluk yüzdesi veya doğrulanmış ihlal değildir.
+- ThreatCluster website hostu ile HIBP domaini tam eşitse yalnız
+  `organization_context` üretilir. Ad/grup/zaman alanları daha zayıf eski
+  ransomware karşılaştırmaları da ayrı bağlam türünde kalır. RansomLook'a
+  domain ataması, HIBP–RansomLook veya geçişli üç kaynak birleştirmesi yoktur.
+- İki özgün kayıt, kaynakla birlikte kayıt kimliği, içerik özeti, kaynak
+  çalışması ve tarih alanlarının anlamı korunur. Önceki ransomware insan
+  kararı ayrı gösterilir; güncel kanıtla farklıysa açıkça işaretlenir.
+  Genel aday kimliği mevcut karşılaştırma kimliği yerine kullanılamaz;
+  yeni genel karar/otomatik alarm saklanmaz.
+- Tam domain filtresi, sayfalama, ayrı tür toplamları, kaynak hatası/
+  hiç toplanmamış/başarılı boş kapsam ayrımı ve bağımsız güncellik vardır.
+  Kaynak sayaçları filtreden önceki kapsamdır; limit toplamı kesmez.
+- Yeni okuyucu son tam katalog ile geçmiş kararların gerekli tekil
+  kayıtlarını tutar. Bütün kaynak tarihçesi denetlenir; her geçmiş
+  çalışmanın tam katalog kopyası bellekte saklanmaz. 50.000 güncel kayıt,
+  100.000 karşılaştırma referansı veya 50.000 aday aşılırsa kısmi rapor
+  verilmez. Büyük tarihçenin denetimi hâlâ okuma maliyeti taşır.
+- Yeni tablo, bağımlılık veya engine v1 işlemi eklenmedi. Şema 64 ve dört
+  engine okuma işlemi korunur. Bu dilim CLI/JSON kullanımına açıktır;
+  kuruluş filtresi, genel aday kararları ve yaklaşık eşleştirme içermez.
+
+**0.141.0 doğrulaması:** 48 yeni kural/depo/servis/terminal testi ile eski
+karşılaştırma, karar, göç ve mimari kontrollerini kapsayan 63 hedefli test
+9,430 saniyede geçti. Geçici kanıtlar kullanıldı; gerçek internet veya
+kullanıcı veritabanı kullanılmadı. Genel test turunun sonucu tamamlanınca
+bu kayda eklenecek. [Kullanım](../README.md#kaynaklar-arası-olay-adaylarını-incele).
 
 - 0.140.4 karma kayıt kurtarma, gerçek süreç kesintisi/tekrar ve gizli bilgi
   kabullerini birleştirir. On engine arama ailesi, insan kararları, vaka
@@ -231,8 +272,8 @@ kendi sürümüyle korunur. Kullanıcı verisi, şema ve araç sürümleri deği
   Sosyal araçlarda alternatif çalışma ortamı, theHarvester'da tam kaynak
   ağacı/geçişli bağımlılık bütünlüğü bu okumayla doğrulanmaz. Eski kanıtlar
   araç eksikken de okunabilir. theHarvester kesinti/geri dönüş dilimi
-  0.140.2'de eklendi; tam işletim kabulü ENG-06'da açık. ENG-03 özellikleri
-  sağlamlaştırma önceliği nedeniyle bekler.
+  0.140.2'de eklendi; tanımlanan Linux işletim kabulü 0.140.4'te tamamlandı.
+  ENG-03'ün olay adayı dilimi 0.141.0'da eklendi; kayıtlı arama ve RSS sıradadır.
 - Sosyal kurulum doğrulayıcısı, Git kaynak bilgisindeki nesne dışı JSON'u
   beklenmedik istisna yerine kontrollü hata olarak bildirir. Araç yükseltmesi,
   paket veya şema değişikliği yoktur.
@@ -1947,8 +1988,9 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 güncelleme/kurtarma, karma kayıtların geri yüklenmesi, kesilmiş işin devamı,
 gizlilik, gerçek systemd ve ölçümlü kapasite kabulü yukarıda kayıtlıdır.
 [Motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) her işin bitiş kanıtını
-ve sınırını gösterir. SQLite ile kişisel kullanım devam eder. Sıradaki
-motor işleri olay adayları, genel kayıtlı arama bildirimleri ve RSS'tir.
+ve sınırını gösterir. SQLite ile kişisel kullanım devam eder. Olay
+adaylarının ilk dilimi 0.141.0'da eklendi. Sıradaki motor işi genel kayıtlı
+arama bildirimleri, ardından RSS/haber takibidir.
 Entegrasyon için teslim hazırlığı, geniş paylaşım ve LLM en sondadır.
 .NET bağlantısını, platform PostgreSQL yerleşimini ve veri geçişini
 repoyu kullanan ekip yapar; bu repo motor, sözleşme, örnek ve belge sağlar.

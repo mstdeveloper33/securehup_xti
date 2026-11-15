@@ -1,5 +1,26 @@
 # Değişiklik Kaydı
 
+## 0.141.0 — 15 Kasım 2026
+
+- `events candidates`: ThreatCluster, RansomLook ve HIBP'nin mevcut yerel
+  kanıtlarını tek okuma anında birlikte inceleme; tam domain filtresi,
+  sayfalama, ayrı tür sayaçları ve terminal/JSON çıktısı.
+- Aynı ad/grup ve en fazla 72 saat keşif farkı olan ransomware kayıtları
+  olay adayıdır. Yalnız noktalama/boşluk/harf farkı da desteklenir. HIBP ile
+  tam domain ortaklığı ayrı bağlam türüdür; aynı olay iddiası oluşturmaz.
+- İki özgün kayıt, kaynak/çalışma kimlikleri, tarihlerin ayrı anlamları,
+  eşleşme nedeni ve sınırları görünür. Eski insan kararları özgün kanıtına
+  bağlı kalır; güncel kanıt değişmişse belirtilir. Otomatik birleştirme,
+  karar veya alarm kaydı eklenmez.
+- Aday okuması son katalogları ve eski kararların gerekli kanıtlarını
+  tutar; her tarihî kataloğun tam kopyasını bellekte çoğaltmaz. Kaynak
+  geçmişi ve eski karar zincirinin doğrulanması sürer. Kapasite aşımı
+  kısmi sonuç yerine açık hata verir.
+- Yeni bağımlılık, ücretli API, tablo veya engine v1 işlemi yoktur.
+  Şema 64 ve mevcut kaynak karşılaştırması/kararları korunur. Kullanım
+  [README](README.md#kaynaklar-arası-olay-adaylarını-incele), doğrulama
+  kapsamı [STATUS](docs/STATUS.md) içindedir.
+
 ## 0.140.4 — 15 Kasım 2026
 
 - On kayıt ailesinin birlikte kurtarılması, üç gerçek süreç kesintisi,

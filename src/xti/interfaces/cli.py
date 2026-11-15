@@ -20,6 +20,9 @@ from uuid import uuid4
 from xti import __version__
 from xti.interfaces.engine import register_engine_parser, run_engine
 from xti.interfaces.components import register_components_parser, make_component_service, component_lines
+from xti.interfaces.event_candidates import (
+    register_event_candidates_parser, make_event_candidate_service, execute_event_candidates_command,
+)
 from xti.adapters.sqlite import SCHEMA_VERSION, SQLiteAssetRepository, StorageError
 from xti.adapters.domain_file import read_domain_file
 from xti.adapters.public_suffix import PublicSuffixResolver
@@ -792,6 +795,7 @@ def build_parser() -> Parser:
     register_global_search_parser(commands)
     register_engine_parser(commands)
     register_components_parser(commands)
+    register_event_candidates_parser(commands)
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -3511,6 +3515,9 @@ def run(args: argparse.Namespace) -> int | None:
         data, lines = execute_global_search_command(
             GlobalSearchService(SQLiteGlobalSearchRepository(settings.database)), args,
         )
+        emit(data, lines, as_json=args.json)
+    elif args.command == "events":
+        data, lines = execute_event_candidates_command(make_event_candidate_service(settings.database), args)
         emit(data, lines, as_json=args.json)
     elif args.command == "organizations":
         if args.organization_action == "report":
