@@ -2,8 +2,9 @@
 
 **15 Kasım 2026 güncel sıra:** Kurumsal ürün ve entegrasyon önceliği
 kabul edildi. [EIP-01–EIP-11 iş paketleri](ENTERPRISE_INTEGRATION_PLAN.md)
-bundan sonraki teslimleri yönlendirir: OpenCTI/IntelOwl laboratuvarı,
-güvenilir bağlantılar, onaylı olay ilişkileri/genel arama izlemeleri,
+bundan sonraki teslimleri yönlendirir: tek ürün ve ana kayıt merkezi XTI;
+uygun açık kaynak bileşen seçimi, güvenilir adaptörler ve XTI içinde
+onaylı olay ilişkileri/genel arama izlemeleri,
 ardından API/React ve takım kullanımı. Aşağıdaki R0–R13 kapsam envanteri
 korunur; eski “kişisel kullanım önceliği” ve bekleme notları tarihîdir.
 Yeni plan henüz bir entegrasyonu kurulmuş veya çalışır saymaz.
@@ -200,21 +201,24 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 Temel izleme, kişisel vaka/tedarikçi çekirdeği ve 0.138.0 teslimleri
 kullanılabilir. Yeni sıra [kurumsal entegrasyon planındadır](ENTERPRISE_INTEGRATION_PLAN.md):
 
-1. EIP-01: laboratuvar ortamı, ilk örnek veri ve iş yükü; sürüm, kaynak,
-   lisans ve izinli analiz kaydı. Bu belgenin yazılması bütün EIP-01
-   ölçümlerinin tamamlandığı anlamına gelmez.
-2. EIP-02: IntelOwl'dan rapor okuma ve tek izinli pasif analiz sonucu alma.
-3. EIP-03: OpenCTI CE'ye seçili örnek kanıt aktarımı ve sınırlı bağlam okuma.
+1. EIP-01: XTI kullanıcı işi ve ana veri modeli; uygun bağımsız paket/araç
+   ile gerekirse bütün servis seçeneklerini karşılaştırma. Sürüm, kaynak,
+   lisans, bakım ve iş yükü ölçümleri henüz tamamlanmış değildir.
+2. EIP-02: seçilen analiz bileşeninin sonucunu XTI'da saklama ve inceleme.
+   Doğrudan araç adaptörü veya ek yararı gösterilirse IntelOwl kullanılır.
+3. EIP-03: XTI'dan kaynaklı CTI ilişki araştırması; bağımsız bileşen veya
+   gerekirse OpenCTI arka plan adaptörü. Ayrı ürün ekranı gerekmez.
 4. EIP-04: kalıcı adaptör/iş/teslim kaydı, hata ve tekrar güvenliği, sürüm
    uyumu, gerçek Linux kullanım ve kurtarma kabulü.
 5. EIP-05: önceden onaylanan olay ilişki adayları ve kaydedilmiş genel arama
    bildirimleri. Mevcut ransomware karşılaştırması ve CTI kayıtlı aramaları
-   temel alınır; genel grafik veya analiz motoru yeniden yazılmaz.
+   temel alınır; uygun hazır analiz/grafik bileşenleri değerlendirilir,
+   XTI'nın kendi veri modeli ve araştırma deneyimi korunur.
 
 EIP-06 kaynak kapsamı ve EIP-10 işletim uygun noktada paralel ilerler.
 Bu tercih edilen sıra bağımsız işleri engellemez: EIP-05 yerel kanıtlarla
 EIP-01 sözleşmesi üzerinden ilerleyebilir; dış servis canlı kabulüne bağlı
-değildir. OpenCTI denemesi de IntelOwl sonucuna teknik olarak bağlı değildir.
+değildir. Bütün OpenCTI/IntelOwl kurulumları zorunlu başlangıç değildir.
 Common Crawl'ın son kayıtlı 504 hatası tarihî sonuçtur; canlı kabul ayrıca
 sınanır. Kaynak erişimi ile kaynakta sonuç bulunmaması ayrı tutulur.
 EIP-07 API/React/ekip, EIP-08 paylaşım ve EIP-09 müşteri ayrımı sonraki
@@ -224,8 +228,8 @@ somut aşamalardır. EIP-11 LLM kendi kalite/cihaz deneyiyle ayrıca başlayabil
 
 | Yeni iş | Eski kapsam kimlikleri | Yeni teslim farkı |
 |---|---|---|
-| EIP-02/04 | CTI-06, INT-05, OPS-01 | IntelOwl pasif analiz ve kaynaklı rapor adaptörü |
-| EIP-03/04 | CTI-02, INT-03, INT-05 | OpenCTI aktarım ve salt okunur bağlam adaptörü |
+| EIP-02/04 | CTI-06, INT-05, OPS-01 | XTI analiz modülü ve seçilen araç/servis adaptörü |
+| EIP-03/04 | CTI-02, INT-03, INT-05 | XTI ilişki araştırması ve seçilen CTI bileşeni; OpenCTI isteğe bağlı aday |
 | EIP-05 | CTI-02, CTI-03, PHI-06 | Olay adayları ve on türü kapsayan kaydedilmiş genel arama |
 | EIP-06 | OPS-01, DWI-02, COV-01 | Haber/RSS ve kanıtlanmış ek kaynak katkısı |
 | EIP-07/09 | INT-02, ENT-02, ENT-03, ENT-04, ENT-06 | Tek kurum ekibi ve ardından doğrulanmış müşteri ayrımı |

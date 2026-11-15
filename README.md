@@ -3,8 +3,10 @@
 **Sürüm:** 0.138.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
 Bugünkü sürüm terminalden kullanılan kişisel uygulamadır. Hedef, açık kaynak
-entegrasyonlarıyla kurumsal kullanıma ilerlemektir: OpenCTI tehdit bilgisi ve
-ilişki incelemesi, IntelOwl ek analizler için planlanır. Henüz bağlı değiller.
+bileşenlerden yararlanarak kurumsal XTI ürünümüzü geliştirmektir. Tek ana
+proje, kullanıcı deneyimi ve kalıcı kayıt merkezi XTI'dır. OpenCTI/IntelOwl
+gerekirse arka planda yardımcı olabilir; zorunlu değiller ve henüz bağlı
+değiller. Sonuçlar ve araştırma XTI üzerinden kullanılacaktır.
 Görev paylaşımı, teslim sırası ve kurumsal kabul koşulları
 [entegrasyon yol haritasında](docs/roadmap/ENTERPRISE_INTEGRATION_PLAN.md) yer alır.
 

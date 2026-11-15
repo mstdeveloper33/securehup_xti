@@ -5,6 +5,12 @@
 **Güncel ürün kararı:** Hedef kurumsal ve profesyonel XTI kullanımıdır.
 OpenCTI ve IntelOwl'un uygun yeteneklerinden entegrasyonlarla yararlanılır;
 aynı kapsamlı motorları yeniden yazmak varsayılan tercih değildir.
+Kullanıcının son netleştirmesiyle tek ürün, ana geliştirme deposu ve kalıcı
+kayıt merkezi XTI'dır. CTI araştırması ve analiz sonuçları dahil bütün
+kullanıcı işleri XTI'dan yürür. Önce uygun bağımsız kütüphane/araçlar
+değerlendirilir; OpenCTI/IntelOwl'un bütünü ancak yararı doğrulanırsa
+değiştirilebilir arka plan yardımcısı olur. Ayrı ürün ekranı veya fork
+geliştirme zorunluluğu oluşturulmaz.
 [Kurumsal entegrasyon planı](ENTERPRISE_INTEGRATION_PLAN.md) güncel teslim
 sırasını, görev paylaşımını ve kabul koşullarını belirler; aşağıdaki tarihî
 sıralama ile çelişirse bu yeni plan esas alınır. API/React, paylaşım ve takım
@@ -135,9 +141,10 @@ vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN
 ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
 arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
-HTML dışa aktarımı kullanılabilir. Güncel sıra kurumsal entegrasyon
-laboratuvarı, ortak bağlantı temeli, onaylı olay ilişkileri/kaydedilmiş
-genel aramalar, ardından takım ürünüdür. Linux kullanım kabulü ve kaynak
+HTML dışa aktarımı kullanılabilir. Güncel sıra XTI kullanıcı işi için
+bileşen seçimi, seçilen bileşenin XTI içinde denenmesi ve ortak bağlantı
+temeli; paralelde onaylı olay ilişkileri/kaydedilmiş genel aramalar,
+ardından takım ürünüdür. Linux kullanım kabulü ve kaynak
 erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
 erişim kabulü ayrıca açık kalır.
 

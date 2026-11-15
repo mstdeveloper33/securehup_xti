@@ -4,9 +4,10 @@
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
-**Ürün yönü güncellendi:** Kurumsal/profesyonel kullanım ve OpenCTI/IntelOwl
-entegrasyonları [yol haritasına](roadmap/ENTERPRISE_INTEGRATION_PLAN.md)
-alındı. Bu yalnız plan değişikliğidir; dış servisler, API/React, takım veya
+**Ürün yönü güncellendi:** Kurumsal/profesyonel kullanım ve açık kaynak
+bileşenlerden yararlanma [yol haritasına](roadmap/ENTERPRISE_INTEGRATION_PLAN.md)
+alındı. Tek ürün ve ana kayıt merkezi XTI'dır; OpenCTI/IntelOwl ancak seçilirse
+arka plan yardımcılarıdır. Bu yalnız plan değişikliğidir; servisler, API/React, takım veya
 müşteri yalıtımı henüz eklenmedi. Uygulama sürümü ve şema değişmedi.
 
 ## Çalışanlar
@@ -1683,9 +1684,11 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 15 Kasım 2026 son kullanıcı kararı: hedef kurumsal ve profesyonel kullanımdır;
 OpenCTI/IntelOwl'un uygun yeteneklerinden entegrasyonla yararlanılacaktır.
-[Yeni teslim planı](roadmap/ENTERPRISE_INTEGRATION_PLAN.md): önce sınırlı
-entegrasyon laboratuvarı ve güvenilir bağlantı temeli; ardından önceden
-onaylanan kaynaklar arası olay adayları ve kaydedilmiş genel aramalar;
+[Yeni teslim planı](roadmap/ENTERPRISE_INTEGRATION_PLAN.md): tek ürün ve kayıt
+merkezi XTI kalacak. Önce yapılacak kullanıcı işi ve uygun açık kaynak
+bileşen seçilir; gerekli sonuç XTI modeline alınarak XTI'dan kullanılır.
+OpenCTI/IntelOwl bütünü zorunlu değildir. Seçilen bileşen bağlantılarıyla
+birlikte önceden onaylanan olay adayları ve kaydedilmiş genel aramalar;
 sonra API/React, takım ve müşteri kabul aşamaları. İki özellik henüz
 uygulanmadı; mevcut iki ransomware kaynağı karşılaştırması ve CTI'ya özel
 kayıtlı aramalar bunların başlangıç parçalarıdır. Haber toplama ayrı iştir.

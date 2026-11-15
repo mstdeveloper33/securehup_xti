@@ -2,9 +2,10 @@
 
 **Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.138.0.
 
-**Kurumsal hedef güncellemesi:** OpenCTI ve IntelOwl ile entegrasyon
-önceliklidir. [Görev ve kabul matrisi](ENTERPRISE_INTEGRATION_PLAN.md)
-hangi yeteneğin XTI'da, hangisinin dış platformda sağlanacağını belirtir.
+**Kurumsal hedef güncellemesi:** Tek ürün ve ana kayıt merkezi XTI'dır.
+Uygun açık kaynak bileşenler öncelikle değerlendirilir; OpenCTI/IntelOwl
+gerekirse arka plan yardımcılarıdır. [Görev ve kabul matrisi](ENTERPRISE_INTEGRATION_PLAN.md)
+her yeteneğin XTI'da nasıl kullanılacağını ve yardımcı bileşen sınırını belirtir.
 Bir platformun kurulu olması ilgili satırı tamamlamaz; XTI'dan gerçek
 uçtan uca kullanım ve veri/erişim sınırları doğrulanmalıdır. Henüz bu iki
 entegrasyon uygulanmadı. Aşağıdaki satırlar hedef kapsamı ve tarihî
@@ -130,9 +131,9 @@ Referans kapsamı: IOC yönetimi, avcılık, aktör/kampanya bağlamı, rapor ve
 | CAP-047 | Kaydedilmiş avcılık sorguları | CTI'ya özel kalıcı sorgu, tam çalışma/fark, etiket ve analist notu var; on türde genel aramanın kaydedilmesi EIP-05 ile planlı, takım işbirliği açık | CTI-03, EIP-05 | R6 / B0 |
 | CAP-048 | Abonelik ve izleme listeleri | CTI kayıtlı aramalarında fark, yerel bildirim ve sınırlı yenileme var; genel arama bildirimleri EIP-05 ile planlı, kalıcı zamanlama ve dış kanal kapsamı ayrı | CTI-03, EIP-05 | R6 / B0 |
 | CAP-049 | YARA/Sigma içerik kataloğu | Yetkili içeriklerin kaynak/lisans/sürüm/doğrulaması | CTI-05 | R6 / B0→B2 |
-| CAP-050 | Hash ve malware analiz bağlamı | IntelOwl üzerinden seçili pasif IP/domain/hash analiz raporu EIP-02/04 ile planlı; henüz bağlı değil. İlk profil numune paylaşmaz veya aktif analiz başlatmaz | CTI-06, EIP-02, EIP-04 | R6 / B0→B2 |
+| CAP-050 | Hash ve malware analiz bağlamı | XTI içinde kaynaklı pasif analiz raporu EIP-02/04 ile planlı; uygun araç veya gerekirse IntelOwl arka plan adaptörü seçilir. İlk profil numune paylaşmaz veya aktif analiz başlatmaz | CTI-06, EIP-02, EIP-04 | R6 / B0→B2 |
 | CAP-051 | Taktik/stratejik raporlar | Kaynaklı özet, sektör/bölge ve dönem karşılaştırması | CTI-04 | R6 / B0→B2 |
-| CAP-052 | İlişki araştırması | Kaynaklı yerel CTI ilişkileri var; gelişmiş araştırmada OpenCTI EIP-03/04 ile planlı. Olay adayları EIP-05, otomatik birleşim veya kesin atıf yok | CTI-02, EIP-03, EIP-05 | R6 / B0→B1 |
+| CAP-052 | İlişki araştırması | Kaynaklı yerel CTI ilişkileri var; gelişmiş XTI araştırması EIP-03/04 ile planlı. Bağımsız bileşen veya isteğe bağlı OpenCTI yardımcısı; kayıt ve deneyim XTI'da kalır. Olay adayları EIP-05 | CTI-02, EIP-03, EIP-05 | R6 / B0→B1 |
 
 ## 6. Dark web ve tehdit iddiaları
 
@@ -209,7 +210,7 @@ Referans kapsamı: olay/vaka işlemleri, IOC ve takedown API'leri; güvenlik ve 
 | CAP-089 | Paylaşım ve TLP | Kaynak lisansı, işaretler ve kullanıcı kapsamını koruma | INT-03 | R10 / B0 |
 | CAP-090 | Webhook ve talep sistemleri | Seçilen bildirimin imzalı/idempotent teslimi, sır döndürme ve deneme geçmişi var; otomatik abonelik/toplu worker ve talep sistemi adaptörü açık | INT-05 | R10 / B0→B2 |
 | CAP-091 | SIEM/SOAR/EDR/firewall | Seçilen sistem başına test edilmiş adaptör; kontrollü aksiyon | INT-05, RSP-03 | R10 / B0→B3 |
-| CAP-092 | İstihbarat platformları | OpenCTI'ye seçili paylaşım ve ayrı bağlam okuma; IntelOwl seçili analiz adaptörü planlı. MISP gerçek paylaşım ihtiyacında değerlendirilir. Hiçbiri henüz entegre değil; EIP-02/03/04 gerçek kabul ister | INT-05, EIP-02, EIP-03, EIP-04 | R10 / B0→B2 |
+| CAP-092 | İstihbarat platformları | OpenCTI/IntelOwl ihtiyaç ve katkı doğrulanırsa XTI arkasında kullanılabilecek adaylardır; kayıt ve kullanıcı akışı XTI'dadır. MISP gerçek paylaşım ihtiyacında değerlendirilir. Henüz entegre değiller | INT-05, EIP-02, EIP-03, EIP-04 | R10 / B0→B2 |
 | CAP-093 | Kanıtlı takedown taslağı | Hak sahipliği, muhatap, hedef ve içerik sürümüne bağlı onay | RSP-01 | R10 / B0 |
 | CAP-094 | Çok türde takedown takibi | Domain/sosyal hesap/app/depo; yanıt, ret, itiraz ve sonuç | RSP-02 | R10 / B0→B2 |
 | CAP-095 | Düzeltme ve kimlik aksiyonu | Onaylı IdP/SOAR işlemi; sonucun ayrı doğrulanması | RSP-03 | R10 / B2→B3 |

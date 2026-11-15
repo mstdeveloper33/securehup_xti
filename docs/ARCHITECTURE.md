@@ -4,10 +4,14 @@
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 hedef mimari kararı — henüz uygulanmadı:** Kurumsal ürün
-entegrasyonlarla geliştirilecek. XTI izleme kapsamı, özgün kanıt, inceleme
-kararı ve vaka akışını; OpenCTI ayrıntılı CTI araştırmasını; IntelOwl seçilmiş
-ek analizleri üstlenecek. İki dış platform ayrı servis ve küçük adaptör
-sözleşmeleriyle bağlanacak; çekirdek onların veritabanlarına erişmeyecek.
+entegrasyonlarla geliştirilecek. Tek ürün/geliştirme deposu ve ana kayıt
+merkezi XTI'dır: izleme, CTI araştırması, kaynaklı ilişkiler, analiz sonuçları,
+kararlar ve vaka akışı burada kalır. Önce uygun bağımsız açık kaynak
+bileşenler değerlendirilir; OpenCTI/IntelOwl gerekirse küçük adaptörler
+arkasında arka plan yardımcıları olur. Kullanıcı ayrı ürün paneline
+geçmek veya o projeleri geliştirmek zorunda kalmaz. Seçilen bileşenlerin
+sürüm/yapılandırma/kurulum tanımları bu repoda yönetilir. Çekirdek dış
+servislerin veritabanlarına doğrudan erişmez.
 Yerel kurulum dış servisler kapalıyken çalışacak. Kuruluş grupları müşteri
 erişim yalıtımı değildir; müşteri verisi kullanılmadan önce bütün uçlarda
 ayrım doğrulanacak. [0141 kararı](decisions/0141-enterprise-integration-first.md)

@@ -4,6 +4,13 @@
 **Durum:** Kullanıcının kurumsal hedefi ve entegrasyon önceliği kabul edildi;
 bu belgede planlanan bağlantılar henüz uygulanmadı veya kurulmadı.
 
+**Aynı gün kullanıcı netleştirmesi:** Tek ürün, ana geliştirme deposu ve
+ürünün kalıcı kayıt merkezi **XTI** olacak. Toplama, analiz sonucu, CTI
+ilişkisi, inceleme, vaka ve rapor XTI üzerinden kullanılacak. Kullanıcının
+ayrı bir OpenCTI/IntelOwl projesini geliştirmesi veya kendi işini tamamlamak
+için onların panellerine geçmesi gerekmeyecek. Açık kaynak bileşenler
+XTI'nın yönettiği, değiştirilebilir yardımcılar olarak değerlendirilecek.
+
 Bu plan bundan sonraki teslim sırasını belirler. Ana roadmap ve backlog'daki
 eski kişisel kullanım önceliğini günceller; çalışan kapsamı değiştirmez.
 Gerçek teslimlerin kaydı [STATUS](../STATUS.md), mimari karar
@@ -12,10 +19,13 @@ Gerçek teslimlerin kaydı [STATUS](../STATUS.md), mimari karar
 ## 1. Hedef ve değişmeyen sınırlar
 
 Hedef, analistlerin ve daha sonra birden fazla müşterinin kullanabileceği
-kurumsal XTI platformudur. OpenCTI ve IntelOwl'un uygun işlevlerinden
-yararlanılır; mevcut bir yeteneği yeniden yazmak ancak somut gerekçeyle
-seçilir. Ürünümüzün katkısı izleme kapsamını, dış risk gözlemlerini, kaynaklı
-kanıtı, değişiklikleri ve insan incelemesini tek iş akışına bağlamaktır.
+kurumsal XTI platformudur. Ürün davranışı, veri modeli, yetkiler ve kullanıcı
+deneyimi bu projede geliştirilir. Uygun açık kaynak kütüphane ve araçlarla
+hazır yetenekler kullanılır. OpenCTI/IntelOwl bütün olarak zorunlu mimari
+parçalar değildir; gerekiyorsa arka planda sonuç sağlayan adaylardır.
+Seçim bağımsız bileşen, dar araç adaptörü ve bütün servis seçenekleri
+karşılaştırılarak yapılır. Her yetenekte XTI'dan tamamlanabilen kullanıcı
+işi teslim edilir; yalnız başka platforma bağlantı eklemek yeterli değildir.
 
 Bugün ücretsiz yerel kullanım sürer. Kurumsal hedef; bütün servisleri bugün
 kurma, ücretli API açma veya mevcut veriyi dışarı gönderme talimatı değildir.
@@ -36,16 +46,20 @@ Gelecekteki sunucu, veri erişimi, lisans ve işletim bütçeleri ayrı ölçül
 
 | Parça | Görevi | XTI'da koruyacağımız sorumluluk | Başlangıç kararı |
 |---|---|---|---|
-| XTI | Domain/kuruluş/tedarikçi izleme, özgün kanıt, farklar, insan kararları ve vaka akışı | Asıl izleme ve karar geçmişi; ortak terminal ve ileride React deneyimi | Mevcut ürün geliştirilir |
-| OpenCTI | Ayrıntılı CTI bilgisi, aktör/kampanya/malware ilişkileri, araştırma ve paylaşım | Kapsam seçimi, paylaşım izni, kaynak kökeni, uzak kimlik ve aktarım geçmişi | CE ile ayrı tek kuruluş laboratuvarı |
-| IntelOwl | Seçilmiş araçlarla IP/domain/hash hakkında ek analiz ve kaynak sorgusu | Hangi analizin hangi veriyi nereye göndereceği, sonuç kanıtı ve hata durumu | Ayrı laboratuvarda dar pasif profil |
+| XTI | İzleme, CTI araştırması, kaynaklı ilişkiler, analiz sonuçları, insan kararları, vaka ve rapor | Ürünün asıl kaydı, veri modeli, iş kuralları ve bütün kullanıcı deneyimi | Tek ana proje geliştirilir |
+| Bağımsız açık kaynak bileşenler | Ayrıştırma, eşleştirme, analiz veya kaynak sorgusu gibi sınırlı görevler | Sürüm, lisans, kapsam, sonuçların ortak modele alınması ve testler | Somut ihtiyaçta ilk değerlendirilecek seçenek |
+| OpenCTI | Seçilirse arka planda CTI bağlamı veya ilişki işlemleri sağlayan yardımcı | İlişki/rapor kanıtının kalıcı XTI kaydı, XTI'da araştırma, kapsam ve paylaşım kararı | Bağımsız bileşenlere göre faydası gösterilirse CE denemesi |
+| IntelOwl | Seçilirse izinli araçlarla ek analiz çalıştıran yardımcı | Analiz seçimi, dışa giden veri, sonuçların XTI'da saklanması ve gösterimi | İlgili araca doğrudan adaptörle karşılaştırılan aday |
 | Mevcut Sherlock/Maigret/theHarvester adaptörleri | Mevcut sınırlar içinde sosyal kullanıcı adı ve arşiv keşfi | Kapsam, kurulum sürümü, kaynak hatası ve insan değerlendirmesi | Korunur; aynı işi ikinci kez çalıştırmayız |
 | Kimlik sağlayıcısı | Giriş, kurum hesabı, çok faktörlü doğrulama ve oturum | Her veri/iş için XTI erişim kararı ve müşteri kapsamı | Ekip aşamasında mevcut kurumsal sağlayıcı veya Keycloak değerlendirilir |
-| Diğer platformlar | MISP paylaşımı veya kurumun vaka/SIEM sistemi gibi somut ihtiyaç | Açık veri yönü ve tek asıl kayıt sorumlusu | Gereksinim çıktığında; ilk kuruluma topluca eklenmez |
+| Diğer platformlar | MISP paylaşımı veya kurumun vaka/SIEM sistemi gibi somut ihtiyaç | XTI kaydı ve kullanıcı iş akışı korunarak paylaşım/sonuç alma | Gereksinim çıktığında; ilk kuruluma topluca eklenmez |
 
 OpenCTI resmî GraphQL API ve Python istemcisi sunar. IntelOwl resmî REST
-API ve Python istemcisi sunar. Büyük platformların kodunu ana repoya
-kopyalamak yerine bu desteklenen bağlantı yolları değerlendirilir.
+API ve Python istemcisi sunar. Bütün servis seçilirse desteklenen bağlantı
+yolu kullanılır. Bağımsız paket/araç seçilirse lisansı ve sürümü korunarak
+XTI adaptörüne bağlanır. Başka projenin çekirdeğini sürekli değiştirmeyi
+gerektiren bir fork varsayılan çözüm değildir; her iki yolun bakım maliyeti
+ve XTI içinde tamamlanabilen davranışı değerlendirilir.
 [OpenCTI API](https://docs.opencti.io/latest/reference/api/),
 [PyCTI](https://docs.opencti.io/latest/development/python/),
 [IntelOwl istemcisi](https://intelowlproject.github.io/docs/pyintelowl/).
@@ -63,18 +77,22 @@ flowchart LR
     CLI[Terminal] --> XTI[XTI uygulama servisleri]
     UI[Gelecekte React] --> API[Kimlik ve kapsam denetimli XTI API]
     API --> XTI
-    XTI --> LOCAL[İzleme, kanıt, karar ve vaka deposu]
-    XTI --> BRIDGE[Bağımsız entegrasyon adaptörleri]
-    BRIDGE --> CTI[OpenCTI servisi]
-    BRIDGE --> OWL[IntelOwl servisi]
+    XTI --> LOCAL[XTI ana kayıtları: kanıt, CTI ilişkileri, analiz, karar ve vaka]
+    XTI --> BRIDGE[XTI bileşen adaptörleri]
+    BRIDGE --> TOOLS[Seçilen açık kaynak kütüphane ve araçlar]
+    BRIDGE -.-> OPTIONAL[Gerekirse OpenCTI veya IntelOwl arka plan servisi]
+    TOOLS --> RESULT[Kaynaklı sonucu XTI modeline dönüştürme]
+    OPTIONAL --> RESULT
+    RESULT --> LOCAL
 ```
 
 - **Yerel profil:** Bugünkü kolay kurulum korunur. OpenCTI, IntelOwl veya
   Docker zorunlu olmaz. Entegrasyonlar kapalıyken mevcut işler çalışır.
-- **Entegrasyon laboratuvarı:** Ayrı veri alanı, sürümü sabit servisler,
-  örnek veriler ve görünür kaynak tüketimi. Önce servisler ayrı denenir;
-  birleşik kurulumun ihtiyacı daha sonra ölçülür. Python istemcisinin
-  kurulması dış platformun sunucusunu kurmuş sayılmaz.
+- **Bileşen laboratuvarı:** Aynı XTI deposundan yönetilen örnekler ve
+  yapılandırmayla, seçilen paket/araç veya gerekirse servis denenir.
+  Örnek veri alanı kullanıcı verisinden ayrıdır. Sürüm, lisans, kaynak
+  tüketimi ve XTI içindeki kullanıcı işi ölçülür. Servis seçilirse Python
+  istemcisinin kurulması o sunucuyu kurmuş sayılmaz.
 - **Tek kuruluş ekip kurulumu:** Kimlik, yetki, API/React, işletim ve kurtarma
   kabulünden sonra ayrı dağıtım profili. Kurumun mevcut servislerine bağlanma
   seçeneği de bulunur.
@@ -85,6 +103,14 @@ flowchart LR
 analiz isteği ve paylaşım ayrı küçük sözleşmelerdir. Dış veritabanına
 doğrudan yazılmaz. Her platformun kendi bağımlılıkları ayrı tutulur;
 XTI'nin mevcut Python ortamına bütün analiz araçları yüklenmez.
+
+Kullanıcının işi XTI terminalinden ve ileride XTI React panelinden
+tamamlanır. Dış ürüne yönlendirme veya onun ekranını açma kabul ölçütü
+olamaz. Seçilen yardımcıların kurulum, yapılandırma, sürüm ve sağlık
+tanımları bu repodan yönetilir; üçüncü taraf kaynak depolarını değiştirmek
+normal geliştirme akışının parçası değildir. Tek ana kayıt merkezi mantıksal
+sorumluluğu tanımlar; bütün bağımlılıkların aynı süreçte veya tek fiziksel
+veritabanında çalışması şartı getirmez.
 
 OpenCTI'nin kendi arama, kuyruk, önbellek ve nesne depolama bileşenleri;
 IntelOwl'un kendi veritabanı ve iş çalıştırıcıları vardır. Bu, XTI'ye de
@@ -98,9 +124,9 @@ hemen Kafka veya ikinci bir arama kümesi ekleme gerekçesi değildir.
 |---|---|---|
 | İzlenen varlık, kapsam, tedarikçi, kullanıcı tercihi | XTI | Dış platformdaki aynı ad izleme kapsamını değiştirmez |
 | Özgün gözlem, kaynak cevabı ve tarihî kanıt | Toplama kaynağı + XTI kanıt kaydı | Paylaşılmış görünüm yerel kanıtın yerine geçmez |
-| İnsan kararı, vaka durumu ve görev | İlk aşamada XTI | OpenCTI çıkarımı veya analiz sonucu vakayı kapatmaz |
-| IntelOwl analiz raporu | IntelOwl işi ve asıl analiz sağlayıcısı | İzinli gerekli sonuç XTI'da tarihli dış analiz kanıtı olur |
-| OpenCTI'den alınan ilişki/rapor | OpenCTI kaydı ve onun özgün kaynağı | Ayrı dış bağlam olarak alınır; otomatik kesin atıf yapılmaz |
+| İnsan kararı, vaka durumu ve görev | XTI | Yardımcı servis çıkarımı veya analiz sonucu vakayı kapatmaz |
+| Analiz raporu | XTI'da saklanan kaynaklı rapor kaydı; üretici araç/IntelOwl ve asıl sağlayıcı ayrıca belirtilir | XTI'dan incelenir; yalnız uzak iş bağlantısına bırakılmaz |
+| CTI ilişkisi/raporu | XTI'da sürümlü, kaynaklı ilişki/rapor kaydı; varsa OpenCTI uzak kimliği ayrıca tutulur | XTI'dan araştırılır; yardımcı çıkarımı otomatik kesin atıf olmaz |
 | Teslim/alım, uzak kimlik eşlemesi ve hata | XTI entegrasyon kaydı | Tekrar, belirsizlik, kısmi başarı ve yeniden deneme görünürdür |
 
 İlk entegrasyonda her alanın çift yönlü düzenlenmesi hedeflenmez. XTI'dan
@@ -118,8 +144,10 @@ Kaynak, gözlem/yayın/alınma tarihleri, belirsizlik, paylaşım işaretleri,
 lisans/atıf ve dönüşüm sürümü taşınır. Dış bağlantı sonradan kaybolabileceği
 için vaka kanıtı yalnız o bağlantıya bırakılmaz; saklama izni çerçevesinde
 gerekli anlık kanıt korunur. Dışarıdan gelen karar yerel insan kararından
-ayrı görünür. Kurumun vaka sistemi ileride asıl kayıt olacaksa bu geçiş
-ayrı kararla, geçmiş ve kimlik eşlemesi korunarak yapılır.
+ayrı görünür. Kurumun başka vaka sistemiyle paylaşım yapılabilir; bu plan
+XTI'nın kayıt sahipliğini veya kullanıcı iş akışını o sisteme devretmez.
+Yardımcı bileşen değişince önceki kanıt, CTI bağları ve kararlar XTI'da
+incelenebilir kalır; yeni analiz üretilemiyorsa eksik yetenek açık gösterilir.
 
 ## 5. Sıralı teslimler
 
@@ -129,9 +157,9 @@ gerekir; yalnız sahte yanıtla geçen test yeterli değildir.
 
 | İş | Somut teslim | Önkoşul ve tamamlanma kanıtı |
 |---|---|---|
-| **EIP-01 — Sınırlar ve karşılaştırma** | Görev paylaşımı, kabul senaryoları, lisans/erişim/sürüm kayıt şablonu, pilot iş yükü | Bu belge sınır kararını kaydeder. Donanım, ilk iş yükü ve sürüm seçimi hâlâ açıktır |
-| **EIP-02 — IntelOwl denemesi** | Tek izinli pasif analiz, rapor okuma ve XTI örneğine bağlama | EIP-01; önce rapor okuma, sonra hassas olmayan örnekte gerçek sorgu. Eklenti kapsamı, hata ve tüketim ölçülür |
-| **EIP-03 — OpenCTI denemesi** | Seçili kamu/örnek kanıtını CE'ye aktarma; sınırlı salt okunur ilişki bağlamı alma | EIP-01; kaynak/tarih/anlam korunur, tekrar veri çoğaltmaz, uzak kimlik görünür. IntelOwl başarısı teknik önkoşul değildir |
+| **EIP-01 — Sınırlar ve bileşen seçimi** | XTI ana kayıt modeli ve kullanıcı senaryosu; bağımsız paket/araç ile bütün servis seçeneklerinin lisans/bakım/iş yükü karşılaştırması | Bu belge ürün sınırını kaydeder. Donanım, ilk iş yükü ve kullanılacak bileşen/sürüm hâlâ açıktır |
+| **EIP-02 — Analiz bileşeni denemesi** | Tek izinli pasif analiz, kalıcı XTI raporu ve XTI'dan inceleme | EIP-01; uygun araca doğrudan adaptör veya faydası doğrulanırsa IntelOwl. Eklenti kapsamı, hata ve tüketim ölçülür |
+| **EIP-03 — CTI bileşeni denemesi** | XTI'dan ilişki araştırması ve kaynaklı bağlam; gerekirse OpenCTI arka plan adaptörü | EIP-01; kanıt ve ilişkiler XTI'da kalır, başka ürün ekranı gerekmez. Bütün OpenCTI kurulumu ve IntelOwl başarısı önkoşul değildir |
 | **EIP-04 — Kalıcı bağlantılar** | Doğrulanmış prototipleri sürümlü adaptör, kalıcı iş/teslim kaydı, hata/kota/güncellik görünümü ve kurtarmaya dönüştürme | İlgili platformun EIP-02 veya EIP-03 kabulü; kesinti, cevap kaybı, yeniden başlatma ve servis kapalıyken yerel kullanım testleri; gerçek Linux kabulü |
 | **EIP-05 — Onaylı 1 ve 2** | Kaynaklar arası olay adayları; platform genelinde kaydedilmiş aramalar ve yeni eşleşme bildirimleri | EIP-01 veri/sahiplik sözleşmesi. EIP-04 canlı kabulünü beklemek zorunda değildir; mevcut kanıtlarla ve entegrasyon kapalıyken çalışır |
 | **EIP-06 — Kaynak kapsamı** | Önce haber/RSS; sonra ölçülmüş boşluğa göre yeni açık kaynak adaptörleri | EIP-01 kaynak kaydı; her kaynakta erişim, ek katkı ve hata/sıfır ayrımı. İlk bağlantılar doğrulanınca paralel ilerleyebilir |
@@ -141,16 +169,16 @@ gerekir; yalnız sahte yanıtla geçen test yeterli değildir.
 | **EIP-10 — İşletim ve kapasite** | İzleme, bakım, kapasite ölçümü, yedek/geri dönüş, destek ve hizmet hedefleri | EIP-01'den itibaren yürür. Pilot ve müşteri aşamalarından önce ilgili koşullar zorunludur; en sona bırakılmaz |
 | **EIP-11 — İsteğe bağlı LLM** | Kaynaklı açıklama, günlük özet, vaka taslağı; sonrasında sınırlı soru-cevap | AIM planı. Yerel örneklerle bağımsız başlayabilir; takımda erişim kapsamı korunur, diğer bütün fazları beklemez |
 
-İlk geliştirme sırası **EIP-01'in açık ölçümleri → EIP-02 → EIP-03 →
-EIP-04 → EIP-05**; bu tercih edilen sıradır, bağımsız işlere teknik engel
-değildir. Dış erişim/donanım denemesi beklerse EIP-05 yerel kanıtlarla
-paralel ilerler; OpenCTI denemesi IntelOwl'un başarısını beklemek zorunda
-değildir. EIP-06 ve işletim çalışmaları uygun noktada paraleldir.
+İlk adım **EIP-01'de XTI içindeki işi ve kullanılacak bileşeni seçmek**;
+ardından ilgili EIP-02/03 denemesi ve EIP-04 kalıcı adaptörüdür. EIP-05
+yerel kanıtlarla paralel ilerleyebilir. Sıradaki teslim otomatik olarak
+iki büyük platformu kurmak değildir. EIP-06 ve işletim çalışmaları uygun
+noktada paraleldir.
 API ve React, dış platformlara bağlanmanın önkoşulu değildir; ilk bağlantılar
 terminalden kanıtlanır. Canlı kaynak erişimi sağlanamayan deneme “kısmi”
 kalır; bunun için bütün bağımsız işleri durdurmayız.
 
-### İlk IntelOwl denemesinin sınırı
+### IntelOwl seçilirse denemenin sınırı
 
 Önce önceden üretilmiş zararsız bir rapor okunur. Ardından kurulum sürümünde
 davranışı incelenmiş tek pasif analizciyle kamuya açık bir IP/domain/hash
@@ -168,7 +196,7 @@ Bir analizcinin pasifliği adıyla değil yaptığı işlemle doğrulanır.
 [İstemci sözleşmesi](https://intelowlproject.github.io/docs/pyintelowl/IntelOwlClass/),
 [analizci kataloğu](https://intelowlproject.github.io/docs/IntelOwl/usage/).
 
-### İlk OpenCTI denemesinin sınırı
+### OpenCTI seçilirse denemenin sınırı
 
 Tek kuruluşlu CE ortamına seçili domain/IP gözlemleri ve kaynaklı raporlar
 gönderilir. Desteklenen nesne türü ve tarih anlamı önceden tanımlanır.
@@ -183,7 +211,8 @@ Yönetici token'ı varsayılan entegrasyon kimliği olmaz.
    genişletilerek HIBP kamu olaylarıyla birlikte kaynakları korunmuş
    inceleme sunulur. Aynı kuruluş farklı olaylar yaşayabilir; tarihlerin
    anlamı ve kesin domain dayanağı açıklanır. Haber ancak EIP-06 ile gerçekten
-   toplandıktan sonra dahil edilir. Genel CTI grafik motoru yeniden yazılmaz.
+   toplandıktan sonra dahil edilir. Hazır grafik/analiz bileşenlerinden
+   yararlanılır; ilişki modeli ve araştırma deneyimi XTI'ya ait kalır.
 2. **Kaydedilmiş genel arama:** Mevcut on tür yerel arama ve CTI'ya özel
    kayıtlı aramalar temel alınır. Tanım/filtre ve sonuç kanıtı kaydedilir;
    ilk ölçüm sessizdir, sonraki yeni eşleşmeler bildirilir. Tekrar bildirim
@@ -195,6 +224,12 @@ Yönetici token'ı varsayılan entegrasyon kimliği olmaz.
 - Sunucu, istemci, eklenti ve yapılandırma sürümü birlikte kaydedilir.
   Container digest/dağıtım bütünlüğü doğrulanır; kör `latest` güncellemesi
   yapılmaz. Alt araçların lisans ve destek durumu da kayıt altındadır.
+- Kullanıcı işi bütünüyle XTI'dan tamamlanır. Sonuç/kanıt/ilişki XTI'nın
+  ortak modelinde saklanır ve arama, vaka, raporda kullanılabilir.
+  Yardımcı bileşen kapalıyken eski kayıtlar okunabilir kalır. Gerekli
+  sonucu XTI'ya aktaramayan veya başka panel gerektiren aday kabul edilmez.
+  Sağlayıcı değiştirme, mevcut kullanıcı komutlarını ve kayıt kimliklerini
+  koruyan adaptör sözleşmesiyle sınanır; gerekli şema değişimi açık geçiştir.
 - Kalıcı yerel iş kimliği, uzak iş/nesne kimliği, asıl kaynak ve kapsam
   taşınır. Boş, eski, kısmi, başarısız ve hiç çalışmamış sonuç ayrılır.
 - Yerel veritabanı işlemi ile uzak API çağrısı atomik değildir. Gönderilecek
@@ -245,7 +280,7 @@ sorumlusu ve ölçülmüş hizmet hedefi eklenir. Bir dış ürünün lisanslı
 
 | Alan | Bugünkü yaklaşım | Kurumsal aşamada karar |
 |---|---|---|
-| Yazılım | OpenCTI CE ve IntelOwl ile ücretsiz laboratuvar hedefi | Gerekli sürüm/özellik, dağıtım ve SDK lisansları kayıtlı olmalı |
+| Yazılım | Önce uygun bağımsız açık kaynak bileşen; gerekirse OpenCTI CE/IntelOwl arka plan denemesi | Gerekli sürüm/özellik, dağıtım ve SDK lisansları kayıtlı olmalı |
 | Veri | Önce uygun ücretsiz ve açık kaynaklar | API anahtarı, kota, geçmiş veri, ticari kullanım ve paylaşım koşulları kaynak başına değerlendirilir |
 | Donanım | Mevcut cihaz uygunsa ayrı denemeler | Birleşik bellek/CPU/disk, arşiv büyümesi ve eşzamanlı analiz ölçülür; uzaktaki deneme ortamı gerekebilir |
 | İşletim | Yerel kurulum ve kontrollü deney | Sürekli sunucu, ayrı yedek, bakım, izleme ve destek için bütçe gerekir |
@@ -273,8 +308,8 @@ veya dış ürünün menüsünde bir özelliğin bulunması tamamlanma ölçüs�
 | Senaryo | Mevcut durum | Planlanan sağlama yolu | Kabul kanıtı |
 |---|---|---|---|
 | Kuruluşun dış riskini izleme | Yerel toplama, rapor ve değişim akışları var | XTI + katkısı ölçülmüş kaynaklar | Kaynak/güncellik boşluklarıyla gerçek günlük iş akışı |
-| IP/domain/hash bağlamını zenginleştirme | Seçili yerel IOC kaynakları var | IntelOwl adaptörü | Seçili analiz, asıl kaynak, hata ve zaman görünür |
-| Aktör/kampanya/rapor ilişkilerini araştırma | Temel CTI ve ATT&CK var | OpenCTI + XTI bağlam bağlantısı | Örnek olayda kaynakları korunmuş araştırma tamamlanır |
+| IP/domain/hash bağlamını zenginleştirme | Seçili yerel IOC kaynakları var | XTI analiz modülü + seçili araç veya IntelOwl adaptörü | Kalıcı XTI raporunda asıl kaynak, hata ve zaman görünür |
+| Aktör/kampanya/rapor ilişkilerini araştırma | Temel CTI ve ATT&CK var | XTI araştırma modülü + uygun bileşen, gerekirse OpenCTI adaptörü | Örnek olayda araştırma XTI'dan tamamlanır; kaynaklı bağlar XTI'da kalır |
 | İlişkili olay ve kayıtlı arama izleme | Dar ransomware/CTI parçaları var | EIP-05 | Aynı ad/farklı olay, tekrar ve kaynak kesintisi sınanır |
 | Vaka altında çalışma | Kişisel vaka ve kanıt var | Ekip API/React ve gerektiğinde kurum vaka sistemi | Görev, karar, yetki ve kanıt zinciri korunur |
 | SIEM/istihbarat paylaşımı | Sınırlı IOC STIX ve manuel webhook var | EIP-08; uygun OpenCTI paylaşım işlevleri | İkinci sistemde anlamı korunmuş alım ve tekrar deneyi |
@@ -293,11 +328,12 @@ edilmez. Karşılaştırma her önemli sürümde güncellenir.
 
 ## 10. Bir sonraki somut teslim
 
-EIP-01'in açık noktalarıyla başlayacağız: mevcut deneme ortamını ölçmek,
-ilk izinli analiz ve örnek veri kümesini seçmek, sürüm/istemci/lisans
-uyumluluğunu kaydetmek. Ardından EIP-02'de **IntelOwl'dan tek bir pasif
-analiz sonucunu alıp XTI'da kaynaklı kanıt olarak göstermek** ilk küçük
-entegrasyon hedefidir. OpenCTI denemesi bunun ardından gelir.
+EIP-01'in açık noktalarıyla başlayacağız: XTI'da eklenecek ilk kullanıcı
+işini belirlemek, mevcut uygulama ile uygun açık kaynak bileşenleri
+karşılaştırmak ve sürüm/lisans/bakım kararını kaydetmek. İlk entegrasyon
+teslimi seçilen işi **XTI'dan çalıştırıp sonucunu XTI'da saklama, arama ve
+inceleme** olacak. IntelOwl veya OpenCTI'nin bütünü ancak bu hedefe göre
+ek yararı doğrulanırsa seçilecek; önce onları kurmak zorunlu değildir.
 
 Bu plan güncellemesinde paket/servis kurulmadı, gerçek veri paylaşılmadı,
 veritabanı değiştirilmedi ve yeni bir özellik çalışır ilan edilmedi.
