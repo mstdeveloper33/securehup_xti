@@ -68,8 +68,27 @@ kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 **0.141.0 doğrulaması:** 48 yeni kural/depo/servis/terminal testi ile eski
 karşılaştırma, karar, göç ve mimari kontrollerini kapsayan 63 hedefli test
 9,430 saniyede geçti. Geçici kanıtlar kullanıldı; gerçek internet veya
-kullanıcı veritabanı kullanılmadı. Genel test turunun sonucu tamamlanınca
-bu kayda eklenecek. [Kullanım](../README.md#kaynaklar-arası-olay-adaylarını-incele).
+kullanıcı veritabanı kullanılmadı. `c1af006` koduyla genel `./scripts/check`
+paketi macOS / Python 3.13.3 üzerinde 2.155 test çalıştırdı: 2.152 başarılı,
+hata yok, üç atlama; süre 829,791 saniye. Linux `/proc` süreç sahipliği
+gerektiren iki kabul testi ile `systemd-analyze` testi bu Mac'te atlandı.
+Sonraki değişiklik yalnız bu doğrulama belgesidir. Gerçek terminal örneği
+geçici iki kuruluş/üç kaynakta dört çift üretti; tam domain filtresi iki
+çifti, bir kayıtlık sayfa ise doğru toplam ve devam komutunu gösterdi.
+On belgenin yerel bağlantıları/kod blokları ve Git diff kontrolü geçti.
+[Kullanım](../README.md#kaynaklar-arası-olay-adaylarını-incele).
+
+**0.141.0 Linux hızlı kontrolü — kod `c1af006`:** 735 test 462,022
+saniyede geçti; hata veya atlanan test yoktur. Yeni 48 test bu pakete
+dahildir. [CI kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43720708420).
+
+**0.141.0 Linux kurulum kabulü — kod `c1af006`:** GitHub'ın temiz Ubuntu
+makinelerinde Maigret/Sherlock kurulumları Python 3.11 ve 3.12 ile ayrı
+geçti. theHarvester temiz kurulumu da başarılıdır. Mevcut kabul betikleri
+kurulum/tekrar, geçici kayıtların korunması, engine okuması ve yeni dizine
+yedekten dönüşü sınadı. Bu kurulumlar gerçek paket indirdi; hedef taraması
+yapılmadı. [Marka kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43720708443),
+[Harvester kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43720708444).
 
 - 0.140.4 karma kayıt kurtarma, gerçek süreç kesintisi/tekrar ve gizli bilgi
   kabullerini birleştirir. On engine arama ailesi, insan kararları, vaka
