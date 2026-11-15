@@ -25,8 +25,9 @@ arama ve yerel bildirimleri 0.142.0'da uygulandı; yeni kütüphane
 gerektirmedi. RSS/Atom haberlerinin ilk dilimi 0.143.0'da uygulandı.
 Haberlerin toplama oturumuna bağlanması 0.146.0'da tamamlandı.
 [Canlı kabul](../NEWS_SOURCE_ACCEPTANCE.md) kısa/eksik RSS özetlerini
-ölçtü; sonraki iş sınırlı makale metni alma değerlendirmesidir. Tavily
-anahtarı daha sonra ekleneceği için gerçek kaynak kabulü bekliyor.
+ölçtü. Kullanıcı hedefi firma/tedarikçiyle ilgili içerikleri görmektir;
+tam makale alma bağımsız bir teslim şartı değildir. Tavily anahtarı
+daha sonra ekleneceği için gerçek kaynak kabulü bekliyor.
 Yeni yayıncılar ölçülmüş katkıyla seçilir. Entegrasyon teslim
 hazırlığı ile geniş paylaşım/LLM en sona kalır.
 .NET adaptörü ve platform PostgreSQL yerleşimi/veri geçişi repoyu
@@ -41,7 +42,7 @@ kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 | Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | Kalıcı kimlik, değişmez tam sonuç/kapsam, fark ve yerel bildirim | 0.142.0 on türde uygulandı; 0.143.0 haber türünü açıkça ekler, eski tanımlar kendi kapsamını korur |
 | Haber/RSS/Atom okuma | **feedparser 6.0.14** + **feedparser-sgmllib 2.1.0** | XTI'nın indirdiği sınırlı yanıtı yalnız bellek akışından ayrıştırma | ENG-04 ilk teslimi 0.143.0'da CISA, UK NCSC ve CERT-FR için uygulandı |
 | Firma/tedarikçi web ve haber araması | **Tavily Search API** | Kullanıcı anahtarıyla tek temel arama; kaynaklı aday kayıtları | 0.144.0'da uygulandı; ücretsiz kredi/ücretli kullanım sağlayıcı hesabına bağlı, SDK zorunlu değil |
-| Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | RSS özeti yetersizse ikinci dilim; ilk haber tesliminin zorunlu parçası değil |
+| Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | Yalnız firma içeriklerini bulma/gösterme ihtiyacı gerektirirse; zorunlu teslim işi değil |
 | Motor bağlantı sözleşmesi | Sürümlü motor istek/sonuç sözleşmesi | Motorun desteklediği veri ve işlemler için sözleşme, örnek ve belge | ENG-01/05; son aşamada teslim hazırlığı. .NET adaptörü/gerçek bağlantı kabulü tüketici ekibin işi |
 | Geniş STIX nesne aktarımı | **stix2** | XTI kaydı ile standart nesneler arasında oluşturma/ayrıştırma | En sona ertelenen ENG-07 tercihi |
 | Backend, giriş ve panel | Mevcut **.NET platformu** | Motor bu tarafa kaynaklı kayıt/analiz sunar | Bu repoda FastAPI/Keycloak/panel geliştirme işi yok |
@@ -274,9 +275,11 @@ tekil aramayı, 0.145.0 bütçeli kuruluş/tedarikçi grup araması, zamanlama
 ve mevcut inbox bağlantısını uyguladı. 0.146.0 RSS haberlerini toplu/zamanlı
 toplama oturumuna bağladı ve kuruluş içerik raporunu ekledi. İki gerçek
 RSS turunun [kabul kaydı](../NEWS_SOURCE_ACCEPTANCE.md) hazırdır.
-Sonraki işler kısa/eksik RSS özeti için sınırlı makale metni alma
-değerlendirmesi, anahtar hazır olduğunda Tavily canlı kabulü ve ölçülmüş
-veri boşluğuna kaynak eklenmesidir; bunlar henüz tamamlanmadı.
+Sonraki kullanıcı hedefi firma/tedarikçiyle ilgili içeriğin başlık,
+mevcut açıklama, kaynak bağlantısı ve varsa yayın tarihiyle sunulmasıdır.
+Anahtar hazır olduğunda Tavily canlı kabulü yapılır. Yeni kaynak ve tam
+metin çıkarımı yalnız bu hedef için ölçülen ihtiyaçla ele alınır;
+genel haber okuyucu veya makale arşivi ayrı teslim şartı değildir.
 Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve
 ölçülmüş faydayla ele alınır. Tercihler somut katkı/kabul koşullarıyla yeniden değerlendirilir.
 ENG-01'in yerel okuma sınırı 0.139.0'da

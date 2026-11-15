@@ -14,8 +14,9 @@ ve kuruluş raporundaki firma/tedarikçi içeriklerini ekler.
 16 Kasım [canlı RSS kabulü](../NEWS_SOURCE_ACCEPTANCE.md) iki turda 70
 kaydın tekrar kayıt/bildirim oluşturmadan korunmasını doğruladı. Tavily
 anahtarı kullanıcı tercihiyle sonraya bırakıldı; gerçek Tavily kabulü
-bekliyor. Sonraki kaynak işi, ölçülen kısa/eksik özetler için sınırlı
-makale metni alma değerlendirmesidir; henüz uygulanmadı.
+bekliyor. Kullanıcı hedefi firma adı/domainiyle ilgili içeriği bulup
+göstermektir. Genel haber sayıları işletim ayrıntısıdır. Tam makale alma
+ayrı bir zorunlu teslim adımı değildir; somut içerik ihtiyacıyla değerlendirilir.
 .NET tüketicisi henüz bağlı değildir; bağlantıyı repoyu kullanan ekip yapar.
 [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 
@@ -39,6 +40,32 @@ Bu belge güncel teslim sırasıdır. Önceki
 geliştirme kısımlarını değiştirir. [Bileşen seçimi](COMPONENT_SELECTION_PLAN.md)
 bu sınıra göre güncellenmiştir. [0142 karar kaydı](../decisions/0142-xti-engine-dotnet-host.md)
 ve [çalışan durum](../STATUS.md) plan ile uygulamayı ayırır.
+
+### Firma içerikleri için kullanıcı hedefi — 16 Kasım 2026
+
+Kullanıcı firma adını ve varsa domainini seçer; motor bu hedefle ilgili
+bulunan içerikleri sunar. Aynı kapsam açıkça seçilmiş tedarikçilere de
+uygulanabilir. Sonuçta şu bilgiler yeterlidir:
+
+- İçerik başlığı, firma ile bağlantıyı gösteren mevcut bölüm veya açıklama.
+- Özgün kaynak bağlantısı ve kaynak sağlıyorsa yayın tarihi.
+- Hangi firma/tedarikçi için bulunduğu ve yeni ya da değişmiş olup olmadığı.
+
+Kaynağın döndürdüğü bütün haberler, toplam indirme sayıları ve teknik
+çalışma kimlikleri son kullanıcı akışının odağı değildir; işletim ve
+kanıt incelemesi için korunur. Sayfalama ve kaynak hata/kapsam bilgileri
+motor sözleşmesinden silinmez. Kullanıcıya başarılı aramada içerik
+bulunamaması ile kontrolün tamamlanamaması açıkça ayrı anlatılır.
+
+Mevcut `mentions` ve kuruluş içerik raporu bu akışın temelidir. Görünür
+eşleşmesi olmayan sağlayıcı önerisi kesin firma eşleşmesi sayılmaz;
+aynı adlı farklı kuruluşlar için domain ve eşleşen alan bilgisi korunur.
+Genel RSS kataloğu bir kaynak adaptörüdür; kullanıcıdan tüm haberleri
+gezmesi beklenmez. Tam metin çıkarımı yalnız bu hedefi karşılamak için
+gerektiği ölçüde değerlendirilir; ayrı haber okuyucu ürünü veya bütün
+makalelerin arşivi teslim koşulu değildir. Bu bölüm ürün yönüdür;
+mevcut komut veya JSON biçimini kendiliğinden değiştirmez. .NET ekranını
+repoyu kullanan ekip oluşturur.
 
 ## 1. Görev paylaşımı
 
@@ -233,9 +260,10 @@ haber toplama dilimleri tamamlandı. Tavily kuruluş/tedarikçi grup izleme,
 bütçe, zamanlama ve inbox bağlantısı da 0.145.0'da eklendi. RSS haberlerinin
 `collect` profillerine ve zamanlamaya katılması ile birleşik içerik raporu
 0.146.0'da eklendi ve RSS akışı iki gerçek kaynak turunda doğrulandı.
-Tavily canlı kabulü anahtar eklenince yapılacak. Ölçülen eksik/kısa RSS
-özetleri için sınırlı makale metni alma ve kanıtlanmış kapsam boşluğuna
-yeni kaynak eklenmesi sonraki işlerdir. Geniş paylaşım ve LLM en sondadır. Mevcut
+Tavily canlı kabulü anahtar eklenince yapılacak. Yakın hedef seçilen
+firma/tedarikçiyle ilgili kaynaklı içerikleri sade biçimde sunmaktır.
+Tam metin çıkarımı ve yeni kaynaklar ancak bu hedefte ölçülen ihtiyaçla
+ele alınır; zorunlu ayrı teslim aşamaları değildir. Geniş paylaşım ve LLM en sondadır. Mevcut
 özelliklerin kullanımı devam eder.
 
 ### ENG-03 ilk teslimi — 0.141.0
@@ -400,8 +428,9 @@ Gerçek .NET/PostgreSQL bağlantısını hedef platform hazır olduğunda repoyu
 kullanan ekip yapar. ENG-03'ün olay adayı ve kayıtlı genel arama dilimleri
 uygulandı; ENG-04'ün ilk haber kaynakları da kullanılabilir. 0.146.0,
 haberlerin toplama/zamanlama iş akışını ve kuruluş içerik raporunu ekledi.
-Yakın sıra, ölçülen özet eksikliğinin ele alınması ve anahtar hazır
-olduğunda Tavily'nin gerçek firma/tedarikçi kabulüdür.
+Yakın kapsam firma/tedarikçi içerik sonuçlarının sade sunumu ve anahtar
+hazır olduğunda Tavily'nin gerçek kullanım kabulüdür. Tam makale alma
+ayrı zorunlu iş değildir; motor bağlantısını tamamlama çalışmasını bekletmez.
 Entegrasyon teslim hazırlığı, geniş paylaşım ve LLM en sona ertelenmiştir. Sonraki
 değişiklikler aynı hata/kesinti/veri koruma ve kurulum kabulünden geçer.
 
@@ -510,10 +539,13 @@ genel arama ve yerel bildirimleri 0.142.0'da tamamlandı. ENG-04'ün üç
 yayıncıdan RSS/Atom haber teslimi 0.143.0'da uygulandı. 0.144.0 tekil
 Tavily aramasını, 0.145.0 bütçeli kuruluş/tedarikçi izlemesini, 0.146.0
 RSS toplama/zamanlama bağlantısını ve kuruluş içerik raporunu ekledi.
-[Canlı RSS kabulünde](../NEWS_SOURCE_ACCEPTANCE.md) görülen eksik/kısa
-özetler için sınırlı makale metni alma değerlendirmesi sıradadır.
-Gerçek Tavily kabulü anahtar eklenince yapılır; yeni kaynaklar ölçülmüş
-katkıyla seçilir. Bu sonraki işler henüz tamamlanmadı. Entegrasyon teslim
+[Canlı RSS kabulü](../NEWS_SOURCE_ACCEPTANCE.md) kaynak sınırlarını kaydeder;
+kullanıcı hedefi seçilen firma/tedarikçiyle ilgili içeriği görmektir.
+Genel haber sayıları işletim ayrıntısı olarak kalır. Tam makale alma
+zorunlu sıradaki özellik değildir. Gerçek Tavily kabulü anahtar eklenince
+yapılır; yeni kaynak ve metin çıkarımı yalnız ölçülmüş ihtiyaçla seçilir.
+Motorun iş başlatma/takip/rapor sözleşmesi ile teslim kabulü kalan işlerdir.
+Entegrasyon teslim
 hazırlığı ile ENG-07 geniş paylaşım ve isteğe bağlı LLM desteği en sona
 kalır. Gerçek .NET bağlantısı dış ekibin işidir. Her yeni açık kaynak
 bileşende görev, lisans, sabit sürüm, veri katkısı ve hata halinde çekirdek

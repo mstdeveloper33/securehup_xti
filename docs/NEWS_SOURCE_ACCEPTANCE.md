@@ -69,15 +69,19 @@ hakkında olduğuna tek başına kanıt değildir; eşleşen alan sonuçta gör�
 
 ## Kabul sonrası iş sırası
 
+16 Kasım kullanıcı yönlendirmesiyle ürünün odağı firma/tedarikçi hakkında
+bulunan içeriktir. Yukarıdaki haber sayıları kaynak ve tekrar güvenliği
+ölçümüdür; kullanıcıya gösterilecek firma sonucu veya teslim hedefi değildir.
+
 1. Kullanıcı Tavily anahtarını daha sonra ekleyecek. Anahtar tanımlanınca
    gerçek firma sorgusu, seçilmiş gerçek tedarikçi, kredi kaydı ve
    birleşik kuruluş raporu canlı olarak doğrulanacak. Bu kabul bekliyor;
    bu denemede Tavily isteği veya kredi kullanımı yok.
-2. Ölçülen özet eksikliği için sınırlı makale metni alma ayrı bir teslim
-   olarak değerlendirilecek. Önce yayıncı erişim koşulları, izinli
-   adresler, yanıt sınırları, kaynak atfı ve RSS kanıtından ayrı metin
-   geçmişi belirlenecek. Trafilatura plan tercihidir; henüz kurulmadı
-   veya makale tarama özelliği eklenmedi.
+2. Firma/tedarikçi için bulunan içerik başlığı, mevcut açıklama veya ilgili
+   bölüm, kaynak bağlantısı ve varsa yayın tarihiyle sunulacak. Kısa özet
+   ölçümü tek başına tam makale indirmeyi zorunlu teslim işi yapmaz.
+   Metin çıkarımı ancak bu hedefte somut ihtiyaç varsa ayrıca değerlendirilir;
+   Trafilatura kurulmadı veya makale tarama özelliği eklenmedi.
 3. Yeni yayıncı ve yaklaşık ad eşleştirmesi, mevcut kayıtlarda görülen
    somut eksik örneklerle seçilecek. Sıfır firma eşleşmesi tek başına
    eşleştirme hatası veya yeni kütüphane ihtiyacı sayılmayacak.

@@ -5,6 +5,12 @@ profillerine ekler. Profil önce seçilen yayıncıların RSS/Atom akışların�
 alır, ardından seçilmiş kayıtlı haber aramalarını karşılaştırır. Yeni veya
 anlamlı biçimde değişen eşleşmeler mevcut `inbox` içinde görünür.
 
+Kullanıcı hedefi kendi firması veya seçtiği tedarikçiyle ilgili içeriği
+görmektir. Bu rehberdeki genel haber kataloğu ve kaynak sayıları motorun
+toplama/işletim ayrıntılarıdır. Firma için doğrudan internet araması
+[firma içerikleri](MENTIONS.md), birlikte izleme [gruplar](MENTION_GROUPS.md)
+üzerinden yürür. RSS'te alınmış haberler aşağıdaki yerel aramayla süzülür.
+
 ## İlk kullanım
 
 Güncel kodu aldıktan sonra eski veri için `./xti migrate` çalıştır. Geçiş
@@ -37,17 +43,21 @@ başına ihlal veya tehdit kararı değildir.
 ## Sonuçları görüntüleme
 
 ```sh
-./xti news list --limit 100
-./xti news show HABER_KIMLIGI
-./xti news status
 ./xti search "example.com" --kind news
+./xti search "Örnek Firma" --kind news
+./xti news show HABER_KIMLIGI
 ```
 
-`news list` alınan haberleri, `news show` seçilen haberin başlığını,
-özetini, özgün bağlantısını ve tarihlerini gösterir. `HABER_KIMLIGI`
-yerine listeden seçtiğin kimliği kullan. `news status` kaynakların son
-deneme ve son başarı durumunu; `search` yalnız aramana uyan kayıtları
-gösterir. Sonraki sayfa varsa çıktının verdiği devam komutunu kullan.
+Domain veya firma adıyla arama yalnız bu ifadeye uyan kayıtları gösterir.
+`news show` seçilen haberin başlığını, mevcut özetini, özgün bağlantısını
+ve tarihlerini açar. `HABER_KIMLIGI` yerine arama sonucundan seçtiğin
+kimliği kullan. Sonraki sayfa varsa çıktının verdiği devam komutunu kullan.
+Aramalar yerel kataloğu okur; yeni internet araması başlatmaz.
+
+Kaynakları kontrol eden işletici için ayrıca `./xti news list --limit 100`
+genel kataloğun bir sayfasını, `./xti news status` kaynakların son deneme ve son başarı
+durumunu gösterir. Kullanıcı firma içeriğine ulaşmak için bu kataloğu
+baştan sona incelemek zorunda değildir.
 
 Kaynağın toplam haber sayısı firma eşleşmesi sayısı değildir. Arama
 başlık, özet veya bağlantıda eşleşebilir; sonuç eşleşen alanı gösterir.

@@ -15,6 +15,13 @@ veya müşteri yalıtımı henüz uygulanmadı. 0.146.0 RSS toplama profilleri v
 kuruluş içerik raporu için şema 69'a açık yedekli geçiş ekler; engine v1'in
 dört işlemi korunur.
 
+**16 Kasım kullanıcı hedefi:** Firma/tedarikçi hakkında bulunan içerik,
+başlığı, mevcut açıklaması veya ilgili bölümü, özgün bağlantısı ve varsa
+yayın tarihiyle sunulacak. Toplam haber toplama sayıları işletim ayrıntısıdır.
+Mevcut `mentions` ve kuruluş içerik raporu temel alınır. Tam makale alma
+ayrı zorunlu teslim adımı olmaktan çıkarıldı; gerekirse bu hedef için
+değerlendirilir. Bu açıklama plan yönüdür; uygulama/JSON veya şema değişmedi.
+
 **Güncel teslim:** 0.146.0, seçilmiş RSS kaynaklarını mevcut `collect`,
 profil ve Linux zamanlama akışına bağlar. `--only-news` yalnız haber işi;
 `--news-source` ve `--search-watch` açık kaynak/arama seçimi sağlar.
