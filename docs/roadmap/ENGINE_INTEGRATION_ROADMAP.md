@@ -11,8 +11,11 @@ istekli web/haber araması ve kaynaklı geçmiş ekler. 0.145.0 kuruluş–tedar
 izleme grubunu, bütçeli düzenli Tavily toplamasını ve mevcut inbox bağlantısını
 uygular. 0.146.0 RSS profillerini, seçilmiş haber araması/inbox bağlantısını
 ve kuruluş raporundaki firma/tedarikçi içeriklerini ekler.
-Sonraki kapsam gerçek Tavily kullanımının kabulü ve ölçülen kaynak boşluklarıdır.
-Bu sonraki işler henüz uygulanmadı.
+16 Kasım [canlı RSS kabulü](../NEWS_SOURCE_ACCEPTANCE.md) iki turda 70
+kaydın tekrar kayıt/bildirim oluşturmadan korunmasını doğruladı. Tavily
+anahtarı kullanıcı tercihiyle sonraya bırakıldı; gerçek Tavily kabulü
+bekliyor. Sonraki kaynak işi, ölçülen kısa/eksik özetler için sınırlı
+makale metni alma değerlendirmesidir; henüz uygulanmadı.
 .NET tüketicisi henüz bağlı değildir; bağlantıyı repoyu kullanan ekip yapar.
 [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 
@@ -229,7 +232,9 @@ açıktır. İlk olay adayı, genel arama bildirimi ve üç yayıncıdan RSS/Ato
 haber toplama dilimleri tamamlandı. Tavily kuruluş/tedarikçi grup izleme,
 bütçe, zamanlama ve inbox bağlantısı da 0.145.0'da eklendi. RSS haberlerinin
 `collect` profillerine ve zamanlamaya katılması ile birleşik içerik raporu
-0.146.0'da eklendi. Gerçek Tavily kabulü ve kanıtlanmış kapsam boşluğuna
+0.146.0'da eklendi ve RSS akışı iki gerçek kaynak turunda doğrulandı.
+Tavily canlı kabulü anahtar eklenince yapılacak. Ölçülen eksik/kısa RSS
+özetleri için sınırlı makale metni alma ve kanıtlanmış kapsam boşluğuna
 yeni kaynak eklenmesi sonraki işlerdir. Geniş paylaşım ve LLM en sondadır. Mevcut
 özelliklerin kullanımı devam eder.
 
@@ -393,8 +398,10 @@ sağlamlaştırma ve 0.141.0'ın olay adayı teslimi şema 64 kapsamındaydı;
 
 Gerçek .NET/PostgreSQL bağlantısını hedef platform hazır olduğunda repoyu
 kullanan ekip yapar. ENG-03'ün olay adayı ve kayıtlı genel arama dilimleri
-uygulandı; ENG-04'ün ilk haber kaynakları da kullanılabilir. Yakın sıra,
-haberlerin toplama iş akışına bağlanması ve ölçülmüş kaynak boşluklarıdır.
+uygulandı; ENG-04'ün ilk haber kaynakları da kullanılabilir. 0.146.0,
+haberlerin toplama/zamanlama iş akışını ve kuruluş içerik raporunu ekledi.
+Yakın sıra, ölçülen özet eksikliğinin ele alınması ve anahtar hazır
+olduğunda Tavily'nin gerçek firma/tedarikçi kabulüdür.
 Entegrasyon teslim hazırlığı, geniş paylaşım ve LLM en sona ertelenmiştir. Sonraki
 değişiklikler aynı hata/kesinti/veri koruma ve kurulum kabulünden geçer.
 
@@ -500,9 +507,13 @@ müşteri yalıtımı davranışını var sayamaz.
 
 ENG-03'ün kaynaklar arası olay adayları ilk dilimi 0.141.0'da, kayıtlı
 genel arama ve yerel bildirimleri 0.142.0'da tamamlandı. ENG-04'ün üç
-yayıncıdan RSS/Atom haber teslimi 0.143.0'da uygulandı. Sonraki işler,
-haberlerin toplu toplama/zamanlama akışına alınması ve ölçülmüş katkısı
-olan kaynakların seçilmesidir; henüz uygulanmış sayılmaz. Entegrasyon teslim
+yayıncıdan RSS/Atom haber teslimi 0.143.0'da uygulandı. 0.144.0 tekil
+Tavily aramasını, 0.145.0 bütçeli kuruluş/tedarikçi izlemesini, 0.146.0
+RSS toplama/zamanlama bağlantısını ve kuruluş içerik raporunu ekledi.
+[Canlı RSS kabulünde](../NEWS_SOURCE_ACCEPTANCE.md) görülen eksik/kısa
+özetler için sınırlı makale metni alma değerlendirmesi sıradadır.
+Gerçek Tavily kabulü anahtar eklenince yapılır; yeni kaynaklar ölçülmüş
+katkıyla seçilir. Bu sonraki işler henüz tamamlanmadı. Entegrasyon teslim
 hazırlığı ile ENG-07 geniş paylaşım ve isteğe bağlı LLM desteği en sona
 kalır. Gerçek .NET bağlantısı dış ekibin işidir. Her yeni açık kaynak
 bileşende görev, lisans, sabit sürüm, veri katkısı ve hata halinde çekirdek

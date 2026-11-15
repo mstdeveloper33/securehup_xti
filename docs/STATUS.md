@@ -42,7 +42,7 @@ dört kontrol atlandı; bir eski terminal testinin taklit fonksiyonu yeni
 `data_dir` argümanını kabul etmedi. Uygulama değişmeden test çağrısı
 güncellendi; ilgili dosyanın sekiz testi 17,017 saniyede geçti. Genel tur
 tekrarlanmadı. Yeni haber toplama/arama/şema 69 ve kuruluş içerik testleri
-genel turda geçti. Güncel kodun gerçek Linux sonucu ayrıca izlenir.
+genel turda geçti. Aynı kodun gerçek Linux sonucu aşağıda ayrıca kayıtlıdır.
 
 Önceki hedefli CLI/profil/zamanlama/geçmiş/yükseltme turunda 53 testin
 51'i başarılı, Linux `/proc` gerektiren ikisi atlandı (74,107 saniye).
@@ -50,6 +50,27 @@ Altı belgedeki 231 yerel bağlantı ve 17 yeni komut örneği doğrulandı;
 compile, shell syntax ve diff kontrolleri temiz. Canlı Tavily isteği/kredi
 kullanılmadı, zamanlayıcı etkinleştirilmedi ve kullanıcı veritabanına
 dokunulmadı. Canlı kaynak erişimi bu çevrimdışı testlerin sonucu değildir.
+
+**Aynı kodun Linux sonucu:** `56d606e` için
+[hızlı CI](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43766149287)
+1.095/1.095 testi 722,713 saniyede geçti; atlanan test yok.
+[Marka araçları kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43766149271)
+Python 3.11 ve 3.12'de 125'er testi,
+[theHarvester kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43766149312)
+104 testi geçti. Temiz kurulum, tekrar kurulum, veri koruma ve yedekten
+dönüş bu işlerde doğrulandı. Bunlar yukarıdaki yerel genel turun yeniden
+çalıştırılması değildir.
+
+**Canlı haber kabulü — 16 Kasım:** Ayrı geçici veri alanında üç yayıncı
+iki kez toplandı; altı gerçek HTTPS isteğiyle 10 CISA, 20 NCSC, 40 CERT-FR
+kaydı alındı. İkinci turda yeni/değişen kayıt ve tekrar bildirim yok;
+ilk oturum geçmişi aynı kaldı. Seçilen firma adı/domaini sıfır, ayrı
+`cyber` kontrolü 58 eşleşme verdi; kontrol firma bulgusu değildir.
+Yayıncılar tam makale vermiyor: CISA özeti boş, diğer özetler kısa.
+[Kabul kaydı](NEWS_SOURCE_ACCEPTANCE.md) kapsamı ve sonraki işi açıklar.
+Tavily anahtarı kullanıcı tercihiyle sonraya bırakıldı; gerçek firma ve
+tedarikçi Tavily kabulü bekliyor. Zamanlama dosyaları üretildi, hizmet
+etkinleştirilmedi. Bu kabul kaynak kodu veya şema değişikliği değildir.
 
 **Önceki teslim:** 0.145.0, bir kuruluş ve açıkça seçilmiş en fazla 19
 tedarikçiyi `mentions groups` altında birlikte izler. Sürümlü tanım,

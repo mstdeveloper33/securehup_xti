@@ -34,6 +34,29 @@ Sonraki yeni/anlamlı değişen eşleşmeler bildirim üretir. Aynı haberin
 yeniden alınması bildirim üretmez. Bir adın haber içinde geçmesi tek
 başına ihlal veya tehdit kararı değildir.
 
+## Sonuçları görüntüleme
+
+```sh
+./xti news list --limit 100
+./xti news show HABER_KIMLIGI
+./xti news status
+./xti search "example.com" --kind news
+```
+
+`news list` alınan haberleri, `news show` seçilen haberin başlığını,
+özetini, özgün bağlantısını ve tarihlerini gösterir. `HABER_KIMLIGI`
+yerine listeden seçtiğin kimliği kullan. `news status` kaynakların son
+deneme ve son başarı durumunu; `search` yalnız aramana uyan kayıtları
+gösterir. Sonraki sayfa varsa çıktının verdiği devam komutunu kullan.
+
+Kaynağın toplam haber sayısı firma eşleşmesi sayısı değildir. Arama
+başlık, özet veya bağlantıda eşleşebilir; sonuç eşleşen alanı gösterir.
+Akış özeti boş veya kısa olabilir. `summary_truncated=false`, XTI'nın
+özeti kesmediğini belirtir; tam makalenin alındığını göstermez.
+Yayın tarihi ile toplama/son görülme zamanı ayrı bilgilerdir.
+[16 Kasım canlı kabulü ve ölçülen kaynak kapsamı](NEWS_SOURCE_ACCEPTANCE.md)
+iki turda 70 kaydın korunmasını ve tekrar bildirim oluşmamasını doğrular.
+
 ## Seçimler
 
 - `--news-source cisa|ncsc|cert-fr` tekrarlanabilir; yalnız seçilen kaynaklar alınır.

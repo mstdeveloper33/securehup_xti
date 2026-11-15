@@ -1,13 +1,15 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.144.0 / şema 67.
+**Tarih:** 16 Kasım 2026. **Uygulama:** 0.146.0 / şema 69.
 **Durum:** Uygulanan bileşenler ile araştırmaya dayalı plan tercihleri ayrı gösterilir.
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). 0.143.0 haber modülü feedparser 6.0.14 ve
 feedparser-sgmllib 2.1.0 kullanır; mevcut üç aracın sürümleri korunur.
-0.145.0 kuruluş/tedarikçi grup izlemesini ve mevcut inbox bağlantısını,
-0.144.0 kullanıcı tercihiyle Tavily Search API bağlantısını ekler;
+0.144.0 kullanıcı tercihiyle Tavily Search API bağlantısını,
+0.145.0 kuruluş/tedarikçi grup izlemesini ve mevcut inbox bağlantısını ekler;
 mevcut HTTP protokolü için ek SDK/paket bağımlılığı gerekmez.
+0.146.0 RSS toplama/zamanlama bağlantısını ve kuruluş içerik raporunu
+mevcut bileşenlerle tamamlar; yeni bağımlılık eklemez.
 Diğer seçilmiş projeler ile test edilip kullanıma alınan sürümler ayrı durumlardır.
 
 **Son kapsam kararı:** Uygulama backend'i, kullanıcı oturumu ve web mevcut
@@ -21,8 +23,11 @@ Mevcut SQLite motorunun 11 maddelik sağlamlaştırma paketi tamamlandı.
 Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da, kayıtlı genel
 arama ve yerel bildirimleri 0.142.0'da uygulandı; yeni kütüphane
 gerektirmedi. RSS/Atom haberlerinin ilk dilimi 0.143.0'da uygulandı.
-Sonraki işler haberlerin toplama oturumuna bağlanması ve ölçülmüş katkıyla
-kaynak genişlemesidir. Entegrasyon teslim
+Haberlerin toplama oturumuna bağlanması 0.146.0'da tamamlandı.
+[Canlı kabul](../NEWS_SOURCE_ACCEPTANCE.md) kısa/eksik RSS özetlerini
+ölçtü; sonraki iş sınırlı makale metni alma değerlendirmesidir. Tavily
+anahtarı daha sonra ekleneceği için gerçek kaynak kabulü bekliyor.
+Yeni yayıncılar ölçülmüş katkıyla seçilir. Entegrasyon teslim
 hazırlığı ile geniş paylaşım/LLM en sona kalır.
 .NET adaptörü ve platform PostgreSQL yerleşimi/veri geçişi repoyu
 kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
@@ -266,9 +271,12 @@ tamamlandı. Olay adaylarının ilk dilimi 0.141.0'da, genel kayıtlı arama
 ve yerel bildirimleri 0.142.0'da ek bağımlılık olmadan uygulandı. 0.143.0,
 ilk üç RSS/Atom kaynağını hazır ayrıştırıcıyla bağladı. 0.144.0 Tavily
 tekil aramayı, 0.145.0 bütçeli kuruluş/tedarikçi grup araması, zamanlama
-ve mevcut inbox bağlantısını uyguladı. Sonraki işler RSS
-haberlerinin toplu/zamanlı toplama oturumuna katılması ve ölçülmüş veri
-boşluğuna kaynak eklenmesidir; bunlar henüz uygulanmadı.
+ve mevcut inbox bağlantısını uyguladı. 0.146.0 RSS haberlerini toplu/zamanlı
+toplama oturumuna bağladı ve kuruluş içerik raporunu ekledi. İki gerçek
+RSS turunun [kabul kaydı](../NEWS_SOURCE_ACCEPTANCE.md) hazırdır.
+Sonraki işler kısa/eksik RSS özeti için sınırlı makale metni alma
+değerlendirmesi, anahtar hazır olduğunda Tavily canlı kabulü ve ölçülmüş
+veri boşluğuna kaynak eklenmesidir; bunlar henüz tamamlanmadı.
 Yaklaşık ad eşleştirmesi ancak yeni ihtiyaç ve
 ölçülmüş faydayla ele alınır. Tercihler somut katkı/kabul koşullarıyla yeniden değerlendirilir.
 ENG-01'in yerel okuma sınırı 0.139.0'da

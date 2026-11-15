@@ -417,6 +417,9 @@ sessiz başlangıçtır. Tamamlanan kaynakları yeniden almadan eksik adımlara
 `collections resume` ile devam edilir. Profil mevcut Linux zamanlama yolunu
 kullanır; hizmet kendiliğinden açılmaz. Tek kaynağı aramasız toplamak da
 mümkündür. [Kurulum, kullanım ve sınırlar](docs/NEWS_COLLECTION.md).
+[Canlı kullanım kabulü ve ölçülen kaynak kapsamı](docs/NEWS_SOURCE_ACCEPTANCE.md)
+16 Kasım 2026 denemesinde üç kaynaktan 70 kaydın iki turda çoğalmadan
+korunduğunu gösterir; bu sayı firma eşleşmesi veya tam internet kapsamı değildir.
 
 Yanıt en fazla 4 MiB/2.000 haber; saklanan haber 50.000, çalışma 10.000,
 tek kanıt görüntüsü 8 MiB ve toplam görüntü/projeksiyon ayrı ayrı 64 MiB
