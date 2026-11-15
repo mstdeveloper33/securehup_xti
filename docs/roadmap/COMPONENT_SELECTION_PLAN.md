@@ -204,8 +204,8 @@ ikisini birlikte kurma kararı verilmez.
 örnekleri ve RapidFuzz deneyi hazırlanır. Yarar gösterilirse dar benzerlik
 adaptörü eklenir; kalıcı olay kimliği ve karar XTI'da kalır. Genel kayıtlı
 arama işi mevcut altyapıyla paralel ilerler. Haber modülü başladığında
-feedparser kullanılır. Bundan önce ENG-01 motor/.NET sözleşmesinin okuma
-senaryoları tanımlanır; bu iki motor özelliği paralel ilerleyebilir.
+feedparser kullanılır. ENG-01'in yerel okuma sınırı 0.139.0'da
+[uygulandı](../ENGINE_CONTRACT.md); bu iki motor özelliği paralel ilerleyebilir.
 Paylaşım paketleri kendi aşamasında eklenir; backend/panel .NET tarafındadır.
 
 Bu belgede özellik uygulaması, canlı hedef sorgusu, ücretli hizmet açılması

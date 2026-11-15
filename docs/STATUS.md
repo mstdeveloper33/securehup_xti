@@ -1,23 +1,48 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.138.0 · Şema 64.**
+**15 Kasım 2026 · 0.139.0 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 **Son ürün yönü:** Bu repo mevcut .NET platformuna bağlanacak XTI toplama
 ve analiz motorudur. Uygulama backend'i, kullanıcı/giriş oturumu, roller ve
 web deneyimi .NET tarafında kalır. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
-geçerlidir. Bu yalnız plan değişikliğidir; .NET bağlantısı, servis veya
-müşteri yalıtımı uygulanmadı. Uygulama sürümü ve şema değişmedi.
+geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını uygular; .NET
+bağlantısı, ağ servisi veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
 
 **Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
 olay adaylarında RapidFuzz deneyi, haber modülünde feedparser ve sonraki
 motor/paylaşım tercihlerini kaydeder. Önceki FastAPI/Keycloak/panel
 tercihleri bu repo kapsamından çıkarıldı. Mevcut genel arama/CTI kayıtlı
-arama/bildirim desenleri kullanılacak. Yeni bağımlılık kurulmadı veya
-özellik eklenmedi; test edilmiş paket sürümleri henüz seçilmedi.
+arama/bildirim desenleri kullanılacak. Bu bileşen araştırmasının paketleri
+kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
+
+- `engine --describe`: v1 işlem, kayıt türü, kapsam ve sınırları ağsız
+  ve kayıt alanı olmadan gösterir. `engine` tek UTF-8 JSON isteğini alır;
+  `search`, `record.get`, `sources.status` için tek sürümlü stdout JSON
+  cevabı üretir. Yinelenen/bilinmeyen alan, geçersiz tür, sürüm, işlem,
+  boyut ve derinlik açık hata olur; JSON ile dosya yolu veya yetki seçilmez.
+- Arama on kayıt ailesini mevcut servisle okur; tür/kaynak alanı/kimlik
+  referansı ayrıntıya bağlanır. Ayrıntı gerçek kayıt, kaynak/kanıt ve
+  sayfalı geçmiş bölümleridir. Katalogdan çıkarılmış kayıt, eski sosyal
+  çalışma ve ayrı ransomware kaynakları korunur. Kuruluş grupları
+  müşteri yalıtımı olarak sunulmaz.
+- Yerel okumanın tamamlanması kaynak başarısı değildir: hata, son başarı,
+  güncellik ve hiç çalışmama ayrı kalır. Arama/ayrıntı ayrı okuma kesitleri,
+  kaynak durumu bağımsız kaynak okumalarıdır. Eski CLI JSON değişmez;
+  iş başlatma, .NET tüketici, ağ erişimi veya yeni bağımlılık eklenmedi.
+  [Sözleşme ve kullanım](ENGINE_CONTRACT.md), [0143 kararı](decisions/0143-versioned-engine-read-contract.md).
+
+**0.139.0 doğrulaması:** `./scripts/check` 701,473 saniyede 1.954 test
+çalıştırdı: 1.953 geçti, Linux `systemd-analyze` bulunmadığı için ilgili
+tek test atlandı. Yeni engine sınırına ait 36 test bu kapsamdadır.
+Ayrıca gerçek `./xti` süreci ve stdin/stdout üzerinden geçici veritabanında
+arama → referansla ayrıntı → kaynak durumu zinciri çalıştı; dosya özetleri
+değişmedi. Üç belgelenmiş istek örneği doğrulandı. Kullanıcı verisi veya
+şema değiştirilmedi; canlı hedef sorgusu yapılmadı. Bu kabul gerçek Linux
+hizmet işletimi veya .NET tüketicisi kabulü yerine geçmez.
 
 - `search QUERY` on tür yerel kaydı tek salt okunur kesitte arar; tam/başlangıç/
   içerme sırası, tür filtresi, toplamlar, sayfalama ve ayrıntı komutları vardır.
@@ -1691,8 +1716,8 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 15 Kasım 2026 son kullanıcı kararı: XTI motorunun sonuçları mevcut .NET
 platformuna bağlanacaktır. [Güncel sıra](roadmap/ENGINE_INTEGRATION_ROADMAP.md):
-önce sürümlü motor/.NET istek-sonuç sözleşmesi; mevcut adaptör/bileşen
-düzeni; onaylı olay adayları ve kaydedilmiş genel aramalar; haber kaynakları;
+0.139.0 ile sürümlü yerel okuma sözleşmesi kullanılabilir. Sırada mevcut
+adaptör/bileşen düzeni; onaylı olay adayları ve kaydedilmiş genel aramalar; haber kaynakları;
 gerçek .NET tüketicisi ve uzun iş kabulü. İşletim baştan, LLM/standart
 paylaşım ihtiyaca göre ilerler. Uygulama backend'i, oturum ve panel bu
 reponun teslimi değildir. Olay adayları ve kaydedilmiş genel arama

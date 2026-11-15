@@ -8,6 +8,11 @@ belirler; önceki EIP sırası bununla değiştirilmiştir. Motor özgün kanıt
 analiz, iş durumu ve güvenilir çağrı bağlamındaki kapsamı korur. Bu karar
 bir bağlantıyı kurulmuş veya müşteri yalıtımını tamamlanmış saymaz.
 
+**0.139.0 teslimi:** ENG-01'in ilk yerel okuma sınırı kullanılabilir:
+`engine` üzerinden sürümlü arama, gerçek kayıt ayrıntısı ve kaynak durumu.
+Mevcut CLI ve şema 64 korunur. [Kullanım/kabul sınırları](../ENGINE_CONTRACT.md).
+.NET tüketicisi ve uzun iş bağlantısı ENG-05 altında açık kalır.
+
 **Hazır bileşen seçimi:** [Ayrı seçim planı](COMPONENT_SELECTION_PLAN.md)
 mevcut kod kullanımı, ad benzerliği için RapidFuzz deneyi, haber için
 feedparser ve motor paylaşım bileşenlerini kaydeder. Python'da ikinci
@@ -215,9 +220,10 @@ müşteri güvenlik sınırı sayılmaz.
 Temel izleme, kişisel vaka/tedarikçi çekirdeği ve 0.138.0 teslimleri
 kullanılabilir. Geçerli sıra [motor entegrasyon planındadır](ENGINE_INTEGRATION_ROADMAP.md):
 
-1. **ENG-01:** Sürümlü istek/sonuç ve güvenilir kapsam modeli. Motor ile
-   .NET sorumlulukları; iş/kayıt kimliği, hata/kısmi sonuç, tarih ve sayfalama
-   anlamı belirlenir. Mevcut CLI JSON çıktısı yeni sözleşme kabulü sayılmaz.
+1. **ENG-01 — ilk okuma teslimi tamam:** 0.139.0 ayrı `engine` v1 girişiyle
+   arama, ayrıntı, kaynak durumu, referans, hata ve sayfalama sunar. Kapsam
+   güvenilen yerel çalışma alanıdır; eski `--json` korunur. .NET tüketicisi,
+   kalıcı iş/tekrar güvenliği ve ortak müşteri kapsamı ENG-05'te açıktır.
 2. **ENG-02:** [Hazır bileşen tercihlerini](COMPONENT_SELECTION_PLAN.md)
    motorun küçük adaptörlerine bağlama. Yerel açık kaynak araçları öncelik;
    lisans, sürüm, kaynak sözleşmesi ve gerçek fayda deneyi gerekir.

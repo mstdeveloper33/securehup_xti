@@ -1,7 +1,9 @@
 # XTI motoru ve mevcut .NET platformuna entegrasyon
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.138.0 / şema 64. **Durum:** Plan; entegrasyon uygulanmadı.
+**Mevcut sürüm:** 0.139.0 / şema 64.
+**Durum:** ENG-01 yerel okuma sınırı uygulandı; .NET tüketicisi ve diğer
+motor işleri planlıdır. [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 
 Bu repo Python tabanlı **veri toplama, istihbarat ve analiz motorudur**.
 Ürettiği kaynaklı bilgiler daha sonra mevcut .NET platformuna bağlanır.
@@ -84,13 +86,18 @@ vermek yerine veri sözleşmesi şimdi, taşıma biçimi uygun aşamada seçilir
 
 ## 4. Önce sürümlü motor sözleşmesi
 
-Mevcut `--json` komutları başlangıç sağlar; genel sürümlü entegrasyon
+Eski `--json` komutları kendi biçimini korur; genel sürümlü entegrasyon
 sözleşmesi değildir. Sonuçlar çoğunlukla `ok/data`, hatalar `ok/error`
 şeklindedir. Kısmi sonuç `ok:false` ile veri taşıyabilir; hata stderr'de
 olabilir. Bazı izleme komutları birden çok JSON çıktı verir. İç toplama
 yürütme sürümü, dış istemci sözleşme sürümü yerine kullanılamaz.
 
-ENG-01'de mevcut komutları bozmadan şu sınırlar tanımlanır:
+0.139.0, ayrı `engine` komutuyla ilk üç salt okunur işlemi v1 biçiminde
+sunar. İstek sürümü/kimliği, izinli işlem/parametreler, yapılandırılmış
+kayıt referansı, kaynak durumu, sayfalama ve hata kodları uygulanmıştır.
+`request_id` yalnız ilişkilendirmedir; iş kimliği ve kalıcı tekrar önleme
+henüz yoktur. Kapsam güvenilen başlatıcının seçtiği kişisel kayıt alanıdır;
+paylaşımlı müşteri yetkisi tamamlandı sayılmaz. Daha geniş sözleşme sınırları:
 
 | Bölüm | Tanımlanacak alan ve davranış |
 |---|---|
@@ -161,7 +168,7 @@ bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
 
 | Adım | Teslim | Tamamlanma ölçütü |
 |---|---|---|
-| **ENG-01 — Motor/.NET sözleşmesi** | Görev sahipliği, sürümlü istek/sonuç ve ilk üç okuma senaryosu | Girdi/çıktı ve hata örnekleri, eski komut uyumu, kapsam sınırı; bugün yalnız bu yol haritası var |
+| **ENG-01 — Motor/.NET sözleşmesi** | 0.139.0: sürümlü yerel `search`, `record.get`, `sources.status` ve örnekleri uygulandı | Salt okuma, eski komut uyumu, tam/boş/hatalı/eski kaynak, kapsam reddi ve kayıt referansı kabulü; gerçek .NET tüketicisi ENG-05'te açık |
 | **ENG-02 — Bileşen ve kaynak düzeni** | Mevcut port/adaptörlerin kullanımı; bileşen sürüm/kapsam/kurulum/sağlık kaydı | Yeni araç sonuçlarının ortak modele alınması, araç kapalıyken eski kanıtı okuyabilme; genel plugin platformu yeniden yazılmaz |
 | **ENG-03 — Onaylı iki özellik** | Kaynaklar arası olay adayları ve kaydedilmiş genel arama bildirimleri | Kaynak/tarih ayrımı, sessiz başlangıç, tekrar önleme, tutarlı tam sonuç ve insan kararı; RapidFuzz yalnız fayda gösterirse |
 | **ENG-04 — Haber ve kaynak genişlemesi** | feedparser ile RSS/Atom; sonra kanıtlanmış kapsam boşluğuna yeni kaynaklar | Kaynak atfı, tarih, tekilleştirme ve gerçek erişim; hata ile sonuç yokluğu ayrı |
@@ -169,7 +176,7 @@ bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
 | **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
 | **ENG-07 — Sonraki motor yetenekleri** | Gerektikçe STIX/diğer paylaşım çıktıları, kapsamlı kaynak modülleri ve isteğe bağlı LLM | Her özellik kaynaklı sonuç sözleşmesiyle teslim edilir; model/sağlayıcı hatası çekirdeği durdurmaz |
 
-Öncelik ENG-01'dir. ENG-02, mevcut sınırların gerekli kısmını netleştirir;
+ENG-01'in ilk yerel okuma teslimi tamamlandı. Sırada ENG-02 vardır; mevcut sınırların gerekli kısmını netleştirir;
 her özelliği bekletecek genel bir çatı projesi değildir. ENG-03 bununla
 paralel gelişebilir. ENG-05'in salt okunur denemesi ENG-01'den sonra erken
 yapılabilir; bütün kaynakların tamamlanmasını beklemez. LLM'nin küçük
@@ -194,8 +201,8 @@ abonelik yönetimi .NET tarafının kararıdır.
 
 ## 8. İlk sonraki iş
 
-**Motor sözleşmesi v1 taslağı:** arama, kayıt ayrıntısı ve kaynak durumunun
-alanlarını, kimliklerini ve hata örneklerini mevcut uygulamadan çıkarıp
-kararlı biçimde tanımlamak. Ardından küçük .NET okuma kabulü ve onaylı iki
-özellik ilerler. Bu plan güncellemesinde kod, veri veya bağımlılık
-değiştirilmedi; .NET backend'i geliştirilmedi veya bağlanmadı.
+**Bileşen ve kaynak düzeni:** mevcut araçların görev, sürüm, kurulum ve
+sağlık sınırını küçük adaptörlerle netleştirmek. Olay adayları ve
+kaydedilmiş genel arama bildirimleri bununla paralel ilerleyebilir.
+V1 yerel okuma sözleşmesi 0.139.0'da kullanılabilir; .NET backend'i
+geliştirilmedi veya bağlanmadı. Şema ve mevcut veriler korunur.

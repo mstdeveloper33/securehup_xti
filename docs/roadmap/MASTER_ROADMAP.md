@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.138.0 / şema 64.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.139.0 / şema 64.
 
 **Güncel karar:** Bu repo mevcut .NET platformuna bağlanacak profesyonel
 XTI veri toplama ve analiz motorudur. Uygulama backend'i, kullanıcı/oturum,
@@ -14,6 +14,10 @@ Yerel ücretsiz kullanım korunur; ücretli servis veya kurumsal dağıtım bu
 planla kendiliğinden etkinleşmez. Sunucu içi envanter, ürün/sürüm, paket ve
 CVE/KEV/EPSS kapsamı ile otomatik HTML rapor arşivi hâlâ aktif plan dışıdır.
 Gerçek teslimler [STATUS.md](../STATUS.md) içinde izlenir.
+
+0.139.0, [engine v1 yerel okuma sözleşmesini](../ENGINE_CONTRACT.md) ekler:
+arama, kayıt/kanıt ayrıntısı ve kaynak durumu. ENG-01'in bu ilk teslimi
+tamamdır; .NET bağlantısı ve uzun işler ENG-05 kapsamında açıktır.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
 [bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.

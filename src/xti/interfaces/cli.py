@@ -18,6 +18,7 @@ from typing import Any, Sequence
 from uuid import uuid4
 
 from xti import __version__
+from xti.interfaces.engine import register_engine_parser, run_engine
 from xti.adapters.sqlite import SCHEMA_VERSION, SQLiteAssetRepository, StorageError
 from xti.adapters.domain_file import read_domain_file
 from xti.adapters.public_suffix import PublicSuffixResolver
@@ -788,6 +789,7 @@ def build_parser() -> Parser:
     register_history_parser(commands)
     register_organizations_parser(commands)
     register_global_search_parser(commands)
+    register_engine_parser(commands)
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
@@ -3358,6 +3360,8 @@ def emit_cycle(
 
 def run(args: argparse.Namespace) -> int | None:
     settings = Settings.from_path(args.data_dir)
+    if args.command == "engine":
+        return run_engine(settings.database, describe=args.describe)
     repository = SQLiteAssetRepository(settings.database)
     service = AssetService(repository)
 

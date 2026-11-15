@@ -1,21 +1,39 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.138.0, şema 64 ana proje yapısı.**
+**15 Kasım 2026 — 0.139.0, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
-**15 Kasım 2026 son hedef kararı — henüz uygulanmadı:** Bu repo mevcut
+**15 Kasım 2026 hedef kararı — .NET bağlantısı henüz uygulanmadı:** Bu repo mevcut
 .NET platformuna bağlanacak XTI motorudur. Toplama, analiz, kaynaklı
 kanıt/ilişkiler ve iş geçmişi burada; uygulama backend'i, kullanıcı/giriş
 oturumu, rol ve web deneyimi .NET tarafındadır. Bağlantı küçük adaptörler
 ve sürümlü istek/sonuç sözleşmesi kullanır; iki taraf birbirinin veritabanı
-şemasına doğrudan bağlanmaz. Taşıma teknolojisi henüz seçilmedi.
+şemasına doğrudan bağlanmaz. İlk yerel stdin/stdout JSON okuma sınırı
+0.139.0'da eklendi; kurumsal .NET dağıtımının taşıma seçimi henüz yapılmadı.
 Yerel açık kaynak bileşenler tercih edilir; harici platform zorunlu olmaz.
 Yerel kullanım ve mevcut vaka/karar/toplama oturumu geçmişi korunur.
 Kuruluş grupları müşteri erişim yalıtımı değildir. .NET'in doğruladığı
 kapsam motorun iş/arama/sonuç sınırında da uygulanır; serbest kurum etiketi
 yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
 ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
-Aşağıdaki bölümler mevcut 0.138.0 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.139.0 uygulamasını anlatır.
+
+`EngineReadService` mevcut arama ve kaynak durumu servisleri ile küçük
+`EngineRecordRepository` portunu birleştirir. Domain sözleşmesi sürüm,
+işlem, parametre ve açık kayıt referansını doğrular; SQLite, HTTP veya
+terminal import etmez. `interfaces.engine` sınırlı tek JSON girdisi,
+tek stdout cevabı, hata eşlemesi ve somut adaptör bağlantısını yönetir.
+`SQLiteEngineRecordRepository` her ayrıntıyı tek readonly transaction'da
+mevcut kanıt okuyucularıyla çözer; dışarı çıkan alanlar v1 için açık seçilir.
+Kaynak adının gösterim metni kayıt namespace'i değildir. Katalog geçmişi,
+sosyal çalışma öğesi ve insan kararı kendi bağlarını korur.
+
+İstek yalnız güvenilen başlatıcının seçtiği kişisel kayıt alanını okur;
+JSON dosya yolu/tenant/serbest komut kabul etmez. Yeni iş, ağ erişimi veya
+kimlik sistemi yoktur. Arama sayfaları ve ayrıntı ayrı okumalardır; kaynak
+durumu bütün kaynaklar için tek snapshot değildir. Mevcut terminal ve
+`--json` zarfı değişmedi. [0143 kararı](decisions/0143-versioned-engine-read-contract.md)
+ve [v1 kullanım rehberi](ENGINE_CONTRACT.md).
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
