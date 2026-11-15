@@ -12,6 +12,7 @@ from xti.adapters.sqlite_global_saved_searches import SQLiteGlobalSavedSearchRep
 from xti.adapters.sqlite_global_search import read_global_search_snapshot
 from xti.adapters.sqlite_brand_username_reviews import SQLiteBrandUsernameReviewRepository
 from xti.application.brand_username_reviews import BrandUsernameReviewService
+from xti.application.global_saved_searches import GlobalSavedSearchService
 from xti.domain.assets import ValidationError
 from xti.domain.global_search import GLOBAL_SEARCH_KINDS
 from xti.domain.global_saved_searches import validate_snapshot_scope
@@ -282,6 +283,48 @@ class GlobalSavedSearchStorageTests(unittest.TestCase):
         self.assertEqual(len(openings), 1)
         self.assertEqual(sum(value == 'BEGIN IMMEDIATE' for value in statements), 1)
         self.assertEqual(report.items[0].after.result.display_value, 'example.com')
+
+    def test_write_time_is_sampled_after_an_intervening_writer_releases_the_lock(self):
+        for operation in ('add', 'disable', 'run'):
+            with self.subTest(operation=operation):
+                search = self.add(name=f'Example clock {operation}', kinds=('domain',)).saved_search
+                base = datetime.fromisoformat(search.updated_at)
+                clock = [base + timedelta(seconds=1)]
+                sampled = []
+                repository = self.saved
+
+                def now():
+                    sampled.append(clock[0])
+                    return clock[0]
+
+                class AdvancingLock:
+                    @contextmanager
+                    def acquire(self):
+                        repository.upsert(name_key=search.name_key, display_name=search.display_name,
+                            query='other', kinds=search.kinds, include_inactive=False,
+                            recorded_at=(base + timedelta(seconds=2)).isoformat())
+                        clock[0] = base + timedelta(seconds=3)
+                        yield
+
+                service = GlobalSavedSearchService(repository, AdvancingLock(), clock=now)
+                if operation == 'add':
+                    result = service.add(search.display_name, 'final', kinds=search.kinds)
+                    self.assertEqual(result.saved_search.query, 'final')
+                    self.assertEqual(result.saved_search.revision, 3)
+                    recorded_at = result.saved_search.updated_at
+                elif operation == 'disable':
+                    result = service.disable(search.id, reason='Close watch after competing update')
+                    self.assertFalse(result.saved_search.active)
+                    self.assertEqual(result.saved_search.revision, 3)
+                    recorded_at = result.saved_search.updated_at
+                else:
+                    result = service.run(search.id)
+                    self.assertEqual(result.saved_search.query, 'other')
+                    self.assertEqual(result.saved_search.revision, 2)
+                    recorded_at = result.run.executed_at
+                self.assertEqual(sampled, [base + timedelta(seconds=3)])
+                self.assertEqual(recorded_at, sampled[0].isoformat())
+                self.now = clock[0]
 
     def test_corrupt_snapshot_definition_run_chain_or_missing_notification_fail_closed(self):
         search = self.add(kinds=('domain',)).saved_search

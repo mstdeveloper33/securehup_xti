@@ -192,11 +192,14 @@ class GlobalSavedSearchServiceTests(unittest.TestCase):
         for operation in operations:
             with self.assertRaises(ValidationError):
                 operation()
+        self.assertEqual(self.repo.mock_calls, [])
+        self.assertEqual(self.lock.acquisitions, 0)
         self.service.clock = lambda: datetime(2026, 11, 15)
         with self.assertRaises(ValidationError):
             self.service.run(ID)
         self.assertEqual(self.repo.mock_calls, [])
-        self.assertEqual(self.lock.acquisitions, 0)
+        self.assertEqual(self.lock.acquisitions, 1)
+        self.assertFalse(self.lock.held)
 
     def test_reads_do_not_lock_and_failed_write_releases_lock(self):
         self.service.list()

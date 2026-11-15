@@ -35,14 +35,15 @@ class GlobalSavedSearchService:
         name, query, kinds = watch_name(name), normalize_global_query(query), normalize_global_kinds(kinds)
         if type(include_inactive) is not bool:
             raise ValidationError("Geçmiş kayıt filtresi doğru/yanlış olmalı.")
-        at = self._now()
         with self.lock.acquire():
+            at = self._now()
             return self.repository.upsert(name_key=name.casefold(), display_name=name, query=query,
                                           kinds=kinds, include_inactive=include_inactive, recorded_at=at)
 
     def disable(self, search_id, *, reason):
-        search_id, reason, at = watch_id(search_id), watch_reason(reason), self._now()
+        search_id, reason = watch_id(search_id), watch_reason(reason)
         with self.lock.acquire():
+            at = self._now()
             return self.repository.disable(search_id, reason=reason, recorded_at=at)
 
     def list(self, *, active_only=True, offset=0, limit=50):
@@ -61,8 +62,8 @@ class GlobalSavedSearchService:
     def run(self, search_id, *, offset=0, limit=50):
         search_id = watch_id(search_id)
         self._window(offset, limit)
-        at = self._now()
         with self.lock.acquire():
+            at = self._now()
             return self.repository.run(search_id, executed_at=at, offset=offset, limit=limit)
 
     def show_run(self, run_id, *, offset=0, limit=50):

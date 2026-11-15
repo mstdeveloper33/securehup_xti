@@ -74,6 +74,8 @@ işlemi, genel aday kararı, alarm veya şema eklemez. [Kullanım](../README.md#
 
 `GlobalSavedSearchService`, ayrı küçük `GlobalSavedSearchRepository`
 portu ve ortak yazıcı kilidiyle tanım/çalışma işlemlerini yönetir.
+Yazma zamanı kilit alındıktan sonra örneklenir; araya giren başka bir
+yazıcının daha yeni kaydı, geçerli işlemi eski zamanlı hale getirmez.
 `SQLiteGlobalSavedSearchRepository`, mevcut genel aramanın aynı bağlantıda
 çalışan tam okuyucusunu kullanır; ayrı sayfaları birleştirmez. Tanım,
 kaynak okuması, tam fark, çalışma ve bildirim tek `BEGIN IMMEDIATE` içinde

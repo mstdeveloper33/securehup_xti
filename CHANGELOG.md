@@ -17,6 +17,8 @@
 - Şema 65 beş boş tablo ekler; `./xti migrate` benzersiz yedekle açık
   geçiştir. Eski kodun yeni şemayı reddi ve geçiş öncesi yedeğin yeni veri
   dizinine geri yüklenmesi kabul akışına eklenir. Otomatik geçiş yoktur.
+- Kayıtlı arama yazılarının zamanı ortak kilit alındıktan sonra alınır;
+  eşzamanlı başka işlem geçerli yazıyı eski zamanlı hale getirmez.
 - Yeni paket, ücretli API veya engine v1 işlemi eklenmedi. Kullanım
   [README](README.md#genel-aramayı-kaydet-ve-değişiklikleri-izle), gerçek
   doğrulama sonuçları [STATUS](docs/STATUS.md) içindedir.
