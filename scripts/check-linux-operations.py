@@ -53,7 +53,7 @@ def summary(message):
             stream.write(message + "\n")
 
 
-def run(arguments, environment, *, expected=0, payload=None, timeout=60):
+def run(arguments, environment, *, expected=0, payload=None, timeout=60, capture_errors=False):
     process = subprocess.Popen(arguments, cwd=PROJECT, env=environment,
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, text=True, start_new_session=True)
@@ -73,7 +73,7 @@ def run(arguments, environment, *, expected=0, payload=None, timeout=60):
     require(process.returncode == expected,
             f"Command failed ({process.returncode}, wanted {expected}): {shlex.join(arguments)}\n"
             + (output + errors)[-4000:])
-    return output
+    return (output, errors) if capture_errors else output
 
 
 def mode(control, value):
@@ -83,9 +83,18 @@ def mode(control, value):
 
 
 def cli(environment, *arguments, expected=0):
-    output = run([sys.executable, "-m", "tests.operations_worker", "--json", *arguments],
-                 environment, expected=expected)
-    return json.loads(output)
+    output, errors = run([sys.executable, "-m", "tests.operations_worker", "--json", *arguments],
+                        environment, expected=expected, capture_errors=True)
+    # Legacy CLI collections may carry partial data on stdout with exit 3;
+    # report_error writes its structured error to stderr with an empty stdout.
+    # Keep stdout authoritative when present; never hide malformed success data.
+    if output.strip():
+        return json.loads(output)
+    require(expected != 0 and bool(errors.strip()), "CLI returned no structured result.")
+    result = json.loads(errors)
+    require(isinstance(result, dict) and result.get("ok") is False and isinstance(result.get("error"), dict),
+            "CLI stderr did not contain a structured failure.")
+    return result
 
 
 def calls(control):

@@ -26,6 +26,8 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+      - name: Select the configured Python for XTI
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
       - name: Run complete offline test suite
         run: ./scripts/check
 

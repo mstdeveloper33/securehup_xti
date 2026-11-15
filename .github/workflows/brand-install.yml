@@ -95,6 +95,8 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - name: Select the configured Python for XTI
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
       - name: Verify installer and runtime recovery regressions offline
         id: offline
         env:

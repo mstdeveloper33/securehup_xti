@@ -82,6 +82,8 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+      - name: Select the configured Python for XTI
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
       - name: Install the pinned uv installer
         run: python -m pip install --disable-pip-version-check --no-input uv==0.13.8
       - name: Verify Linux installation, locking and recovery regressions offline

@@ -50,6 +50,26 @@ class LinuxOperationsAcceptanceTests(unittest.TestCase):
         self.assertEqual(tuple(self.root.iterdir()), (marker,))
         self.assertEqual(marker.read_bytes(), b"unrelated contents")
 
+    def test_expected_low_disk_error_reads_legacy_cli_stderr_and_preserves_records(self):
+        control = self.root / "control.json"
+        environment, _ = OPERATIONS.seed(self.root / "data", control)
+        injection = self.root / "disk-injection"
+        injection.mkdir()
+        (injection / "sitecustomize.py").write_text(
+            "from types import SimpleNamespace\n"
+            "from xti.adapters import scheduled_backups\n"
+            "scheduled_backups.shutil.disk_usage = lambda path: SimpleNamespace(total=50331648, used=50331647, free=1)\n")
+        environment["PYTHONPATH"] = os.pathsep.join((str(injection), str(PROJECT / "src"), str(PROJECT)))
+        database = self.root / "data/xti.db"
+        before = database.read_bytes()
+        result = OPERATIONS.cli(environment, "schedule", "prepare", "acceptance", expected=1)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error"]["code"], "storage_error")
+        self.assertIn("boş alan gerekli", result["error"]["message"])
+        self.assertEqual(database.read_bytes(), before)
+        self.assertEqual(OPERATIONS.calls(control), [])
+        self.assertFalse((database.parent / "scheduled-backups").exists())
+
     def test_source_injection_works_through_actual_xti_launcher_and_refuses_network(self):
         control = self.root / "control.json"
         environment, _ = OPERATIONS.seed(self.root / "data", control)
