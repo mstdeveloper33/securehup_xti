@@ -21,6 +21,9 @@ from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepositor
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
 from xti.adapters.theharvester_archive import TheHarvesterArchiveSource
+from xti.adapters.tool_installation import (
+    ToolInstallationError, pending_installation, tool_installation_lock,
+)
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.component_pins import HARVESTER_PIN, MAIGRET_PIN, SHERLOCK_PIN
 from xti.domain.cti_attack import ATTACK_SOURCE_NAME
@@ -64,13 +67,16 @@ class LocalSourceInstallationInspector:
         if source == HARVESTER_PIN.identifier:
             checkout = self.project_dir / ".tools" / HARVESTER_PIN.identifier
             executable = checkout / ".venv" / "bin" / HARVESTER_PIN.package
+            if pending_installation(checkout.parent):
+                return "invalid", "theHarvester kurulumu tamamlanmamış; ./scripts/setup-harvester --recover çalıştır."
             if not checkout.exists():
                 return "missing", "theHarvester ayrı ortamı kurulmamış."
             try:
-                TheHarvesterArchiveSource._verify_checkout(checkout, executable)
-                if not os.access(executable, os.X_OK):
-                    raise SourceError("theHarvester çalıştırıcısı çalıştırılabilir değil.")
-            except (OSError, SourceError) as error:
+                with tool_installation_lock(checkout.parent, exclusive=False, create=False):
+                    TheHarvesterArchiveSource._verify_checkout(checkout, executable)
+                    if not os.access(executable, os.X_OK):
+                        raise SourceError("theHarvester çalıştırıcısı çalıştırılabilir değil.")
+            except (OSError, SourceError, ToolInstallationError) as error:
                 return "invalid", str(error)
             return "ready", None
         tools = {

@@ -1,5 +1,37 @@
 # Değişiklik Kaydı
 
+## 0.140.2 — 15 Kasım 2026
+
+- theHarvester kurulumunda eski ortamı koruma, hata sonrası geri dönüş,
+  ani kesinti için günlük ve `--recover`; ayrı `--check` ve `--force`.
+- Kurulum ve çalışan arşiv işçisini koordine eden, çocuk süreçte de tutulan
+  kalıcı kilit. Meşgul veya yarım kurulum kaynak hazırlığında gösterilir.
+- Sağlıklı tekrar indirme yapmaz. Eski/başarısız araç klasörleri saklanır;
+  SQLite kanıtları ve araç pinleri değişmez. Şema 64 korunur.
+- Gerçek Ubuntu kurulum/tekrar kabul işi ve kesinti testleri eklendi.
+  Genel turda 2.024 testten 2.023 geçti, bir Linux kontrolü atlandı;
+  son kurulum düzeltmelerinden sonra ayrıca 33 kurulum testi geçti.
+  Çalıştırma kapsamı ve açık Linux kabulü [STATUS](docs/STATUS.md) içinde.
+
+## 0.140.1 — 15 Kasım 2026
+
+- Engine/bileşen testleri hızlı CI kapsamına, ortak pinler marka kurulum
+  filtrelerine alındı; komut ve kaynak kapsamı açıklamaları düzeltildi.
+- Yeni özelliklerden önce mevcut SQLite motorunu sağlamlaştırma sırası
+  kaydedildi; gelecekteki .NET/PostgreSQL bağlantısı ayrı kabul olarak kaldı.
+
+## 0.140.0 — 15 Kasım 2026
+
+- Üç entegre araç için ortak incelenmiş pin ve yerel kurulum kataloğu;
+  `components` ve engine `components.list`. Kurulum gözlemi canlı kaynak
+  başarısından ayrı gösterilir. Şema değişmedi.
+
+## 0.139.0 — 15 Kasım 2026
+
+- Yerel engine v1 JSON okuma sözleşmesi: `search`, `record.get` ve
+  `sources.status`. Kayıt/kanıt referansları ve açık hata biçimleri; mevcut
+  CLI korunur. .NET tüketicisi veya ağ servisi eklenmedi.
+
 ## 0.138.0 — 15 Kasım 2026
 
 - `search QUERY`: on tür yerel kaydı tek komuttan arama, tür filtresi,

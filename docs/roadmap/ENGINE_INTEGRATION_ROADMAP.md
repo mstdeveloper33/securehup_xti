@@ -1,7 +1,7 @@
 # XTI motoru ve mevcut .NET platformuna entegrasyon
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.140.1 / şema 64.
+**Mevcut sürüm:** 0.140.2 / şema 64.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı. Yeni istihbarat özelliklerinden önce aşağıdaki STB sağlamlaştırma
 sırası geçerlidir. .NET tüketicisi henüz bağlı değildir.
@@ -212,7 +212,10 @@ sağlamlaştırma döneminde bekler. Mevcut özelliklerin kullanımı devam eder
 | **STB-06 — Teslim paketi** | Kurulum/kullanım/kurtarma rehberi, sürüm değişikliği, desteklenen ortam ve bilinen sınırları yayımlama | Başka kişi sözlü yardımsız kurup temel senaryoyu tamamlar; açık işler ve hangi kabulün geçtiği görünürdür |
 
 STB-01'in 0.140.1 dilimi bu incelemede belirlenen CI ve güncel kullanım
-belgesi açıklarını kapatır;
+belgesi açıklarını kapatır. 0.140.2, STB-02 içinde theHarvester için
+korunan eski ortam, ortak çalışma kilidi, kesinti günlüğü ve kurtarma
+komutlarını ekler. Gerçek Ubuntu kurulumu için ayrı kabul işi eklendi;
+çalıştırma sonucu [güncel durumda](../STATUS.md) ayrıca kaydedilir.
 STB-02–06 henüz tamamlanmış değildir. Yerel motor kabulü ile gerçek .NET
 üretim kabulü ayrı kaydedilir. SQLite ile STB-02–04 ilerleyebilir;
 gelecekteki PostgreSQL dağıtımını bugün kurmak ön koşul değildir. Mevcut
@@ -239,11 +242,11 @@ abonelik yönetimi .NET tarafının kararıdır.
 
 ## 8. İlk sonraki iş
 
-**Temiz kurulum ve güncelleme kabulü (STB-02):** mevcut SQLite motorunu
-desteklenen Linux ortamında kurma, tekrar çalıştırma ve araç güncellemesi
-kesildiğinde kurtarma yolunu doğrulama. Önce mevcut installer ve geri dönüş
-farkları incelenir; kanıtlanan eksiklere küçük düzeltmeler yapılır. Gerçek
-Linux kabulü çalıştırılmadan tamamlandı sayılmaz.
+**Temiz kurulum ve güncelleme kabulünü tamamlama (STB-02):** hazırlanmış
+Ubuntu kabul işinin sonucunu doğrulama; kalan marka araç zincirini aynı
+kesinti ve eski ortamı koruma ölçütüyle inceleme. theHarvester dilimi
+0.140.2'de uygulanmıştır. Gerçek Linux kabulü çalıştırılmadan ve ilgili
+zincirlerin sonuçları görülmeden aşama tamamlandı sayılmaz.
 
 V1 yerel okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir.
 .NET/PostgreSQL bağlantısı henüz uygulanmadı. Şema ve mevcut veriler korunur.

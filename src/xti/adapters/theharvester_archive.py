@@ -19,6 +19,9 @@ import subprocess
 import tempfile
 from uuid import UUID
 
+from xti.adapters.tool_installation import (
+    ToolInstallationError, pending_installation, tool_installation_lock,
+)
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.component_pins import HARVESTER_PIN
 from xti.domain.discovery import SourceBatch
@@ -287,6 +290,10 @@ class TheHarvesterArchiveSource:
 
     @staticmethod
     def _verify_checkout(checkout: Path, executable: Path) -> None:
+        if pending_installation(checkout.parent):
+            raise SourceError(
+                'theHarvester kurulumu tamamlanmamış; ./scripts/setup-harvester --recover çalıştır.'
+            )
         try:
             head = checkout.joinpath(".git", "HEAD")
             metadata = head.lstat()
@@ -346,7 +353,14 @@ class TheHarvesterArchiveSource:
             raise SourceError(
                 "theHarvester kurulu değil. Bir kez ./scripts/setup-harvester çalıştır."
             )
-        self._verify_checkout(checkout, executable)
+        try:
+            with tool_installation_lock(checkout.parent, exclusive=False) as lock_fd:
+                self._verify_checkout(checkout, executable)
+                return self._search_locked(domain, executable, lock_fd)
+        except ToolInstallationError as error:
+            raise SourceError(str(error)) from error
+
+    def _search_locked(self, domain: str, executable: Path, lock_fd: int) -> SourceBatch:
         with tempfile.TemporaryDirectory(prefix="xti-theharvester-") as directory:
             work = Path(directory)
             report = work / "xti-report.jsonl"
@@ -361,6 +375,7 @@ class TheHarvesterArchiveSource:
                     command, cwd=directory, env=self._safe_environment(directory),
                     text=True, capture_output=True, check=False,
                     timeout=PROCESS_TIMEOUT_SECONDS,
+                    pass_fds=(lock_fd,),
                 )
             except subprocess.TimeoutExpired as error:
                 raise SourceError(

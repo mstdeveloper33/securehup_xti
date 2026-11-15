@@ -93,7 +93,7 @@ HARVESTER_PIN = ReviewedComponentPin(
     python_requirement=">=3.14",
     deployment="isolated-tool-venv",
     setup_command=("./scripts/setup-harvester",),
-    verify_command=(),
+    verify_command=("./scripts/setup-harvester", "--check"),
 )
 
 REVIEWED_COMPONENT_PINS = (MAIGRET_PIN, SHERLOCK_PIN, HARVESTER_PIN)

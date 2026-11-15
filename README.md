@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.140.1 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+**Sürüm:** 0.140.2 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
 Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Gelecekteki
@@ -1257,7 +1257,19 @@ anlatılır. Python ve önbellek varsayılan olarak proje içindeki `.tools`
 alanında tutulur; açıkça verilmiş `UV_CACHE_DIR`, `UV_PYTHON_INSTALL_DIR` ve
 `UV_PYTHON_BIN_DIR` değerleri korunur. theHarvester ayrı Python 3.14 ortamına,
 resmî deponun incelenmiş tam commit'inden ve kilitli bağımlılıklarıyla kurulur;
-kodu XTI çekirdeğine kopyalanmaz. Ardından yalnız kayıtlı kökün altındaki adları ara:
+kodu XTI çekirdeğine kopyalanmaz. Sağlıklı kurulumu tekrar çalıştırmak indirme
+yapmaz. Kurulum kontrolü ve kesintiden kurtarma için:
+
+```sh
+./scripts/setup-harvester --check
+./scripts/setup-harvester --recover
+```
+
+Yeni kurulum başarısız olursa önceki ortam geri getirilir; ani kesinti
+sonrasında `--recover` kullanılır. Önceki ve başarısız ortamlar otomatik
+silinmez. [Kurulum ve kurtarma rehberi](docs/HARVESTER_INSTALLATION.md)
+`--force`, eşzamanlı çalışma ve disk kullanımını açıklar.
+Ardından yalnız kayıtlı kökün altındaki adları ara:
 
 ```sh
 ./xti assets add markam.com

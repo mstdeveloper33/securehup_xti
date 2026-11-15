@@ -8,7 +8,6 @@ import importlib.util
 from io import StringIO
 import json
 from pathlib import Path
-import re
 import tempfile
 import tomllib
 import unittest
@@ -73,7 +72,7 @@ class ReviewedComponentPinTests(unittest.TestCase):
         self.assertIsNone(HARVESTER_PIN.version)
         self.assertIsNone(HARVESTER_PIN.catalog_size)
         self.assertIsNone(HARVESTER_PIN.catalog_sha256)
-        self.assertEqual(HARVESTER_PIN.verify_command, ())
+        self.assertEqual(HARVESTER_PIN.verify_command, ("./scripts/setup-harvester", "--check"))
 
     def test_adapter_aliases_preserve_historical_profiles(self):
         for adapter, pin, profile in (
@@ -105,15 +104,16 @@ class ReviewedComponentPinTests(unittest.TestCase):
         self.assertEqual(metadata["project"]["requires-python"], MAIGRET_PIN.python_requirement)
 
     def test_separate_harvester_installer_pins_match_registry(self):
-        script = (PROJECT / "scripts" / "setup-harvester").read_text()
-        for variable, expected in (
-            ("XTI_UPSTREAM", HARVESTER_PIN.repository),
-            ("XTI_COMMIT", HARVESTER_PIN.commit),
-        ):
-            self.assertEqual(
-                re.findall(rf'^{variable}="([^"\n]+)"$', script, re.MULTILINE),
-                [expected],
-            )
+        spec = importlib.util.spec_from_file_location(
+            "xti_test_harvester_installer", PROJECT / "scripts" / "setup_harvester.py"
+        )
+        installer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(installer)
+        self.assertIs(installer.HARVESTER_PIN, HARVESTER_PIN)
+        wrapper = (PROJECT / "scripts" / "setup-harvester").read_text()
+        self.assertIn('"$XTI_PROJECT_DIR/scripts/python"', wrapper)
+        self.assertIn('"$XTI_PROJECT_DIR/scripts/setup_harvester.py"', wrapper)
+        self.assertNotIn(HARVESTER_PIN.commit, wrapper)
 
     def test_isolated_sherlock_worker_version_guard_matches_registry(self):
         worker = PROJECT / "src" / "xti" / "adapters" / "sherlock_username_worker.py"

@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.140.1 · Şema 64.**
+**15 Kasım 2026 · 0.140.2 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -25,6 +25,41 @@ arama/bildirim desenleri kullanılacak. Bu bileşen araştırmasının paketleri
 kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
+
+- 0.140.2 theHarvester kurulumu eski ortamı korur; hata halinde geri
+  getirir. Ani kesinti için kalıcı günlük ve açık `--recover`, ağsız yerel
+  `--check`, aynı sabit sürümü yeniden kurmak için `--force` vardır.
+  Sağlıklı seçeneksiz tekrar `uv` veya indirme gerektirmez.
+- Kurulum ve arşiv işçisi ortak kalıcı kilit kullanır; çocuk süreç kilidi
+  devralır. Hazırlık/bileşen görünümü yarım veya meşgul kurulumu hazır
+  saymaz. Eski yedekler ve başarısız adaylar otomatik silinmez.
+  [İşletici rehberi](HARVESTER_INSTALLATION.md),
+  [0146 kararı](decisions/0146-recoverable-harvester-installation.md).
+- Ayrı, dosya değişimine bağlı Ubuntu kabul işi gerçek sabit aracı kurma,
+  ağsız tekrar/kontrol, yerel engine kullanımı ve geçici kayıtların
+  korunmasını sınamak için eklendi. Bu işin tanımlanması, başarılı
+  çalıştığı veya STB-02'nin tamamlandığı anlamına gelmez.
+
+**0.140.2 doğrulaması:** Genel `./scripts/check` turu 677,096 saniyede
+2.024 test çalıştırdı: 2.023 geçti, macOS'ta `systemd-analyze` bulunmadığı
+için bir test atlandı. Bu tur başladıktan sonra tamamlanan göreli PATH ve
+süreç başlatma kesintisi düzeltmeleri dahil, güncel 33 kurulum testi ayrı
+olarak 45,067 saniyede geçti. Son iki regresyon genel turun test keşfine
+dahil değildir; kurulumun son hali bu ayrı turla doğrulandı.
+
+Gerçek kurulu theHarvester `--check` komutundan indirmesiz geçti. Yerel
+CLI/engine bileşen satırları eşleşti ve seçilen eksik veri dizini oluşmadı.
+Geçici gerçek SQLite verisiyle çekirdek (`--core-only`) kurulumu, kayıt,
+engine okuma, tekrar çekirdek kurulumu, yedek ve yeni dizine geri yükleme
+zinciri geçti; özgün veritabanı ve örnek
+kanıt dosyası özetleri korundu. Kabuk sözdizimi, Python derleme, değişiklik
+boşlukları ve dokuz belgenin yerel bağlantıları kontrol edildi.
+
+Gerçek Linux/Actions sonucu bu yerel ortamdan doğrulanmadı: kullanılabilir
+Linux çalıştırıcısı ve kimlikli GitHub Actions okuma oturumu yok. Ubuntu
+kontrolü [iş akışı dosyasında](../.github/workflows/harvester-install.yml)
+hazırdır; kalıcı hizmet/yeniden başlama/7×24 kabulü ayrıca açıktır.
+Kullanıcı verileri, şema 64 ve incelenmiş araç sürümleri korunur.
 
 - 0.140.1 hızlı CI paketine `engine_contract`, `engine_records`,
   `components` ve `component_pins` test dosyalarını ekler. Marka araç
@@ -54,8 +89,9 @@ kendi sürümüyle korunur. Kullanıcı verisi, şema ve araç sürümleri deği
   canlı kaynak veya bütün bağımlılıkların çalışma garantisi değildir.
   Sosyal araçlarda alternatif çalışma ortamı, theHarvester'da tam kaynak
   ağacı/geçişli bağımlılık bütünlüğü bu okumayla doğrulanmaz. Eski kanıtlar
-  araç eksikken de okunabilir. Kurulum kesintisi/geri dönüşün ileri işleri
-  ENG-06'da açık; ENG-03 özellikleri sağlamlaştırma önceliği nedeniyle bekler.
+  araç eksikken de okunabilir. theHarvester kesinti/geri dönüş dilimi
+  0.140.2'de eklendi; tam işletim kabulü ENG-06'da açık. ENG-03 özellikleri
+  sağlamlaştırma önceliği nedeniyle bekler.
 - Sosyal kurulum doğrulayıcısı, Git kaynak bilgisindeki nesne dışı JSON'u
   beklenmedik istisna yerine kontrollü hata olarak bildirir. Araç yükseltmesi,
   paket veya şema değişikliği yoktur.
@@ -1768,8 +1804,9 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 15 Kasım 2026 son kullanıcı kararı: yeni özelliklerden önce mevcut motor
 sağlamlaştırılır. [Güncel STB sırası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. Sürümlü yerel okuma ve ortak araç kataloğu kullanılabilir;
-0.140.1 CI/belge düzeltmelerinden sonra temiz Linux kurulum, güncelleme ve
-geri dönüş kabulü gelir. SQLite ile kullanım devam eder. .NET/PostgreSQL
+0.140.2 theHarvester kesinti/geri dönüşünü ekler; temiz Linux kurulum,
+güncelleme ve bütün araç zincirinin kabulü henüz kapanmış değildir.
+SQLite ile kullanım devam eder. .NET/PostgreSQL
 gelecekteki platformdur; gerçek bağlantı ve gerekiyorsa veri geçişi ayrı
 kabul işidir. Uygulama backend'i, oturum ve panel .NET tarafındadır.
 Olay adayları, genel kayıtlı arama bildirimleri, RSS ve LLM bu dönemde bekler.

@@ -20,6 +20,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_architecture.py \
     tests/test_setup.py \
     tests/test_setup_harvester.py \
+    tests/test_tool_installation.py \
     tests/test_theharvester_archive.py \
     tests/test_theharvester_archive_repeats.py \
     tests/test_archive_http.py \

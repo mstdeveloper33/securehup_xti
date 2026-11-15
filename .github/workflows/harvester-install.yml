@@ -1,0 +1,107 @@
+name: XTI Linux install acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/harvester-install.yml"
+      - "pyproject.toml"
+      - "setup"
+      - "xti"
+      - "scripts/python"
+      - "scripts/setup-harvester"
+      - "scripts/setup_harvester.py"
+      - "scripts/check-linux-install.py"
+      - "src/xti/__init__.py"
+      - "src/xti/config.py"
+      - "src/xti/domain/component*.py"
+      - "src/xti/application/components.py"
+      - "src/xti/adapters/components.py"
+      - "src/xti/adapters/tool_installation.py"
+      - "src/xti/adapters/theharvester_archive*.py"
+      - "src/xti/adapters/source_readiness.py"
+      - "src/xti/interfaces/cli.py"
+      - "src/xti/interfaces/engine*.py"
+      - "tests/test_setup_harvester.py"
+      - "tests/test_tool_installation.py"
+      - "tests/test_component_pins.py"
+      - "tests/test_theharvester_archive*.py"
+      - "tests/test_source_readiness_adapter.py"
+      - "tests/test_ci_configuration.py"
+  pull_request:
+    paths:
+      - ".github/workflows/harvester-install.yml"
+      - "pyproject.toml"
+      - "setup"
+      - "xti"
+      - "scripts/python"
+      - "scripts/setup-harvester"
+      - "scripts/setup_harvester.py"
+      - "scripts/check-linux-install.py"
+      - "src/xti/__init__.py"
+      - "src/xti/config.py"
+      - "src/xti/domain/component*.py"
+      - "src/xti/application/components.py"
+      - "src/xti/adapters/components.py"
+      - "src/xti/adapters/tool_installation.py"
+      - "src/xti/adapters/theharvester_archive*.py"
+      - "src/xti/adapters/source_readiness.py"
+      - "src/xti/interfaces/cli.py"
+      - "src/xti/interfaces/engine*.py"
+      - "tests/test_setup_harvester.py"
+      - "tests/test_tool_installation.py"
+      - "tests/test_component_pins.py"
+      - "tests/test_theharvester_archive*.py"
+      - "tests/test_source_readiness_adapter.py"
+      - "tests/test_ci_configuration.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xti-linux-install-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out a clean repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up core Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install the pinned uv installer
+        run: python -m pip install --disable-pip-version-check --no-input uv==0.13.8
+      - name: Verify Linux installation, locking and recovery regressions offline
+        id: offline
+        run: |
+          ./scripts/python -m unittest -v \
+            tests/test_setup_harvester.py \
+            tests/test_tool_installation.py \
+            tests/test_component_pins.py \
+            tests/test_theharvester_archive.py \
+            tests/test_theharvester_archive_repeats.py \
+            tests/test_source_readiness_adapter.py \
+            tests/test_ci_configuration.py
+      - name: Accept the real clean Linux installation without target scans
+        id: acceptance
+        run: ./scripts/python scripts/check-linux-install.py
+      - name: Record acceptance scope and outcome
+        if: always()
+        env:
+          OFFLINE_RESULT: ${{ steps.offline.outcome }}
+          ACCEPTANCE_RESULT: ${{ steps.acceptance.outcome }}
+        run: |
+          {
+            echo "### Linux installation job"
+            echo "- Offline installer/lock/recovery tests: $OFFLINE_RESULT"
+            echo "- Real clean install and local data acceptance: $ACCEPTANCE_RESULT"
+            echo "- No target collection or active scan is part of this job."
+            echo "- Persistent service, restart and 24/7 acceptance remain separate."
+          } >> "$GITHUB_STEP_SUMMARY"

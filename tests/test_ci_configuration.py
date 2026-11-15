@@ -1,11 +1,26 @@
 from pathlib import Path
 from fnmatch import fnmatchcase
+import importlib.util
+import os
 import re
 import stat
+import subprocess
+import sys
+import tempfile
 import unittest
+from unittest.mock import patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def linux_acceptance():
+    spec = importlib.util.spec_from_file_location(
+        "linux_acceptance", PROJECT_ROOT / "scripts/check-linux-install.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class CiConfigurationTests(unittest.TestCase):
@@ -88,6 +103,97 @@ class CiConfigurationTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(selected.count(path), 1)
                 self.assertTrue((PROJECT_ROOT / path).is_file())
+
+    def test_linux_acceptance_tracks_installer_and_shared_runtime_changes(self) -> None:
+        workflow = (PROJECT_ROOT / ".github/workflows/harvester-install.yml").read_text(encoding="utf-8")
+        critical_paths = (
+            ".github/workflows/harvester-install.yml", "setup", "xti", "scripts/python",
+            "scripts/check-linux-install.py", "scripts/setup-harvester", "scripts/setup_harvester.py",
+            "src/xti/domain/component_pins.py", "src/xti/adapters/tool_installation.py",
+            "src/xti/adapters/theharvester_archive.py", "src/xti/adapters/source_readiness.py",
+            "tests/test_setup_harvester.py", "tests/test_tool_installation.py",
+            "tests/test_component_pins.py", "tests/test_theharvester_archive.py",
+            "tests/test_theharvester_archive_repeats.py", "tests/test_source_readiness_adapter.py",
+            "tests/test_ci_configuration.py",
+        )
+        for event in ("push", "pull_request"):
+            block = re.search(rf"(?ms)^  {event}:\n(.*?)(?=^  [a-z_]+:|\Z)", workflow)
+            self.assertIsNotNone(block)
+            paths = re.findall(r'^      - "([^"\n]+)"$', block.group(1), re.MULTILINE)
+            for path in critical_paths:
+                with self.subTest(event=event, path=path):
+                    self.assertTrue(any(fnmatchcase(path, pattern) for pattern in paths))
+            self.assertFalse(any(fnmatchcase("docs/DAILY_USE.md", pattern) for pattern in paths))
+        self.assertIn("contents: read", workflow)
+        self.assertIn("persist-credentials: false", workflow)
+        self.assertIn("runs-on: ubuntu-latest", workflow)
+        self.assertIn("timeout-minutes: 20", workflow)
+        self.assertIn("cancel-in-progress: true", workflow)
+        self.assertIn("uv==0.13.8", workflow)
+        self.assertIn('python-version: "3.11"', workflow)
+        self.assertIn("run: ./scripts/python scripts/check-linux-install.py", workflow)
+        self.assertIn("GITHUB_STEP_SUMMARY", workflow)
+        self.assertNotIn("setup-brand", workflow)
+        for path in critical_paths:
+            if path.startswith("tests/"):
+                self.assertIn(path, workflow.split("steps:", 1)[1])
+
+    def test_linux_acceptance_refuses_wrong_host_and_existing_tools_without_mutation(self) -> None:
+        helper = linux_acceptance()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with patch.object(helper.sys, "platform", "darwin"):
+                with self.assertRaisesRegex(RuntimeError, "real Linux"):
+                    helper.fresh_linux_checkout(root)
+            self.assertEqual(list(root.iterdir()), [])
+            with patch.object(helper.sys, "platform", "linux"):
+                helper.fresh_linux_checkout(root)
+                (root / ".tools").symlink_to(root / "missing")
+                with self.assertRaisesRegex(RuntimeError, "disposable checkout"):
+                    helper.fresh_linux_checkout(root)
+                self.assertTrue((root / ".tools").is_symlink())
+
+    def test_linux_offline_recheck_guards_refuse_download_commands(self) -> None:
+        helper = linux_acceptance()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            git = fake_bin / "git"
+            git.write_text(f"#!{sys.executable}\nprint('local-metadata')\n", encoding="utf-8")
+            git.chmod(0o700)
+            environment = helper.offline_tool_environment(root / "guards", dict(os.environ, PATH=str(fake_bin)))
+            result = subprocess.run([str(root / "guards/git"), "-C", str(root), "rev-parse", "HEAD"],
+                                    env=environment, text=True, capture_output=True, timeout=10)
+            self.assertEqual((result.returncode, result.stdout.strip()), (0, "local-metadata"))
+            for arguments in (("git", "clone", "https://example.invalid/repo"),
+                              ("git", "-C", str(root), "fetch", "origin"), ("uv", "sync")):
+                result = subprocess.run([str(root / "guards" / arguments[0]), *arguments[1:]],
+                                        env=environment, text=True, capture_output=True, timeout=10)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("blocked", result.stderr)
+
+    def test_linux_local_smoke_preserves_bytes_and_restores_real_engine_records(self) -> None:
+        helper = linux_acceptance()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            data = root / "data"
+            environment = dict(os.environ, XTI_DATA_DIR=str(data), XTI_PYTHON=sys.executable)
+            helper.run(["./setup", "--core-only"], environment)
+            helper.run(["./xti", "assets", "add", "example.com"], environment)
+            marker = data / "evidence.bin"
+            marker.write_bytes(b"original")
+            before = helper.snapshot(data)
+            helper.local_asset(environment)
+            helper.run(["./setup", "--core-only"], environment)
+            backup = root / "backup.db"
+            helper.run(["./xti", "backup", "--output", str(backup)], environment)
+            restored = dict(environment, XTI_DATA_DIR=str(root / "restored"))
+            helper.run(["./xti", "restore", str(backup)], restored)
+            helper.local_asset(restored)
+            self.assertEqual(helper.snapshot(data), before)
+            marker.write_bytes(b"modified")
+            self.assertNotEqual(helper.snapshot(data), before)
 
 
 if __name__ == "__main__":

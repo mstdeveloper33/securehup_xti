@@ -1,6 +1,6 @@
 # Bağlı açık kaynak araçlarını görme
 
-**Uygulama:** 0.140.1 · **Bileşen kataloğu:** 1 · **Şema:** 64.
+**Uygulama:** 0.140.2 · **Bileşen kataloğu:** 1 · **Şema:** 64.
 
 `components`, XTI'ın bağlı olduğu Maigret, Sherlock ve theHarvester için
 beklenen sürümü, kullanım kapsamını ve bu projedeki kurulum durumunu gösterir:
@@ -50,8 +50,10 @@ eksik kurulumda sonraki kontrollerin tümü yürütülmez.
 Maigret ve Sherlock için proje `.venv` içindeki paket sürümü, Git kaynak
 kaydı, katalog boyutu/özeti ve çalıştırıcı dosyaları incelenir. `XTI_PYTHON`
 veya `PATH` ile seçilmiş başka bir ortam bu gözlemle doğrulanmış olmaz.
-theHarvester denetimi HEAD işareti ile çalıştırıcı/interpreter konumunu
-inceler; bütün kaynak ağacının veya bağımlılıkların bütünlüğünü kanıtlamaz.
+theHarvester denetimi yarım kurulum günlüğü, varsa kurulum kilidi, HEAD
+işareti ile çalıştırıcı/interpreter konumunu inceler; bütün kaynak ağacının
+veya bağımlılıkların bütünlüğünü kanıtlamaz. Bekleyen kurtarma veya meşgul
+kurulum `invalid` açıklamasıyla görünür. Bu okuma kilit dosyası oluşturmaz.
 
 Kurulumun uygun görünmesi kaynağın internette çalıştığı anlamına gelmez.
 Son deneme, kaynak hatası ve saklanan verinin güncelliği için
@@ -61,9 +63,11 @@ tek anlık kesit garantisi yoktur.
 
 Çıktıdaki kurulum ve doğrulama komutları yalnız yol gösterir. Maigret ve
 Sherlock için ayrı `./scripts/setup-brand --check` kontrolü vardır.
-theHarvester için bağımsız tam doğrulama komutu yoktur; mevcut kurulum
-işlemi kendi `--help` kontrolünü yapar. Katalog kurulumu onarmaz veya
-otomatik güncellemez.
+theHarvester için `./scripts/setup-harvester --check` Git kaynağını,
+commit'i, izlenen yerel değişiklikleri ve `--help` çalışmasını kontrol eder.
+Bu ayrı komut aracı çalıştırır; tüm bağımlılık bütünlüğünü veya canlı arşiv
+erişimini kanıtlamaz. Katalog kurulumu onarmaz veya otomatik güncellemez.
+[Kurulum ve kurtarma rehberi](HARVESTER_INSTALLATION.md).
 
 ## Başka uygulamadan okuma
 
@@ -105,7 +109,8 @@ bulunur. Katalog kapsamı `project-managed-tools` değeridir.
    kanıt uyumunu doğrula; değişen lisans/kurulum/kullanım belgelerini güncelle.
 
 Bu teslim araç sürümlerini yükseltmez, bağımlılık eklemez veya şemayı
-değiştirmez. Bütün geçişli bağımlılıkların kilitlenmesi, tam kurulum
-bütünlüğü ve theHarvester kurulumunda kesinti sonrası geri dönüş ayrı
-işletim işleridir. [Karar kaydı](decisions/0144-reviewed-component-catalog.md)
+değiştirmez. Bütün geçişli bağımlılıkların tam bütünlük kabulü ayrı işletim
+işidir. theHarvester kesinti sonrası geri dönüşü 0.140.2'de eklenmiştir;
+doğrulama kapsamı [güncel durumda](STATUS.md) kayıtlıdır.
+[Katalog kararı](decisions/0144-reviewed-component-catalog.md)
 ve [motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md).

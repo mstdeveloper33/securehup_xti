@@ -74,12 +74,12 @@ class ComponentCatalogService:
                 'installation': {
                     'state': installation.state, 'error': installation.error,
                     'scope': 'project-managed', 'verification': 'metadata_only', 'execution_tested': False,
-                    'inspection_checks': (['checkout_head_marker', 'launcher_and_interpreter_location'] if archive
+                    'inspection_checks': (['installation_journal_and_lock', 'checkout_head_marker', 'launcher_and_interpreter_location'] if archive
                                       else ['distribution_version', 'vcs_metadata', 'catalog_hash_and_size', 'launcher_files']),
                 },
                 'notes': ([
                     'theHarvester denetimi HEAD işareti ve çalıştırıcı konumunu okur; tüm çalışma ağacı veya bağımlılık bütünlüğünü kanıtlamaz.',
-                    'Ayrı tam doğrulama komutu yoktur; mevcut kurulum kendi --help kontrolünü yapar.',
+                    'Ayrı setup-harvester --check, yerel Git kimliği ve --help çalışmasını denetler; bütün bağımlılıkların bütünlüğünü kanıtlamaz.',
                 ] if archive else [
                     'Yalnız proje .venv kurulum bilgileri denetlenir; bütün geçişli bağımlılıklar veya çalışma başarısı bu okumada sınanmaz.',
                     'XTI_PYTHON veya PATH ile seçilmiş başka çalışma ortamı bu gözlemle doğrulanmış sayılmaz.',

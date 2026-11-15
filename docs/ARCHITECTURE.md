@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.140.1, şema 64 ana proje yapısı.**
+**15 Kasım 2026 — 0.140.2, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 hedef kararı — .NET bağlantısı henüz uygulanmadı:** Bu repo mevcut
@@ -16,7 +16,7 @@ Kuruluş grupları müşteri erişim yalıtımı değildir. .NET'in doğruladı�
 kapsam motorun iş/arama/sonuç sınırında da uygulanır; serbest kurum etiketi
 yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
 ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
-Aşağıdaki bölümler mevcut 0.140.1 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.140.2 uygulamasını anlatır.
 
 Güncel çalışma önceliği mevcut motorun sağlamlaştırılmasıdır. SQLite
 geliştirme, deneme ve kişisel kullanım için korunur. .NET/PostgreSQL
@@ -57,9 +57,17 @@ işlemi boş parametre nesnesi ister; kanıt veri alanından bağımsız çalı�
 projenin kurulumunu inceler. `ready`, metadata denetimidir; canlı erişim
 ve çalışma başarısı `sources.status` ile de karıştırılmaz. Sosyal denetim
 alternatif PATH/XTI_PYTHON ortamını, theHarvester denetimi bütün kaynak
-ve bağımlılık bütünlüğünü kanıtlamaz. Kurulum kesintisi/geri dönüş ayrı
-işletim kapsamıdır. [0144 kararı](decisions/0144-reviewed-component-catalog.md)
+ve bağımlılık bütünlüğünü kanıtlamaz. [0144 kararı](decisions/0144-reviewed-component-catalog.md)
 ve [bileşen rehberi](COMPONENTS.md).
+
+theHarvester kurulum betiği ve çalışma adaptörü aynı kalıcı POSIX kilidini
+kullanır. Kurulum özel, işçi paylaşımlı kilit alır; çocuk süreç descriptor'ı
+devralır. Kurulum eski checkout'u korur, yeni ortamı son konumunda oluşturur
+ve katı, kalıcı günlükle kesintiden dönüşü yürütür. Hazırlık görünümü
+bekleyen günlüğü veya meşgul kilidi hazır saymaz; metadata okuması yeni
+kilit dosyası oluşturmaz. Açık `--check` Git kimliği/yerel değişiklik ve
+yardım komutu doğrulamasıdır; kaynak erişim kabulü değildir.
+[0146 kararı](decisions/0146-recoverable-harvester-installation.md).
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
