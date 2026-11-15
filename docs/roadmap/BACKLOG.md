@@ -9,6 +9,11 @@ ardından API/React ve takım kullanımı. Aşağıdaki R0–R13 kapsam envanter
 korunur; eski “kişisel kullanım önceliği” ve bekleme notları tarihîdir.
 Yeni plan henüz bir entegrasyonu kurulmuş veya çalışır saymaz.
 
+**Hazır bileşen seçimi:** [Ayrı seçim planı](COMPONENT_SELECTION_PLAN.md)
+mevcut kod kullanımı, ad benzerliği için RapidFuzz deneyi, haber için
+feedparser ve sonraki API/panel/paylaşım tercihlerini kaydeder. Bu tur
+uygulama/kurulum yapılmadı; EIP-01'in ölçüm ve sürüm kabulü açıktır.
+
 14 Kasım 2026: [sekiz adımlı plan](ORDERED_INTEGRATION_PLAN.md) 0.133.0,
 [kuruluş raporu ve ücretsiz devam dilimi](ORGANIZATION_WORKFLOW_PLAN.md)
 0.134.0 ile uygulandı. Güncel sonuçlar [STATUS](../STATUS.md) içindedir.
@@ -201,9 +206,9 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 Temel izleme, kişisel vaka/tedarikçi çekirdeği ve 0.138.0 teslimleri
 kullanılabilir. Yeni sıra [kurumsal entegrasyon planındadır](ENTERPRISE_INTEGRATION_PLAN.md):
 
-1. EIP-01: XTI kullanıcı işi ve ana veri modeli; uygun bağımsız paket/araç
-   ile gerekirse bütün servis seçeneklerini karşılaştırma. Sürüm, kaynak,
-   lisans, bakım ve iş yükü ölçümleri henüz tamamlanmış değildir.
+1. EIP-01: [Bileşen seçim planı](COMPONENT_SELECTION_PLAN.md) üzerinden olay
+   adayı örnekleri ve RapidFuzz deneyi; genel aramada kimlik/fark sınırları.
+   Araştırma tercihleri kayıtlı, ölçüm ve test edilmiş sürüm kilidi açıktır.
 2. EIP-02: seçilen analiz bileşeninin sonucunu XTI'da saklama ve inceleme.
    Doğrudan araç adaptörü veya ek yararı gösterilirse IntelOwl kullanılır.
 3. EIP-03: XTI'dan kaynaklı CTI ilişki araştırması; bağımsız bileşen veya

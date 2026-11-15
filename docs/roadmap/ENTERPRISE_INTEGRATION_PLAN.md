@@ -16,6 +16,12 @@ eski kişisel kullanım önceliğini günceller; çalışan kapsamı değiştirm
 Gerçek teslimlerin kaydı [STATUS](../STATUS.md), mimari karar
 [0141](../decisions/0141-enterprise-integration-first.md) içindedir.
 
+**Hazır bileşen seçimi:** [Seçim planı](COMPONENT_SELECTION_PLAN.md), ilk
+iki özellikte yeniden kullanılacak XTI parçalarını, RapidFuzz deneyini,
+haber için feedparser tercihini ve API/panel/paylaşım aşamalarındaki
+bileşenleri belirler. Bunlar kurulum kabulü veya tamamlanmış özellik
+değildir; gözlenen yayın sürümleri test edilmiş sürümlerden ayrı tutulur.
+
 ## 1. Hedef ve değişmeyen sınırlar
 
 Hedef, analistlerin ve daha sonra birden fazla müşterinin kullanabileceği
@@ -157,7 +163,7 @@ gerekir; yalnız sahte yanıtla geçen test yeterli değildir.
 
 | İş | Somut teslim | Önkoşul ve tamamlanma kanıtı |
 |---|---|---|
-| **EIP-01 — Sınırlar ve bileşen seçimi** | XTI ana kayıt modeli ve kullanıcı senaryosu; bağımsız paket/araç ile bütün servis seçeneklerinin lisans/bakım/iş yükü karşılaştırması | Bu belge ürün sınırını kaydeder. Donanım, ilk iş yükü ve kullanılacak bileşen/sürüm hâlâ açıktır |
+| **EIP-01 — Sınırlar ve bileşen seçimi** | XTI ana kayıt modeli ve kullanıcı senaryosu; görev başına bileşen ve mevcut kod kullanımı [seçim planında](COMPONENT_SELECTION_PLAN.md) | Araştırma/plan tercihleri kayıtlı; donanım, örnek iş yükü, kalite deneyi ve test edilmiş sürüm kilidi henüz tamamlanmadı |
 | **EIP-02 — Analiz bileşeni denemesi** | Tek izinli pasif analiz, kalıcı XTI raporu ve XTI'dan inceleme | EIP-01; uygun araca doğrudan adaptör veya faydası doğrulanırsa IntelOwl. Eklenti kapsamı, hata ve tüketim ölçülür |
 | **EIP-03 — CTI bileşeni denemesi** | XTI'dan ilişki araştırması ve kaynaklı bağlam; gerekirse OpenCTI arka plan adaptörü | EIP-01; kanıt ve ilişkiler XTI'da kalır, başka ürün ekranı gerekmez. Bütün OpenCTI kurulumu ve IntelOwl başarısı önkoşul değildir |
 | **EIP-04 — Kalıcı bağlantılar** | Doğrulanmış prototipleri sürümlü adaptör, kalıcı iş/teslim kaydı, hata/kota/güncellik görünümü ve kurtarmaya dönüştürme | İlgili platformun EIP-02 veya EIP-03 kabulü; kesinti, cevap kaybı, yeniden başlatma ve servis kapalıyken yerel kullanım testleri; gerçek Linux kabulü |
@@ -328,12 +334,12 @@ edilmez. Karşılaştırma her önemli sürümde güncellenir.
 
 ## 10. Bir sonraki somut teslim
 
-EIP-01'in açık noktalarıyla başlayacağız: XTI'da eklenecek ilk kullanıcı
-işini belirlemek, mevcut uygulama ile uygun açık kaynak bileşenleri
-karşılaştırmak ve sürüm/lisans/bakım kararını kaydetmek. İlk entegrasyon
-teslimi seçilen işi **XTI'dan çalıştırıp sonucunu XTI'da saklama, arama ve
-inceleme** olacak. IntelOwl veya OpenCTI'nin bütünü ancak bu hedefe göre
-ek yararı doğrulanırsa seçilecek; önce onları kurmak zorunlu değildir.
+[Bileşen seçimi](COMPONENT_SELECTION_PLAN.md) doğrultusunda ilk somut iş,
+onaylı olay adayları için kesin kuralların örneklerini ve RapidFuzz
+karşılaştırmasını hazırlamaktır. Fayda gösterilirse dar benzerlik adaptörü
+eklenir. Kaydedilmiş genel arama mevcut XTI altyapısıyla paralel ilerler;
+haber aşamasında feedparser kullanılır. Sonuçlar XTI'da saklanır, aranır ve
+incelenir. Bu görevler bütün OpenCTI/IntelOwl kurulumunu gerektirmez.
 
 Bu plan güncellemesinde paket/servis kurulmadı, gerçek veri paylaşılmadı,
 veritabanı değiştirilmedi ve yeni bir özellik çalışır ilan edilmedi.

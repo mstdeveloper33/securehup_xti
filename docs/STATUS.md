@@ -10,6 +10,12 @@ alındı. Tek ürün ve ana kayıt merkezi XTI'dır; OpenCTI/IntelOwl ancak seç
 arka plan yardımcılarıdır. Bu yalnız plan değişikliğidir; servisler, API/React, takım veya
 müşteri yalıtımı henüz eklenmedi. Uygulama sürümü ve şema değişmedi.
 
+**Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
+olay adaylarında RapidFuzz deneyi, haber modülünde feedparser ve sonraki
+API/panel/paylaşım tercihlerini kaydeder. Mevcut genel arama/CTI kayıtlı
+arama/bildirim desenleri kullanılacak. Yeni bağımlılık kurulmadı veya
+özellik eklenmedi; test edilmiş paket sürümleri henüz seçilmedi.
+
 ## Çalışanlar
 
 - `search QUERY` on tür yerel kaydı tek salt okunur kesitte arar; tam/başlangıç/

@@ -20,6 +20,11 @@ planla kendiliğinden etkinleşmez. Sunucu içi envanter, ürün/sürüm, paket 
 CVE/KEV/EPSS kapsamı ile otomatik HTML rapor arşivi hâlâ aktif plan dışıdır.
 Gerçek teslimler [STATUS.md](../STATUS.md) içinde izlenir.
 
+Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
+[bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.
+Bu plan araştırma sonucudur; yeni paket kurulmuş veya sürümü kabul
+edilmiş sayılmaz.
+
 0.88.0, güncel yerel IOC kaynak iddialarını yedi gösterge türünde STIX 2.1 Indicator Bundle dosyasına ağsız, salt-okunur ve atomik çıkarır. CTI nesne/ilişki kapsamı, TLP, içe aktarma ve TAXII ile kalıcı sistem zamanlaması/dış kanal aboneliği açık kalır.
 
 0.89.0, seçilmiş birleşik yerel bildirimi hedefe özgü değişmez gövdeye tekilleştirir; HMAC-SHA256 imzalı HTTPS/443 gönderim ve her denemenin kalıcı sonucunu ekler. Otomatik olay aboneliği, toplu/due worker, zamanlayıcı ve sağlayıcıya özgü SIEM adaptörleri açık kalır.
