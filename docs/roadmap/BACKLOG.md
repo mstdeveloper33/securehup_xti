@@ -1,5 +1,13 @@
 # XTI — Uygulanabilir İş Listesi
 
+**15 Kasım 2026 güncel sıra:** Kurumsal ürün ve entegrasyon önceliği
+kabul edildi. [EIP-01–EIP-11 iş paketleri](ENTERPRISE_INTEGRATION_PLAN.md)
+bundan sonraki teslimleri yönlendirir: OpenCTI/IntelOwl laboratuvarı,
+güvenilir bağlantılar, onaylı olay ilişkileri/genel arama izlemeleri,
+ardından API/React ve takım kullanımı. Aşağıdaki R0–R13 kapsam envanteri
+korunur; eski “kişisel kullanım önceliği” ve bekleme notları tarihîdir.
+Yeni plan henüz bir entegrasyonu kurulmuş veya çalışır saymaz.
+
 14 Kasım 2026: [sekiz adımlı plan](ORDERED_INTEGRATION_PLAN.md) 0.133.0,
 [kuruluş raporu ve ücretsiz devam dilimi](ORGANIZATION_WORKFLOW_PLAN.md)
 0.134.0 ile uygulandı. Güncel sonuçlar [STATUS](../STATUS.md) içindedir.
@@ -13,7 +21,8 @@ tedarikçi kaynak değişim bildirimleri ve kayıtlı varlık ilişki geçmişi.
 [Kullanım ve sınırlar](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML
 rapor arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; eklenecek
 işler arasında değildir. Mevcut komutla HTML dışa aktarımı kullanılabilir.
-Sıradaki doğrulama gerçek Linux üzerinde klonla–kur–çalıştır kabulüdür.
+Gerçek Linux üzerinde klonla–kur–çalıştır kabulü entegrasyon ve pilot
+doğrulamalarının açık işidir.
 Kuruluş raporu, kapsamlı dönem/kaynak katkısı, önce/sonra kanıtları,
 doğrudan CTI bağlamı ve HIBP kamu metadata kataloğu kullanılabilir.
 Aşağıdaki eski sürüm notları tarihî kapsamı açıklar; geniş roadmap'in
@@ -188,15 +197,46 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 
 ## İlk çekilecek işler
 
-Temel, marka/domain ve ilk dış yüzey omurgası, kişisel tedarikçi/vaka çekirdekleri ve birleşik kaynak durumu teslim edildi. 0.138.0 ile yerel birleşik arama, tedarikçi değişim bildirimleri ve varlık ilişki geçmişi de kullanılabilir. Güncel sıra şöyledir:
+Temel izleme, kişisel vaka/tedarikçi çekirdeği ve 0.138.0 teslimleri
+kullanılabilir. Yeni sıra [kurumsal entegrasyon planındadır](ENTERPRISE_INTEGRATION_PLAN.md):
 
-1. Gerçek Linux üzerinde temiz klonlama, kurulum ve terminal kullanımını doğrulamak. Sürekli kullanım için mevcut zamanlama, yeniden başlatma, disk ve yedekten dönüş akışlarını aynı ortamda sınamak; bunlar henüz gerçek Linux'ta tamamlandı sayılmaz.
-2. Kaynakların gerçek kapsamını ve erişimini doğrulamak. Son kayıtlı Common Crawl denemesi HTTP 504 ile başarısız, Wayback başarılıydı; bu tarihî sonuç güncel erişim durumu değildir. Common Crawl canlı kabulü yeniden sınanacak; kaynaklar kesinti, eski veri ve gerçek sonuç yokluğu olarak ayrılacak. Önceki kabul kanıtları [güncel durumda](../STATUS.md#son-doğrulama).
-3. Ölçülen kapsam boşluğuna katkı sağlayan açık kaynak adaptörlerini lisans, sürüm ve kabul testleriyle eklemek. Önce küçük erişim ve katkı deneyi yapılır; henüz yeni sağlayıcı veya ücretli API seçilmez.
-4. Günlük kullanımda CTI, tedarikçi ve vaka bağlantılarındaki somut eksikleri tamamlamak. Kayıtlı profil/oturum/eksik-adım tekrarı, HIBP toplama ve kuruluş bildirimi, tarihî vaka kanıtı, komutla HTML raporu ve 0.138.0'daki üç özellik zaten kullanılabilir.
-5. İleride isteğe bağlı LLM için önce küçük kalite/cihaz deneyi, ardından kaynaklı açıklama, günlük özet ve vaka taslağı; yararı doğrulanırsa salt okuma soru-cevap ve inceleme önerileri eklemek. Bu iş React/API, bütün kaynakların tamamlanması veya Linux hizmetine bağlı değildir. Şimdiki plan güncellemesi model kurmaz veya ücretli hizmet açmaz.
+1. EIP-01: laboratuvar ortamı, ilk örnek veri ve iş yükü; sürüm, kaynak,
+   lisans ve izinli analiz kaydı. Bu belgenin yazılması bütün EIP-01
+   ölçümlerinin tamamlandığı anlamına gelmez.
+2. EIP-02: IntelOwl'dan rapor okuma ve tek izinli pasif analiz sonucu alma.
+3. EIP-03: OpenCTI CE'ye seçili örnek kanıt aktarımı ve sınırlı bağlam okuma.
+4. EIP-04: kalıcı adaptör/iş/teslim kaydı, hata ve tekrar güvenliği, sürüm
+   uyumu, gerçek Linux kullanım ve kurtarma kabulü.
+5. EIP-05: önceden onaylanan olay ilişki adayları ve kaydedilmiş genel arama
+   bildirimleri. Mevcut ransomware karşılaştırması ve CTI kayıtlı aramaları
+   temel alınır; genel grafik veya analiz motoru yeniden yazılmaz.
 
-Son kullanıcı yönlendirmesine göre terminal menüsü yapılmadan özellik geliştirmeye devam edilir; React arayüzü ileride ayrı projeden bağlanacaktır. Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web panelinin uygulanması ve e-posta/SMS kullanıcı kararıyla beklemededir. Ürün/sürüm, paket envanteri ve CVE/KEV/EPSS eşleştirmesi aktif kapsam dışındadır. LLM desteğinin plana alınması bu işleri yeniden açmaz. Kafka/OpenSearch gibi ağır altyapı da kişisel kullanım ölçümleri ihtiyaç göstermeden kurulmaz.
+EIP-06 kaynak kapsamı ve EIP-10 işletim uygun noktada paralel ilerler.
+Bu tercih edilen sıra bağımsız işleri engellemez: EIP-05 yerel kanıtlarla
+EIP-01 sözleşmesi üzerinden ilerleyebilir; dış servis canlı kabulüne bağlı
+değildir. OpenCTI denemesi de IntelOwl sonucuna teknik olarak bağlı değildir.
+Common Crawl'ın son kayıtlı 504 hatası tarihî sonuçtur; canlı kabul ayrıca
+sınanır. Kaynak erişimi ile kaynakta sonuç bulunmaması ayrı tutulur.
+EIP-07 API/React/ekip, EIP-08 paylaşım ve EIP-09 müşteri ayrımı sonraki
+somut aşamalardır. EIP-11 LLM kendi kalite/cihaz deneyiyle ayrıca başlayabilir.
+
+İlgili mevcut iş eşlemeleri:
+
+| Yeni iş | Eski kapsam kimlikleri | Yeni teslim farkı |
+|---|---|---|
+| EIP-02/04 | CTI-06, INT-05, OPS-01 | IntelOwl pasif analiz ve kaynaklı rapor adaptörü |
+| EIP-03/04 | CTI-02, INT-03, INT-05 | OpenCTI aktarım ve salt okunur bağlam adaptörü |
+| EIP-05 | CTI-02, CTI-03, PHI-06 | Olay adayları ve on türü kapsayan kaydedilmiş genel arama |
+| EIP-06 | OPS-01, DWI-02, COV-01 | Haber/RSS ve kanıtlanmış ek kaynak katkısı |
+| EIP-07/09 | INT-02, ENT-02, ENT-03, ENT-04, ENT-06 | Tek kurum ekibi ve ardından doğrulanmış müşteri ayrımı |
+| EIP-08 | INT-03, INT-04, INT-05 | Gereken nesne/paylaşım ve gerçek karşı uç kabulü |
+| EIP-10 | ENT-01, ENT-05, COV-02, COV-03, COV-04 | Ölçülmüş taşıma/işletim ve kurtarma koşulları |
+| EIP-11 | AIM-01–05 | Önceki kanıt/yetki sınırlarıyla isteğe bağlı LLM |
+
+Geniş marka, e-posta/SMS ve insan onaylı takedown ayrı teslimlerdir.
+Ürün/sürüm, paket, CVE/KEV/EPSS ve otomatik HTML arşivi yeniden açılmaz.
+Yeni platformların kendi bağımlılıkları ayrı tutulur; XTI'ye ek ağır veri
+altyapısı ancak hedef iş yükü ölçülerek seçilir.
 
 Dış kaynağa bağlı işin öncesinde küçük bir erişim deneyi yapılır. Kaynak sağlanamıyorsa fixture ile sözleşme geliştirilebilir; işin canlı kapsam kabulü kapatılmaz.
 

@@ -1,6 +1,13 @@
-# XTI — Kişisel Erken Uyarı Platformu
+# XTI — Dijital Risk ve Tehdit İstihbaratı Platformu
 
 **Sürüm:** 0.138.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+
+Bugünkü sürüm terminalden kullanılan kişisel uygulamadır. Hedef, açık kaynak
+entegrasyonlarıyla kurumsal kullanıma ilerlemektir: OpenCTI tehdit bilgisi ve
+ilişki incelemesi, IntelOwl ek analizler için planlanır. Henüz bağlı değiller.
+Görev paylaşımı, teslim sırası ve kurumsal kabul koşulları
+[entegrasyon yol haritasında](docs/roadmap/ENTERPRISE_INTEGRATION_PLAN.md) yer alır.
+
 Kuruluş birleşik raporu, kuruluşa özel değişim/kaynak görünümü, ayrıntılı
 önce/sonra kanıtı, CTI ilişki bağlamı ve ücretsiz kamu ihlal kataloğu kullanılabilir.
 Kamu olayının tarihî kanıtını vakaya bağlayabilir, kuruluş raporunu tek HTML

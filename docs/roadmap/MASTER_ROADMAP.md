@@ -1,6 +1,18 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Sürüm:** 0.133 · **Güncelleme tarihi:** 14 Kasım 2026 · **Durum:** Aktif hedef planı domain/marka koruması, dış yüzey kanıtı, IOC/CTI, dark web ve ransomware iddiaları, geniş marka koruması, tedarikçi riski, vaka/entegrasyon ve insan onaylı takedown kapsamıdır. Birleşik kaynak durumu 11 kaynak/iş akışının kurulum ve kayıt kanıtını tek terminal ekranında gösterir. Günlük toplama, inceleme, vaka ve tekrar kullanım rehberi ile bütünleşik testler tamamdır. Sonraki geliştirmeler gerçek kullanımda görülen kapsam açığına ve açık kaynak adaptör kabul ölçütlerine göre seçilecektir. Yerel API ve STIX/TAXII kullanıcı kararıyla beklemededir. Sunucu içi envanter, ürün/sürüm çıkarımı, paket takibi ve CVE/KEV/EPSS eşleştirmesi aktif plandan çıkarılmıştır. Gerçek ilerleme [STATUS.md](../STATUS.md) içinde izlenir.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.138.0 / şema 64.
+
+**Güncel ürün kararı:** Hedef kurumsal ve profesyonel XTI kullanımıdır.
+OpenCTI ve IntelOwl'un uygun yeteneklerinden entegrasyonlarla yararlanılır;
+aynı kapsamlı motorları yeniden yazmak varsayılan tercih değildir.
+[Kurumsal entegrasyon planı](ENTERPRISE_INTEGRATION_PLAN.md) güncel teslim
+sırasını, görev paylaşımını ve kabul koşullarını belirler; aşağıdaki tarihî
+sıralama ile çelişirse bu yeni plan esas alınır. API/React, paylaşım ve takım
+yetenekleri artık kurumsal aşamalarda planlıdır, bugün kurulmuş değildir.
+Yerel ücretsiz kullanım korunur; ücretli servis veya kurumsal dağıtım bu
+planla kendiliğinden etkinleşmez. Sunucu içi envanter, ürün/sürüm, paket ve
+CVE/KEV/EPSS kapsamı ile otomatik HTML rapor arşivi hâlâ aktif plan dışıdır.
+Gerçek teslimler [STATUS.md](../STATUS.md) içinde izlenir.
 
 0.88.0, güncel yerel IOC kaynak iddialarını yedi gösterge türünde STIX 2.1 Indicator Bundle dosyasına ağsız, salt-okunur ve atomik çıkarır. CTI nesne/ilişki kapsamı, TLP, içe aktarma ve TAXII ile kalıcı sistem zamanlaması/dış kanal aboneliği açık kalır.
 
@@ -108,7 +120,11 @@ HIBP kamu olay metadata kataloğu. Üyelikten sahiplik veya kaynak iddiasından
 ihlal kararı üretilmez. HIBP hesap/parola sorgusu içermez; geniş dark web,
 marka, LLM, React/API ve takım ürünü bu teslimle tamamlanmış sayılmaz.
 
-**Başlangıç koşulları:** Kişisel kullanım, ücretli hizmet bütçesi yok, Python öncelikli geliştirme, terminalden kullanım, sınırlı veritabanı deneyimi. Donanım ve haftalık çalışma süresi henüz bilinmiyor.
+**Başlangıç koşulları:** Bugün kişisel ve ücretsiz terminal kullanımı; hedef
+kurumsal ürün. Python öncelikli geliştirme ve kolay kurulum korunur.
+Entegrasyon laboratuvarının donanımı, ilk pilot kullanıcı/kuruluş sayısı,
+günlük veri hacmi, işletim bütçesi ve destek süresi henüz belirlenmedi;
+kapasite ve takvim bunlar ölçülmeden taahhüt edilmez.
 
 0.135.0, HIBP kamu kataloğunu açık toplama görevi, profil ve mevcut Linux
 zamanlama akışına bağlar. Kesintide tamamlanan kaynak korunur; yalnız eksik
@@ -119,11 +135,16 @@ vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN
 ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
 arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
-HTML dışa aktarımı kullanılabilir. Sırada gerçek Linux kullanım kabulü,
-ardından kaynak erişimi/kapsamı ve katkısı doğrulanan yeni adaptörler vardır.
-Common Crawl canlı erişim kabulü ayrıca açık kalır.
+HTML dışa aktarımı kullanılabilir. Güncel sıra kurumsal entegrasyon
+laboratuvarı, ortak bağlantı temeli, onaylı olay ilişkileri/kaydedilmiş
+genel aramalar, ardından takım ürünüdür. Linux kullanım kabulü ve kaynak
+erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
+erişim kabulü ayrıca açık kalır.
 
-**Uzun vadeli hedef:** SOCRadar'ın kamuya açık ürün kapsamını karşılaştırma noktası olarak kullanan; kaynakları, tespitleri, kanıtları ve operasyonu ölçülebilen bir Extended Threat Intelligence platformu geliştirmek.
+**Uzun vadeli hedef:** SOCRadar'ın ürün ailelerini, OpenCTI'nin CTI araştırma
+ve paylaşımını, IntelOwl'un analiz entegrasyonlarını karşılaştırma noktası
+olarak kullanarak ölçülebilir kurumsal XTI iş akışları sunmak. Yazılımın
+kurulması, kaynak erişimi veya bütün ürünlerle eşdeğerlik kanıtı değildir.
 
 Bu belge uygulanacak tasarımı ve önerilen kabul hedeflerini tarif eder. Hiçbir performans değeri ölçülmüş mevcut ürün sonucu değildir. Rakibin özel verilerine, iç mimarisine veya bağımsız kalite ölçümlerine erişimimiz bulunmuyor. Kamuya açık özelliklerin bulunması, veri kapsamı ve hizmet kalitesinin eşdeğer olduğunu kanıtlamaz.
 
@@ -144,7 +165,10 @@ Uçtan uca akış:
 7. **Aksiyon:** İzleme, düzeltme, vaka açma veya onaylı kaldırma talebi oluşturuyoruz.
 8. **Geri bildirim:** Yanlış alarmı, kapatılan riski ve kaynak sorununu kurallara yansıtıyoruz.
 
-İlk kullanıcı tek kişidir. Sonraki ürün profilleri küçük güvenlik ekibi, kurum güvenlik analisti ve çok sayıda müşteriye hizmet veren MSSP olabilir. Her profile geçiş ayrı kabul kapısından geçer; kişisel uygulama kendiliğinden güvenli SaaS sayılmaz.
+Bugünkü kullanıcı tek kişidir. Yeni hedef sırası tek kuruluşta analist
+ekibi, ardından birden fazla müşteriye hizmet veren kurulumdur. Her
+profile geçiş ayrı kabul koşullarına bağlıdır; kişisel kuruluş grupları
+veya dış ürünün kurulması kendiliğinden müşteri yalıtımı sağlamaz.
 
 ### 1.1. Değer ölçütleri
 
@@ -162,7 +186,10 @@ Ana ölçüt, incelenen bulgular içinden kullanıcı için doğrulanabilir ve a
 
 İlk sürüm: varlık kaydı, kayıtlı örnek veri, bir CT kaynak adaptörü, domain aday tespiti, açıklanabilir bulgular, terminalden inceleme, tekrar önleme, yedekleme ve kaynak sağlığı.
 
-Dark web kaynak ağı, ücretli istihbarat akışları, çok kiracılı web uygulaması, otonom müdahale ve büyük ölçekli küme kurulumu sonraki fazların kapsamıdır. Bu maddeler yol haritasında izlenir; ilk sürümün teslimini bekletmez.
+Dark web kaynak ağı, ücretli istihbarat, çok müşterili web uygulaması ve
+büyük ölçekli işletim sonraki aşamalardadır. Saldırı, istismar, otomatik
+engelleme veya yama yükleme yeni kurumsal hedefle kapsama eklenmez;
+takedown yalnız ayrı teslimde insan onaylı başvuru olarak ele alınır.
 
 ## 2. SOCRadar ile karşılaştırma yöntemi
 

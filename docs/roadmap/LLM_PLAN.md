@@ -24,7 +24,13 @@ LLM, platformun topladığı ve kaynağı belli kayıtları anlamayı kolaylaşt
 3. **AIM-03 — Yerel soru-cevap ve öneriler:** Önceden tanımlanmış salt okuma aramalarını kullan. İnceleme sırası, metinden varlık ve ilişki önerilerini ayrıca ölç; insanın onayı olmadan gerçek kayıt/karar oluşturma.
 4. **AIM-05 — Her aşamada sürüm ve geri dönüş:** Kullanılan model, ayarlar, talimat şablonu, kanıt anlık görüntüsü ve değerlendirme sürümünü kaydet. Her değişiklikte aynı kontrolleri tekrar et; kalite gerilerse önceki sürüme dön.
 
-AIM-04 kapsamındaki araç/MCP ve çok adımlı otomasyon ilk LLM teslimine dahil değildir. LLM çalışması web paneli, REST API, TAXII, Linux arka plan hizmeti veya bütün veri kaynaklarının tamamlanmasını beklemez. Bu modüllerin mevcut bekleme kararlarını değiştirmez.
+AIM-04 kapsamındaki araç/MCP ve çok adımlı otomasyon ilk LLM teslimine dahil
+değildir. LLM çalışması web paneli, REST API, TAXII, Linux arka plan hizmeti
+veya bütün veri kaynaklarının tamamlanmasını beklemez. 15 Kasım 2026
+[kurumsal entegrasyon planı](ENTERPRISE_INTEGRATION_PLAN.md) bu modülleri
+ayrı aşamalara alır; LLM'nin kaynak, yetki ve kanıt sınırları değişmez.
+Takım kullanımında model girdisi, arama ve saklanan taslak için müşteri
+kapsamı ayrıca doğrulanır; dış platformun LLM özelliği kendiliğinden açılmaz.
 
 ## Mimari ve veri sınırı
 

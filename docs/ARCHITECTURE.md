@@ -3,6 +3,17 @@
 **15 Kasım 2026 — 0.138.0, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
+**15 Kasım 2026 hedef mimari kararı — henüz uygulanmadı:** Kurumsal ürün
+entegrasyonlarla geliştirilecek. XTI izleme kapsamı, özgün kanıt, inceleme
+kararı ve vaka akışını; OpenCTI ayrıntılı CTI araştırmasını; IntelOwl seçilmiş
+ek analizleri üstlenecek. İki dış platform ayrı servis ve küçük adaptör
+sözleşmeleriyle bağlanacak; çekirdek onların veritabanlarına erişmeyecek.
+Yerel kurulum dış servisler kapalıyken çalışacak. Kuruluş grupları müşteri
+erişim yalıtımı değildir; müşteri verisi kullanılmadan önce bütün uçlarda
+ayrım doğrulanacak. [0141 kararı](decisions/0141-enterprise-integration-first.md)
+ve [teslim planı](roadmap/ENTERPRISE_INTEGRATION_PLAN.md) hedefi tarif eder.
+Aşağıdaki bölümler mevcut 0.138.0 uygulamasını anlatır.
+
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 
 `GlobalSearchService` ve `AssetRelationsService` ayrı salt okunur portlar

@@ -2,6 +2,14 @@
 
 **Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.138.0.
 
+**Kurumsal hedef güncellemesi:** OpenCTI ve IntelOwl ile entegrasyon
+önceliklidir. [Görev ve kabul matrisi](ENTERPRISE_INTEGRATION_PLAN.md)
+hangi yeteneğin XTI'da, hangisinin dış platformda sağlanacağını belirtir.
+Bir platformun kurulu olması ilgili satırı tamamlamaz; XTI'dan gerçek
+uçtan uca kullanım ve veri/erişim sınırları doğrulanmalıdır. Henüz bu iki
+entegrasyon uygulanmadı. Aşağıdaki satırlar hedef kapsamı ve tarihî
+teslimleri birlikte içerir; güncel çalışan kapsam için STATUS esas alınır.
+
 0.135–0.138: HIBP toplama ve kuruluş bildirimleri, tarihî kamu olayı vaka
 bağı, tam çevrimdışı HTML raporu, on türde yerel arama, tedarikçi kaynak
 değişim bildirimleri ve varlık ilişki geçmişi eklendi. Ayrıntılı çalışan
@@ -119,12 +127,12 @@ Referans kapsamı: IOC yönetimi, avcılık, aktör/kampanya bağlamı, rapor ve
 | CAP-044 | Aktör profilleri | Kaynak başına alternatif ad/güven/geçmiş, çelişen atıf ilişkileri ve ATT&CK v20 grup aktarımı var; açık merge/split işlemi ve başka dış kaynaklar açık | CTI-02 | R6 / B0→B2 |
 | CAP-045 | Kampanya ve malware profilleri | Kaynaklı kampanya/malware/rapor kayıtları, varlık/IOC ilişkileri ve ATT&CK v20 kampanya/malware aktarımı var; zamanlı kampanya alanları ve otomatik rapor aktarımı açık | CTI-02 | R6 / B0→B2 |
 | CAP-046 | ATT&CK ilişkileri | Enterprise v20 grup/kampanya/malware ile `uses`/`attributed-to` kaynak iddiaları var; teknik/taktik eşlemeleri açık | CTI-04 | R6 / B0 |
-| CAP-047 | Kaydedilmiş avcılık sorguları | Tekrar üretilebilir birleşik yerel arama, kalıcı sorgu tanımı, tam çalışma/fark geçmişi, yaşam döngülü etiket ve çalışma bağlı eklemeli analist notu var; takım işbirliği açık | CTI-03 | R6 / B0 |
-| CAP-048 | Abonelik ve izleme listeleri | Yeni/değişen/kaybolan sonuç ayrımı, kanıt bağlı yerel bildirim, tek arama ön plan tekrarı ve bütün etkin aramayı sınırlı tek-sefer yenileme var; kalıcı zamanlama ve dış kanal açık | CTI-03 | R6 / B0 |
+| CAP-047 | Kaydedilmiş avcılık sorguları | CTI'ya özel kalıcı sorgu, tam çalışma/fark, etiket ve analist notu var; on türde genel aramanın kaydedilmesi EIP-05 ile planlı, takım işbirliği açık | CTI-03, EIP-05 | R6 / B0 |
+| CAP-048 | Abonelik ve izleme listeleri | CTI kayıtlı aramalarında fark, yerel bildirim ve sınırlı yenileme var; genel arama bildirimleri EIP-05 ile planlı, kalıcı zamanlama ve dış kanal kapsamı ayrı | CTI-03, EIP-05 | R6 / B0 |
 | CAP-049 | YARA/Sigma içerik kataloğu | Yetkili içeriklerin kaynak/lisans/sürüm/doğrulaması | CTI-05 | R6 / B0→B2 |
-| CAP-050 | Hash ve malware analiz bağlamı | Yetkili servis raporları; kontrollü numune paylaşımı | CTI-06 | R6 / B0→B2 |
+| CAP-050 | Hash ve malware analiz bağlamı | IntelOwl üzerinden seçili pasif IP/domain/hash analiz raporu EIP-02/04 ile planlı; henüz bağlı değil. İlk profil numune paylaşmaz veya aktif analiz başlatmaz | CTI-06, EIP-02, EIP-04 | R6 / B0→B2 |
 | CAP-051 | Taktik/stratejik raporlar | Kaynaklı özet, sektör/bölge ve dönem karşılaştırması | CTI-04 | R6 / B0→B2 |
-| CAP-052 | İlişki araştırması | Kaynakları ezmeyen varlık–varlık ve varlık–IOC grafiği var; açık merge/split kararı ve gelişmiş grafik sorgusu açık | CTI-02 | R6 / B0 |
+| CAP-052 | İlişki araştırması | Kaynaklı yerel CTI ilişkileri var; gelişmiş araştırmada OpenCTI EIP-03/04 ile planlı. Olay adayları EIP-05, otomatik birleşim veya kesin atıf yok | CTI-02, EIP-03, EIP-05 | R6 / B0→B1 |
 
 ## 6. Dark web ve tehdit iddiaları
 
@@ -201,7 +209,7 @@ Referans kapsamı: olay/vaka işlemleri, IOC ve takedown API'leri; güvenlik ve 
 | CAP-089 | Paylaşım ve TLP | Kaynak lisansı, işaretler ve kullanıcı kapsamını koruma | INT-03 | R10 / B0 |
 | CAP-090 | Webhook ve talep sistemleri | Seçilen bildirimin imzalı/idempotent teslimi, sır döndürme ve deneme geçmişi var; otomatik abonelik/toplu worker ve talep sistemi adaptörü açık | INT-05 | R10 / B0→B2 |
 | CAP-091 | SIEM/SOAR/EDR/firewall | Seçilen sistem başına test edilmiş adaptör; kontrollü aksiyon | INT-05, RSP-03 | R10 / B0→B3 |
-| CAP-092 | İstihbarat platformları | MISP/OpenCTI benzeri hedeflere kapsamlı, sürümlü bağlantı | INT-05 | R10 / B0→B2 |
+| CAP-092 | İstihbarat platformları | OpenCTI'ye seçili paylaşım ve ayrı bağlam okuma; IntelOwl seçili analiz adaptörü planlı. MISP gerçek paylaşım ihtiyacında değerlendirilir. Hiçbiri henüz entegre değil; EIP-02/03/04 gerçek kabul ister | INT-05, EIP-02, EIP-03, EIP-04 | R10 / B0→B2 |
 | CAP-093 | Kanıtlı takedown taslağı | Hak sahipliği, muhatap, hedef ve içerik sürümüne bağlı onay | RSP-01 | R10 / B0 |
 | CAP-094 | Çok türde takedown takibi | Domain/sosyal hesap/app/depo; yanıt, ret, itiraz ve sonuç | RSP-02 | R10 / B0→B2 |
 | CAP-095 | Düzeltme ve kimlik aksiyonu | Onaylı IdP/SOAR işlemi; sonucun ayrı doğrulanması | RSP-03 | R10 / B2→B3 |

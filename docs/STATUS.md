@@ -4,6 +4,11 @@
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
+**Ürün yönü güncellendi:** Kurumsal/profesyonel kullanım ve OpenCTI/IntelOwl
+entegrasyonları [yol haritasına](roadmap/ENTERPRISE_INTEGRATION_PLAN.md)
+alındı. Bu yalnız plan değişikliğidir; dış servisler, API/React, takım veya
+müşteri yalıtımı henüz eklenmedi. Uygulama sürümü ve şema değişmedi.
+
 ## Çalışanlar
 
 - `search QUERY` on tür yerel kaydı tek salt okunur kesitte arar; tam/başlangıç/
@@ -1676,10 +1681,17 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
-15 Kasım 2026 kullanıcı kararı: otomatik HTML rapor arşivi plandan
-çıkarıldı; eklenecek işler arasında değildir. Mevcut komutla HTML raporu
-kullanılabilir. Yakın sıra gerçek Linux kullanım kabulü, kaynak erişimi ve
-kapsam kontrolü, ardından katkısı doğrulanan yeni kaynak adaptörleridir.
+15 Kasım 2026 son kullanıcı kararı: hedef kurumsal ve profesyonel kullanımdır;
+OpenCTI/IntelOwl'un uygun yeteneklerinden entegrasyonla yararlanılacaktır.
+[Yeni teslim planı](roadmap/ENTERPRISE_INTEGRATION_PLAN.md): önce sınırlı
+entegrasyon laboratuvarı ve güvenilir bağlantı temeli; ardından önceden
+onaylanan kaynaklar arası olay adayları ve kaydedilmiş genel aramalar;
+sonra API/React, takım ve müşteri kabul aşamaları. İki özellik henüz
+uygulanmadı; mevcut iki ransomware kaynağı karşılaştırması ve CTI'ya özel
+kayıtlı aramalar bunların başlangıç parçalarıdır. Haber toplama ayrı iştir.
+Linux kullanım kabulü ve kaynak sağlığı doğrulamaları bu sırada korunur.
+Otomatik HTML rapor arşivi plandan çıkarılmıştır; mevcut komutla HTML
+raporu kullanılabilir.
 
 
 14 Kasım 2026 onaylı sekiz teslim 0.131.0–0.133.0'da tamamlandı;
@@ -1689,8 +1701,8 @@ Kuruluş birleşik raporu ve HIBP kamu kataloğu 0.134.0'da, kataloğun kayıtl�
 toplama/zamanlama akışına katılması 0.135.0'da eklendi. Kuruluşa bağlı kamu
 olaylarını izleme ve yerel bildirim kutusu 0.136.0'da eklendi. Tarihî kamu
 olayını vakaya bağlama ve çevrimdışı HTML kuruluş raporu 0.137.0'da eklendi.
-Önerilen sonraki teslim gerçek Linux üzerinde klonlama/kurulum, günlük
-çalıştırma, kesinti sonrası devam ve yedekten geri dönüş kabulüdür.
+Gerçek Linux üzerinde klonlama/kurulum, günlük çalıştırma, kesinti sonrası
+devam ve yedekten geri dönüş kabulü açık doğrulama işidir.
 Common Crawl dış indeks erişimi ayrı açık konu olarak takip edilir.
 [Kamu olayları devam planı](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md) kapsamı gösterir.
 
@@ -1702,7 +1714,16 @@ henüz eklenmedi. Sonraki özellikler mevcut toplama,
 CTI, tedarikçi ve vaka zincirindeki somut boşluklara göre seçilecek; kaynak
 kapsamı, doğrulanmış katkı ve mevcut mimari sınırlar korunacak.
 
-Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı. Öncelik, ürünü kişisel kullanımda çalıştırmak; gerçek kullanım sırasında ortaya çıkan kaynak sağlığı, kurulum ve terminal deneyimi ihtiyaçlarını ölçerek düzeltmektir. Gelişmiş marka koruması, REST API, STIX/TAXII genişlemesi, web paneli ve e-posta/SMS sonraki karara kadar beklemededir. 13 Kasım 2026 kullanıcı kararıyla gelecekte isteğe bağlı LLM desteği plana alındı: kaynaklı açıklama, günlük özet, vaka taslağı ve daha sonra salt okuma soru-cevap. Henüz uygulanmadı, model kurulmadı ve harici API bağlanmadı; [LLM planı](roadmap/LLM_PLAN.md) kullanım ve ölçüm şartlarını tanımlar. Atama, kullanıcı/rol, müşteri ayrımı ve SLA ancak takım ürününe geçildiğinde ele alınacaktır. Sunucu envanteri, ürün/sürüm, paket ve CVE eşleştirmesi aktif plandan çıkarılmıştır. Doğrudan forum/pazar/Telegram toplama, kimlik sızıntısı, TAXII ve takedown henüz uygulanmadı; STIX dosya dışa aktarımı halen yalnız IOC `Indicator` nesnelerini kapsar.
+Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı. REST API, React,
+STIX/TAXII genişlemesi, ekip rolleri ve müşteri ayrımı yeni kurumsal planda
+aşamalı teslimlerdir. Geniş marka/kaynak ağı, e-posta/SMS ve insan onaylı
+takedown ayrı kapsam ve erişim kararıyla ilerler. 13 Kasım 2026'da planlanan
+isteğe bağlı LLM desteği korunur: kaynaklı açıklama, günlük özet, vaka taslağı
+ve salt okuma soru-cevap. Henüz model kurulmadı veya harici API bağlanmadı;
+[LLM planı](roadmap/LLM_PLAN.md) geçerlidir. Sunucu envanteri, ürün/sürüm,
+paket ve CVE eşleştirmesi aktif plan dışındadır. Doğrudan forum/pazar/Telegram,
+kimlik sızıntısı, TAXII ve takedown uygulanmadı; mevcut STIX dosya aktarımı
+yalnız IOC `Indicator` nesnelerini kapsar.
 
 Yeni sohbette bu dosya, [mimari](ARCHITECTURE.md) ve ilgili [iş paketi](roadmap/BACKLOG.md) üzerinden devam edilebilir.
 
