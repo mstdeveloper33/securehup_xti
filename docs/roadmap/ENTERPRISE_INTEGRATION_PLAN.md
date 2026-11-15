@@ -8,7 +8,8 @@ Bu repo veri toplama/analiz motoru ve sürümlü bağlantı sözleşmesi sağlar
 Aşağıdaki içerik önceki tasarımın tarihî kaydıdır; yeni iş seçimi veya
 uygulanmış özellik kanıtı olarak kullanılmamalıdır. Bağımsız açık kaynak
 bileşenler ve kaynaklı kanıt ilkeleri [0142 kararında](../decisions/0142-xti-engine-dotnet-host.md)
-korunmuştur. Güncel görevler ENG-01–07'dir.
+korunmuştur. ENG iş kimlikleri korunur; güncel öncelik motor planındaki
+STB sağlamlaştırma adımlarıdır. Yeni istihbarat özellikleri bu dönemde bekler.
 
 **Karar tarihi:** 15 Kasım 2026. **Mevcut uygulama:** 0.138.0 / şema 64.
 **Durum:** Kullanıcının kurumsal hedefi ve entegrasyon önceliği kabul edildi;

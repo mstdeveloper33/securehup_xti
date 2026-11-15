@@ -323,8 +323,9 @@ _CATALOG = (
         label="MITRE ATT&CK Enterprise STIX 2.1",
         kind="official_cti_knowledge_base",
         purpose=(
-            "Etkin grup, kampanya ve malware kayıtlarıyla bunların uses/attributed-to "
-            "ilişkilerini kaynaklı yerel CTI iddiaları olarak sağlar."
+            "Grup, kampanya, malware, teknik, alt teknik ve taktik kataloğunu "
+            "kaynak kimlikleriyle sağlar; etkin grup/kampanya/malware ve seçili "
+            "ilişkiler ayrıca yerel CTI bilgi tabanına alınır."
         ),
         access=(
             "Yalnız açık 'cti attack-sync' komutuyla sürümü sabitlenmiş resmî "
@@ -334,12 +335,17 @@ _CATALOG = (
         paid_dependency=False,
         contacts_monitored_target=False,
         commands=(
-            "cti attack-sync", "cti search", "cti entity-list",
+            "cti attack-sync", "cti attack-status", "cti attack-search SORGU",
+            "cti attack-show ATTACK_KIMLIGI", "cti search", "cti entity-list",
             "cti relation-list",
         ),
         limits=(
-            "Bu dilim yalnız etkin grup, kampanya, malware ve aralarındaki iki ilişki "
-            "türünü alır; teknik, araç ve savunma nesnelerini içe aktarmaz.",
+            "Katalog grup, kampanya, malware, teknik, alt teknik, taktik ve seçili "
+            "uses/attributed-to/subtechnique-of ilişkilerini içerir; tool, savunma "
+            "ve diğer STIX nesneleri kapsam dışıdır.",
+            "Teknik–taktik bağları kill_chain_phases alanından türetilmiş olarak "
+            "gösterilir; STIX ilişkisi sayılmaz. CTI bilgi tabanı etkin grup, "
+            "kampanya, malware ve aralarındaki uses/attributed-to alt kümesini korur.",
             "ATT&CK intrusion-set/grup kaydı yerelde threat-actor etiketiyle görünür; "
             "bu otomatik aktör atfı veya tehdit hükmü değildir.",
             "50/100 güven MITRE'ın puanı değil XTI yerel nötr politikasıdır; "

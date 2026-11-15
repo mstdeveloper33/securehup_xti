@@ -1,6 +1,6 @@
 # Bağlı açık kaynak araçlarını görme
 
-**Uygulama:** 0.140.0 · **Bileşen kataloğu:** 1 · **Şema:** 64.
+**Uygulama:** 0.140.1 · **Bileşen kataloğu:** 1 · **Şema:** 64.
 
 `components`, XTI'ın bağlı olduğu Maigret, Sherlock ve theHarvester için
 beklenen sürümü, kullanım kapsamını ve bu projedeki kurulum durumunu gösterir:
@@ -30,7 +30,8 @@ kayıttır; bu entegrasyon aktif hedef kontrolü yapmaz.
 
 Bu liste yalnız mevcut üç harici araçtır. Bütün veri kaynakları, Python
 paketleri veya ileride düşünülen RapidFuzz/feedparser gibi bileşenler için
-kurulum envanteri değildir. Kaynak listesini `./xti sources list` gösterir.
+kurulum envanteri değildir. Kayıt alanı hazırken `./xti sources` kaynak
+listesini, kayıtlı son arama sonuçlarını ve bekleme bilgilerini gösterir.
 
 ## Kurulum durumunu nasıl okuyacağım?
 

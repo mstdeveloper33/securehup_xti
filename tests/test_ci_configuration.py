@@ -1,4 +1,6 @@
 from pathlib import Path
+from fnmatch import fnmatchcase
+import re
 import stat
 import unittest
 
@@ -37,6 +39,32 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertIn("needs: test", workflow)
         self.assertIn("gh release create", workflow)
 
+    def test_brand_install_covers_shared_pins_and_verifier_on_both_events(self) -> None:
+        workflow = (
+            PROJECT_ROOT / ".github/workflows/brand-install.yml"
+        ).read_text(encoding="utf-8")
+        critical_paths = (
+            "src/xti/domain/component_pins.py",
+            "scripts/verify_brand_install.py",
+            "scripts/setup-brand",
+            "constraints/brand.txt",
+            "xti",
+        )
+        for event in ("push", "pull_request"):
+            with self.subTest(event=event):
+                block = re.search(
+                    rf"(?ms)^  {event}:\n(.*?)(?=^  [a-z_]+:|\Z)", workflow
+                )
+                self.assertIsNotNone(block)
+                paths = re.findall(r'^      - "([^"\n]+)"$', block.group(1), re.MULTILINE)
+                self.assertTrue(paths)
+                for path in critical_paths:
+                    self.assertTrue(
+                        any(fnmatchcase(path, pattern) for pattern in paths),
+                        f"{event} does not verify a change to {path}",
+                    )
+                self.assertFalse(any(fnmatchcase("docs/DAILY_USE.md", pattern) for pattern in paths))
+
     def test_fast_check_is_executable_and_keeps_core_regression_files(self) -> None:
         path = PROJECT_ROOT / "scripts/check-fast"
         mode = path.stat().st_mode
@@ -47,6 +75,19 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertIn("tests/test_setup.py", content)
         self.assertIn("tests/test_maigret_username.py", content)
         self.assertIn("tests/test_sherlock_username.py", content)
+
+    def test_fast_gate_keeps_engine_and_component_contract_regressions(self) -> None:
+        content = (PROJECT_ROOT / "scripts/check-fast").read_text(encoding="utf-8")
+        selected = re.findall(r"(?m)^    (tests/test_[a-z_]+\.py)(?: \\)?$", content)
+        for path in (
+            "tests/test_engine_contract.py",
+            "tests/test_engine_records.py",
+            "tests/test_components.py",
+            "tests/test_component_pins.py",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(selected.count(path), 1)
+                self.assertTrue((PROJECT_ROOT / path).is_file())
 
 
 if __name__ == "__main__":

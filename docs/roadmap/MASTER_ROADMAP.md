@@ -1,19 +1,26 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.0 / şema 64.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.1 / şema 64.
 
 **Güncel karar:** Bu repo mevcut .NET platformuna bağlanacak profesyonel
 XTI veri toplama ve analiz motorudur. Uygulama backend'i, kullanıcı/oturum,
 roller ve web deneyimi .NET tarafındadır. Motor kaynaklı kanıt, analiz,
 ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
-[Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) ENG-01–07 teslim sırasını
-ve sınırlarını belirler; önceki EIP sırasının ve bu belgedeki eski geniş
+[Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) güncel STB sağlamlaştırma
+sırasını ve sınırlarını belirler; ENG kimlikleri korunur. Yeni istihbarat
+özelliklerinden önce mevcut motorun kabulü gelir. Bu sıra önceki EIP
+sırasının ve bu belgedeki eski geniş
 ürün tasarımının yerine geçer. Hazır açık kaynak kütüphane/araçlar tercih
 edilir; OpenCTI/IntelOwl zorunlu platform veya ilk kurulum değildir.
 Yerel ücretsiz kullanım korunur; ücretli servis veya kurumsal dağıtım bu
 planla kendiliğinden etkinleşmez. Sunucu içi envanter, ürün/sürüm, paket ve
 CVE/KEV/EPSS kapsamı ile otomatik HTML rapor arşivi hâlâ aktif plan dışıdır.
 Gerçek teslimler [STATUS.md](../STATUS.md) içinde izlenir.
+
+Gelecekteki platform .NET ve PostgreSQL kullanacak. SQLite ile bugünkü
+geliştirme/deneme/kullanım sürer; şimdi veri geçişi başlatılmaz. Yerel motor
+kabulü ile gerçek .NET/PostgreSQL dağıtım kabulü ayrı izlenir.
+[Öncelik kararı](../decisions/0145-stabilization-first-local-engine.md).
 
 0.139.0, [engine v1 yerel okuma sözleşmesini](../ENGINE_CONTRACT.md) ekler:
 arama, kayıt/kanıt ayrıntısı ve kaynak durumu. ENG-01'in bu ilk teslimi
@@ -23,7 +30,9 @@ tamamdır; .NET bağlantısı ve uzun işler ENG-05 kapsamında açıktır.
 pinler, kullanım kapsamı ve yerel kurulum kataloğu CLI/engine üzerinden
 okunur. Kurulum bilgisi canlı kaynak başarısından ayrıdır; tam bağımlılık
 bütünlüğü ve kurulum geri dönüşü işletim aşamasında açıktır.
-[Kullanım ve sınırlar](../COMPONENTS.md). Sonraki özellik dilimi ENG-03'tür.
+[Kullanım ve sınırlar](../COMPONENTS.md). ENG-03 yeni özellikleri bekler.
+0.140.1 hızlı CI/belge tutarlılığını düzeltir; sırada temiz Linux kurulum
+ve güncelleme/geri dönüş kabulü vardır.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
 [bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.

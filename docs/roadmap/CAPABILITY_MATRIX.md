@@ -1,16 +1,21 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
-**Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.140.0.
+**Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.140.1.
 
 **Son hedef güncellemesi:** Bu repo, mevcut .NET platformuna bağlanacak
 XTI veri toplama ve analiz motorudur. .NET uygulama backend'i, kullanıcı
 oturumu, roller ve arayüzü yönetir; motor kaynaklı kanıt, analiz, iş durumu
 ve doğrulanmış çağrı kapsamını korur. [Motor planı](ENGINE_INTEGRATION_ROADMAP.md)
-ENG-01–ENG-07 aktif sırasını belirler; önceki EIP planı bu sınırla
+güncel STB sağlamlaştırma sırasını belirler; ENG kimlikleri korunur,
+yeni özellikler bekler. Önceki EIP planı bu sınırla
 değiştirilmiştir. Uygun yerel açık kaynak bileşenler önceliklidir;
 OpenCTI/IntelOwl zorunlu değildir ve henüz bağlı değildir. Aşağıdaki
 satırlarda platform tarafı ile motor sorumluluğu ayrılır; mevcut çalışan
 kapsam için STATUS esas alınır.
+
+.NET/PostgreSQL gelecekteki platform hedefidir. Bugün SQLite kullanılır;
+PostgreSQL bağlantısı veya veri taşıması uygulanmış sayılmaz. 0.140.1
+CI/belge tutarlılığını düzeltir; kurulum ve işletim kabulleri açık kalır.
 
 0.140.0: Üç mevcut harici araç için ortak incelenmiş pin, kullanım kapsamı
 ve proje kurulum kataloğu `components` / `components.list` ile okunur.

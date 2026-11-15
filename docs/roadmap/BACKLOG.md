@@ -3,8 +3,10 @@
 **15 Kasım 2026 son kapsam kararı:** Bu repo, mevcut .NET platformuna
 bağlanacak XTI veri toplama ve analiz motorudur. Uygulama backend'i,
 kullanıcı oturumları, roller ve web deneyimi .NET tarafındadır. Güncel
-teslim sırasını [ENG-01–ENG-07 motor planı](ENGINE_INTEGRATION_ROADMAP.md)
-belirler; önceki EIP sırası bununla değiştirilmiştir. Motor özgün kanıt,
+teslim sırasını [motor planındaki STB adımları](ENGINE_INTEGRATION_ROADMAP.md)
+belirler; ENG kimlikleri korunur, yeni özelliklerden önce sağlamlaştırma
+gelir. Gelecekteki .NET/PostgreSQL platformu mevcut SQLite kullanımını
+değiştirmez; şimdi veritabanı geçişi yapılmaz. Motor özgün kanıt,
 analiz, iş durumu ve güvenilir çağrı bağlamındaki kapsamı korur. Bu karar
 bir bağlantıyı kurulmuş veya müşteri yalıtımını tamamlanmış saymaz.
 
@@ -18,7 +20,13 @@ pinler, açık kapsam ve kurulum gözlemi `components` / `components.list`
 ile sunulur. Araç eksikken eski kanıt okunabilir, kurulum bilgisi kaynak
 canlılığından ayrıdır. [Kullanım/kabul sınırları](../COMPONENTS.md).
 Tam bağımlılık bütünlüğü ve theHarvester kurulum kesintisi/geri dönüşü
-ENG-06'da açık; sıradaki özellikler ENG-03 olay adayı ve kayıtlı genel aramadır.
+ENG-06'da açık; ENG-03 olay adayı ve kayıtlı genel arama işleri bekler.
+
+**0.140.1 sağlamlaştırması:** Hızlı CI engine/bileşen testlerini kapsar;
+araç kurulum filtreleri ve güncel komut/kaynak açıklamaları düzeltilir.
+Sıradaki STB-02 temiz Linux kurulumu ve güncelleme/geri dönüş kabulüdür.
+Veri/iş kurtarma, sır yönetimi ve ölçülmüş işletim devam eder; gelecekteki
+.NET bağlantısı gerçek platform hazır olduğunda ayrıca doğrulanır.
 
 **Hazır bileşen seçimi:** [Ayrı seçim planı](COMPONENT_SELECTION_PLAN.md)
 mevcut kod kullanımı, ad benzerliği için RapidFuzz deneyi, haber için

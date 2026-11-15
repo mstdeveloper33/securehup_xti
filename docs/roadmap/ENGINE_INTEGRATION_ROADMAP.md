@@ -1,15 +1,23 @@
 # XTI motoru ve mevcut .NET platformuna entegrasyon
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.140.0 / şema 64.
+**Mevcut sürüm:** 0.140.1 / şema 64.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
-uygulandı. Sonraki özellikler ENG-03; .NET tüketicisi ve diğer motor işleri planlıdır. [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
+uygulandı. Yeni istihbarat özelliklerinden önce aşağıdaki STB sağlamlaştırma
+sırası geçerlidir. .NET tüketicisi henüz bağlı değildir.
+[Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 
 Bu repo Python tabanlı **veri toplama, istihbarat ve analiz motorudur**.
 Ürettiği kaynaklı bilgiler daha sonra mevcut .NET platformuna bağlanır.
 Uygulama backend'i, giriş, kullanıcı oturumu, roller ve web deneyimi
 .NET tarafında kalır. Bu repo ikinci bir uygulama backend'i veya kimlik
 platformu geliştirmez. Yerel terminal kullanımı korunur.
+
+**Son kullanıcı açıklaması:** Gelecekteki platform .NET ve PostgreSQL
+kullanacak. Bugünkü geliştirme, deneme ve kişisel kullanım SQLite ile sürer.
+Bu bilgi şimdi PostgreSQL kurulumu veya veri taşıması başlatma talebi değildir.
+Öncelik mevcut motorun kurulabilirliği, güvenilirliği ve bakım düzenidir.
+[0145 kararı](../decisions/0145-stabilization-first-local-engine.md).
 
 Bu belge güncel teslim sırasıdır. Önceki
 [kurumsal planın](ENTERPRISE_INTEGRATION_PLAN.md) XTI içinde web/backend/oturum
@@ -35,6 +43,13 @@ olarak tasarlanmaz; sözleşmeden veri alır. Üründe arama/ekran için kopya
 gerekirse kaynak kimliği ve sürümü korunur, asıl kanıtın yerine geçmez.
 Aynı vaka/durum iki tarafta bağımsız düzenlenip sessizce eşitlenmez; her
 yazma işleminin sahibi açık tanımlanır. Mevcut kullanıcı verisi silinmez.
+
+PostgreSQL'in gelecekteki fiziksel yerleşimi, motor kayıtlarının taşınma
+kapsamı ve bağlantı teknolojisi ilgili platform incelenince netleştirilir.
+Ortak PostgreSQL sunucusu seçilmesi ortak tablo sahipliği veya müşteri
+yetkisi anlamına gelmez. Gerekli bir geçişte kayıt kimlikleri, kaynak/kanıt
+bağları, olay sırası, atomik bildirim/iş kayıtları ve yedekten dönüş ayrıca
+doğrulanır; yalnız bağlantı adresini değiştirmek yeterli kabul edilmez.
 
 "Toplama oturumu" ve "monitor oturumu" motorun iş yürütme kayıtlarıdır;
 .NET'e bırakılan kullanıcı giriş oturumuyla aynı şey değildir.
@@ -168,12 +183,15 @@ bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
 
 ## 6. Uygulama sırası
 
+ENG kimlikleri önceki işleri takip etmek için korunur. Yeni özellikleri
+öne alan eski sıra değişmiştir; güncel öncelik aşağıdaki STB adımlarıdır.
+
 | Adım | Teslim | Tamamlanma ölçütü |
 |---|---|---|
 | **ENG-01 — Motor/.NET sözleşmesi** | 0.139.0: sürümlü yerel `search`, `record.get`, `sources.status` ve örnekleri uygulandı | Salt okuma, eski komut uyumu, tam/boş/hatalı/eski kaynak, kapsam reddi ve kayıt referansı kabulü; gerçek .NET tüketicisi ENG-05'te açık |
 | **ENG-02 — Bileşen ve kaynak düzeni** | 0.140.0: üç mevcut araç için ortak pin, açık yapılandırma ve yerel kurulum kataloğu; CLI/engine okuması uygulandı | Kurulum gözlemi canlı kaynak durumundan ayrı, araç yokken eski kanıt okunabilir, pin kayması testli; yeni araçlar aynı sınırla eklenir |
-| **ENG-03 — Onaylı iki özellik** | Kaynaklar arası olay adayları ve kaydedilmiş genel arama bildirimleri | Kaynak/tarih ayrımı, sessiz başlangıç, tekrar önleme, tutarlı tam sonuç ve insan kararı; RapidFuzz yalnız fayda gösterirse |
-| **ENG-04 — Haber ve kaynak genişlemesi** | feedparser ile RSS/Atom; sonra kanıtlanmış kapsam boşluğuna yeni kaynaklar | Kaynak atfı, tarih, tekilleştirme ve gerçek erişim; hata ile sonuç yokluğu ayrı |
+| **ENG-03 — Bekleyen iki özellik** | Kaynaklar arası olay adayları ve kaydedilmiş genel arama bildirimleri; sağlamlaştırma önceliği nedeniyle bekliyor | Kaynak/tarih ayrımı, sessiz başlangıç, tekrar önleme, tutarlı tam sonuç ve insan kararı; RapidFuzz yalnız fayda gösterirse |
+| **ENG-04 — Bekleyen haber ve kaynak genişlemesi** | feedparser ile RSS/Atom; sonra kanıtlanmış kapsam boşluğuna yeni kaynaklar | Kaynak atfı, tarih, tekilleştirme ve gerçek erişim; hata ile sonuç yokluğu ayrı |
 | **ENG-05 — .NET bağlantı kabulü** | Salt okunur tüketici denemesi; ardından kalıcı iş başlatma/durum/sonuç ve seçilen taşıma | Gerçek iki taraflı test; sürüm, kısmi sonuç, sayfalama, cevap kaybı, tekrar, iptal ve yanlış kapsam |
 | **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü; araç kurulum bütünlüğü ve kesinti sonrası geri dönüş | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
 | **ENG-07 — Sonraki motor yetenekleri** | Gerektikçe STIX/diğer paylaşım çıktıları, kapsamlı kaynak modülleri ve isteğe bağlı LLM | Her özellik kaynaklı sonuç sözleşmesiyle teslim edilir; model/sağlayıcı hatası çekirdeği durdurmaz |
@@ -181,10 +199,26 @@ bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
 ENG-01'in ilk yerel okuma teslimi ve ENG-02'nin mevcut araç düzeni
 tamamlandı. [Bileşen kataloğu](../COMPONENTS.md) tam bağımlılık/kurulum
 bütünlüğü veya canlı çalışma kabulü değildir; ileri işletim işleri ENG-06'da
-açıktır. Sırada ENG-03'ün iki onaylı özelliği vardır. ENG-05'in salt okunur
-denemesi ENG-01'den sonra erken yapılabilir; bütün kaynakların tamamlanmasını
-beklemez. LLM'nin küçük
-kalite deneyi de .NET veya bütün özelliklerin bitmesine bağlı değildir.
+açıktır. Olay adayları, genel arama bildirimi, RSS ve LLM geliştirmesi bu
+sağlamlaştırma döneminde bekler. Mevcut özelliklerin kullanımı devam eder.
+
+| Öncelik | Somut iş | Kabul kanıtı |
+|---|---|---|
+| **STB-01 — Doğrulama ve belge tutarlılığı** | Engine/bileşen testlerini hızlı CI'a katma, kurulum filtrelerini güncelleme, yanlış komut ve eski kapsam açıklamalarını düzeltme | Güncel hızlı paket, kaynak kataloğu testleri ve ağsız komut örnekleri geçer; uygulanan ile planlanan ayrılır |
+| **STB-02 — Kurulum ve güncelleme** | Desteklenen temiz Linux ortamında klonlama, kurulum, tekrar kurulum, güncelleme ve araç ortamı geri dönüşünü doğrulama | Yeni makinede belgelenmiş adımlar çalışır; kesinti sonrası önceki çalışan ortam ve kayıtlar korunur |
+| **STB-03 — Veri ve iş güvenilirliği** | Bozuk kayıt, yedek/restore, kesilmiş iş ve tekrar denemesini birlikte sınama; sır saklama ve erişim sınırını iyileştirme | Kanıt/karar kimliği kaybolmaz, aynı iş yanlışlıkla çoğalmaz, sırlar çıktıya taşınmaz; işletici kurtarma adımlarını uygulayabilir |
+| **STB-04 — İşletim ve kapasite** | Kaynak hatası, ağ kesintisi, yeniden başlama, disk baskısı ve uzun süreli yerel çalışmayı ölçme | Sonuç/ölçüm, kullanılan makine ve veri hacmiyle kaydedilir; kaynak hatası boş başarı olmaz; ölçülmemiş SLA veya kapasite ilan edilmez |
+| **STB-05 — Gelecekteki platform kabulü** | İlgili .NET uygulamasıyla okuma ve kalıcı iş sözleşmesini doğrulama; PostgreSQL yerleşimi ve gerekiyorsa veri geçişini somut platforma göre tasarlama | Gerçek iki taraflı akış, cevap kaybı/tekrar/kapsam denemeleri ve gerekiyorsa taşınan kayıtların eşdeğerliği; kullanıcı/rol yönetimi .NET'te kalır |
+| **STB-06 — Teslim paketi** | Kurulum/kullanım/kurtarma rehberi, sürüm değişikliği, desteklenen ortam ve bilinen sınırları yayımlama | Başka kişi sözlü yardımsız kurup temel senaryoyu tamamlar; açık işler ve hangi kabulün geçtiği görünürdür |
+
+STB-01'in 0.140.1 dilimi bu incelemede belirlenen CI ve güncel kullanım
+belgesi açıklarını kapatır;
+STB-02–06 henüz tamamlanmış değildir. Yerel motor kabulü ile gerçek .NET
+üretim kabulü ayrı kaydedilir. SQLite ile STB-02–04 ilerleyebilir;
+gelecekteki PostgreSQL dağıtımını bugün kurmak ön koşul değildir. Mevcut
+platform görülmeden framework, sürücü, sunucu sürümü veya fiziksel veritabanı
+ayrımı seçilmez. Özellik geliştirmesine dönüş tamamlanan kabul ve açık
+işler üzerinden yeniden değerlendirilir.
 
 Yeni kaynaklar önce ücretsiz ve uygun açık kaynak erişimiyle denenir.
 Kapsamları, koşulları ve katkıları görünürdür. Bütün internet, kesintisiz
@@ -205,11 +239,11 @@ abonelik yönetimi .NET tarafının kararıdır.
 
 ## 8. İlk sonraki iş
 
-**Olay adayları ve kaydedilmiş genel arama bildirimleri:** mevcut kaynaklı
-kanıtları ilişki gerekçesiyle birlikte araştırmayı ve aynı aramanın yeni
-sonuçlarını izlemeyi sağlayacak ENG-03 dilimi. Kesin domain/kaynak/tarih
-kuralları önce ölçülür; RapidFuzz ancak ek fayda gösterirse dar adaptörle
-kullanılır. İnsan kararı, sessiz başlangıç ve kaynak hatası ayrımı korunur.
+**Temiz kurulum ve güncelleme kabulü (STB-02):** mevcut SQLite motorunu
+desteklenen Linux ortamında kurma, tekrar çalıştırma ve araç güncellemesi
+kesildiğinde kurtarma yolunu doğrulama. Önce mevcut installer ve geri dönüş
+farkları incelenir; kanıtlanan eksiklere küçük düzeltmeler yapılır. Gerçek
+Linux kabulü çalıştırılmadan tamamlandı sayılmaz.
 
 V1 yerel okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir.
-.NET backend'i geliştirilmedi veya bağlanmadı. Şema ve mevcut veriler korunur.
+.NET/PostgreSQL bağlantısı henüz uygulanmadı. Şema ve mevcut veriler korunur.

@@ -1,6 +1,6 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.140.0 / şema 64.
+**Tarih:** 15 Kasım 2026. **Uygulama:** 0.140.1 / şema 64.
 **Durum:** Yeni bileşenler için araştırmaya dayalı plan tercihleri.
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). Bu teslim yeni paket kurmaz veya mevcut
@@ -13,6 +13,10 @@ ENG-02 parçasıdır. XTI veri toplama/analiz ve kaynaklı kayıt motorudur.
 Önceki FastAPI/Pydantic, Keycloak ve Cytoscape.js backend/panel tercihleri
 bu repo için geri çekilmiştir. Her motor bileşeninin görevi sınırlıdır;
 sonuçları ortak modele alınarak .NET'e kararlı sözleşmeyle sunulur.
+
+Güncel öncelik mevcut SQLite motorunu sağlamlaştırmaktır. Aşağıdaki yeni
+kütüphane/özellik tercihleri bu dönemde bekler. .NET/PostgreSQL gelecekteki
+platform bilgisidir; şimdi veritabanı kurulumu veya taşıması başlatılmaz.
 
 ## 1. Net seçimler
 
@@ -202,13 +206,13 @@ ikisini birlikte kurma kararı verilmez.
 
 ## 7. Bu seçimden sonraki teslim
 
-Önce onaylı olay adayları için mevcut kesin kuralların karşılaştırma
-örnekleri ve RapidFuzz deneyi hazırlanır. Yarar gösterilirse dar benzerlik
-adaptörü eklenir; kalıcı olay kimliği ve karar XTI'da kalır. Genel kayıtlı
-arama işi mevcut altyapıyla paralel ilerler. Haber modülü başladığında
-feedparser kullanılır. ENG-01'in yerel okuma sınırı 0.139.0'da
+Önce [motor planının](ENGINE_INTEGRATION_ROADMAP.md) STB sağlamlaştırma
+işleri ilerler. Olay adayları, RapidFuzz deneyi, genel kayıtlı arama ve
+haber modülü bekler. Özellik geliştirmesine dönüldüğünde bu tercihler
+somut katkı/kabul koşullarıyla yeniden değerlendirilir.
+ENG-01'in yerel okuma sınırı 0.139.0'da
 [uygulandı](../ENGINE_CONTRACT.md); ENG-02 mevcut araç düzeni 0.140.0'da
-[kataloğa](../COMPONENTS.md) bağlandı. Sıradaki ENG-03 iki motor özelliği paralel ilerleyebilir.
+[kataloğa](../COMPONENTS.md) bağlandı. 0.140.1 doğrulama/belge düzeltmesidir.
 Paylaşım paketleri kendi aşamasında eklenir; backend/panel .NET tarafındadır.
 
 Yeni kütüphane tercihleri hâlâ plandır; haber/benzerlik/paylaşım özellikleri

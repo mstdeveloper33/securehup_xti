@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.140.0 · Şema 64.**
+**15 Kasım 2026 · 0.140.1 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -11,6 +11,12 @@ geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
 veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
 
+**Güncel öncelik:** Yeni özelliklerden önce mevcut SQLite motorunun
+doğrulama, kurulum, güncelleme ve kurtarma düzeni sağlamlaştırılır.
+Gelecekteki platform .NET ve PostgreSQL kullanacak; şimdi PostgreSQL
+kurulumu veya veri taşıması yapılmıyor. [0145 kararı](decisions/0145-stabilization-first-local-engine.md)
+ve motor planının STB sırası geçerlidir.
+
 **Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
 olay adaylarında RapidFuzz deneyi, haber modülünde feedparser ve sonraki
 motor/paylaşım tercihlerini kaydeder. Önceki FastAPI/Keycloak/panel
@@ -19,6 +25,23 @@ arama/bildirim desenleri kullanılacak. Bu bileşen araştırmasının paketleri
 kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
+
+- 0.140.1 hızlı CI paketine `engine_contract`, `engine_records`,
+  `components` ve `component_pins` test dosyalarını ekler. Marka araç
+  kurulumunun push/PR filtreleri ortak pin dosyası ve `xti` başlatıcısını
+  kapsar. Tam paket hâlâ ayrıca elle veya sürüm etiketiyle çalışır.
+- Komut, toplama oturumu ve ATT&CK kapsamı açıklamaları mevcut davranışla
+  eşitlenir. Yeni kaynak, iş davranışı, paket veya şema eklenmez.
+
+**0.140.1 doğrulaması:** `./scripts/check-fast`, 64 seçili test dosyasından
+587 testi 250,826 saniyede çalıştırdı: 586 geçti, Linux `systemd-analyze`
+bulunmadığı için ilgili tek test atlandı. Altı ayrı kaynak kataloğu testi
+geçti. Ağ ve süreç çalıştırma engellenmiş beş CLI örneği doğrulandı;
+geçici kaynak veritabanı değişmedi, components/engine describe eksik veri
+dizini yaratmadı. Sekiz belgelenmiş komut biçimi toplama başlatmadan
+ayrıştırıldı; değişen belgelerin yerel bağlantı ve kod blokları kontrol edildi.
+Bu dilimde tam paket yeniden çalıştırılmadı; önceki tam test sonucu aşağıda
+kendi sürümüyle korunur. Kullanıcı verisi, şema ve araç sürümleri değişmedi.
 
 - `components` ve engine v1 `components.list`: mevcut Maigret, Sherlock ve
   theHarvester'ın görev, beklenen sürüm/commit, lisans, çalışma ortamı ve
@@ -32,7 +55,7 @@ kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
   Sosyal araçlarda alternatif çalışma ortamı, theHarvester'da tam kaynak
   ağacı/geçişli bağımlılık bütünlüğü bu okumayla doğrulanmaz. Eski kanıtlar
   araç eksikken de okunabilir. Kurulum kesintisi/geri dönüşün ileri işleri
-  ENG-06'da açık; sonraki özellik dilimi ENG-03'tür.
+  ENG-06'da açık; ENG-03 özellikleri sağlamlaştırma önceliği nedeniyle bekler.
 - Sosyal kurulum doğrulayıcısı, Git kaynak bilgisindeki nesne dışı JSON'u
   beklenmedik istisna yerine kontrollü hata olarak bildirir. Araç yükseltmesi,
   paket veya şema değişikliği yoktur.
@@ -169,7 +192,7 @@ hizmet işletimi veya .NET tüketicisi kabulü yerine geçmez.
   bütün metadata görünümlerinde bulunur. `notices` grubunda yalnız açık
   `refresh` ağ kullanır; toplamada ayrıca `notices-hibp` seçilebilir.
 - HIBP tam domain eşleşmeleri kuruluş ve dönem raporuna; ortak katalog
-  durumu `sources status` içine katılır. Kaynak kataloğu `sources list`
+  durumu `sources status` içine katılır. Kaynak kataloğu `sources`
   içinde erişim koşullarını açıklar. Canlı tek istekle 1.052 kayıt alınıp
   geçici SQLite'a yazıldı; `adobe.com → Adobe` yerel araması doğrulandı.
   Bu tarihli kabul ölçümüdür; gelecekteki kapsam/güncellik garantisi değildir.
@@ -1742,16 +1765,14 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
-15 Kasım 2026 son kullanıcı kararı: XTI motorunun sonuçları mevcut .NET
-platformuna bağlanacaktır. [Güncel sıra](roadmap/ENGINE_INTEGRATION_ROADMAP.md):
-0.139.0 ile sürümlü yerel okuma sözleşmesi kullanılabilir. Sırada mevcut
-adaptör/bileşen düzeni; onaylı olay adayları ve kaydedilmiş genel aramalar; haber kaynakları;
-gerçek .NET tüketicisi ve uzun iş kabulü. İşletim baştan, LLM/standart
-paylaşım ihtiyaca göre ilerler. Uygulama backend'i, oturum ve panel bu
-reponun teslimi değildir. Olay adayları ve kaydedilmiş genel arama
-bildirimleri henüz uygulanmadı; mevcut iki ransomware kaynağı
-karşılaştırması ve CTI kayıtlı aramaları temel alınır.
-Linux kullanım kabulü ve kaynak sağlığı doğrulamaları bu sırada korunur.
+15 Kasım 2026 son kullanıcı kararı: yeni özelliklerden önce mevcut motor
+sağlamlaştırılır. [Güncel STB sırası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
+geçerlidir. Sürümlü yerel okuma ve ortak araç kataloğu kullanılabilir;
+0.140.1 CI/belge düzeltmelerinden sonra temiz Linux kurulum, güncelleme ve
+geri dönüş kabulü gelir. SQLite ile kullanım devam eder. .NET/PostgreSQL
+gelecekteki platformdur; gerçek bağlantı ve gerekiyorsa veri geçişi ayrı
+kabul işidir. Uygulama backend'i, oturum ve panel .NET tarafındadır.
+Olay adayları, genel kayıtlı arama bildirimleri, RSS ve LLM bu dönemde bekler.
 Otomatik HTML rapor arşivi plandan çıkarılmıştır; mevcut komutla HTML
 raporu kullanılabilir.
 
@@ -1768,7 +1789,7 @@ devam ve yedekten geri dönüş kabulü açık doğrulama işidir.
 Common Crawl dış indeks erişimi ayrı açık konu olarak takip edilir.
 [Kamu olayları devam planı](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md) kapsamı gösterir.
 
-13 Kasım 2026 kullanıcı yönlendirmesi: terminal menüsü yerine özellik
+Tarihî 13 Kasım 2026 kullanıcı yönlendirmesi (güncel öncelik yukarıdadır): terminal menüsü yerine özellik
 geliştirmeye devam edilecek; React arayüzü ileride ayrı projeden bağlanacak.
 0.129.0 seçilen pasif toplama işlerini birleştirdi; 0.130.0 açık seçilen
 sosyal ve ransomware izlemelerini bu servise ekledi. React veya REST API

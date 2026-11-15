@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.140.0, şema 64 ana proje yapısı.**
+**15 Kasım 2026 — 0.140.1, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 hedef kararı — .NET bağlantısı henüz uygulanmadı:** Bu repo mevcut
@@ -16,7 +16,15 @@ Kuruluş grupları müşteri erişim yalıtımı değildir. .NET'in doğruladı�
 kapsam motorun iş/arama/sonuç sınırında da uygulanır; serbest kurum etiketi
 yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
 ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
-Aşağıdaki bölümler mevcut 0.140.0 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.140.1 uygulamasını anlatır.
+
+Güncel çalışma önceliği mevcut motorun sağlamlaştırılmasıdır. SQLite
+geliştirme, deneme ve kişisel kullanım için korunur. .NET/PostgreSQL
+gelecekteki platform bilgisidir; mevcut veri taşınmaz. Gerçek platform
+incelenmeden sürücü, fiziksel veritabanı ayrımı veya geçiş kapsamı seçilmez.
+İlerideki geçişte kayıt/kanıt kimlikleri, atomik yazma, olay sırası, eşzamanlı
+iş davranışı ve geri dönüş aynı anlamı korumalıdır.
+[0145 kararı](decisions/0145-stabilization-first-local-engine.md).
 
 `EngineReadService` mevcut arama ve kaynak durumu servisleri ile küçük
 `EngineRecordRepository` portunu birleştirir. Domain sözleşmesi sürüm,

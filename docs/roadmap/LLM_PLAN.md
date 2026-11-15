@@ -6,6 +6,8 @@
 kaynaklı taslak üretir. Sonuçların ürün ekranında sunumu, kullanıcı oturumu
 ve rol kararı mevcut .NET platformundadır. Motorun doğrulanmış kapsam ve
 kanıt kontrolü sürer. [Güncel motor planı](ENGINE_INTEGRATION_ROADMAP.md).
+Yeni istihbarat özelliklerinden önce mevcut motor sağlamlaştırılacağı
+için LLM geliştirmesi ve küçük model deneyi bu dönemde bekler.
 
 ## Kullanıcıya sağlayacağı işler
 
@@ -30,8 +32,9 @@ LLM, platformun topladığı ve kaynağı belli kayıtları anlamayı kolaylaşt
 4. **AIM-05 — Her aşamada sürüm ve geri dönüş:** Kullanılan model, ayarlar, talimat şablonu, kanıt anlık görüntüsü ve değerlendirme sürümünü kaydet. Her değişiklikte aynı kontrolleri tekrar et; kalite gerilerse önceki sürüme dön.
 
 AIM-04 kapsamındaki araç/MCP ve çok adımlı otomasyon ilk LLM teslimine dahil
-değildir. LLM çalışması web paneli, REST API, TAXII, Linux arka plan hizmeti
-veya bütün veri kaynaklarının tamamlanmasını beklemez. 15 Kasım 2026
+değildir. LLM teknik olarak web paneli, REST API, TAXII, Linux arka plan
+hizmeti veya bütün veri kaynaklarının tamamlanmasına bağımlı değildir;
+güncel çalışma önceliği nedeniyle STB sağlamlaştırması sırasında bekler. 15 Kasım 2026
 [motor entegrasyon planı](ENGINE_INTEGRATION_ROADMAP.md) uygulama backend'i
 ve oturumu .NET'e bırakır; LLM'nin kaynak, yetki ve kanıt sınırları değişmez.
 Takım kullanımında model girdisi, arama ve saklanan taslak için müşteri

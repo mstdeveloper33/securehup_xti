@@ -1,6 +1,6 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.140.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 64.
+**Uygulama:** 0.140.1 · **Sözleşme:** 1 · **Veritabanı şeması:** 64.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
@@ -11,6 +11,11 @@ Bu okuma katmanı yeni internet toplaması başlatmaz. İnternetten veri alan
 mevcut toplama komutları kullanılmaya devam eder; `engine` onların sakladığı
 sonuçları okur. .NET bağlantısı, kullanıcı oturumu, müşteri yalıtımı ve engine
 üzerinden uzun iş başlatma henüz uygulanmadı.
+
+Mevcut kayıtlar SQLite'ta tutulur. Gelecekteki .NET ve PostgreSQL platformu
+bu okuma sözleşmesine hazırlanırken mevcut geliştirme ve test düzeni
+korunur; PostgreSQL geçişi bu sürümde yapılmaz. Yeni özelliklerden önceki
+sağlamlaştırma sırası [motor planındadır](roadmap/ENGINE_INTEGRATION_ROADMAP.md).
 
 ## Hızlı kullanım
 
@@ -274,7 +279,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.140.0",
+  "engine_version": "0.140.1",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",

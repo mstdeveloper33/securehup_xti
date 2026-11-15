@@ -1,14 +1,18 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.140.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+**Sürüm:** 0.140.1 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
-Bugünkü sürüm terminalden kullanılan kişisel uygulamadır. Hedef, mevcut
-.NET platformuna bağlanabilen veri toplama ve analiz motoru geliştirmektir.
+Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
+Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Gelecekteki
+platform .NET ve PostgreSQL kullanacak; mevcut motorun bağlantısı ve
+gerekiyorsa veri geçişi ilgili entegrasyon aşamasında ayrıca doğrulanacak.
 Kaynaklı kanıt, analiz ve iş geçmişi bu repoda; uygulama backend'i,
 kullanıcı/oturum yönetimi ve web deneyimi .NET tarafında kalır.
 Uygun yerel açık kaynak bileşenler kullanılır; OpenCTI/IntelOwl zorunlu
 değildir ve henüz bağlı değildir. .NET bağlantısı da henüz uygulanmadı.
-Görev paylaşımı ve teslim sırası [motor yol haritasındadır](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md).
+Yeni özelliklerden önce kurulum, güncelleme, test, hata yönetimi ve
+kurtarma davranışları sağlamlaştırılacak. Görev paylaşımı ve teslim sırası
+[motor yol haritasındadır](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md).
 
 Engine'in ilk sürümlü bağlantısı kullanılabilir: `./xti engine --describe`
 desteklenen işlemleri gösterir. `./xti engine`, standart girdiden tek JSON
@@ -301,6 +305,7 @@ tabloda belirtilen sabit sırayla çalışır:
 | `discover-theharvester` | Kurulu araçla Common Crawl/Wayback pasif arşiv keşfi |
 | `ioc-feodo` | Genel C2 IP listesini yenileme |
 | `ioc-certpl` | Genel domain IOC listesini yenileme |
+| `notices-hibp` | Kamu ihlal/olay metadata kataloğunu yenileme |
 
 ```sh
 ./xti collect example.com \
@@ -359,12 +364,16 @@ tam sonuç kalıcı geçmişte korunur. Çıktı gösterilmeyen öğe sayısın�
 gösterir. Yinelenen, bulunamayan veya geri çekilmiş izleme ilk ağ isteğinden
 önce reddedilir. Araç/sunucu erişimi ise gerçek çalıştırmada belli olur.
 
-Komut hedef siteye DNS/TLS/HTTPS/port kontrolü göndermez. ATT&CK, dış bildirim
-ve otomatik takvim bu toplama akışında yer almaz.
-Yeni bir birleşik oturum geçmişi veya otomatik devam kurulmaz;
-mevcut `jobs`, `surface runs` ve `ioc status` geçmişleri korunur. Normal
-`analyze` komutu ağsız kalır. İş mantığı terminalden bağımsız uygulama
-servisindedir; ileride .NET bağlantı adaptörü aynı servisi kullanabilir.
+Komut hedef siteye DNS/TLS/HTTPS/port kontrolü göndermez. ATT&CK ve dış
+bildirim bu toplama akışında yer almaz. Toplama oturumunu `collections list`
+ve `collections show` ile açabilir, eksik işleri açık `collections resume`
+komutuyla yeniden deneyebilirsin. Ani kesintiden kalan açık oturumlar için
+`collections recover` vardır; kendiliğinden devam başlatılmaz. Kaynaklara
+ait `jobs`, `surface runs` ve `ioc status` geçmişleri de korunur. Kayıtlı
+profilin zamanlama dosyaları ayrı `schedule generate` komutuyla hazırlanır;
+`collect` hizmet veya takvim kurmaz. Normal `analyze` komutu ağsız kalır.
+İş mantığı terminalden bağımsız uygulama servisindedir; ileride .NET
+bağlantı adaptörü aynı servisi kullanabilir.
 
 ## Bulguları vaka altında yönet
 
