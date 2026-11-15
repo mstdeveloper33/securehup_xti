@@ -2,6 +2,11 @@
 
 **Karar tarihi:** 13 Kasım 2026. **Durum:** Kullanıcı isteğiyle gelecekteki plana alındı; henüz uygulanmadı. Bu belge model kurmaz, bir sağlayıcı seçmez veya ücretli hizmet açmaz.
 
+**15 Kasım 2026 sınırı:** LLM bu repoda isteğe bağlı motor yeteneğidir;
+kaynaklı taslak üretir. Sonuçların ürün ekranında sunumu, kullanıcı oturumu
+ve rol kararı mevcut .NET platformundadır. Motorun doğrulanmış kapsam ve
+kanıt kontrolü sürer. [Güncel motor planı](ENGINE_INTEGRATION_ROADMAP.md).
+
 ## Kullanıcıya sağlayacağı işler
 
 LLM, platformun topladığı ve kaynağı belli kayıtları anlamayı kolaylaştıran isteğe bağlı analiz yardımcısı olacak. Yeni kaynakların yerine geçmeyecek; internet kapsamını kendiliğinden artırmayacak. Önce mevcut kayıtlarla başlayacağız.
@@ -27,8 +32,8 @@ LLM, platformun topladığı ve kaynağı belli kayıtları anlamayı kolaylaşt
 AIM-04 kapsamındaki araç/MCP ve çok adımlı otomasyon ilk LLM teslimine dahil
 değildir. LLM çalışması web paneli, REST API, TAXII, Linux arka plan hizmeti
 veya bütün veri kaynaklarının tamamlanmasını beklemez. 15 Kasım 2026
-[kurumsal entegrasyon planı](ENTERPRISE_INTEGRATION_PLAN.md) bu modülleri
-ayrı aşamalara alır; LLM'nin kaynak, yetki ve kanıt sınırları değişmez.
+[motor entegrasyon planı](ENGINE_INTEGRATION_ROADMAP.md) uygulama backend'i
+ve oturumu .NET'e bırakır; LLM'nin kaynak, yetki ve kanıt sınırları değişmez.
 Takım kullanımında model girdisi, arama ve saklanan taslak için müşteri
 kapsamı ayrıca doğrulanır; dış platformun LLM özelliği kendiliğinden açılmaz.
 

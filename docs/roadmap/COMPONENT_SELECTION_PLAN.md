@@ -5,10 +5,12 @@
 Yeni paket kurulmadı, bağımlılık dosyası veya kullanıcı verisi değiştirilmedi.
 Seçilen proje ile test edilip kullanıma alınan sürüm ayrı durumlardır.
 
-Kullanıcı diğer özellikleri uygulamadan önce hazır bileşen seçimini
-netleştirmek istiyor. Bu belge [kurumsal planın](ENTERPRISE_INTEGRATION_PLAN.md)
-EIP-01 parçasıdır. Tek ürün, kullanıcı akışı ve ana kayıt merkezi XTI'dır.
-Her bileşenin görevi sınırlıdır; sonuçları XTI modeline alınır.
+**Son kapsam kararı:** Uygulama backend'i, kullanıcı oturumu ve web mevcut
+.NET platformundadır. Bu belge [motor planının](ENGINE_INTEGRATION_ROADMAP.md)
+ENG-02 parçasıdır. XTI veri toplama/analiz ve kaynaklı kayıt motorudur.
+Önceki FastAPI/Pydantic, Keycloak ve Cytoscape.js backend/panel tercihleri
+bu repo için geri çekilmiştir. Her motor bileşeninin görevi sınırlıdır;
+sonuçları ortak modele alınarak .NET'e kararlı sözleşmeyle sunulur.
 
 ## 1. Net seçimler
 
@@ -16,13 +18,12 @@ Her bileşenin görevi sınırlıdır; sonuçları XTI modeline alınır.
 |---|---|---|---|
 | Sosyal kullanıcı adı ve mevcut arşiv keşfi | Mevcut Sherlock, Maigret ve theHarvester adaptörleri | Şimdiden belirlenmiş kaynak/iş kapsamı | Kullanılan mevcut entegrasyonlar korunur |
 | Kaynaklar arası olay adayı | XTI kaynak/domain/tarih kuralları; ek ad benzerliği için **RapidFuzz** | Yalnız ad/başlık benzerliği hesaplama ve aday sıralama | İlk dar karşılaştırma deneyi için seçildi; fayda kabulünden önce üretime alınmaz |
-| Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türü için kalıcı kimlik, tam sonuç farkı ve bildirim | Yeni arama motoru/harici platform eklenmez; onaylı EIP-05 |
-| Haber/RSS/Atom okuma | **feedparser** | XTI'nın indirdiği sınırlı yanıtı ayrıştırma | Haber modülü EIP-06 için seçildi |
+| Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türü için kalıcı kimlik, tam sonuç farkı ve bildirim | Yeni arama motoru/harici platform eklenmez; onaylı ENG-03 |
+| Haber/RSS/Atom okuma | **feedparser** | XTI'nın indirdiği sınırlı yanıtı ayrıştırma | Haber modülü ENG-04 için seçildi |
 | Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | RSS özeti yetersizse ikinci dilim; ilk haber tesliminin zorunlu parçası değil |
-| Kendi API'miz | **FastAPI + Pydantic** | Mevcut uygulama servislerini çağıran API; istek/yanıt doğrulaması | API aşaması EIP-07 için seçildi |
-| Kendi panelimizde ilişki grafiği | **Cytoscape.js** | XTI'nın sunduğu düğüm/ilişkileri çizme ve kullanıcı etkileşimi | React aşaması EIP-07 için seçildi; bugün terminale eklenmez |
-| Geniş STIX nesne aktarımı | **stix2** | XTI kaydı ile standart nesneler arasında oluşturma/ayrıştırma | Paylaşım aşaması EIP-08 için seçildi |
-| Kurumsal giriş | **OpenID Connect** bağlantısı; referans sağlayıcı **Keycloak** | Kimlik, oturum ve çok faktörlü doğrulama | Ekip aşaması; kurumun uygun mevcut sağlayıcısı kullanılabilir, XTI veri yetkisi uygulamada kalır |
+| .NET bağlantısı | Sürümlü motor istek/sonuç sözleşmesi | Mevcut uygulama servisleri üzerinden veri ve iş durumu | ENG-01/05; taşıma biçimi dağıtıma göre seçilir, Python uygulama backend'i kurulmaz |
+| Geniş STIX nesne aktarımı | **stix2** | XTI kaydı ile standart nesneler arasında oluşturma/ayrıştırma | Paylaşım aşaması ENG-07 için seçildi |
+| Backend, giriş ve panel | Mevcut **.NET platformu** | Motor bu tarafa kaynaklı kayıt/analiz sunar | Bu repoda FastAPI/Keycloak/panel geliştirme işi yok |
 
 Burada "seçildi", kullanılacak görev ve proje tercihini belirtir. Paket
 sürümünün XTI'da çalıştığı veya özelliğin tamamlandığı anlamına gelmez.
@@ -104,20 +105,11 @@ kaynaktan ayrı saklanır; çıkarılan tarih doğrulanmış olay tarihi sayılm
 Tam metin ihtiyacı yoksa bağımlılık eklenmez.
 [Resmî işlevler](https://trafilatura.readthedocs.io/en/latest/corefunctions.html).
 
-**FastAPI/Pydantic:** Terminal ve API aynı uygulama servislerini çağırır.
-Pydantic ağ sınırındaki istek/yanıt modellerinde kullanılır; mevcut domain
-modelleri ve tarihî kanıt biçimleri dönüştürülmez. Kesin kimlik/tarih/tür
-alanlarında örtük dönüşüm yerine açık doğrulama uygulanır. API eklemek,
-veritabanını veya mevcut migration düzenini değiştirmeyi gerektirmez.
-[FastAPI veritabanı sınırı](https://fastapi.tiangolo.com/tutorial/sql-databases/),
-[Pydantic doğrulama](https://docs.pydantic.dev/latest/concepts/strict_mode/).
-
-**Cytoscape.js:** MIT lisanslı grafik görselleştirme/analiz kütüphanesi
-kendi React deneyimimizin bir parçası olur. Sunucu yalnız kullanıcının
-görebildiği, boyutu sınırlı ilişki kümesini verir. Grafik çizimi yeni ilişki
-kanıtı, veritabanı veya müşteri yetkisi oluşturmaz; seçim ve inceleme XTI
-kayıtlarına bağlanır. Ayrı ürün paneli veya grafik SaaS'ı gerekmez.
-[Resmî belge](https://js.cytoscape.org/).
+**Backend/panel araştırması geri çekildi:** Önceki FastAPI/Pydantic,
+Cytoscape.js ve OIDC/Keycloak tercihleri bu repo için kurulum hedefi
+değildir. Mevcut .NET platformu kendi backend, kullanıcı ve arayüz
+tercihlerini korur. Motor için gerektiğinde ince servis taşıma adaptörü
+ayrı seçilebilir; bununla giriş/oturum sistemi yeniden kurulmaz.
 
 **stix2:** OASIS'in Python bileşeni nesne oluşturma/ayrıştırma için
 kullanılır. Söz diziminin doğru olması iddianın gerçekliği değildir.
@@ -126,11 +118,9 @@ kaynak, tarih ve paylaşım işaretlerinin anlamı ayrıca doğrulanır.
 Mevcut sınırlı IOC dışa aktarımı gerekçesiz yeniden yazılmaz.
 [Resmî depo](https://github.com/oasis-open/cti-python-stix2).
 
-**OIDC/Keycloak:** XTI standart kimlik bağlantısını kullanır. Referans
-kurulum Keycloak olabilir; kullanıcı kapsamı, müşteri ayrımı, veri sorgusu
-ve arka plan işi yetkisi XTI'nın sorumluluğudur. Ekip aşamasında ayrı
-kurulum/işletim kabulü gerekir; Python paketini eklemekle tamamlanmaz.
-[Resmî entegrasyon rehberi](https://www.keycloak.org/securing-apps/overview).
+**Kapsam uygulaması:** Kimlik ve rol .NET tarafında doğrulanır; motor
+güvenilir çağrı bağlamındaki veri/iş sınırını uygular. Serbest kurum
+etiketi yetki değildir; mevcut kuruluş grupları müşteri yalıtımı sayılmaz.
 
 ## 4. Şimdilik seçilmeyenler
 
@@ -161,22 +151,23 @@ geçerlidir. Çalışan araştırma ve sonuç kaydı XTI'da kalır.
 ## 5. Yayın kanıtı ile kurulum kilidi ayrı
 
 Aşağıdakiler 15 Kasım 2026'da resmî paket sayfalarındaki yayın bilgileridir;
-XTI'da kurulmuş, test edilmiş veya kilitlenmiş sürümler değildir.
+XTI'da kurulmuş, test edilmiş veya kilitlenmiş sürümler değildir. FastAPI
+ve Pydantic satırları geri çekilen backend seçiminin tarihî araştırmasıdır.
 
 | Paket | Gözlenen sürüm / yayın | Bildirilen Python tabanı | Lisans / kaynak |
 |---|---|---|---|
 | RapidFuzz | 3.14.6 / 30 Ağustos 2026 | ≥3.11 | MIT · [PyPI](https://pypi.org/project/RapidFuzz/) |
 | feedparser | 6.0.14 / 30 Temmuz 2026 | ≥3.10 | BSD-2-Clause · [PyPI](https://pypi.org/project/feedparser/) |
 | Trafilatura | 2.3.1 / 6 Ekim 2026 | ≥3.10 | Apache-2.0 · [PyPI](https://pypi.org/project/trafilatura/) |
-| FastAPI | 0.163.0 / 14 Kasım 2026 | ≥3.11 | MIT · [PyPI](https://pypi.org/project/fastapi/) |
-| Pydantic | 2.14.3 / 5 Kasım 2026 | ≥3.10 | MIT · [PyPI](https://pypi.org/project/pydantic/) |
+| FastAPI — repo kapsamı dışı | 0.163.0 / 14 Kasım 2026 | ≥3.11 | MIT · [PyPI](https://pypi.org/project/fastapi/) |
+| Pydantic — önceki tercih geri çekildi | 2.14.3 / 5 Kasım 2026 | ≥3.10 | MIT · [PyPI](https://pypi.org/project/pydantic/) |
 | stix2 | 3.0.2 / 12 Şubat 2026 | ≥3.10 | BSD-3-Clause · [PyPI](https://pypi.org/project/stix2/) |
 | NetworkX — ertelendi | 3.7 / 21 Eylül 2026 | ≥3.12; 3.14.1 hariç | BSD-3-Clause · [PyPI](https://pypi.org/project/networkx/) |
 | taxii2-client — aday | 2.3.0 / 12 Mart 2021 | Yayın sınıfları 3.6–3.9; 3.11 kabulü yapılmadı | BSD-3-Clause · [PyPI](https://pypi.org/project/taxii2-client/) |
 
 Cytoscape.js JavaScript bileşenidir; Keycloak ayrı kimlik servisidir.
-Python uyumluluk tablosu onlara uygulanmaz. Sürümleri kendi aşamalarında
-tarayıcı/Node veya protokol/sunucu uyumuyla seçilir.
+Python uyumluluk tablosu onlara uygulanmaz. İkisi de bu reponun aktif
+seçimi değildir; .NET platformuna bu araçları seçme zorunluluğu getirilmez.
 [Cytoscape.js lisansı](https://github.com/cytoscape/cytoscape.js/blob/master/LICENSE),
 [Keycloak deposu/lisansı](https://github.com/keycloak/keycloak).
 
@@ -213,8 +204,9 @@ ikisini birlikte kurma kararı verilmez.
 örnekleri ve RapidFuzz deneyi hazırlanır. Yarar gösterilirse dar benzerlik
 adaptörü eklenir; kalıcı olay kimliği ve karar XTI'da kalır. Genel kayıtlı
 arama işi mevcut altyapıyla paralel ilerler. Haber modülü başladığında
-feedparser kullanılır. API, panel ve paylaşım paketleri kendi aşamalarında
-eklenir; bugün hepsinin kurulması planlanmaz.
+feedparser kullanılır. Bundan önce ENG-01 motor/.NET sözleşmesinin okuma
+senaryoları tanımlanır; bu iki motor özelliği paralel ilerleyebilir.
+Paylaşım paketleri kendi aşamasında eklenir; backend/panel .NET tarafındadır.
 
 Bu belgede özellik uygulaması, canlı hedef sorgusu, ücretli hizmet açılması
 veya bağımlılık değişikliği yapılmadı. Belge araştırması ve yerel kod

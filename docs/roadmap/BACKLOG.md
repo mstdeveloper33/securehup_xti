@@ -1,18 +1,18 @@
 # XTI — Uygulanabilir İş Listesi
 
-**15 Kasım 2026 güncel sıra:** Kurumsal ürün ve entegrasyon önceliği
-kabul edildi. [EIP-01–EIP-11 iş paketleri](ENTERPRISE_INTEGRATION_PLAN.md)
-bundan sonraki teslimleri yönlendirir: tek ürün ve ana kayıt merkezi XTI;
-uygun açık kaynak bileşen seçimi, güvenilir adaptörler ve XTI içinde
-onaylı olay ilişkileri/genel arama izlemeleri,
-ardından API/React ve takım kullanımı. Aşağıdaki R0–R13 kapsam envanteri
-korunur; eski “kişisel kullanım önceliği” ve bekleme notları tarihîdir.
-Yeni plan henüz bir entegrasyonu kurulmuş veya çalışır saymaz.
+**15 Kasım 2026 son kapsam kararı:** Bu repo, mevcut .NET platformuna
+bağlanacak XTI veri toplama ve analiz motorudur. Uygulama backend'i,
+kullanıcı oturumları, roller ve web deneyimi .NET tarafındadır. Güncel
+teslim sırasını [ENG-01–ENG-07 motor planı](ENGINE_INTEGRATION_ROADMAP.md)
+belirler; önceki EIP sırası bununla değiştirilmiştir. Motor özgün kanıt,
+analiz, iş durumu ve güvenilir çağrı bağlamındaki kapsamı korur. Bu karar
+bir bağlantıyı kurulmuş veya müşteri yalıtımını tamamlanmış saymaz.
 
 **Hazır bileşen seçimi:** [Ayrı seçim planı](COMPONENT_SELECTION_PLAN.md)
 mevcut kod kullanımı, ad benzerliği için RapidFuzz deneyi, haber için
-feedparser ve sonraki API/panel/paylaşım tercihlerini kaydeder. Bu tur
-uygulama/kurulum yapılmadı; EIP-01'in ölçüm ve sürüm kabulü açıktır.
+feedparser ve motor paylaşım bileşenlerini kaydeder. Python'da ikinci
+uygulama backend'i, oturum sistemi veya panel seçimi yapılmaz. Ölçüm,
+sürüm ve gerçek entegrasyon kabulü açıktır.
 
 14 Kasım 2026: [sekiz adımlı plan](ORDERED_INTEGRATION_PLAN.md) 0.133.0,
 [kuruluş raporu ve ücretsiz devam dilimi](ORGANIZATION_WORKFLOW_PLAN.md)
@@ -33,7 +33,9 @@ Kuruluş raporu, kapsamlı dönem/kaynak katkısı, önce/sonra kanıtları,
 doğrudan CTI bağlamı ve HIBP kamu metadata kataloğu kullanılabilir.
 Aşağıdaki eski sürüm notları tarihî kapsamı açıklar; geniş roadmap'in
 tamamlandığı anlamına gelmez. Common Crawl dış indeks erişimi ve gerçek
-Linux hizmet kabulü açıktır; web/API, LLM ve geniş marka ayrı teslimlerdir.
+Linux hizmet kabulü açıktır; .NET bağlantısı, LLM ve geniş marka ayrı
+teslimlerdir. Mevcut toplama/monitor oturumları iş yürütme kayıtlarıdır;
+kullanıcı oturumu değildir ve korunur.
 
 **Tarihî özet (0.130, 14 Kasım 2026):** SUP-01/SUP-02 ve INT-01'in kişisel yerel çekirdeği tamamlandı. Birleşik kaynak durumu tarama, keşif, sosyal araç, IOC, ransomware ve ATT&CK kayıtlarını kapsıyor; günlük toplama–inceleme–vaka–tekrar rehberi ve bütünleşik testleri mevcut. Sıradaki iş gerçek kullanımda görülen kapsam boşluklarını ölçmek ve katkısı kanıtlanan açık kaynak adaptörlerini değerlendirmektir. Yerel API ile STIX/TAXII kullanıcı kararıyla beklemededir. Atama/rol/SLA takım ürününde; otomatik tedarikçi aboneliği/markalı rapor SUP-03 altında kalır. Sunucu envanteri, ürün/sürüm çıkarımı, paket takibi ve zafiyet eşleştirmesi aktif backlog değildir.
 
@@ -155,8 +157,8 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 
 | Kimlik | Teslimat | Önkoşul | Kabul kanıtı | Öncelik / boyut / kaynak |
 |---|---|---|---|---|
-| INT-01 | Kişisel yerel vaka gruplama, kaynak-denetimli dondurulmuş kanıt, görev/not, kapanış/yeniden açma, zaman çizelgesi ve terminal/JSON raporu tamamlandı; atama/rol/SLA takım ürününde | CTI-02, PHI-05 | Beş kanıt türü, açık görevli kapanış kapısı, bozuk kanıtta güvenli durma ve yedekli migration doğrulandı | Tamam / B0 |
-| INT-02 | Sürümlü yerel API, sayfalama, kimlik doğrulama, anahtar kapsamı | OPS-05, INT-01 | CLI/API uyumu; yerel varsayılan; ağ erişiminde yetki/TLS/limit testleri | P2 / L / B0 |
+| INT-01 | Kişisel yerel vaka, dondurulmuş kanıt, görev/not ve terminal/JSON geçmişi korunur; gelecekteki ekip atama/rol/SLA .NET platformundadır | CTI-02, PHI-05 | Mevcut vaka geçmişi ve kanıt kimlikleri korunmuş; yeni entegrasyonda asıl kayıt sorumlulukları açık | Yerel çekirdek tamam / B0 |
+| INT-02 | Motor ile .NET arasında sürümlü istek/sonuç, iş durumu, hata, sayfalama ve güvenilir kapsam sözleşmesi; taşıma yolu ENG-05'te seçilir | ENG-01, OPS-05, INT-01 | Aynı örneğin .NET'te anlamı korunarak okunması; tekrar, kapsam dışı erişim, kesinti ve uzun iş kabulü | P1 / L / B0→B1 |
 | INT-03 | STIX 2.1 destek matrisi ve TLP/izinli paylaşım | CTI-01, CTI-02, OPS-01 | Nesne/ilişki/zaman/marking doğrulama ve anlamlı gidiş-dönüş | P2 / L / B0 |
 | INT-04 | TAXII 2.1 Collections istemci/sunucu kapsamı | INT-02, INT-03 | İkinci istemciyle sayfalama, yetki, güncelleme ve hata deneyi | P2 / L / B0→B1 |
 | INT-05 | İmzalı webhook, SIEM/SOAR/talep ve istihbarat platformu adaptörleri; açık seçimli tek teslim/imza/deneme dilimi var, otomatik worker ve özel adaptörler açık | INT-02, PHI-06, INT-03 gerektiğinde | Her bağlayıcı için örnek ortam; kesinti, tekrar ve secret rotation testi | P2 / XL / B0→B2 |
@@ -169,16 +171,23 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 | RSP-02 | Takedown başvuru, takip, ret/itiraz, kapanma ve tekrar kontrol | RSP-01, ilgili PHI/BRD modülü | Gönderim/kabul/kaldırılma ayrı durum; test muhatabıyla teslim | P2 / XL / B0→B2 |
 | RSP-03 | Yetkili IdP/SOAR düzeltme iş akışı ve sonucun doğrulanması | RSP-01, INT-05, IDN-03 gerektiğinde | Dar yetki, dry-run, açık onay, teslim ve sonuç izi | P3 / XL / B2→B3 |
 
-## R11: Takım ve müşteri ürünü
+## R11: .NET platformu ile ortak işletim sınırı
+
+Uygulama backend'i, giriş/kullanıcı oturumu ve panel bu repoda yeniden
+yazılmaz. Aşağıdaki eski iş kimlikleri sorumluluk takibi için korunur.
+.NET uygulama yetkisini belirler; motor doğrulanmış servis çağrısının
+kapsamını iş, veri ve sonuç boyunca uygular. Yalnız bir `tenant_id`
+parametresi güvenilir yetki kanıtı değildir. Mevcut kuruluş gruplaması
+müşteri güvenlik sınırı sayılmaz.
 
 | Kimlik | Teslimat | Önkoşul | Kabul kanıtı | Öncelik / boyut / kaynak |
 |---|---|---|---|---|
 | ENT-01 | İhtiyaç varsa PostgreSQL taşıma ve kurtarma planı | OPS-04, FND-04, INT-02 | Sayım/ilişki/özet karşılaştırması; sorgu, indeks, eşzamanlılık ve rollback | P3 / L / B1 |
-| ENT-02 | Kullanıcı/kurum/rol, oturum, MFA/SSO ve erişim iptali | INT-02, veri platformu kararı | Yetki iptali, en az ayrıcalık, oturum ve API anahtarı testleri | P3 / XL / B3 |
-| ENT-03 | Tenant kapsamı: depo, arama, dosya, cache, job, export, bildirim | ENT-02 | Her erişim yolunda kurumlar arası negatif test ve bağımsız inceleme | P3 / XL / B3 |
-| ENT-04 | API üstünde erişilebilir web ve ekip inceleme akışları | ENT-02, INT-01; çok kiracı için ENT-03 | Aynı işin CLI/API/web tutarlılığı; erişilebilirlik ve hata durumları | P3 / XL / B3 |
-| ENT-05 | Audit, veri yaşam döngüsü, olay müdahalesi, SLO ve felaket kurtarma | ENT-03, OPS-05 | Restore/incident tatbikatı; ölçülen hedef iş yükü; G11 raporu | P3 / XL / B3 |
-| ENT-06 | MSSP çalışma alanları, rapor markalama, kota ve ticari ölçümleme | ENT-04, ENT-05 | Rol bazlı müşteri geçişi; kapsam dışı rapor/veri sızıntısı yok | P3 / XL / B3 |
+| ENT-02 | .NET sorumluluğu: kullanıcı/kurum/rol, kullanıcı oturumu, MFA/SSO ve erişim iptali; motor doğrulanmış çağrı kapsamını alır | Mevcut .NET platformu, ENG-01 | Platform yetkisi ile motor kapsamının uyumu; iptal edilmiş veya kapsam dışı çağrı kabul edilmez | Platform tarafı; motor bağı ENG-05 |
+| ENT-03 | Ortak sorumluluk: platform kapsamı ile motor depo/arama/dosya/cache/iş/sonuç/export ayrımı | ENG-01, ENG-05, ENT-02 | Her erişim yolunda başka kurum verisinin reddi; mevcut gruplar otomatik güvenlik sınırı sayılmaz | P1→P3 / L / B0→B3 |
+| ENT-04 | .NET platformunun web/panel ve ekip inceleme deneyimi; motor veri ve analiz sözleşmesini sağlar | ENG-05, ENT-02, ENT-03 | Platformdan başlayan işin kaynaklı motor sonucuyla tamamlanması; bu repoda React/panel geliştirilmez | Platform tarafı; motor bağı ENG-05 |
+| ENT-05 | Ortak denetim ve veri yaşam döngüsü; motor iş/kanıt izleri, yedek/kurtarma ve kapasite; platform kullanıcı/oturum izi ve hizmet işletimi | ENG-01, ENG-06, ENT-03 | İstek/iş kimlikleriyle izlenebilirlik; motor geri yükleme, saklama ve ortak kesinti tatbikatı | P1→P3 / L / B0→B3 |
+| ENT-06 | .NET sorumluluğu: MSSP çalışma alanları, rapor markalama, abonelik ve ticari kota; motor teknik kaynak sınırı ve kapsamlı sonucu sağlar | ENT-02, ENT-03, ENG-05, ENG-06 | Müşteri geçişinde kapsam ve sonuç doğrulaması; ticari ölçüm motor kanıtını değiştirmez | Platform tarafı; motor bağı ENG-05/06 |
 
 ## R12: AI ve denetimli otomasyon
 
@@ -204,45 +213,48 @@ Sunucu envanteri, ürün/sürüm çıkarımı, Ubuntu/Red Hat paket takibi ve CV
 ## İlk çekilecek işler
 
 Temel izleme, kişisel vaka/tedarikçi çekirdeği ve 0.138.0 teslimleri
-kullanılabilir. Yeni sıra [kurumsal entegrasyon planındadır](ENTERPRISE_INTEGRATION_PLAN.md):
+kullanılabilir. Geçerli sıra [motor entegrasyon planındadır](ENGINE_INTEGRATION_ROADMAP.md):
 
-1. EIP-01: [Bileşen seçim planı](COMPONENT_SELECTION_PLAN.md) üzerinden olay
-   adayı örnekleri ve RapidFuzz deneyi; genel aramada kimlik/fark sınırları.
-   Araştırma tercihleri kayıtlı, ölçüm ve test edilmiş sürüm kilidi açıktır.
-2. EIP-02: seçilen analiz bileşeninin sonucunu XTI'da saklama ve inceleme.
-   Doğrudan araç adaptörü veya ek yararı gösterilirse IntelOwl kullanılır.
-3. EIP-03: XTI'dan kaynaklı CTI ilişki araştırması; bağımsız bileşen veya
-   gerekirse OpenCTI arka plan adaptörü. Ayrı ürün ekranı gerekmez.
-4. EIP-04: kalıcı adaptör/iş/teslim kaydı, hata ve tekrar güvenliği, sürüm
-   uyumu, gerçek Linux kullanım ve kurtarma kabulü.
-5. EIP-05: önceden onaylanan olay ilişki adayları ve kaydedilmiş genel arama
-   bildirimleri. Mevcut ransomware karşılaştırması ve CTI kayıtlı aramaları
-   temel alınır; uygun hazır analiz/grafik bileşenleri değerlendirilir,
-   XTI'nın kendi veri modeli ve araştırma deneyimi korunur.
+1. **ENG-01:** Sürümlü istek/sonuç ve güvenilir kapsam modeli. Motor ile
+   .NET sorumlulukları; iş/kayıt kimliği, hata/kısmi sonuç, tarih ve sayfalama
+   anlamı belirlenir. Mevcut CLI JSON çıktısı yeni sözleşme kabulü sayılmaz.
+2. **ENG-02:** [Hazır bileşen tercihlerini](COMPONENT_SELECTION_PLAN.md)
+   motorun küçük adaptörlerine bağlama. Yerel açık kaynak araçları öncelik;
+   lisans, sürüm, kaynak sözleşmesi ve gerçek fayda deneyi gerekir.
+3. **ENG-03:** Onaylı olay ilişki adayları ve kaydedilmiş genel arama
+   bildirimleri. Mevcut karşılaştırma/arama desenleri kullanılır; kalıcı
+   kimlik, tam sonuç farkı ve kaynak hatası ayrımı korunur.
+4. **ENG-04:** Haber/RSS ve kanıtlanmış ek kaynak kapsamı. Kaynak erişimi,
+   tazelik, kesinti ve gerçek sonuç yokluğu ayrı görünür.
+5. **ENG-05:** Küçük .NET tüketiciyle gerçek motor sonucu okuma; dağıtım
+   ihtiyacına uygun taşıma yolunu ve uzun iş/durum/tekrar davranışını
+   doğrulama. Mevcut .NET backend'i veya oturum yönetimi yeniden yazılmaz.
+6. **ENG-06:** İlk adımdan itibaren Linux kullanım, bağımlılık bakımı,
+   kaynak/disk ölçümü, kesintide devam ve yedekten kurtarma. Entegrasyonun
+   sürekli kullanımı için kabul koşuludur; sona bırakılmaz.
+7. **ENG-07:** İhtiyaç oldukça kaynaklı LLM çıktısı ve STIX/TAXII gibi
+   paylaşım genişlemeleri; model ve dış servisler isteğe bağlı kalır.
 
-EIP-06 kaynak kapsamı ve EIP-10 işletim uygun noktada paralel ilerler.
-Bu tercih edilen sıra bağımsız işleri engellemez: EIP-05 yerel kanıtlarla
-EIP-01 sözleşmesi üzerinden ilerleyebilir; dış servis canlı kabulüne bağlı
-değildir. Bütün OpenCTI/IntelOwl kurulumları zorunlu başlangıç değildir.
-Common Crawl'ın son kayıtlı 504 hatası tarihî sonuçtur; canlı kabul ayrıca
-sınanır. Kaynak erişimi ile kaynakta sonuç bulunmaması ayrı tutulur.
-EIP-07 API/React/ekip, EIP-08 paylaşım ve EIP-09 müşteri ayrımı sonraki
-somut aşamalardır. EIP-11 LLM kendi kalite/cihaz deneyiyle ayrıca başlayabilir.
+ENG-03 yerel kanıtlarla ilerleyebilir; bütün .NET bağlantısını veya dış
+servisleri beklemek zorunda değildir. ENG-05 için ilk örnek sözleşme erken
+doğrulanabilir. OpenCTI/IntelOwl zorunlu kurulum değildir. Common Crawl'ın
+son kayıtlı 504 hatası tarihî sonuçtur; canlı kabul ayrıca sınanır.
+Eski EIP kimlikleri plan geçmişidir; aktif teslim kimlikleri ENG'dir.
 
 İlgili mevcut iş eşlemeleri:
 
 | Yeni iş | Eski kapsam kimlikleri | Yeni teslim farkı |
 |---|---|---|
-| EIP-02/04 | CTI-06, INT-05, OPS-01 | XTI analiz modülü ve seçilen araç/servis adaptörü |
-| EIP-03/04 | CTI-02, INT-03, INT-05 | XTI ilişki araştırması ve seçilen CTI bileşeni; OpenCTI isteğe bağlı aday |
-| EIP-05 | CTI-02, CTI-03, PHI-06 | Olay adayları ve on türü kapsayan kaydedilmiş genel arama |
-| EIP-06 | OPS-01, DWI-02, COV-01 | Haber/RSS ve kanıtlanmış ek kaynak katkısı |
-| EIP-07/09 | INT-02, ENT-02, ENT-03, ENT-04, ENT-06 | Tek kurum ekibi ve ardından doğrulanmış müşteri ayrımı |
-| EIP-08 | INT-03, INT-04, INT-05 | Gereken nesne/paylaşım ve gerçek karşı uç kabulü |
-| EIP-10 | ENT-01, ENT-05, COV-02, COV-03, COV-04 | Ölçülmüş taşıma/işletim ve kurtarma koşulları |
-| EIP-11 | AIM-01–05 | Önceki kanıt/yetki sınırlarıyla isteğe bağlı LLM |
+| ENG-01 | FND-05, INT-02, ENT-03 | Motor/.NET sözleşmesi ve güvenilir kapsam |
+| ENG-02 | CTI-06, INT-05, OPS-01 | Yerel bileşen ve kaynak adaptörleri |
+| ENG-03 | CTI-02, CTI-03, PHI-06 | Olay adayları ve on türde kaydedilmiş genel arama |
+| ENG-04 | OPS-01, DWI-02, COV-01 | Haber/RSS ve kanıtlanmış ek kaynak katkısı |
+| ENG-05 | INT-02, ENT-03 | .NET tüketici ve seçilen taşıma/uzun iş kabulü |
+| ENG-06 | ENT-01, ENT-05, COV-02, COV-03 | Motor işletimi, kapasite ve kurtarma |
+| ENG-07 | AIM-01–05, INT-03, INT-04, INT-05 | İsteğe bağlı LLM ve paylaşım |
 
-Geniş marka, e-posta/SMS ve insan onaylı takedown ayrı teslimlerdir.
+Geniş marka ve insan onaylı takedown ayrı teslimlerdir; uygulama
+bildirim kanalları, panel ve kullanıcı oturumları .NET platformundadır.
 Ürün/sürüm, paket, CVE/KEV/EPSS ve otomatik HTML arşivi yeniden açılmaz.
 Yeni platformların kendi bağımlılıkları ayrı tutulur; XTI'ye ek ağır veri
 altyapısı ancak hedef iş yükü ölçülerek seçilir.

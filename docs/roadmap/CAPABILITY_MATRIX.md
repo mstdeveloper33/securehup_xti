@@ -2,14 +2,15 @@
 
 **Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.138.0.
 
-**Kurumsal hedef güncellemesi:** Tek ürün ve ana kayıt merkezi XTI'dır.
-Uygun açık kaynak bileşenler öncelikle değerlendirilir; OpenCTI/IntelOwl
-gerekirse arka plan yardımcılarıdır. [Görev ve kabul matrisi](ENTERPRISE_INTEGRATION_PLAN.md)
-her yeteneğin XTI'da nasıl kullanılacağını ve yardımcı bileşen sınırını belirtir.
-Bir platformun kurulu olması ilgili satırı tamamlamaz; XTI'dan gerçek
-uçtan uca kullanım ve veri/erişim sınırları doğrulanmalıdır. Henüz bu iki
-entegrasyon uygulanmadı. Aşağıdaki satırlar hedef kapsamı ve tarihî
-teslimleri birlikte içerir; güncel çalışan kapsam için STATUS esas alınır.
+**Son hedef güncellemesi:** Bu repo, mevcut .NET platformuna bağlanacak
+XTI veri toplama ve analiz motorudur. .NET uygulama backend'i, kullanıcı
+oturumu, roller ve arayüzü yönetir; motor kaynaklı kanıt, analiz, iş durumu
+ve doğrulanmış çağrı kapsamını korur. [Motor planı](ENGINE_INTEGRATION_ROADMAP.md)
+ENG-01–ENG-07 aktif sırasını belirler; önceki EIP planı bu sınırla
+değiştirilmiştir. Uygun yerel açık kaynak bileşenler önceliklidir;
+OpenCTI/IntelOwl zorunlu değildir ve henüz bağlı değildir. Aşağıdaki
+satırlarda platform tarafı ile motor sorumluluğu ayrılır; mevcut çalışan
+kapsam için STATUS esas alınır.
 
 0.135–0.138: HIBP toplama ve kuruluş bildirimleri, tarihî kamu olayı vaka
 bağı, tam çevrimdışı HTML raporu, on türde yerel arama, tedarikçi kaynak
@@ -50,7 +51,7 @@ Kamuya açık SOCRadar sayfaları yetenek ailelerini belirlemek için kullanıld
 
 **İlerleme kaydı:** Her yetenek için işlev, veri, doğruluk, güncellik, operasyon ve güvenlik ayrı değerlendirilir. Başlangıçta hepsi 0; rakibin ölçülemeyen boyutları “bilinmiyor” olarak kalır. İleride bu dosyaya kabul kanıtı bağlantısı eklenir. [Olgunluk yöntemi ve fazlar](MASTER_ROADMAP.md), [iş kimlikleri](BACKLOG.md).
 
-## 1. Ortak platform ve kullanıcı akışı — bizim tasarım kapsamımız
+## 1. Ortak motor temeli ve terminal akışı
 
 | Kimlik | Yetenek | Bizim teslim hedefimiz | İş paketi | Faz / kaynak |
 |---|---|---|---|---|
@@ -63,7 +64,7 @@ Kamuya açık SOCRadar sayfaları yetenek ailelerini belirlemek için kullanıld
 | CAP-007 | Kalıcı iş yönetimi | Çökmede devam, retry, lease ve tekrar güvenli kayıt | FND-06 | R1 / B0 |
 | CAP-008 | Bulgu yaşam döngüsü | Yeni, görüldü, inceleniyor, ertelendi, kapandı ve tekrar açıldı | PHI-05 | R2 / B0 |
 | CAP-009 | Geri bildirim | Doğru/yanlış/bilinmiyor kararı ve gerekçe geçmişi | PHI-05 | R2 / B0 |
-| CAP-010 | Bildirim teslimi | Bulgu/adaya/değişime bağlı yerel kutu ve seçilen tek bildirim için manuel imzalı webhook var; kuruluş HIBP ve tedarikçi kaynak değişimleri yerel kutuya otomatik katılır; otomatik dış teslim/toplu worker, e-posta/SMS açık | PHI-06 | R2/R10 / B0 |
+| CAP-010 | Bildirim teslimi | Bulgu/adaya/değişime bağlı yerel kutu ve seçilen tek bildirim için manuel imzalı webhook var; kuruluş HIBP ve tedarikçi kaynak değişimleri yerel kutuya otomatik katılır; uygulama bildirim kanalları .NET tarafında, motorun olay teslim sözleşmesi açık | PHI-06, ENG-01, ENG-05 | R2/R10 / B0 |
 | CAP-011 | Terminal deneyimi | Komut yardımı, açıklanabilir tablolar ve kararlı JSON | FND-02 | R1 / B0 |
 | CAP-012 | Etkileşimli terminal | Klavye ile filtre, inceleme ve kaynak/iş sağlığı | OPS-06 | R3 / B0 |
 
@@ -128,12 +129,12 @@ Referans kapsamı: IOC yönetimi, avcılık, aktör/kampanya bağlamı, rapor ve
 | CAP-044 | Aktör profilleri | Kaynak başına alternatif ad/güven/geçmiş, çelişen atıf ilişkileri ve ATT&CK v20 grup aktarımı var; açık merge/split işlemi ve başka dış kaynaklar açık | CTI-02 | R6 / B0→B2 |
 | CAP-045 | Kampanya ve malware profilleri | Kaynaklı kampanya/malware/rapor kayıtları, varlık/IOC ilişkileri ve ATT&CK v20 kampanya/malware aktarımı var; zamanlı kampanya alanları ve otomatik rapor aktarımı açık | CTI-02 | R6 / B0→B2 |
 | CAP-046 | ATT&CK ilişkileri | Enterprise v20 grup/kampanya/malware ile `uses`/`attributed-to` kaynak iddiaları var; teknik/taktik eşlemeleri açık | CTI-04 | R6 / B0 |
-| CAP-047 | Kaydedilmiş avcılık sorguları | CTI'ya özel kalıcı sorgu, tam çalışma/fark, etiket ve analist notu var; on türde genel aramanın kaydedilmesi EIP-05 ile planlı, takım işbirliği açık | CTI-03, EIP-05 | R6 / B0 |
-| CAP-048 | Abonelik ve izleme listeleri | CTI kayıtlı aramalarında fark, yerel bildirim ve sınırlı yenileme var; genel arama bildirimleri EIP-05 ile planlı, kalıcı zamanlama ve dış kanal kapsamı ayrı | CTI-03, EIP-05 | R6 / B0 |
+| CAP-047 | Kaydedilmiş avcılık sorguları | CTI'ya özel kalıcı sorgu, tam çalışma/fark, etiket ve analist notu var; on türde genel aramanın kaydedilmesi ENG-03 ile planlı, takım işbirliği .NET tarafında | CTI-03, ENG-03 | R6 / B0 |
+| CAP-048 | Abonelik ve izleme listeleri | CTI kayıtlı aramalarında fark, yerel bildirim ve sınırlı yenileme var; genel arama bildirimleri ENG-03 ile planlı, kalıcı zamanlama ve .NET dış kanal bağlantısı ayrı | CTI-03, ENG-03 | R6 / B0 |
 | CAP-049 | YARA/Sigma içerik kataloğu | Yetkili içeriklerin kaynak/lisans/sürüm/doğrulaması | CTI-05 | R6 / B0→B2 |
-| CAP-050 | Hash ve malware analiz bağlamı | XTI içinde kaynaklı pasif analiz raporu EIP-02/04 ile planlı; uygun araç veya gerekirse IntelOwl arka plan adaptörü seçilir. İlk profil numune paylaşmaz veya aktif analiz başlatmaz | CTI-06, EIP-02, EIP-04 | R6 / B0→B2 |
+| CAP-050 | Hash ve malware analiz bağlamı | Motorda kaynaklı pasif analiz raporu ENG-02 kapsamında değerlendirilecek; uygun yerel araç önceliklidir, IntelOwl isteğe bağlı adaydır. İlk profil numune paylaşmaz veya aktif analiz başlatmaz | CTI-06, ENG-02 | R6 / B0→B2 |
 | CAP-051 | Taktik/stratejik raporlar | Kaynaklı özet, sektör/bölge ve dönem karşılaştırması | CTI-04 | R6 / B0→B2 |
-| CAP-052 | İlişki araştırması | Kaynaklı yerel CTI ilişkileri var; gelişmiş XTI araştırması EIP-03/04 ile planlı. Bağımsız bileşen veya isteğe bağlı OpenCTI yardımcısı; kayıt ve deneyim XTI'da kalır. Olay adayları EIP-05 | CTI-02, EIP-03, EIP-05 | R6 / B0→B1 |
+| CAP-052 | İlişki araştırması | Kaynaklı yerel CTI ilişkileri var; olay ilişki adayları ENG-03 ile planlı. Genişletme için yerel bileşen önceliklidir, OpenCTI isteğe bağlı adaydır; özgün kanıt/analiz motorun, gelecekteki ekip deneyimi .NET platformunun sorumluluğudur | CTI-02, ENG-02, ENG-03 | R6 / B0→B1 |
 
 ## 6. Dark web ve tehdit iddiaları
 
@@ -202,15 +203,15 @@ Referans kapsamı: olay/vaka işlemleri, IOC ve takedown API'leri; güvenlik ve 
 
 | Kimlik | Yetenek | Bizim teslim hedefimiz | İş paketi | Faz / kaynak |
 |---|---|---|---|---|
-| CAP-084 | Vaka yönetimi | Kişisel yerel gruplama, beş kaynak türünden dondurulmuş kanıt, görev, not, zaman çizelgesi, sonuçlu kapanış ve yeniden açma var; atama/rol/SLA takım ürünüyle gelecek | INT-01 | R10 / B0 |
+| CAP-084 | Vaka yönetimi | Mevcut kişisel vaka, görev/not ve tarihî kanıt korunur; gelecekteki ekip atama/rol/SLA .NET platformundadır. Motor kanıt/karar bağı sürümlü sözleşmeyle taşınır | INT-01, ENG-01, ENG-05 | R10 / B0 |
 | CAP-085 | Teknik/yönetici raporu | Ağsız terminal/JSON vaka çalışma özeti var; dönemsel, markalı ve yönetici şablonları açık | INT-01, SUP-03 | R10 / B0→B3 |
-| CAP-086 | Sürümlü API | Yerel varsayılan; ağ için kimlik, yetki, TLS ve limit | INT-02 | R10 / B0→B1 |
+| CAP-086 | Sürümlü motor bağlantısı | .NET ile istek/sonuç, iş durumu, hata, sayfalama ve güvenilir kapsam sözleşmesi; taşıma yolu ihtiyaca göre seçilir, ikinci uygulama backend'i kurulmaz | INT-02, ENG-01, ENG-05 | R10 / B0→B1 |
 | CAP-087 | STIX 2.1 | Yedi IOC türü için güncel kaynaklı Indicator Bundle dışa aktarma var; CTI nesne/ilişki kapsamı, işaretler, geri çekme sürümü ve içe aktarma açık | INT-03 | R10 / B0 |
 | CAP-088 | TAXII 2.1 | Collections alışverişi ve ikinci istemci doğrulaması | INT-04 | R10 / B0→B1 |
 | CAP-089 | Paylaşım ve TLP | Kaynak lisansı, işaretler ve kullanıcı kapsamını koruma | INT-03 | R10 / B0 |
 | CAP-090 | Webhook ve talep sistemleri | Seçilen bildirimin imzalı/idempotent teslimi, sır döndürme ve deneme geçmişi var; otomatik abonelik/toplu worker ve talep sistemi adaptörü açık | INT-05 | R10 / B0→B2 |
 | CAP-091 | SIEM/SOAR/EDR/firewall | Seçilen sistem başına test edilmiş adaptör; kontrollü aksiyon | INT-05, RSP-03 | R10 / B0→B3 |
-| CAP-092 | İstihbarat platformları | OpenCTI/IntelOwl ihtiyaç ve katkı doğrulanırsa XTI arkasında kullanılabilecek adaylardır; kayıt ve kullanıcı akışı XTI'dadır. MISP gerçek paylaşım ihtiyacında değerlendirilir. Henüz entegre değiller | INT-05, EIP-02, EIP-03, EIP-04 | R10 / B0→B2 |
+| CAP-092 | İstihbarat platformları | OpenCTI/IntelOwl katkı doğrulanırsa motor arkasında kullanılabilecek isteğe bağlı adaylardır; kaynaklı kanıt motorun kaydıdır, uygulama deneyimi .NET'tedir. MISP somut paylaşım ihtiyacında değerlendirilir; henüz bağlı değiller | INT-05, ENG-02, ENG-07 | R10 / B0→B2 |
 | CAP-093 | Kanıtlı takedown taslağı | Hak sahipliği, muhatap, hedef ve içerik sürümüne bağlı onay | RSP-01 | R10 / B0 |
 | CAP-094 | Çok türde takedown takibi | Domain/sosyal hesap/app/depo; yanıt, ret, itiraz ve sonuç | RSP-02 | R10 / B0→B2 |
 | CAP-095 | Düzeltme ve kimlik aksiyonu | Onaylı IdP/SOAR işlemi; sonucun ayrı doğrulanması | RSP-03 | R10 / B2→B3 |
@@ -235,18 +236,23 @@ Referans kapsamı: analiz ajanları, özelleştirilebilir iş akışları ve API
 
 ## 12. Takım, MSSP ve kurumsal güven
 
-Kamuya açık referanslar: kullanıcı/kurum yönetimi ve güven programı. Aşağıdaki güvenlik/işletim mekanizmaları bizim uygulanacak tasarımımızdır; bir veritabanı değişikliğiyle tamamlanmış sayılmaz. [SOCRadar API](https://socradar.io/socradar-apis/), [Trust Center](https://trust.socradar.io/)
+Kamuya açık referanslar: kullanıcı/kurum yönetimi ve güven programı.
+Bu aile .NET platformu ile motorun ortak ürün kabulüdür; bütünü bu repoda
+uygulanmaz. Uygulama yetkisi .NET'te belirlenir, motor güvenilir servis
+bağlamının kapsamını veri ve iş yollarında uygular. Bir `tenant_id` alanı
+veya mevcut kuruluş grubu tek başına yetki/yalıtım kanıtı değildir.
+[SOCRadar API](https://socradar.io/socradar-apis/), [Trust Center](https://trust.socradar.io/)
 
 | Kimlik | Yetenek | Bizim teslim hedefimiz | İş paketi | Faz / kaynak |
 |---|---|---|---|---|
-| CAP-103 | Ekip web deneyimi | API üstünde erişilebilir arayüz ve ortak inceleme | ENT-04 | R11 / B3 |
-| CAP-104 | Kimlik ve rol yönetimi | Oturum, API anahtarı, MFA/SSO ve erişim iptali | ENT-02 | R11 / B3 |
-| CAP-105 | Tenant izolasyonu | Depo/arama/cache/dosya/job/export/bildirim boyunca sınır | ENT-03 | R11 / B3 |
-| CAP-106 | Denetim geçmişi | Kritik işlemlerin hassas verisiz, incelenebilir izi | ENT-05 | R11 / B3 |
-| CAP-107 | Müşteri veri yaşam döngüsü | Silme, taşıma, saklama ve yedek politikasının kapsamı | ENT-05 | R11 / B3 |
-| CAP-108 | MSSP çalışma alanları | Yetkili müşteri geçişi, görünür kapsam, ayrılmış rapor | ENT-06 | R11 / B3 |
-| CAP-109 | Kota ve ticari ölçüm | Yalnız ürünleşme kararı sonrası kullanım/abonelik ölçümü | ENT-06 | R11 / B3 |
-| CAP-110 | Hizmet hedefleri ve kurtarma | Ölçülen SLO, geri yükleme, yükseltme ve olay tatbikatı | ENT-05 | R11 / B3 |
+| CAP-103 | Ekip web deneyimi | .NET platformu sağlar; motor sürümlü veri/analiz sözleşmesi sunar. Bu repoda React/panel uygulanmaz | ENT-04, ENG-05 | Platform tarafı / B3 |
+| CAP-104 | Kimlik ve rol yönetimi | .NET platformunun kullanıcı oturumu, MFA/SSO ve yetki iptali; motor doğrulanmış servis kapsamını alır | ENT-02, ENG-01, ENG-05 | Platform tarafı / B3 |
+| CAP-105 | Tenant izolasyonu | Ortak kabul: .NET yetkisi ile motor depo/arama/cache/dosya/iş/sonuç/export kapsamı aynı sınırı korur | ENT-03, ENG-01, ENG-05 | Ortak / B0→B3 |
+| CAP-106 | Denetim geçmişi | Motor kaynak/iş/kanıt izleri ve platform kullanıcı/oturum izleri istek/iş kimliğiyle ilişkilendirilir; sırlar kayda girmez | ENT-05, ENG-01, ENG-06 | Ortak / B0→B3 |
+| CAP-107 | Müşteri veri yaşam döngüsü | Platform politika ve müşteri işlemleri; motorun saklama/silme/taşıma/yedek davranışı ortak kabulden geçer | ENT-05, ENG-05, ENG-06 | Ortak / B0→B3 |
+| CAP-108 | MSSP çalışma alanları | .NET platformunun müşteri geçişi ve rapor deneyimi; motor her çağrının kapsamını ve sonuç bağını korur | ENT-06, ENG-05 | Platform tarafı / B3 |
+| CAP-109 | Kota ve ticari ölçüm | Abonelik/ticari kota .NET platformundadır; motor teknik süre/boyut/kaynak sınırlarını ve kullanım kanıtını sağlar | ENT-06, ENG-05, ENG-06 | Platform tarafı / B3 |
+| CAP-110 | Hizmet hedefleri ve kurtarma | Motor yük/geri yükleme/yükseltme ölçümleri ve .NET bağlantısının kesinti/kurtarma tatbikatı birlikte doğrulanır | ENT-05, ENG-05, ENG-06 | Ortak / B0→B3 |
 | CAP-111 | Güvenlik ve dağıtım güvencesi | SBOM, bağımlılık bakımı, sürüm doğrulama ve bağımsız inceleme | COV-03 | R1→R13 / B0→B3 |
 | CAP-112 | Destek ve uzman hizmetler | Analist süreci, sorumluluk, çalışma saatleri ve finansman | COV-04 | R13 / B2→B3 |
 

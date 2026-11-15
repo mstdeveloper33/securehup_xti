@@ -1,14 +1,14 @@
-# XTI — Dijital Risk ve Tehdit İstihbaratı Platformu
+# XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
 **Sürüm:** 0.138.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
-Bugünkü sürüm terminalden kullanılan kişisel uygulamadır. Hedef, açık kaynak
-bileşenlerden yararlanarak kurumsal XTI ürünümüzü geliştirmektir. Tek ana
-proje, kullanıcı deneyimi ve kalıcı kayıt merkezi XTI'dır. OpenCTI/IntelOwl
-gerekirse arka planda yardımcı olabilir; zorunlu değiller ve henüz bağlı
-değiller. Sonuçlar ve araştırma XTI üzerinden kullanılacaktır.
-Görev paylaşımı, teslim sırası ve kurumsal kabul koşulları
-[entegrasyon yol haritasında](docs/roadmap/ENTERPRISE_INTEGRATION_PLAN.md) yer alır.
+Bugünkü sürüm terminalden kullanılan kişisel uygulamadır. Hedef, mevcut
+.NET platformuna bağlanabilen veri toplama ve analiz motoru geliştirmektir.
+Kaynaklı kanıt, analiz ve iş geçmişi bu repoda; uygulama backend'i,
+kullanıcı/oturum yönetimi ve web deneyimi .NET tarafında kalır.
+Uygun yerel açık kaynak bileşenler kullanılır; OpenCTI/IntelOwl zorunlu
+değildir ve henüz bağlı değildir. .NET bağlantısı da henüz uygulanmadı.
+Görev paylaşımı ve teslim sırası [motor yol haritasındadır](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md).
 
 Kuruluş birleşik raporu, kuruluşa özel değişim/kaynak görünümü, ayrıntılı
 önce/sonra kanıtı, CTI ilişki bağlamı ve ücretsiz kamu ihlal kataloğu kullanılabilir.
@@ -345,7 +345,7 @@ ve otomatik takvim bu toplama akışında yer almaz.
 Yeni bir birleşik oturum geçmişi veya otomatik devam kurulmaz;
 mevcut `jobs`, `surface runs` ve `ioc status` geçmişleri korunur. Normal
 `analyze` komutu ağsız kalır. İş mantığı terminalden bağımsız uygulama
-servisindedir; ileride React için hazırlanacak API aynı servisi kullanabilir.
+servisindedir; ileride .NET bağlantı adaptörü aynı servisi kullanabilir.
 
 ## Bulguları vaka altında yönet
 

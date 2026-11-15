@@ -3,19 +3,18 @@
 **15 Kasım 2026 — 0.138.0, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
-**15 Kasım 2026 hedef mimari kararı — henüz uygulanmadı:** Kurumsal ürün
-entegrasyonlarla geliştirilecek. Tek ürün/geliştirme deposu ve ana kayıt
-merkezi XTI'dır: izleme, CTI araştırması, kaynaklı ilişkiler, analiz sonuçları,
-kararlar ve vaka akışı burada kalır. Önce uygun bağımsız açık kaynak
-bileşenler değerlendirilir; OpenCTI/IntelOwl gerekirse küçük adaptörler
-arkasında arka plan yardımcıları olur. Kullanıcı ayrı ürün paneline
-geçmek veya o projeleri geliştirmek zorunda kalmaz. Seçilen bileşenlerin
-sürüm/yapılandırma/kurulum tanımları bu repoda yönetilir. Çekirdek dış
-servislerin veritabanlarına doğrudan erişmez.
-Yerel kurulum dış servisler kapalıyken çalışacak. Kuruluş grupları müşteri
-erişim yalıtımı değildir; müşteri verisi kullanılmadan önce bütün uçlarda
-ayrım doğrulanacak. [0141 kararı](decisions/0141-enterprise-integration-first.md)
-ve [teslim planı](roadmap/ENTERPRISE_INTEGRATION_PLAN.md) hedefi tarif eder.
+**15 Kasım 2026 son hedef kararı — henüz uygulanmadı:** Bu repo mevcut
+.NET platformuna bağlanacak XTI motorudur. Toplama, analiz, kaynaklı
+kanıt/ilişkiler ve iş geçmişi burada; uygulama backend'i, kullanıcı/giriş
+oturumu, rol ve web deneyimi .NET tarafındadır. Bağlantı küçük adaptörler
+ve sürümlü istek/sonuç sözleşmesi kullanır; iki taraf birbirinin veritabanı
+şemasına doğrudan bağlanmaz. Taşıma teknolojisi henüz seçilmedi.
+Yerel açık kaynak bileşenler tercih edilir; harici platform zorunlu olmaz.
+Yerel kullanım ve mevcut vaka/karar/toplama oturumu geçmişi korunur.
+Kuruluş grupları müşteri erişim yalıtımı değildir. .NET'in doğruladığı
+kapsam motorun iş/arama/sonuç sınırında da uygulanır; serbest kurum etiketi
+yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
+ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
 Aşağıdaki bölümler mevcut 0.138.0 uygulamasını anlatır.
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
@@ -156,7 +155,7 @@ ve `CtiFeedService` işlemlerini tek çalışma kilidi altında seri yürütür.
 Kaynak sonuçları kendi depolarında saklanır; son `UnifiedAnalysisService`
 görünümü bu kayıtlardan okunur. Donmuş plan/adım/sonuç modelleri terminal ve
 JSON tarafından kullanılır. Servis CLI, HTTP veya SQLite import etmez;
-ilerideki React/API katmanı aynı işlevi çağırabilir. Genel workflow motoru
+ilerideki .NET bağlantı adaptörü aynı işlevi çağırabilir. Genel workflow motoru
 yoktur; CLI, 0.132.0'dan itibaren kalıcı oturum ve açık devam için bu çekirdeği
 `CollectionHistoryService` ile kullanır. Kendiliğinden tekrar başlatma yapılmaz.
 Ayrıntılar [0127 numaralı karardadır](decisions/0127-explicit-passive-collection.md).

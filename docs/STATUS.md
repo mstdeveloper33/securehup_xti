@@ -4,15 +4,16 @@
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
-**Ürün yönü güncellendi:** Kurumsal/profesyonel kullanım ve açık kaynak
-bileşenlerden yararlanma [yol haritasına](roadmap/ENTERPRISE_INTEGRATION_PLAN.md)
-alındı. Tek ürün ve ana kayıt merkezi XTI'dır; OpenCTI/IntelOwl ancak seçilirse
-arka plan yardımcılarıdır. Bu yalnız plan değişikliğidir; servisler, API/React, takım veya
-müşteri yalıtımı henüz eklenmedi. Uygulama sürümü ve şema değişmedi.
+**Son ürün yönü:** Bu repo mevcut .NET platformuna bağlanacak XTI toplama
+ve analiz motorudur. Uygulama backend'i, kullanıcı/giriş oturumu, roller ve
+web deneyimi .NET tarafında kalır. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
+geçerlidir. Bu yalnız plan değişikliğidir; .NET bağlantısı, servis veya
+müşteri yalıtımı uygulanmadı. Uygulama sürümü ve şema değişmedi.
 
 **Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
 olay adaylarında RapidFuzz deneyi, haber modülünde feedparser ve sonraki
-API/panel/paylaşım tercihlerini kaydeder. Mevcut genel arama/CTI kayıtlı
+motor/paylaşım tercihlerini kaydeder. Önceki FastAPI/Keycloak/panel
+tercihleri bu repo kapsamından çıkarıldı. Mevcut genel arama/CTI kayıtlı
 arama/bildirim desenleri kullanılacak. Yeni bağımlılık kurulmadı veya
 özellik eklenmedi; test edilmiş paket sürümleri henüz seçilmedi.
 
@@ -1688,16 +1689,15 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 
 ## Sonraki teslim
 
-15 Kasım 2026 son kullanıcı kararı: hedef kurumsal ve profesyonel kullanımdır;
-OpenCTI/IntelOwl'un uygun yeteneklerinden entegrasyonla yararlanılacaktır.
-[Yeni teslim planı](roadmap/ENTERPRISE_INTEGRATION_PLAN.md): tek ürün ve kayıt
-merkezi XTI kalacak. Önce yapılacak kullanıcı işi ve uygun açık kaynak
-bileşen seçilir; gerekli sonuç XTI modeline alınarak XTI'dan kullanılır.
-OpenCTI/IntelOwl bütünü zorunlu değildir. Seçilen bileşen bağlantılarıyla
-birlikte önceden onaylanan olay adayları ve kaydedilmiş genel aramalar;
-sonra API/React, takım ve müşteri kabul aşamaları. İki özellik henüz
-uygulanmadı; mevcut iki ransomware kaynağı karşılaştırması ve CTI'ya özel
-kayıtlı aramalar bunların başlangıç parçalarıdır. Haber toplama ayrı iştir.
+15 Kasım 2026 son kullanıcı kararı: XTI motorunun sonuçları mevcut .NET
+platformuna bağlanacaktır. [Güncel sıra](roadmap/ENGINE_INTEGRATION_ROADMAP.md):
+önce sürümlü motor/.NET istek-sonuç sözleşmesi; mevcut adaptör/bileşen
+düzeni; onaylı olay adayları ve kaydedilmiş genel aramalar; haber kaynakları;
+gerçek .NET tüketicisi ve uzun iş kabulü. İşletim baştan, LLM/standart
+paylaşım ihtiyaca göre ilerler. Uygulama backend'i, oturum ve panel bu
+reponun teslimi değildir. Olay adayları ve kaydedilmiş genel arama
+bildirimleri henüz uygulanmadı; mevcut iki ransomware kaynağı
+karşılaştırması ve CTI kayıtlı aramaları temel alınır.
 Linux kullanım kabulü ve kaynak sağlığı doğrulamaları bu sırada korunur.
 Otomatik HTML rapor arşivi plandan çıkarılmıştır; mevcut komutla HTML
 raporu kullanılabilir.
@@ -1723,10 +1723,12 @@ henüz eklenmedi. Sonraki özellikler mevcut toplama,
 CTI, tedarikçi ve vaka zincirindeki somut boşluklara göre seçilecek; kaynak
 kapsamı, doğrulanmış katkı ve mevcut mimari sınırlar korunacak.
 
-Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı. REST API, React,
-STIX/TAXII genişlemesi, ekip rolleri ve müşteri ayrımı yeni kurumsal planda
-aşamalı teslimlerdir. Geniş marka/kaynak ağı, e-posta/SMS ve insan onaylı
-takedown ayrı kapsam ve erişim kararıyla ilerler. 13 Kasım 2026'da planlanan
+Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı ve korunur. Gelecekteki
+uygulama backend'i, ekip rolleri ve panel mevcut .NET platformundadır;
+motorun kapsam/kanıt/iş sözleşmesi ayrıca doğrulanacaktır. STIX/standart
+paylaşım ve geniş kaynaklar motor yetenekleri olarak planlıdır. E-posta/SMS
+ürün kanalları .NET tarafında; insan onaylı takedown ayrı kapsamdır.
+13 Kasım 2026'da planlanan
 isteğe bağlı LLM desteği korunur: kaynaklı açıklama, günlük özet, vaka taslağı
 ve salt okuma soru-cevap. Henüz model kurulmadı veya harici API bağlanmadı;
 [LLM planı](roadmap/LLM_PLAN.md) geçerlidir. Sunucu envanteri, ürün/sürüm,

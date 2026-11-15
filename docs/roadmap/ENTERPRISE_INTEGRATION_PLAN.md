@@ -1,4 +1,14 @@
-# XTI — Kurumsal kullanım ve entegrasyon yol haritası
+# XTI — Önceki kurumsal entegrasyon planı (tarihî)
+
+**Yerine geçen plan:** [XTI motoru ve .NET entegrasyonu](ENGINE_INTEGRATION_ROADMAP.md).
+15 Kasım 2026 son kullanıcı kararıyla bu dosyanın EIP teslim sırası ve
+uygulama backend'i, kullanıcı oturumu, kimlik ve web geliştirme tercihleri
+yürürlükten kalkmıştır. Bunlar mevcut .NET platformunun sorumluluğudur.
+Bu repo veri toplama/analiz motoru ve sürümlü bağlantı sözleşmesi sağlar.
+Aşağıdaki içerik önceki tasarımın tarihî kaydıdır; yeni iş seçimi veya
+uygulanmış özellik kanıtı olarak kullanılmamalıdır. Bağımsız açık kaynak
+bileşenler ve kaynaklı kanıt ilkeleri [0142 kararında](../decisions/0142-xti-engine-dotnet-host.md)
+korunmuştur. Güncel görevler ENG-01–07'dir.
 
 **Karar tarihi:** 15 Kasım 2026. **Mevcut uygulama:** 0.138.0 / şema 64.
 **Durum:** Kullanıcının kurumsal hedefi ve entegrasyon önceliği kabul edildi;

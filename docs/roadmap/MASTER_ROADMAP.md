@@ -2,19 +2,14 @@
 
 **Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.138.0 / şema 64.
 
-**Güncel ürün kararı:** Hedef kurumsal ve profesyonel XTI kullanımıdır.
-OpenCTI ve IntelOwl'un uygun yeteneklerinden entegrasyonlarla yararlanılır;
-aynı kapsamlı motorları yeniden yazmak varsayılan tercih değildir.
-Kullanıcının son netleştirmesiyle tek ürün, ana geliştirme deposu ve kalıcı
-kayıt merkezi XTI'dır. CTI araştırması ve analiz sonuçları dahil bütün
-kullanıcı işleri XTI'dan yürür. Önce uygun bağımsız kütüphane/araçlar
-değerlendirilir; OpenCTI/IntelOwl'un bütünü ancak yararı doğrulanırsa
-değiştirilebilir arka plan yardımcısı olur. Ayrı ürün ekranı veya fork
-geliştirme zorunluluğu oluşturulmaz.
-[Kurumsal entegrasyon planı](ENTERPRISE_INTEGRATION_PLAN.md) güncel teslim
-sırasını, görev paylaşımını ve kabul koşullarını belirler; aşağıdaki tarihî
-sıralama ile çelişirse bu yeni plan esas alınır. API/React, paylaşım ve takım
-yetenekleri artık kurumsal aşamalarda planlıdır, bugün kurulmuş değildir.
+**Güncel karar:** Bu repo mevcut .NET platformuna bağlanacak profesyonel
+XTI veri toplama ve analiz motorudur. Uygulama backend'i, kullanıcı/oturum,
+roller ve web deneyimi .NET tarafındadır. Motor kaynaklı kanıt, analiz,
+ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
+[Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) ENG-01–07 teslim sırasını
+ve sınırlarını belirler; önceki EIP sırasının ve bu belgedeki eski geniş
+ürün tasarımının yerine geçer. Hazır açık kaynak kütüphane/araçlar tercih
+edilir; OpenCTI/IntelOwl zorunlu platform veya ilk kurulum değildir.
 Yerel ücretsiz kullanım korunur; ücretli servis veya kurumsal dağıtım bu
 planla kendiliğinden etkinleşmez. Sunucu içi envanter, ürün/sürüm, paket ve
 CVE/KEV/EPSS kapsamı ile otomatik HTML rapor arşivi hâlâ aktif plan dışıdır.
@@ -146,10 +141,9 @@ vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN
 ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
 arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
-HTML dışa aktarımı kullanılabilir. Güncel sıra XTI kullanıcı işi için
-bileşen seçimi, seçilen bileşenin XTI içinde denenmesi ve ortak bağlantı
-temeli; paralelde onaylı olay ilişkileri/kaydedilmiş genel aramalar,
-ardından takım ürünüdür. Linux kullanım kabulü ve kaynak
+HTML dışa aktarımı kullanılabilir. Güncel sıra motor/.NET sözleşmesi,
+uygun bileşen sınırları, onaylı olay ilişkileri/kaydedilmiş genel aramalar,
+haber kaynakları ve .NET tüketici/iş kabulüdür. Linux kullanım kabulü ve kaynak
 erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
 erişim kabulü ayrıca açık kalır.
 
@@ -526,19 +520,31 @@ Gözlenen dış bağımlılıklardan tedarikçi adayı önerilebilir; kullanıc�
 
 **Amaç:** İncelenen bilgiyi iş akışına taşımak ve sonucu takip etmek.
 
-**İşler:** Vaka gruplama/atama/not/zaman çizelgesi; rapor şablonları; sürümlü API; webhook imzası ve teslim takibi; STIX dışa/içe aktarma; TAXII Collections; SIEM/SOAR ve talep sistemi adaptörleri; tekrar önleme; paylaşım işaretleri; takedown taslağı, onay, gönderim, sağlayıcı yanıtı, yeniden kontrol ve itiraz akışı.
+**İşler:** Motorun mevcut kişisel vaka/kanıt kayıtları korunur. Yeni
+entegrasyon için sürümlü motor/.NET istek-sonuç ve iş durumu sözleşmesi;
+gerektiğinde STIX nesneleri ve seçili aktarım adaptörleri geliştirilir.
+Ekip ataması, kullanıcı oturumu, uygulama API'si ve ürün kanalları .NET
+tarafındadır. TAXII veya takedown ayrı kapsam/karşı uç kabulü gerektirir.
 
 **G10:** Entegrasyon kesintisinde iş kaybolmuyor, yeniden gönderim izleniyor. STIX biçim doğrulamasına ek anlam testleri geçiyor. Paylaşım sınıfı ve kaynak lisansı dışa aktarımı sınırlıyor. Bir gösterge değiştiğinde/geri çekildiğinde alıcıya güncelleme taşınabiliyor. Dış aksiyonun onayı, kapsamı, alıcısı ve kanıtı kayıtlı. Takedown talebi kabul edilmesi ile sitenin gerçekten kaldırılması ayrı durumlar.
 
-Kişisel API varsayılan olarak yalnız yerel adrese bağlanır. Ağ erişimi açılmadan API/TAXII kimlik doğrulaması, kapsamlı yetki, TLS, sır yönetimi ve istek sınırları doğrulanır; yetkisiz istemci kabul testi G10'a dahildir. R11 daha kapsamlı kullanıcı/kurum yönetimini ekler, temel API güvenliği o faza ertelenmez.
+Motor için şu anda bir HTTP çatısı seçilmez. Süreç/JSON veya gerekli iç
+servis adaptörü, .NET dağıtımına göre kararlaştırılır. Ağ bağlantısı
+seçilirse servis kimliği, kapsam, TLS, sır ve istek sınırları doğrulanır;
+bu repo kullanıcı giriş/oturum sistemi geliştirmez.
 
 Aksiyon onayı alıcıya, hedefe, kanıta ve gönderilecek içeriğin belirli sürümüne bağlanır. Bunlar değişirse onay geçersizleşir; gönderim worker'ı işlem anında onayı yeniden denetler. Teslim edildi, kullanıcı tarafından görüldü, inceleniyor, ertelendi ve çözüldü durumları ayrıdır. HTTP 200 veya e-posta teslimi incelemenin yapıldığını göstermez; hatırlatma ve tekrar açma politikası bulunur.
 
-### R11 — Takım kullanımı, web ve çok kiracılı ürün
+### R11 — .NET ürünü ile motor kapsamının birlikte doğrulanması
 
 **Amaç:** Birden çok kullanıcıya güvenli, işletilebilir hizmet sunmak.
 
-**İşler:** API üstünde web; erişilebilir arayüz; kuruluş/kullanıcı/rol modeli; oturum ve API anahtarı yönetimi; MFA/SSO ihtiyacı; yetki sınırları; PostgreSQL geçişi gerekiyorsa veri taşıma; tenant kapsamlı sorgular/cache/arama/kanıt/export/job; kota; audit; yedek ve felaket kurtarma; destek; sürüm ve bakım politikası; MSSP çalışma alanları; abonelik/ölçümleme yalnız ticarileşme kararından sonra.
+**İşler:** Web, kullanıcı/rol, giriş oturumu, MFA/SSO ve MSSP ürün yönetimi
+mevcut .NET platformunun sorumluluğudur. Bu repo güvenilen çağrı kapsamını
+sorgu/iş/sonuç/kanıt/dışa aktarım boyunca korur; motor denetim izi, yedek,
+kurtarma ve kapasite kabulünü sağlar. Veritabanı taşıma yalnız ölçülmüş
+motor ihtiyacında ele alınır. İlk pilot ayrılmış tek kuruluş ortamıdır;
+ortak müşteri çalışması bütün erişim yolları doğrulanmadan açılmaz.
 
 **G11:** Kurumlar arası negatif erişim testleri tüm veri yollarında geçiyor. Dosya/arama/rapor/kuyruk üzerinden sızıntı denemeleri test edilmiş. Kimlik doğrulama ve yetkilendirme bağımsız incelenmiş. Geri yükleme, sürüm yükseltme ve rollback tatbikatı var. Hedef iş yükünde gecikme/kullanılabilirlik ölçülmüş. Destek ve olay müdahale sorumlusu atanmış. Güvenli müşteri kullanımına geçiş için bütçe ve işletim planı mevcut.
 

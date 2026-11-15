@@ -3,6 +3,12 @@
 **Tarih:** 15 Kasım 2026 · **Durum:** Hedef mimari kabul edildi; uygulama bekliyor.
 **Mevcut sürüm:** 0.138.0 / şema 64; bu karar sürümü veya şemayı değiştirmez.
 
+**Sonraki kapsam düzeltmesi:** [0142](0142-xti-engine-dotnet-host.md), bu
+kararın uygulama backend'i, kullanıcı oturumu ve web deneyimini XTI
+reposuna verme kısımlarını değiştirir. Bunlar mevcut .NET platformundadır.
+XTI motorunun kayıt/bileşen sınırları korunur; güncel sıra
+[motor planındadır](../roadmap/ENGINE_INTEGRATION_ROADMAP.md).
+
 **Aynı gün netleştirme:** Kullanıcı tek ana ürün/geliştirme deposu ve kayıt
 merkezi olarak XTI'yı istiyor. OpenCTI/IntelOwl ayrı kullanıcı hedefleri
 veya zorunlu ürün çekirdekleri değildir. Aşağıdaki karar bu netleştirmeyi
