@@ -22,20 +22,19 @@ from xti.domain.brand_username import (
     BrandProfileMatch,
     BrandUsernamePreview,
 )
+from xti.domain.component_pins import MAIGRET_PIN
 from xti.ports.discovery import SourceError
 
 
-SOURCE_NAME = "Maigret"
-SOURCE_VERSION = "0.6.6"
-REVIEWED_UPSTREAM_COMMIT = "b8747b98820f4df9d1baf23235db7b2cb55d0198"
-INTEGRATION_PROFILE = f"maigret-{SOURCE_VERSION}-{REVIEWED_UPSTREAM_COMMIT[:12]}-safe-v1"
+SOURCE_NAME = MAIGRET_PIN.label
+SOURCE_VERSION = MAIGRET_PIN.version
+REVIEWED_UPSTREAM_COMMIT = MAIGRET_PIN.commit
+INTEGRATION_PROFILE = MAIGRET_PIN.integration_profile
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 MAX_LINE_BYTES = 128 * 1024
 MAX_PROCESS_OUTPUT = 64 * 1024
 MAX_DATABASE_BYTES = 4 * 1024 * 1024
-REVIEWED_DATABASE_SHA256 = (
-    "8dd404e6b3012f01fd467c154b5159386d1362587070c661c2565ec8fa649899"
-)
+REVIEWED_DATABASE_SHA256 = MAIGRET_PIN.catalog_sha256
 
 def _no_duplicate_keys(pairs):
     result = {}

@@ -1,14 +1,15 @@
 # XTI — Güncel Uygulama Durumu
 
-**15 Kasım 2026 · 0.139.0 · Şema 64.**
+**15 Kasım 2026 · 0.140.0 · Şema 64.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
 **Son ürün yönü:** Bu repo mevcut .NET platformuna bağlanacak XTI toplama
 ve analiz motorudur. Uygulama backend'i, kullanıcı/giriş oturumu, roller ve
 web deneyimi .NET tarafında kalır. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
-geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını uygular; .NET
-bağlantısı, ağ servisi veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
+geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
+araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
+veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
 
 **Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
 olay adaylarında RapidFuzz deneyi, haber modülünde feedparser ve sonraki
@@ -19,10 +20,37 @@ kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
 
 ## Çalışanlar
 
+- `components` ve engine v1 `components.list`: mevcut Maigret, Sherlock ve
+  theHarvester'ın görev, beklenen sürüm/commit, lisans, çalışma ortamı ve
+  seçim sınırları tek görünümde. Projedeki kurulum durumu beklenen kimlikten
+  ayrıdır; araç çalıştırılmaz, internet veya veritabanı gerekmez.
+- Ortak pin kaydı adaptör, yerel kurulum denetimi ve sosyal araç
+  doğrulayıcısında kullanılır. Paketleme/installer/ayrı işçi dosyalarında
+  kalan sabitlerin uyumu test edilir; tarihî profil kimlikleri korunur.
+- `ready` yalnız belirtilen yerel kurulum kontrollerinin uygunluğudur;
+  canlı kaynak veya bütün bağımlılıkların çalışma garantisi değildir.
+  Sosyal araçlarda alternatif çalışma ortamı, theHarvester'da tam kaynak
+  ağacı/geçişli bağımlılık bütünlüğü bu okumayla doğrulanmaz. Eski kanıtlar
+  araç eksikken de okunabilir. Kurulum kesintisi/geri dönüşün ileri işleri
+  ENG-06'da açık; sonraki özellik dilimi ENG-03'tür.
+- Sosyal kurulum doğrulayıcısı, Git kaynak bilgisindeki nesne dışı JSON'u
+  beklenmedik istisna yerine kontrollü hata olarak bildirir. Araç yükseltmesi,
+  paket veya şema değişikliği yoktur.
+  [Kullanım](COMPONENTS.md), [0144 kararı](decisions/0144-reviewed-component-catalog.md).
+
+**0.140.0 doğrulaması:** 25 yeni hedefli test geçti. Gerçek CLI ve engine
+süreçlerinde bileşen satırları aynı çıktı; seçilen eksik veri dizini
+oluşturulmadı. Kurulum seçeneği içeren istek denetim öncesi reddedildi.
+Bu projedeki üç araç `ready` göründü; yalnız kurulum bilgileri denetlendi.
+`./scripts/check` 696,946 saniyede 1.979 test çalıştırdı: 1.978 geçti;
+Linux `systemd-analyze` bulunmadığı için ilgili tek test atlandı. Bu sonuç
+gerçek Linux hizmet işletimi veya .NET tüketici kabulü değildir. Yeni
+25 test tam pakete dahildir; şema 64 ve kullanıcı verileri değişmedi.
+
 - `engine --describe`: v1 işlem, kayıt türü, kapsam ve sınırları ağsız
   ve kayıt alanı olmadan gösterir. `engine` tek UTF-8 JSON isteğini alır;
-  `search`, `record.get`, `sources.status` için tek sürümlü stdout JSON
-  cevabı üretir. Yinelenen/bilinmeyen alan, geçersiz tür, sürüm, işlem,
+  `search`, `record.get`, `sources.status`, `components.list` için tek
+  sürümlü stdout JSON cevabı üretir. Yinelenen/bilinmeyen alan, geçersiz tür, sürüm, işlem,
   boyut ve derinlik açık hata olur; JSON ile dosya yolu veya yetki seçilmez.
 - Arama on kayıt ailesini mevcut servisle okur; tür/kaynak alanı/kimlik
   referansı ayrıntıya bağlanır. Ayrıntı gerçek kayıt, kaynak/kanıt ve

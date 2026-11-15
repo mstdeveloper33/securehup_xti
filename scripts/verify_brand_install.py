@@ -16,44 +16,36 @@ import sys
 import tempfile
 
 from xti.adapters.maigret_username import (
-    REVIEWED_DATABASE_SHA256 as MAIGRET_DATABASE_SHA256,
-    REVIEWED_UPSTREAM_COMMIT as MAIGRET_COMMIT,
-    SOURCE_VERSION as MAIGRET_VERSION,
     _write_scoped_database as write_maigret_database,
 )
 from xti.adapters.sherlock_username import (
-    REVIEWED_DATABASE_SHA256 as SHERLOCK_DATABASE_SHA256,
-    REVIEWED_UPSTREAM_COMMIT as SHERLOCK_COMMIT,
-    SOURCE_VERSION as SHERLOCK_VERSION,
     _write_scoped_database as write_sherlock_database,
 )
 from xti.application.brand_username import (
     EXTENDED_PLATFORMS,
     SHERLOCK_EXTENDED_PLATFORMS,
 )
+from xti.domain.component_pins import MAIGRET_PIN, SHERLOCK_PIN
 
 
-TOOLS = (
+MAIGRET_DATABASE_SHA256 = MAIGRET_PIN.catalog_sha256
+MAIGRET_COMMIT = MAIGRET_PIN.commit
+MAIGRET_VERSION = MAIGRET_PIN.version
+SHERLOCK_DATABASE_SHA256 = SHERLOCK_PIN.catalog_sha256
+SHERLOCK_COMMIT = SHERLOCK_PIN.commit
+SHERLOCK_VERSION = SHERLOCK_PIN.version
+
+TOOLS = tuple(
     {
-        "name": "Maigret",
-        "distribution": "maigret",
-        "version": MAIGRET_VERSION,
-        "repository": "https://github.com/soxoj/maigret.git",
-        "commit": MAIGRET_COMMIT,
-        "package": "maigret",
-        "catalog_size": 3_329_634,
-        "catalog_sha256": MAIGRET_DATABASE_SHA256,
-    },
-    {
-        "name": "Sherlock",
-        "distribution": "sherlock-project",
-        "version": SHERLOCK_VERSION,
-        "repository": "https://github.com/sherlock-project/sherlock.git",
-        "commit": SHERLOCK_COMMIT,
-        "package": "sherlock_project",
-        "catalog_size": 104_039,
-        "catalog_sha256": SHERLOCK_DATABASE_SHA256,
-    },
+        "name": pin.label,
+        "distribution": pin.distribution,
+        "version": pin.version,
+        "repository": pin.repository,
+        "commit": pin.commit,
+        "package": pin.package,
+        "catalog_size": pin.catalog_size,
+        "catalog_sha256": pin.catalog_sha256,
+    } for pin in (MAIGRET_PIN, SHERLOCK_PIN)
 )
 
 
@@ -151,7 +143,8 @@ def _verify_distribution(tool: dict[str, object], prefix: Path) -> None:
         raise VerificationError(f"{name} Git kaynak kaydı bozuk") from error
     vcs = direct_url.get("vcs_info") if isinstance(direct_url, dict) else None
     if (
-        direct_url.get("url") != tool["repository"]
+        not isinstance(direct_url, dict)
+        or direct_url.get("url") != tool["repository"]
         or not isinstance(vcs, dict)
         or vcs.get("vcs") != "git"
         or vcs.get("commit_id") != tool["commit"]

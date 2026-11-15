@@ -13,6 +13,13 @@ bir bağlantıyı kurulmuş veya müşteri yalıtımını tamamlanmış saymaz.
 Mevcut CLI ve şema 64 korunur. [Kullanım/kabul sınırları](../ENGINE_CONTRACT.md).
 .NET tüketicisi ve uzun iş bağlantısı ENG-05 altında açık kalır.
 
+**0.140.0 teslimi:** ENG-02'nin mevcut üç araç temeli tamamlandı: ortak
+pinler, açık kapsam ve kurulum gözlemi `components` / `components.list`
+ile sunulur. Araç eksikken eski kanıt okunabilir, kurulum bilgisi kaynak
+canlılığından ayrıdır. [Kullanım/kabul sınırları](../COMPONENTS.md).
+Tam bağımlılık bütünlüğü ve theHarvester kurulum kesintisi/geri dönüşü
+ENG-06'da açık; sıradaki özellikler ENG-03 olay adayı ve kayıtlı genel aramadır.
+
 **Hazır bileşen seçimi:** [Ayrı seçim planı](COMPONENT_SELECTION_PLAN.md)
 mevcut kod kullanımı, ad benzerliği için RapidFuzz deneyi, haber için
 feedparser ve motor paylaşım bileşenlerini kaydeder. Python'da ikinci

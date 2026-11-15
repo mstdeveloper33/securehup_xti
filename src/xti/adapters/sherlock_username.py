@@ -22,18 +22,15 @@ from xti.domain.brand_username import (
     BrandProfileMatch,
     BrandUsernamePreview,
 )
+from xti.domain.component_pins import SHERLOCK_PIN
 from xti.ports.discovery import SourceError
 
 
-SOURCE_NAME = "Sherlock"
-SOURCE_VERSION = "0.16.2"
-REVIEWED_UPSTREAM_COMMIT = "a38ba54fda799cd786a2ab67a50143e1a63169e6"
-INTEGRATION_PROFILE = (
-    f"sherlock-{SOURCE_VERSION}-{REVIEWED_UPSTREAM_COMMIT[:12]}-safe-v1"
-)
-REVIEWED_DATABASE_SHA256 = (
-    "3fdfc6694c5cd99798881215554b09e617c6d5284a6219fae309882566a9fb30"
-)
+SOURCE_NAME = SHERLOCK_PIN.label
+SOURCE_VERSION = SHERLOCK_PIN.version
+REVIEWED_UPSTREAM_COMMIT = SHERLOCK_PIN.commit
+INTEGRATION_PROFILE = SHERLOCK_PIN.integration_profile
+REVIEWED_DATABASE_SHA256 = SHERLOCK_PIN.catalog_sha256
 MAX_DATABASE_BYTES = 256 * 1024
 MAX_REPORT_BYTES = 256 * 1024
 MAX_LINE_BYTES = 16 * 1024

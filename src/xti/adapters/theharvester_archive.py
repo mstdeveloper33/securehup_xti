@@ -20,15 +20,16 @@ import tempfile
 from uuid import UUID
 
 from xti.domain.assets import ValidationError, normalize_domain
+from xti.domain.component_pins import HARVESTER_PIN
 from xti.domain.discovery import SourceBatch
 from xti.domain.findings import DomainInput, ImportDocument
 from xti.ports.discovery import SourceError
 
 
-PROVIDER = "theharvester"
-SOURCE_NAME = "theHarvester P0 arşivleri"
-REVIEWED_UPSTREAM_COMMIT = "6790b147f52309e4eee22ed941db1d285ab2ec23"
-INTEGRATION_PROFILE = f"theharvester-{REVIEWED_UPSTREAM_COMMIT[:12]}-p0-archives-v3"
+PROVIDER = HARVESTER_PIN.identifier
+SOURCE_NAME = f"{HARVESTER_PIN.label} P0 arşivleri"
+REVIEWED_UPSTREAM_COMMIT = HARVESTER_PIN.commit
+INTEGRATION_PROFILE = HARVESTER_PIN.integration_profile
 SOURCES = ("commoncrawl", "waybackarchive")
 MAX_RESULT_LIMIT = 500
 DEFAULT_RESULT_LIMIT = 250

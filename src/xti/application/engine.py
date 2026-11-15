@@ -1,6 +1,7 @@
 """Read-only engine facade; terminal and transport do not own business logic."""
 
 from xti.application.global_search import GlobalSearchService
+from xti.application.components import ComponentCatalogService
 from xti.application.source_readiness import SourceReadinessService
 from xti.domain.engine import EngineContractError, EngineRequest, reference_for_result
 from xti.ports.engine import EngineRecordRepository
@@ -64,8 +65,9 @@ def _sources_data(report) -> dict:
 
 class EngineReadService:
     def __init__(self, search: GlobalSearchService, records: EngineRecordRepository,
-                 sources: SourceReadinessService):
+                 sources: SourceReadinessService, components: ComponentCatalogService | None = None):
         self.search, self.records, self.sources = search, records, sources
+        self.components = components
 
     def execute(self, request: EngineRequest) -> dict:
         if request.operation == 'search':
@@ -74,4 +76,6 @@ class EngineReadService:
             return self.records.get(**request.parameters)
         if request.operation == 'sources.status':
             return _sources_data(self.sources.show(**request.parameters))
+        if request.operation == 'components.list' and self.components is not None:
+            return self.components.list()
         raise EngineContractError('unsupported_operation', 'Bu motor işlemi desteklenmiyor.')

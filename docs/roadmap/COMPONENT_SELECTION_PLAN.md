@@ -1,9 +1,11 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.138.0 / şema 64.
-**Durum:** Hazır bileşen seçimi için araştırmaya dayalı plan tercihleri.
-Yeni paket kurulmadı, bağımlılık dosyası veya kullanıcı verisi değiştirilmedi.
-Seçilen proje ile test edilip kullanıma alınan sürüm ayrı durumlardır.
+**Tarih:** 15 Kasım 2026. **Uygulama:** 0.140.0 / şema 64.
+**Durum:** Yeni bileşenler için araştırmaya dayalı plan tercihleri.
+Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
+[uygulandı](../COMPONENTS.md). Bu teslim yeni paket kurmaz veya mevcut
+araç sürümlerini yükseltmez. Seçilen proje ile test edilip kullanıma alınan
+sürüm ayrı durumlardır.
 
 **Son kapsam kararı:** Uygulama backend'i, kullanıcı oturumu ve web mevcut
 .NET platformundadır. Bu belge [motor planının](ENGINE_INTEGRATION_ROADMAP.md)
@@ -16,7 +18,7 @@ sonuçları ortak modele alınarak .NET'e kararlı sözleşmeyle sunulur.
 
 | İş | Plan tercihi | Hangi parçası kullanılacak? | Zamanı ve durumu |
 |---|---|---|---|
-| Sosyal kullanıcı adı ve mevcut arşiv keşfi | Mevcut Sherlock, Maigret ve theHarvester adaptörleri | Şimdiden belirlenmiş kaynak/iş kapsamı | Kullanılan mevcut entegrasyonlar korunur |
+| Sosyal kullanıcı adı ve mevcut arşiv keşfi | Mevcut Sherlock, Maigret ve theHarvester adaptörleri | Şimdiden belirlenmiş kaynak/iş kapsamı | 0.140.0 ortak pin ve kurulum kataloğu var; mevcut sürümler korunur |
 | Kaynaklar arası olay adayı | XTI kaynak/domain/tarih kuralları; ek ad benzerliği için **RapidFuzz** | Yalnız ad/başlık benzerliği hesaplama ve aday sıralama | İlk dar karşılaştırma deneyi için seçildi; fayda kabulünden önce üretime alınmaz |
 | Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türü için kalıcı kimlik, tam sonuç farkı ve bildirim | Yeni arama motoru/harici platform eklenmez; onaylı ENG-03 |
 | Haber/RSS/Atom okuma | **feedparser** | XTI'nın indirdiği sınırlı yanıtı ayrıştırma | Haber modülü ENG-04 için seçildi |
@@ -205,9 +207,11 @@ ikisini birlikte kurma kararı verilmez.
 adaptörü eklenir; kalıcı olay kimliği ve karar XTI'da kalır. Genel kayıtlı
 arama işi mevcut altyapıyla paralel ilerler. Haber modülü başladığında
 feedparser kullanılır. ENG-01'in yerel okuma sınırı 0.139.0'da
-[uygulandı](../ENGINE_CONTRACT.md); bu iki motor özelliği paralel ilerleyebilir.
+[uygulandı](../ENGINE_CONTRACT.md); ENG-02 mevcut araç düzeni 0.140.0'da
+[kataloğa](../COMPONENTS.md) bağlandı. Sıradaki ENG-03 iki motor özelliği paralel ilerleyebilir.
 Paylaşım paketleri kendi aşamasında eklenir; backend/panel .NET tarafındadır.
 
-Bu belgede özellik uygulaması, canlı hedef sorgusu, ücretli hizmet açılması
-veya bağımlılık değişikliği yapılmadı. Belge araştırması ve yerel kod
-incelemesi, entegrasyon kabul testi olarak sunulmaz.
+Yeni kütüphane tercihleri hâlâ plandır; haber/benzerlik/paylaşım özellikleri
+bu seçim belgesiyle uygulanmış sayılmaz. Araştırma ve yerel kod incelemesi
+entegre bileşenlerin gerçek kabul testinden ayrıdır. Bu güncelleme canlı
+hedef sorgusu, ücretli hizmet veya bağımlılık yükseltmesi içermez.

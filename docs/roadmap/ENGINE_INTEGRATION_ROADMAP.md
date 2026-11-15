@@ -1,9 +1,9 @@
 # XTI motoru ve mevcut .NET platformuna entegrasyon
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.139.0 / şema 64.
-**Durum:** ENG-01 yerel okuma sınırı uygulandı; .NET tüketicisi ve diğer
-motor işleri planlıdır. [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
+**Mevcut sürüm:** 0.140.0 / şema 64.
+**Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
+uygulandı. Sonraki özellikler ENG-03; .NET tüketicisi ve diğer motor işleri planlıdır. [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 
 Bu repo Python tabanlı **veri toplama, istihbarat ve analiz motorudur**.
 Ürettiği kaynaklı bilgiler daha sonra mevcut .NET platformuna bağlanır.
@@ -95,6 +95,8 @@ yürütme sürümü, dış istemci sözleşme sürümü yerine kullanılamaz.
 0.139.0, ayrı `engine` komutuyla ilk üç salt okunur işlemi v1 biçiminde
 sunar. İstek sürümü/kimliği, izinli işlem/parametreler, yapılandırılmış
 kayıt referansı, kaynak durumu, sayfalama ve hata kodları uygulanmıştır.
+0.140.0 aynı v1 sınırına proje araçlarını okuyan `components.list` ekler;
+önceki üç işlemin biçimi korunur.
 `request_id` yalnız ilişkilendirmedir; iş kimliği ve kalıcı tekrar önleme
 henüz yoktur. Kapsam güvenilen başlatıcının seçtiği kişisel kayıt alanıdır;
 paylaşımlı müşteri yetkisi tamamlandı sayılmaz. Daha geniş sözleşme sınırları:
@@ -169,17 +171,19 @@ bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
 | Adım | Teslim | Tamamlanma ölçütü |
 |---|---|---|
 | **ENG-01 — Motor/.NET sözleşmesi** | 0.139.0: sürümlü yerel `search`, `record.get`, `sources.status` ve örnekleri uygulandı | Salt okuma, eski komut uyumu, tam/boş/hatalı/eski kaynak, kapsam reddi ve kayıt referansı kabulü; gerçek .NET tüketicisi ENG-05'te açık |
-| **ENG-02 — Bileşen ve kaynak düzeni** | Mevcut port/adaptörlerin kullanımı; bileşen sürüm/kapsam/kurulum/sağlık kaydı | Yeni araç sonuçlarının ortak modele alınması, araç kapalıyken eski kanıtı okuyabilme; genel plugin platformu yeniden yazılmaz |
+| **ENG-02 — Bileşen ve kaynak düzeni** | 0.140.0: üç mevcut araç için ortak pin, açık yapılandırma ve yerel kurulum kataloğu; CLI/engine okuması uygulandı | Kurulum gözlemi canlı kaynak durumundan ayrı, araç yokken eski kanıt okunabilir, pin kayması testli; yeni araçlar aynı sınırla eklenir |
 | **ENG-03 — Onaylı iki özellik** | Kaynaklar arası olay adayları ve kaydedilmiş genel arama bildirimleri | Kaynak/tarih ayrımı, sessiz başlangıç, tekrar önleme, tutarlı tam sonuç ve insan kararı; RapidFuzz yalnız fayda gösterirse |
 | **ENG-04 — Haber ve kaynak genişlemesi** | feedparser ile RSS/Atom; sonra kanıtlanmış kapsam boşluğuna yeni kaynaklar | Kaynak atfı, tarih, tekilleştirme ve gerçek erişim; hata ile sonuç yokluğu ayrı |
 | **ENG-05 — .NET bağlantı kabulü** | Salt okunur tüketici denemesi; ardından kalıcı iş başlatma/durum/sonuç ve seçilen taşıma | Gerçek iki taraflı test; sürüm, kısmi sonuç, sayfalama, cevap kaybı, tekrar, iptal ve yanlış kapsam |
-| **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
+| **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü; araç kurulum bütünlüğü ve kesinti sonrası geri dönüş | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
 | **ENG-07 — Sonraki motor yetenekleri** | Gerektikçe STIX/diğer paylaşım çıktıları, kapsamlı kaynak modülleri ve isteğe bağlı LLM | Her özellik kaynaklı sonuç sözleşmesiyle teslim edilir; model/sağlayıcı hatası çekirdeği durdurmaz |
 
-ENG-01'in ilk yerel okuma teslimi tamamlandı. Sırada ENG-02 vardır; mevcut sınırların gerekli kısmını netleştirir;
-her özelliği bekletecek genel bir çatı projesi değildir. ENG-03 bununla
-paralel gelişebilir. ENG-05'in salt okunur denemesi ENG-01'den sonra erken
-yapılabilir; bütün kaynakların tamamlanmasını beklemez. LLM'nin küçük
+ENG-01'in ilk yerel okuma teslimi ve ENG-02'nin mevcut araç düzeni
+tamamlandı. [Bileşen kataloğu](../COMPONENTS.md) tam bağımlılık/kurulum
+bütünlüğü veya canlı çalışma kabulü değildir; ileri işletim işleri ENG-06'da
+açıktır. Sırada ENG-03'ün iki onaylı özelliği vardır. ENG-05'in salt okunur
+denemesi ENG-01'den sonra erken yapılabilir; bütün kaynakların tamamlanmasını
+beklemez. LLM'nin küçük
 kalite deneyi de .NET veya bütün özelliklerin bitmesine bağlı değildir.
 
 Yeni kaynaklar önce ücretsiz ve uygun açık kaynak erişimiyle denenir.
@@ -201,8 +205,11 @@ abonelik yönetimi .NET tarafının kararıdır.
 
 ## 8. İlk sonraki iş
 
-**Bileşen ve kaynak düzeni:** mevcut araçların görev, sürüm, kurulum ve
-sağlık sınırını küçük adaptörlerle netleştirmek. Olay adayları ve
-kaydedilmiş genel arama bildirimleri bununla paralel ilerleyebilir.
-V1 yerel okuma sözleşmesi 0.139.0'da kullanılabilir; .NET backend'i
-geliştirilmedi veya bağlanmadı. Şema ve mevcut veriler korunur.
+**Olay adayları ve kaydedilmiş genel arama bildirimleri:** mevcut kaynaklı
+kanıtları ilişki gerekçesiyle birlikte araştırmayı ve aynı aramanın yeni
+sonuçlarını izlemeyi sağlayacak ENG-03 dilimi. Kesin domain/kaynak/tarih
+kuralları önce ölçülür; RapidFuzz ancak ek fayda gösterirse dar adaptörle
+kullanılır. İnsan kararı, sessiz başlangıç ve kaynak hatası ayrımı korunur.
+
+V1 yerel okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir.
+.NET backend'i geliştirilmedi veya bağlanmadı. Şema ve mevcut veriler korunur.

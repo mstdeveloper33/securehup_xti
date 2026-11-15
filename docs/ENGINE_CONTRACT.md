@@ -1,10 +1,10 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.139.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 64.
+**Uygulama:** 0.140.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 64.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
-JSON biçiminde okuyabilmesini sağlar. Üç işlem vardır: arama, kayıt ayrıntısı
-ve kaynak durumu. Mevcut terminal komutları ve onların `--json` çıktıları
+JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
+kaynak durumu ve proje araç kataloğu. Mevcut terminal komutları ve `--json` çıktıları
 korunur. Bu teslim yeni paket, veritabanı geçişi veya HTTP sunucusu eklemez.
 
 Bu okuma katmanı yeni internet toplaması başlatmaz. İnternetten veri alan
@@ -65,7 +65,7 @@ veya tekrar önleme anahtarı değildir.
 |---|---|
 | `contract_version` | Tamsayı `1`; uygulama sürümünden ve veritabanı şemasından ayrıdır |
 | `request_id` | İstemcinin seçtiği eşleştirme kimliği |
-| `operation` | `search`, `record.get` veya `sources.status` |
+| `operation` | `search`, `record.get`, `sources.status` veya `components.list` |
 | `parameters` | İşleme özel seçenek nesnesi; seçenek yoksa `{}` |
 
 Cevabın ortak alanları:
@@ -214,6 +214,42 @@ bağımsız olabilir: `consistency="independent_source_reads"`. Bütün kaynakla
 için tek ortak anlık kesit garantisi yoktur. Kayıt alanı yoksa
 `storage_state="not_initialized"` bildirilir; klasör veya veritabanı yaratılmaz.
 
+## `components.list`: proje araç kataloğu
+
+```sh
+./xti engine <<'JSON'
+{
+  "contract_version": 1,
+  "request_id": "araclar-1",
+  "operation": "components.list",
+  "parameters": {}
+}
+JSON
+```
+
+Parametre nesnesi boş olmalıdır; dosya yolu, kurulum veya araç çalıştırma
+seçeneği kabul edilmez. İşlem `--data-dir` ile seçilen kanıt alanından
+bağımsız olarak çalışan proje kurulumunu okur. Veritabanı gerektirmez ve
+veri dizini oluşturmaz. Ortak zarfın kapsamı `local-workspace` kalır;
+katalog içindeki `scope="project-managed-tools"` gözlem alanını belirtir.
+
+`data`, `catalog_version`, `observed_at`, `scope`, `components` ve `notes`
+alanlarını taşır. Üç satır mevcut Maigret, Sherlock ve theHarvester'dır.
+Her satır beklenen sürüm/commit/katalog kimliğini `expected`, lisans ve
+ortamı `license`/`runtime`, kullanılabilen seçimleri `configuration`,
+kurulum gözlemini `installation` altında verir. Komut dizileri yalnız yol
+gösterir. `source_status_ids` kaynak durumundaki ilgili kimlikleri belirtir.
+
+`installation.state` `ready`, `missing` veya `invalid` olabilir.
+`verification="metadata_only"`, `execution_tested=false` ve
+`scope="project-managed"` denetimin sınırıdır. `inspection_checks` denetim
+kapsamını listeler; her maddenin geçtiği anlamına gelmez. Beklenen sürüm
+kurulu sürüm gibi sunulmaz. Kaynak canlılığı veya tam bağımlılık bütünlüğü
+kanıtlanmaz; bağımsız yerel okumalar için ortak kurulum kesiti garantisi yoktur.
+
+0.140.0 bu işlemi v1'e ekler; önceki üç işlemin biçimi korunur.
+[Araç kataloğu rehberi](COMPONENTS.md) ayrıntılı kapsam ve kullanımını açıklar.
+
 ## Hatalar ve sınırlar
 
 | Hata kodu | Çıkış kodu | Anlamı |
@@ -238,7 +274,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.139.0",
+  "engine_version": "0.140.0",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",

@@ -9,7 +9,7 @@ from xti.domain.global_search import normalize_global_kinds, normalize_global_qu
 
 
 ENGINE_CONTRACT_VERSION = 1
-ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status')
+ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list')
 REQUEST_ID_PATTERN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', re.ASCII)
 # Deliberately versioned here: adding an internal record type does not silently
 # expose it on the external engine boundary.
@@ -128,7 +128,7 @@ def parse_engine_request(value: object) -> EngineRequest:
             parameters = _object(parameters, allowed={'reference', 'offset', 'limit'},
                                  required={'reference'}, code='invalid_parameters')
             normalized = {'reference': parse_record_reference(parameters['reference']), **_page(parameters)}
-        else:
+        elif operation == 'sources.status':
             parameters = _object(parameters, allowed={'domain', 'stale_after_hours'},
                                  required=set(), code='invalid_parameters')
             hours = parameters.get('stale_after_hours', 24)
@@ -139,6 +139,9 @@ def parse_engine_request(value: object) -> EngineRequest:
                 raise EngineContractError('invalid_parameters', 'Domain verilirse metin olmalı.')
             normalized = {'domain': normalize_domain(domain) if domain is not None else None,
                           'stale_after_hours': hours}
+        else:
+            _object(parameters, allowed=set(), required=set(), code='invalid_parameters')
+            normalized = {}
     except ValidationError as error:
         raise EngineContractError('invalid_parameters', str(error)) from error
     return EngineRequest(value['request_id'], operation, normalized)

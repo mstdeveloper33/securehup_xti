@@ -33,10 +33,12 @@ def make_engine_service(database: Path) -> EngineReadService:
     from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
     from xti.application.global_search import GlobalSearchService
     from xti.application.source_readiness import SourceReadinessService
+    from xti.interfaces.components import make_component_service
     return EngineReadService(
         GlobalSearchService(SQLiteGlobalSearchRepository(database)),
         SQLiteEngineRecordRepository(database),
         SourceReadinessService(SQLiteSourceReadinessRepository(database)),
+        make_component_service(),
     )
 
 
@@ -128,6 +130,7 @@ def engine_manifest() -> dict:
             'complete yalnız yerel okumanın tamamlandığını belirtir; kaynak güncelliği ayrıca değerlendirilir.',
             'Arama sayfaları ayrı kesitlerdir; record.get son okunan durumu verir, eski arama anını dondurmaz.',
             'Kaynak durumu kayıtlı geçmişi gösterir; canlı erişimi veya kaynaklar arası tek kesiti doğrulamaz.',
+            'components.list veri klasöründen bağımsız proje araç kurulumunu okur; araç veya canlı kaynak testi yapmaz.',
             'İstek kimliği iş kimliği veya kalıcı tekrar önleme değildir; iş başlatma henüz desteklenmiyor.',
         ],
     }

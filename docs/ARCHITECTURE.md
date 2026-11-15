@@ -1,6 +1,6 @@
 # Yerel Uygulamanın Mimarisi
 
-**15 Kasım 2026 — 0.139.0, şema 64 ana proje yapısı.**
+**15 Kasım 2026 — 0.140.0, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **15 Kasım 2026 hedef kararı — .NET bağlantısı henüz uygulanmadı:** Bu repo mevcut
@@ -16,7 +16,7 @@ Kuruluş grupları müşteri erişim yalıtımı değildir. .NET'in doğruladı�
 kapsam motorun iş/arama/sonuç sınırında da uygulanır; serbest kurum etiketi
 yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
 ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
-Aşağıdaki bölümler mevcut 0.139.0 uygulamasını anlatır.
+Aşağıdaki bölümler mevcut 0.140.0 uygulamasını anlatır.
 
 `EngineReadService` mevcut arama ve kaynak durumu servisleri ile küçük
 `EngineRecordRepository` portunu birleştirir. Domain sözleşmesi sürüm,
@@ -34,6 +34,24 @@ kimlik sistemi yoktur. Arama sayfaları ve ayrıntı ayrı okumalardır; kaynak
 durumu bütün kaynaklar için tek snapshot değildir. Mevcut terminal ve
 `--json` zarfı değişmedi. [0143 kararı](decisions/0143-versioned-engine-read-contract.md)
 ve [v1 kullanım rehberi](ENGINE_CONTRACT.md).
+
+`domain.component_pins`, mevcut üç harici aracın incelenmiş kimliğini
+adaptörler, kurulum denetimi ve sosyal doğrulayıcıyla paylaşır. Bağımsız
+paketleme/installer/işçi sabitleri testlerle bu kayda bağlanır; tarihî
+bağlantı profilleri değişmez. `ComponentCatalogService` küçük
+`ComponentInstallationInspector` portundan yerel gözlemi alır; mevcut
+seçim profillerini ve beklenen pinleri ayrı alanlarda sunar. Somut
+`ManagedComponentInstallationInspector` yalnız proje kurulum bilgilerini
+okur. Araç import/çalıştırma, internet veya veritabanı açma gerekmez.
+
+`components` ile engine v1 `components.list` aynı servisi kullanır. Engine
+işlemi boş parametre nesnesi ister; kanıt veri alanından bağımsız çalışan
+projenin kurulumunu inceler. `ready`, metadata denetimidir; canlı erişim
+ve çalışma başarısı `sources.status` ile de karıştırılmaz. Sosyal denetim
+alternatif PATH/XTI_PYTHON ortamını, theHarvester denetimi bütün kaynak
+ve bağımlılık bütünlüğünü kanıtlamaz. Kurulum kesintisi/geri dönüş ayrı
+işletim kapsamıdır. [0144 kararı](decisions/0144-reviewed-component-catalog.md)
+ve [bileşen rehberi](COMPONENTS.md).
 
 Uygulama tek projedir; görevleri ayrı bölümlerdedir. İnternet araması, yerel kayıt, eşleştirme, hedef kontrolü, inceleme, bildirim kutusu, durum özeti, sınırlı izleme denemesi ve rapor ortak modelleri ve küçük sözleşmeleri kullanır.
 

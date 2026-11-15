@@ -10,16 +10,6 @@ import os
 from pathlib import Path
 import stat
 
-from xti.adapters.maigret_username import (
-    REVIEWED_DATABASE_SHA256 as MAIGRET_SHA,
-    REVIEWED_UPSTREAM_COMMIT as MAIGRET_COMMIT,
-    SOURCE_VERSION as MAIGRET_VERSION,
-)
-from xti.adapters.sherlock_username import (
-    REVIEWED_DATABASE_SHA256 as SHERLOCK_SHA,
-    REVIEWED_UPSTREAM_COMMIT as SHERLOCK_COMMIT,
-    SOURCE_VERSION as SHERLOCK_VERSION,
-)
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_brand_username_watches import SQLiteBrandUsernameWatchRepository
 from xti.adapters.sqlite_cooldowns import SQLiteCooldownRepository
@@ -32,11 +22,20 @@ from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepositor
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
 from xti.adapters.theharvester_archive import TheHarvesterArchiveSource
 from xti.domain.assets import ValidationError, normalize_domain
+from xti.domain.component_pins import HARVESTER_PIN, MAIGRET_PIN, SHERLOCK_PIN
 from xti.domain.cti_attack import ATTACK_SOURCE_NAME
 from xti.domain.cti_feeds import CTI_FEED_POLICIES
 from xti.domain.public_notices import HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_URL
 from xti.domain.source_readiness import SourceReadinessEvidence, SourceReadinessSnapshot
 from xti.ports.discovery import SourceError
+
+
+MAIGRET_SHA = MAIGRET_PIN.catalog_sha256
+MAIGRET_COMMIT = MAIGRET_PIN.commit
+MAIGRET_VERSION = MAIGRET_PIN.version
+SHERLOCK_SHA = SHERLOCK_PIN.catalog_sha256
+SHERLOCK_COMMIT = SHERLOCK_PIN.commit
+SHERLOCK_VERSION = SHERLOCK_PIN.version
 
 
 def _row(identifier, label, scope, command, *, notes=(), installation="builtin"):
@@ -62,9 +61,9 @@ class LocalSourceInstallationInspector:
         self.project_dir = Path(project_dir)
 
     def inspect(self, source: str) -> tuple[str, str | None]:
-        if source == "theharvester":
-            checkout = self.project_dir / ".tools" / "theharvester"
-            executable = checkout / ".venv" / "bin" / "theHarvester"
+        if source == HARVESTER_PIN.identifier:
+            checkout = self.project_dir / ".tools" / HARVESTER_PIN.identifier
+            executable = checkout / ".venv" / "bin" / HARVESTER_PIN.package
             if not checkout.exists():
                 return "missing", "theHarvester ayrı ortamı kurulmamış."
             try:
@@ -75,11 +74,11 @@ class LocalSourceInstallationInspector:
                 return "invalid", str(error)
             return "ready", None
         tools = {
-            "maigret": ("maigret", "maigret", MAIGRET_VERSION, MAIGRET_COMMIT,
-                        "https://github.com/soxoj/maigret.git", 3_329_634, MAIGRET_SHA),
-            "sherlock": ("sherlock-project", "sherlock_project", SHERLOCK_VERSION,
-                         SHERLOCK_COMMIT, "https://github.com/sherlock-project/sherlock.git",
-                         104_039, SHERLOCK_SHA),
+            pin.identifier: (
+                pin.distribution, pin.package, pin.version, pin.commit,
+                pin.repository, pin.catalog_size, digest,
+            )
+            for pin, digest in ((MAIGRET_PIN, MAIGRET_SHA), (SHERLOCK_PIN, SHERLOCK_SHA))
         }
         if source not in tools:
             raise ValueError("Unknown local source tool")

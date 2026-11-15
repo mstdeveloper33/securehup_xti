@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.139.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
+**Sürüm:** 0.140.0 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
 Bugünkü sürüm terminalden kullanılan kişisel uygulamadır. Hedef, mevcut
 .NET platformuna bağlanabilen veri toplama ve analiz motoru geliştirmektir.
@@ -12,10 +12,22 @@ Görev paylaşımı ve teslim sırası [motor yol haritasındadır](docs/roadmap
 
 Engine'in ilk sürümlü bağlantısı kullanılabilir: `./xti engine --describe`
 desteklenen işlemleri gösterir. `./xti engine`, standart girdiden tek JSON
-isteği alarak kayıtlı verilerde arama, kayıt ayrıntısı ve kaynak durumu
-okur. Eski komutlar ve `--json` çıktıları korunur. Bu bağlantı toplama
+isteği alarak kayıtlı verilerde arama, kayıt ayrıntısı, kaynak durumu ve
+projedeki araçların kurulum bilgisini okur. Eski komutlar ve `--json` çıktıları korunur. Bu bağlantı toplama
 başlatmaz; mevcut toplama komutları kullanılmaya devam eder. Yeni paket
 veya veritabanı geçişi gerekmez. [Engine kullanım ve sözleşme rehberi](docs/ENGINE_CONTRACT.md).
+
+Bağlı açık kaynak araçlarını tek yerde görmek için:
+
+```sh
+./xti components
+./xti --json components
+```
+
+Maigret, Sherlock ve theHarvester'ın beklenen sürümü, kullanım kapsamı ve
+yerel kurulum durumu gösterilir. Bu okuma araç çalıştırmaz; internetten veri
+toplama başarısı ayrıca kaynak geçmişinden izlenir. Aynı görünüm engine
+`components.list` işleminde vardır. [Araç kataloğu rehberi](docs/COMPONENTS.md).
 
 Kuruluş birleşik raporu, kuruluşa özel değişim/kaynak görünümü, ayrıntılı
 önce/sonra kanıtı, CTI ilişki bağlamı ve ücretsiz kamu ihlal kataloğu kullanılabilir.

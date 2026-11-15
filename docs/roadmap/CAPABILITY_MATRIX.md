@@ -1,6 +1,6 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
-**Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.139.0.
+**Güncel teslim tarihi:** 15 Kasım 2026 · **Sürüm:** 0.140.0.
 
 **Son hedef güncellemesi:** Bu repo, mevcut .NET platformuna bağlanacak
 XTI veri toplama ve analiz motorudur. .NET uygulama backend'i, kullanıcı
@@ -11,6 +11,11 @@ değiştirilmiştir. Uygun yerel açık kaynak bileşenler önceliklidir;
 OpenCTI/IntelOwl zorunlu değildir ve henüz bağlı değildir. Aşağıdaki
 satırlarda platform tarafı ile motor sorumluluğu ayrılır; mevcut çalışan
 kapsam için STATUS esas alınır.
+
+0.140.0: Üç mevcut harici araç için ortak incelenmiş pin, kullanım kapsamı
+ve proje kurulum kataloğu `components` / `components.list` ile okunur.
+Denetim metadata ile sınırlıdır; canlı kaynak veya tüm bağımlılık çalışma
+kabulü değildir. [Araç kataloğu](../COMPONENTS.md), ENG-02 temel teslimi.
 
 0.139.0: Sürümlü yerel engine okuma girişi arama, yapılandırılmış kayıt
 ayrıntısı ve kaynak durumunu sunar. Eski CLI korunur; .NET tüketicisi,
@@ -210,7 +215,7 @@ Referans kapsamı: olay/vaka işlemleri, IOC ve takedown API'leri; güvenlik ve 
 |---|---|---|---|---|
 | CAP-084 | Vaka yönetimi | Mevcut kişisel vaka, görev/not ve tarihî kanıt korunur; gelecekteki ekip atama/rol/SLA .NET platformundadır. Motor kanıt/karar bağı sürümlü sözleşmeyle taşınır | INT-01, ENG-01, ENG-05 | R10 / B0 |
 | CAP-085 | Teknik/yönetici raporu | Ağsız terminal/JSON vaka çalışma özeti var; dönemsel, markalı ve yönetici şablonları açık | INT-01, SUP-03 | R10 / B0→B3 |
-| CAP-086 | Sürümlü motor bağlantısı | 0.139.0 yerel v1 arama/ayrıntı/kaynak durumu, hata ve sayfalama var; .NET tüketicisi, uzun işler, servis kapsamı ve dağıtım taşıması açık | INT-02, ENG-01, ENG-05 | Yerel okuma tamam; entegrasyon açık / B0→B1 |
+| CAP-086 | Sürümlü motor bağlantısı | Yerel v1 arama/ayrıntı/kaynak durumu, hata ve sayfalama; 0.140.0 araç kataloğu var; .NET tüketicisi, uzun işler, servis kapsamı ve dağıtım taşıması açık | INT-02, ENG-01, ENG-05 | Yerel okuma tamam; entegrasyon açık / B0→B1 |
 | CAP-087 | STIX 2.1 | Yedi IOC türü için güncel kaynaklı Indicator Bundle dışa aktarma var; CTI nesne/ilişki kapsamı, işaretler, geri çekme sürümü ve içe aktarma açık | INT-03 | R10 / B0 |
 | CAP-088 | TAXII 2.1 | Collections alışverişi ve ikinci istemci doğrulaması | INT-04 | R10 / B0→B1 |
 | CAP-089 | Paylaşım ve TLP | Kaynak lisansı, işaretler ve kullanıcı kapsamını koruma | INT-03 | R10 / B0 |

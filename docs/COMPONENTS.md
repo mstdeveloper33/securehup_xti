@@ -1,0 +1,110 @@
+# Bağlı açık kaynak araçlarını görme
+
+**Uygulama:** 0.140.0 · **Bileşen kataloğu:** 1 · **Şema:** 64.
+
+`components`, XTI'ın bağlı olduğu Maigret, Sherlock ve theHarvester için
+beklenen sürümü, kullanım kapsamını ve bu projedeki kurulum durumunu gösterir:
+
+```sh
+./xti components
+./xti --json components
+```
+
+Bu komut internete çıkmaz, araç çalıştırmaz veya kurulum başlatmaz.
+Veritabanı kurulmamışken de kullanılabilir; kayıt dizini oluşturmaz.
+İnternetten yeni bilgi toplamak için mevcut toplama komutları kullanılır.
+
+## Gösterilen araçlar
+
+| Araç | XTI'daki görevi | Sabitlenen sürüm | Çalışma ortamı |
+|---|---|---|---|
+| Maigret | Seçili platformlarda herkese açık kullanıcı adı profili adayları | 0.6.6 / `b8747b98820f…` | Proje `.venv`, Python 3.11+ |
+| Sherlock | Seçili platformlarda herkese açık kullanıcı adı profili adayları | 0.16.2 / `a38ba54fda79…` | Proje `.venv`, Python 3.11+ |
+| theHarvester | Common Crawl ve Wayback arşivlerinden alt alan adı adayları | `6790b147f523…` commit'i | Ayrı `.tools/theharvester/.venv`, Python 3.14+ |
+
+Tam commit, depo, lisans başvurusu ve bağlantı profili çıktıda bulunur.
+Sosyal araçların `safe` ve `extended` platformları JSON'da adlarıyla yer alır;
+özel seçim geniş profilin alt kümesidir. İstek süresi varsayılan 10, izinli
+aralık 5–30 saniyedir. theHarvester sonucu varsayılan 250, en fazla 500
+kayıttır; bu entegrasyon aktif hedef kontrolü yapmaz.
+
+Bu liste yalnız mevcut üç harici araçtır. Bütün veri kaynakları, Python
+paketleri veya ileride düşünülen RapidFuzz/feedparser gibi bileşenler için
+kurulum envanteri değildir. Kaynak listesini `./xti sources list` gösterir.
+
+## Kurulum durumunu nasıl okuyacağım?
+
+| JSON durumu | Terminal karşılığı | Anlamı |
+|---|---|---|
+| `ready` | Kurulum bilgileri uyumlu | Bu proje için uygulanan yerel kurulum kontrolleri geçti |
+| `missing` | Kurulu değil | Beklenen kurulum bulunamadı |
+| `invalid` | Kurulum bilgileri geçersiz | Bulunan kurulumun incelenen bilgileri kabul edilmedi; açıklama gösterilir |
+
+`expected` beklenen kimliktir; gözlenen sürüm gibi sunulmaz.
+`installation.verification="metadata_only"` ve `execution_tested=false`
+bu okumanın aracı çalıştırmadığını belirtir. `inspection_checks`, denetimin
+kapsamıdır; her denetim için ayrı başarılı sonuç listesi değildir. Örneğin
+eksik kurulumda sonraki kontrollerin tümü yürütülmez.
+
+Maigret ve Sherlock için proje `.venv` içindeki paket sürümü, Git kaynak
+kaydı, katalog boyutu/özeti ve çalıştırıcı dosyaları incelenir. `XTI_PYTHON`
+veya `PATH` ile seçilmiş başka bir ortam bu gözlemle doğrulanmış olmaz.
+theHarvester denetimi HEAD işareti ile çalıştırıcı/interpreter konumunu
+inceler; bütün kaynak ağacının veya bağımlılıkların bütünlüğünü kanıtlamaz.
+
+Kurulumun uygun görünmesi kaynağın internette çalıştığı anlamına gelmez.
+Son deneme, kaynak hatası ve saklanan verinin güncelliği için
+`./xti sources status --details` kullanılır. Araç eksik olsa bile önceki
+kanıtlar okunabilir. Eşzamanlı kurulum değişirken bütün araçları kapsayan
+tek anlık kesit garantisi yoktur.
+
+Çıktıdaki kurulum ve doğrulama komutları yalnız yol gösterir. Maigret ve
+Sherlock için ayrı `./scripts/setup-brand --check` kontrolü vardır.
+theHarvester için bağımsız tam doğrulama komutu yoktur; mevcut kurulum
+işlemi kendi `--help` kontrolünü yapar. Katalog kurulumu onarmaz veya
+otomatik güncellemez.
+
+## Başka uygulamadan okuma
+
+Engine sözleşmesi v1, aynı kataloğu `components.list` işlemiyle sunar:
+
+```sh
+./xti engine <<'JSON'
+{
+  "contract_version": 1,
+  "request_id": "araclar-1",
+  "operation": "components.list",
+  "parameters": {}
+}
+JSON
+```
+
+Parametre nesnesi boş olmalıdır. İşlem `--data-dir` ile seçilen kanıt alanı
+yerine çalışan proje kurulumunu inceler. Ortak engine zarfının `data`
+alanında `catalog_version`, `observed_at`, `scope`, `components` ve `notes`
+bulunur. Katalog kapsamı `project-managed-tools` değeridir.
+`source_status_ids` ilgili kaynak durumu kimliklerine bağlar; canlı sorgu
+çalıştırmaz. Eski engine işlemlerinin biçimi ve sözleşme sürümü korunur.
+[Engine rehberi](ENGINE_CONTRACT.md) hata ve taşıma sınırlarını açıklar.
+
+## Yeni araç eklerken veya sürüm yükseltirken
+
+1. Sağladığı somut katkıyı, kullanılacak işlevleri, lisansı ve çalışma
+   ortamını belirle; araç sonuçlarını mevcut kaynak/kanıt modeline bağla.
+2. İncelenen sürüm, commit ve varsa katalog özetini ortak
+   `domain/component_pins.py` kaydına ekle. Kapsamı uygulama servisinde açık
+   tanımla; tanımsız bir bileşen başka aracın ayarlarını devralmaz.
+3. Küçük adaptörü ve yerel kurulum denetimini ekle; araç eksikken eski
+   kanıtın okunmasını koru. CLI/engine alanlarında beklenen değer ile
+   gözlenen durumu ayır.
+4. Paketleme ve bağımsız kurulum/işçi dosyalarındaki zorunlu sabitleri
+   güncelle; ortak kayıtla uyuşmalarını test et. Mevcut tekrarlar otomatik
+   üretilmiyor, sürüm kayması testlerle yakalanıyor.
+5. Gerçek sonuç sözleşmesini, hata/boş/kısmi yanıtı, kapsam sınırını ve eski
+   kanıt uyumunu doğrula; değişen lisans/kurulum/kullanım belgelerini güncelle.
+
+Bu teslim araç sürümlerini yükseltmez, bağımlılık eklemez veya şemayı
+değiştirmez. Bütün geçişli bağımlılıkların kilitlenmesi, tam kurulum
+bütünlüğü ve theHarvester kurulumunda kesinti sonrası geri dönüş ayrı
+işletim işleridir. [Karar kaydı](decisions/0144-reviewed-component-catalog.md)
+ve [motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md).
