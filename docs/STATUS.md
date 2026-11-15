@@ -79,10 +79,42 @@ doğrulandı. Tüm migration paketi 229/229 başarılıdır (60,738 saniye).
 Mevcut genel arama/engine/izleme/kaynak durumu paketinde 119 test geçti.
 Yeni adaptörle üç gerçek HTTPS yayını 10 CISA, 20 NCSC ve 40 CERT-FR
 haberi döndürdü; kaynak tarihleri ayrıştırıldı. Bu anlık kaynak erişimidir.
-Kullanıcı veritabanı veya mevcut araç ortamı değiştirilmedi. Genel test
-ve gerçek Linux kurulum/güncelleme kabulü tamamlanınca sonuçları eklenecek.
+Gerçek CLI ile geçici veri dizininde 70 haberin saklanması, bir kayıtlık
+gösterimde tam toplam/devam bilgisi, 10 eşleşmelik sessiz arama başlangıcı
+ve aynı yayının tekrarında yeni kayıt/bildirim üretmeme doğrulandı. Geçici
+veri deneme sonunda kaldırıldı. Dokuz kullanım belgesindeki 240 yerel
+bağlantı hedefi ve 20 haber komut örneği kontrol edildi.
+Kullanıcı veritabanı veya mevcut araç ortamı değiştirilmedi.
+
+Yerel genel tur macOS 26.6.2 arm64 / Python 3.13.3 üzerinde 2.275 test
+çalıştırdı (933,209 saniye): 2.271 başarılı, üç Linux kontrolü atlandı;
+bir eski kaynak-listesi beklentisi yeni üç haber kaynağını içermediğinden
+başarısızdı. `fca5a3c` yalnız bu testin beklediği listeyi günceller ve
+14 testlik ilgili CLI dosyasını hızlı pakete ekler; uygulama kodunu
+değiştirmez. Düzeltilen test dahil 36 kaynak/terminal/haber regresyonu
+18,200 saniyede başarılıdır. Genel tur tekrarlanmadı; aynı uygulama
+koduyla genişletilmiş son Linux hızlı kontrolü aşağıda ayrıca kayıtlıdır.
 [Kullanım](../README.md#rss-ve-atom-haberlerini-topla),
 [karar](decisions/0148-publisher-news-feeds.md).
+
+**0.143.0 gerçek Linux kurulum ve kurtarma kabulü — `1c550e6`:**
+
+| Kontrol | Sonuç ve kanıt |
+|---|---|
+| Linux hızlı kontrolü | Python 3.11.18 üzerinde 848 test, 432,746 saniye; tamamı başarılı, atlanan test yok. [CI işi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43728962314/job/132856954373) |
+| Son genişletilmiş hızlı kontrol (`fca5a3c`) | Aynı uygulama koduyla 862 test, 479,126 saniye; tamamı başarılı, atlanan test yok. Düzeltilen eski kaynak-listesi kontrolü ve aynı dosyadaki diğer CLI testleri dahil. [Son CI işi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43729980482/job/132860080553) |
+| Temiz Sherlock/Maigret ve haber okuyucusu | Python 3.11.18 ve 3.12.16 ortamlarının her birinde 125 test; gerçek kurulum, sağlıklı tekrar, geçici veri korunması ve yedekten dönüş başarılı. [İki ortam](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43728962239) |
+| Temiz theHarvester | 104 test; gerçek sabit araç kurulumu, tekrar, engine okuma ve yeni dizine yedekten dönüş başarılı. [Kurulum işi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43728962324) |
+| Önceki sürümden geçiş ve kesintiden kurtarma | İki araçta şema 64→66 açık geçişi; tüm eski satır/rowid/DDL, yedek ve araç kimlikleri korundu. Eski kodla yedeğin yalnız yeni dizine açılması, aday sürüme dönüş, gerçek paket alt süreci sırasında kesinti, miras kilidi ve iki kez açık kurtarma geçti. [İki araç kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43728968574) |
+
+Haber kütüphaneleri eklenirken marka kurucusu yeni yönetilen ortam
+oluşturdu; önceki ortamı eksiksiz korudu. Sherlock/Maigret sürümleri,
+resmî kaynakları ve katalog özetleri aynı kaldı. Harvester ayrı ortamı
+bu bağımlılık değişiminden etkilenmedi. Kabul yalnız geçici veriler ve
+gerçek kurulum süreçleriyle yapıldı; hedef taraması yapılmadı. Bunlar
+süreç kesintisi kabulleridir, elektrik/disk arızası veya 7/24 hizmet
+garantisi değildir. Upgrade-only işinde genel verification/operations
+adımlarının atlanması seçilen kapsam gereğidir; genel test ayrı izlenir.
 
 **0.142.0'da eklenen arama izlemesi ve o sürümün doğrulamaları:**
 

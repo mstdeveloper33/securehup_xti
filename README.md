@@ -320,7 +320,7 @@ Kaynak seç ve haberleri getir:
 ./xti news status
 ```
 
-Yalnız `refresh` internete çıkar. Her komut bir kaynağı bir kez okur;
+Yalnız `refresh` internete çıkar. Her `refresh` komutu bir kaynağı bir kez okur;
 haber sayfaları, resimler ve ekler açılmaz. Başlık, yayıncının sunduğu
 en fazla 2.000 karakterlik düz metin özet, özgün bağlantı ve kaynak
 tarihleri saklanır. Özet kısaltılmışsa açıkça gösterilir. Eksik veya
