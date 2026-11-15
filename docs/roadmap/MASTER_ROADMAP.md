@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.1 / şema 64.
+**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.3 / şema 64.
 
 **Güncel karar:** Bu repo mevcut .NET platformuna bağlanacak profesyonel
 XTI veri toplama ve analiz motorudur. Uygulama backend'i, kullanıcı/oturum,
@@ -29,10 +29,13 @@ tamamdır; .NET bağlantısı ve uzun işler ENG-05 kapsamında açıktır.
 0.140.0, ENG-02'nin mevcut üç araç düzenini tamamlar: ortak incelenmiş
 pinler, kullanım kapsamı ve yerel kurulum kataloğu CLI/engine üzerinden
 okunur. Kurulum bilgisi canlı kaynak başarısından ayrıdır; tam bağımlılık
-bütünlüğü ve kurulum geri dönüşü işletim aşamasında açıktır.
+bütünlüğü ve ileri işletim kabulü ayrı izlenir.
 [Kullanım ve sınırlar](../COMPONENTS.md). ENG-03 yeni özellikleri bekler.
-0.140.1 hızlı CI/belge tutarlılığını düzeltir; sırada temiz Linux kurulum
-ve güncelleme/geri dönüş kabulü vardır.
+0.140.1 hızlı CI/belge tutarlılığını düzeltir. 0.140.2–0.140.3 araç
+kurulumlarının kilit, kesinti günlüğü ve kurtarma düzenini ekler. Gerçek
+temiz Ubuntu kurulumları, tekrar, kayıt koruma ve yedekten dönüş kabulü
+geçti. Sırada önceki sürümden gerçek güncelleme ve araç ortamı yenilenirken
+kesinti/geri dönüş kabulü vardır; sonuçlar [STATUS](../STATUS.md) içindedir.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
 [bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.

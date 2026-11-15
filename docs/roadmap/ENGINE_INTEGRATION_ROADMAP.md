@@ -218,7 +218,14 @@ komutlarını ekler. Gerçek Ubuntu kurulumu için ayrı kabul işi eklendi;
 çalıştırma sonucu [güncel durumda](../STATUS.md) ayrıca kaydedilir.
 0.140.3 marka araçlarını ve XTI başlatıcısını aynı kurtarma/kilit düzenine
 alır; marka Ubuntu kabulü veri korunması ve tekrar kontrolüyle genişletilir.
-STB-02–06 henüz tamamlanmış değildir. Yerel motor kabulü ile gerçek .NET
+`cbea620` üzerinde iki gerçek Ubuntu kurulum işi başarılıdır: temiz
+kurulum, tekrar, geçici kayıtların korunması, engine okuma ve yedekten
+dönüş geçti; kilit/kesinti/kurtarma mekanizması çevrimdışı regresyonlarla
+sınandı. [Çalıştırma kayıtları](../STATUS.md). Önceki yayımlanmış XTI
+sürümünden gerçek güncelleme ve gerçek araç ortamının yenilenmesi
+sırasında kesinti/geri dönüş ayrıca açıktır. STB-02'nin bu ilk kabulü,
+aşamanın bütün güncelleme kapsamını tamamlamaz.
+STB-02–06 henüz bütünüyle tamamlanmış değildir. Yerel motor kabulü ile gerçek .NET
 üretim kabulü ayrı kaydedilir. SQLite ile STB-02–04 ilerleyebilir;
 gelecekteki PostgreSQL dağıtımını bugün kurmak ön koşul değildir. Mevcut
 platform görülmeden framework, sürücü, sunucu sürümü veya fiziksel veritabanı
@@ -244,12 +251,13 @@ abonelik yönetimi .NET tarafının kararıdır.
 
 ## 8. İlk sonraki iş
 
-**Temiz kurulum ve güncelleme kabulünü tamamlama (STB-02):** hazırlanmış
-Ubuntu kabul işlerinin gerçek sonuçlarını doğrulama. theHarvester dilimi
-0.140.2'de, marka ortamı ve başlatıcı koruması 0.140.3'te uygulanmıştır.
-İki zincirin temiz kurulum, tekrar, kayıt korunması ve kurtarma sonuçları
-görülmeden aşama tamamlandı sayılmaz. Sonrasında STB-03 kapsamında kalıcı
-kanıt/iş kesintisi, yedek ve geri yükleme zincirinin birlikte kabulü gelir.
+**Sürüm güncelleme kabulünü tamamlama (STB-02):** temiz Ubuntu kabulü
+geçti. Sırada önceki yayımlanmış sürümle oluşturulmuş araç ortamı ve
+örnek kayıtları yeni sürüme taşıyarak kurulum/okuma/geri dönüşü doğrulama
+vardır. Gerçek araç ortamını yenilerken kesinti ve açık kurtarma ayrıca
+sınanır; mevcut çevrimdışı mekanizma testleri bu zincirin yerine geçmez.
+Sonrasında STB-03 kapsamında kalıcı kanıt/iş kesintisi, yedek ve geri
+yükleme zincirinin birlikte kabulü gelir.
 
 V1 yerel okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir.
 .NET/PostgreSQL bağlantısı henüz uygulanmadı. Şema ve mevcut veriler korunur.

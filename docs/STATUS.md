@@ -56,9 +56,26 @@ saniyede geçti. Bu son üç yeni regresyon genel turun keşfine dahil değildir
 CLI ve engine bileşen satırları eşleşti; seçilen eksik veri dizini oluşmadı.
 Kabuk sözdizimi, Python derleme ve on belgenin bağlantıları doğrulandı.
 
-Önceki 0.140.2'nin gerçek Ubuntu ve marka kurulum işleri bu çalışma sırasında
-başarılı olarak doğrulandı. Yeni 0.140.3'ün GitHub kabul sonucu yayımdan
-sonra ayrıca kaydedilecek. Kalıcı hizmet ve 7×24 kabulü açık kalır.
+**Gerçek Ubuntu kabulü:** `cbea620` kod commit'inin
+[theHarvester kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43705787750)
+ve [marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43705787736)
+başarıyla tamamlandı. Her iki işte çevrimdışı kilit/kesinti regresyonları
+ve gerçek temiz kurulum adımları geçti. Geçici kayıt/kanıt içerikleri
+korundu; tekrar kurulum, engine okuma ve yeni dizine yedekten dönüş geçti.
+Marka tekrarında ortamın kimliği, dosyaları ve izinleri de değişmedi.
+İndirmesiz tekrar davranışı komut korumaları, içerik karşılaştırması ve
+çevrimdışı kurucu testleriyle sınandı; bu, işletim sistemi düzeyinde ağ
+yalıtımı değildir. Canlı kullanıcı adı veya hedef taraması yapılmadı.
+Aynı kod commit'inin
+[hızlı kontrolleri](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43705787876)
+de başarıyla tamamlandı. Bu üç sonuç `cbea620` koduna aittir; sonraki
+yalnız belge değişikliği bu kabulün kodunu değiştirmez.
+
+STB-02'nin bu temiz kurulum ve kurtarma temeli kabul edildi. Önceki
+yayımlanmış XTI sürümünden gerçek güncelleme ve gerçek araç ortamını
+yenileme sırasında kesinti/geri dönüş zinciri ayrıca doğrulanacak;
+STB-02 bütünüyle kapanmış sayılmaz. Kalıcı hizmet, yeniden başlama ve
+7×24 işletim kabulü de açıktır.
 Araç pinleri, şema 64 ve mevcut kullanıcı kayıtları korunur.
 
 - 0.140.2 theHarvester kurulumu eski ortamı korur; hata halinde geri
@@ -1844,8 +1861,11 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 sağlamlaştırılır. [Güncel STB sırası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. Sürümlü yerel okuma ve ortak araç kataloğu kullanılabilir;
 0.140.2 theHarvester, 0.140.3 marka araçları ve XTI başlatıcısının
-kesinti/geri dönüşünü ekler; gerçek temiz Linux kurulum ve güncelleme
-kabulü henüz kapanmış değildir.
+kesinti/geri dönüşünü ekler. İki kurulum zincirinin gerçek temiz Ubuntu kurulumu,
+tekrarı, yerel veri koruması ve yedekten dönüşü `cbea620` üzerinde geçti.
+Sıradaki STB-02 doğrulaması önceki sürümden güncelleme ve gerçek araç
+ortamını yenilerken kesinti sonrası geri dönüş olacak. Ardından STB-03
+veri ve iş güvenilirliği zinciri gelir. Bu kabul, uzun süreli Linux hizmeti değildir.
 SQLite ile kullanım devam eder. .NET/PostgreSQL
 gelecekteki platformdur; gerçek bağlantı ve gerekiyorsa veri geçişi ayrı
 kabul işidir. Uygulama backend'i, oturum ve panel .NET tarafındadır.
@@ -1861,8 +1881,9 @@ Kuruluş birleşik raporu ve HIBP kamu kataloğu 0.134.0'da, kataloğun kayıtl�
 toplama/zamanlama akışına katılması 0.135.0'da eklendi. Kuruluşa bağlı kamu
 olaylarını izleme ve yerel bildirim kutusu 0.136.0'da eklendi. Tarihî kamu
 olayını vakaya bağlama ve çevrimdışı HTML kuruluş raporu 0.137.0'da eklendi.
-Gerçek Linux üzerinde klonlama/kurulum, günlük çalıştırma, kesinti sonrası
-devam ve yedekten geri dönüş kabulü açık doğrulama işidir.
+Gerçek temiz Ubuntu kurulumu ve geçici veride yedekten dönüş yukarıdaki
+0.140.3 kabulünde geçti. Sürüm yükseltme, günlük hizmet işletimi ve
+kesinti sonrası hizmetin yeniden başlaması ayrıca açık doğrulama işidir.
 Common Crawl dış indeks erişimi ayrı açık konu olarak takip edilir.
 [Kamu olayları devam planı](roadmap/PUBLIC_NOTICE_WORKFLOW_PLAN.md) kapsamı gösterir.
 
