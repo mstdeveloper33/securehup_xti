@@ -3,13 +3,18 @@
 **Sürüm:** 0.140.4 · **Tarih:** 15 Kasım 2026 · **Şema:** 64.
 
 Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
-Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Gelecekteki
-platform .NET ve PostgreSQL kullanacak; mevcut motorun bağlantısı ve
-gerekiyorsa veri geçişi ilgili entegrasyon aşamasında ayrıca doğrulanacak.
-Kaynaklı kanıt, analiz ve iş geçmişi bu repoda; uygulama backend'i,
-kullanıcı/oturum yönetimi ve web deneyimi .NET tarafında kalır.
+Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Bu repo
+toplama ve analiz motorunu, kararlı sürümlü sözleşmeleri, kullanım
+örneklerini ve belgeleri sunar; kaynaklı kanıt ve iş geçmişini korur.
+Gelecekteki .NET platformuna bağlantıyı repoyu kullanan ekip geliştirir.
+.NET istemcisi/backend'i, kullanıcı/oturum/rol yönetimi, web paneli ve
+platformun PostgreSQL yerleşimi ile gerekiyorsa veri geçişi o ekibin
+sorumluluğundadır. Motorun veri bütünlüğü ve iş sözleşmeleri bu repoda
+geliştirilmeye devam eder; platform entegrasyonu en son ele alınır.
 Uygun yerel açık kaynak bileşenler kullanılır; OpenCTI/IntelOwl zorunlu
 değildir ve henüz bağlı değildir. .NET bağlantısı da henüz uygulanmadı.
+Mevcut sınırlı STIX çıktısı korunur; geniş STIX/TAXII paylaşımı ve isteğe
+bağlı LLM desteği en son, ihtiyaç oluşursa değerlendirilecek başlıklardır.
 Kurulum, güncelleme, test, hata yönetimi ve kurtarma davranışlarının
 doğrulama kapsamı ve sonuçları [kabul kaydında](docs/STATUS.md) izlenir.
 Görev paylaşımı ve teslim sırası
@@ -380,8 +385,9 @@ komutuyla yeniden deneyebilirsin. Ani kesintiden kalan açık oturumlar için
 ait `jobs`, `surface runs` ve `ioc status` geçmişleri de korunur. Kayıtlı
 profilin zamanlama dosyaları ayrı `schedule generate` komutuyla hazırlanır;
 `collect` hizmet veya takvim kurmaz. Normal `analyze` komutu ağsız kalır.
-İş mantığı terminalden bağımsız uygulama servisindedir; ileride .NET
-bağlantı adaptörü aynı servisi kullanabilir.
+İş mantığı terminalden bağımsız uygulama servisindedir. Gelecekteki iş
+sözleşmesi bu akışı dış uygulamalara açmayı hedefler; .NET bağlantısını
+kullanan ekip geliştirir. Mevcut engine v1 toplama başlatmaz.
 
 ## Bulguları vaka altında yönet
 

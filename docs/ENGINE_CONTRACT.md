@@ -12,10 +12,18 @@ mevcut toplama komutları kullanılmaya devam eder; `engine` onların sakladığ
 sonuçları okur. .NET bağlantısı, kullanıcı oturumu, müşteri yalıtımı ve engine
 üzerinden uzun iş başlatma henüz uygulanmadı.
 
-Mevcut kayıtlar SQLite'ta tutulur. Gelecekteki .NET ve PostgreSQL platformu
-bu okuma sözleşmesine hazırlanırken mevcut geliştirme ve test düzeni
-korunur; PostgreSQL geçişi bu sürümde yapılmaz. Yeni özelliklerden önceki
-sağlamlaştırma sırası [motor planındadır](roadmap/ENGINE_INTEGRATION_ROADMAP.md).
+Bu repo motoru, sürümlü sözleşmeleri, kullanım örneklerini ve belgeleri
+sunar. .NET istemcisini ve bağlantısını repoyu kullanan ekip geliştirir;
+backend, kullanıcı/oturum/rol yönetimi ve web paneli o ekibin kapsamındadır.
+Mevcut kayıtlar SQLite'ta tutulur. Platformun PostgreSQL yerleşimi ve
+gerekiyorsa veri geçişi de kullanan ekibin sorumluluğundadır; bu sürüm
+PostgreSQL geçişi yapmaz. Motorun depolama portları, veri bütünlüğü ve
+iş sözleşmeleri bu repoda korunur ve geliştirilir.
+
+Platform entegrasyonu en son ele alınır; geniş STIX/TAXII paylaşımı ve
+isteğe bağlı LLM desteği de en son, ihtiyaç halinde değerlendirilir.
+Mevcut sınırlı STIX çıktısı değişmez. Güncel sıra ve sorumluluklar
+[motor planındadır](roadmap/ENGINE_INTEGRATION_ROADMAP.md).
 
 ## Hızlı kullanım
 
@@ -307,8 +315,11 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 Bu sürüm güvenilen yerel çalışma alanını bütünüyle okur. İşletici veri
 alanını ve süreç erişimini yönetir. Serbest kurum etiketi, domain filtresi
 veya dosya yolu kullanıcı yetkisi sayılmaz. Ortak müşteri verisine açılma,
-servis kimliği ve .NET yetki bağlamının motor boyunca uygulanması ayrı
-teslim ve kabul gerektirir.
+servis kimliği ve platformun yetki bağlamının motor boyunca uygulanması
+ayrı teslim ve kabul gerektirir. Platform kimlik ve yetkilendirme
+bağlantısını kullanan ekip sağlar; motorun kendi iş/arama/sonuç sınırındaki
+kapsam doğrulaması motor sözleşmesinin sorumluluğu olarak kalır. Bu sürüm
+ortak müşteri erişimi için hazır bir yetki sistemi sunmaz.
 
 İstemci desteklediği `contract_version` değerini doğrulamalıdır. İsteklerin
 alanları açıkça tanımlanır; bilinmeyen istek alanları reddedilir. Cevaplara
@@ -316,7 +327,10 @@ bilinçli olarak eklenen yeni alanlar istemcinin var olan alanları okumasını
 engellememelidir. Alan silme, tip veya anlam değiştirme yeni sözleşme sürümü
 gerektirir; iç modeldeki değişiklik dış cevaba kendiliğinden taşınmaz.
 
-Gerçek .NET tüketicisi, kalıcı iş başlatma/durum/iptal ve uzaktan taşıma
-henüz tamamlanmadı. Bu teslim onların kullanacağı ilk okuma sınırıdır.
+Gerçek .NET tüketicisi ve platforma taşıma bağlantısı kullanan ekibin
+işidir; bu repo bunları geliştirmez. Engine üzerinden kalıcı iş
+başlatma/durum/iptal sözleşmesi ise motorun gelecekteki kapsamıdır ve henüz
+uygulanmadı. Bu teslim dört işlemli ilk okuma sınırıdır. Gelecekteki iş
+sözleşmesi de motorun veri bütünlüğü ve kurtarma kurallarını korumalıdır.
 [Güncel motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) ve
 [0143 karar kaydı](decisions/0143-versioned-engine-read-contract.md).

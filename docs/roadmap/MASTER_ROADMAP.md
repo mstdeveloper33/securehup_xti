@@ -2,13 +2,17 @@
 
 **Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.140.4 / şema 64.
 
-**Güncel karar:** Bu repo mevcut .NET platformuna bağlanacak profesyonel
-XTI veri toplama ve analiz motorudur. Uygulama backend'i, kullanıcı/oturum,
-roller ve web deneyimi .NET tarafındadır. Motor kaynaklı kanıt, analiz,
+**Güncel karar:** Bu repo başka platformlara bağlanabilen profesyonel
+XTI veri toplama ve analiz motorudur. .NET adaptörü ve gerçek platform
+entegrasyonunu repoyu kullanacak ekip yapar. Uygulama backend'i,
+kullanıcı/oturum, roller ve web deneyimi de o ekibe aittir. Biz motoru,
+sürümlü sözleşmesini, örneklerini ve belgelerini sağlarız. Motor kaynaklı kanıt, analiz,
 ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
-[Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) güncel STB sağlamlaştırma
-sırasını ve sınırlarını belirler; ENG kimlikleri korunur. Yeni istihbarat
-özelliklerinden önce mevcut motorun kabulü gelir. Bu sıra önceki EIP
+[Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) güncel sırayı ve
+sınırları belirler; ENG kimlikleri korunur. Mevcut sağlamlaştırma paketi
+tamamlandı. Sırada olay adayları, kayıtlı arama bildirimleri ve haber
+kaynakları vardır. Entegrasyon teslim hazırlığı ile geniş paylaşım ve
+LLM en sondadır. Bu sıra önceki EIP
 sırasının ve bu belgedeki eski geniş
 ürün tasarımının yerine geçer. Hazır açık kaynak kütüphane/araçlar tercih
 edilir; OpenCTI/IntelOwl zorunlu platform veya ilk kurulum değildir.
@@ -19,12 +23,14 @@ Gerçek teslimler [STATUS.md](../STATUS.md) içinde izlenir.
 
 Gelecekteki platform .NET ve PostgreSQL kullanacak. SQLite ile bugünkü
 geliştirme/deneme/kullanım sürer; şimdi veri geçişi başlatılmaz. Yerel motor
-kabulü ile gerçek .NET/PostgreSQL dağıtım kabulü ayrı izlenir.
+kabulü bu repoda; gerçek .NET/PostgreSQL bağlantısı, platform yerleşimi
+ve veri geçişi repoyu kullanan ekipte kalır.
 [Öncelik kararı](../decisions/0145-stabilization-first-local-engine.md).
 
 0.139.0, [engine v1 yerel okuma sözleşmesini](../ENGINE_CONTRACT.md) ekler:
 arama, kayıt/kanıt ayrıntısı ve kaynak durumu. ENG-01'in bu ilk teslimi
-tamamdır; .NET bağlantısı ve uzun işler ENG-05 kapsamında açıktır.
+tamamdır; .NET tüketicisi ENG-05'te dış ekibe ait teslim sınırıdır.
+Motorun kalıcı iş sözleşmesi henüz uygulanmadı; ayrıca ele alınır.
 
 0.140.0, ENG-02'nin mevcut üç araç düzenini tamamlar: ortak incelenmiş
 pinler, kullanım kapsamı ve yerel kurulum kataloğu CLI/engine üzerinden
@@ -38,7 +44,8 @@ geçti. 0.140.4, önceki sürümden gerçek güncellemeyi ve araç ortamı
 yenilenirken kesinti/geri dönüş zincirini iki araçta doğrular. Veri, işletim
 ve genel testlerin kapsamı ve sonuçları [STATUS](../STATUS.md) içindedir.
 Tanımlanan 11 maddelik mevcut motor paketi tamamlandı; gerçek .NET/
-PostgreSQL platform kabulü ayrı aşamadır. Kapasite kabulü 5.000 sentetik
+PostgreSQL platform kabulü repoyu kullanan ekibin sorumluluğudur.
+Kapasite kabulü 5.000 sentetik
 domain ve 10 dakikalık ölçüme dayanır; 7/24 hizmet seviyesi değildir.
 
 Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
@@ -167,9 +174,10 @@ vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN
 ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
 [Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
 arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
-HTML dışa aktarımı kullanılabilir. Güncel sıra motor/.NET sözleşmesi,
-uygun bileşen sınırları, onaylı olay ilişkileri/kaydedilmiş genel aramalar,
-haber kaynakları ve .NET tüketici/iş kabulüdür. Linux kullanım kabulü ve kaynak
+HTML dışa aktarımı kullanılabilir. Güncel sıra olay adayları, kaydedilmiş
+genel aramalar ve haber kaynaklarıdır. Entegrasyon teslim hazırlığı ile
+geniş paylaşım/LLM en sondadır; .NET tüketicisini repoyu kullanan ekip
+geliştirir ve doğrular. Linux kullanım kabulü ve kaynak
 erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
 erişim kabulü ayrıca açık kalır.
 
@@ -544,6 +552,9 @@ Gözlenen dış bağımlılıklardan tedarikçi adayı önerilebilir; kullanıc�
 
 ### R10 — Paylaşım, vaka yönetimi ve onaylı aksiyonlar
 
+**Güncel sıra:** Geniş paylaşım teslimleri en sona ertelendi. Mevcut vaka,
+manuel webhook ve IOC STIX dışa aktarımı kullanılmaya devam eder.
+
 **Amaç:** İncelenen bilgiyi iş akışına taşımak ve sonucu takip etmek.
 
 **İşler:** Motorun mevcut kişisel vaka/kanıt kayıtları korunur. Yeni
@@ -563,6 +574,11 @@ Aksiyon onayı alıcıya, hedefe, kanıta ve gönderilecek içeriğin belirli s�
 
 ### R11 — .NET ürünü ile motor kapsamının birlikte doğrulanması
 
+**Sorumlu:** Gerçek .NET uygulaması ve platform kabulü repoyu kullanan
+ekibe aittir. Bu repo motor sözleşmesini, örnekleri ve belgeleri teslim
+eder; .NET adaptörünü veya platform PostgreSQL geçişini geliştirmez.
+Motorun kendi veri/iş/kapsam bütünlüğü sorumluluğu korunur.
+
 **Amaç:** Birden çok kullanıcıya güvenli, işletilebilir hizmet sunmak.
 
 **İşler:** Web, kullanıcı/rol, giriş oturumu, MFA/SSO ve MSSP ürün yönetimi
@@ -575,6 +591,10 @@ ortak müşteri çalışması bütün erişim yolları doğrulanmadan açılmaz.
 **G11:** Kurumlar arası negatif erişim testleri tüm veri yollarında geçiyor. Dosya/arama/rapor/kuyruk üzerinden sızıntı denemeleri test edilmiş. Kimlik doğrulama ve yetkilendirme bağımsız incelenmiş. Geri yükleme, sürüm yükseltme ve rollback tatbikatı var. Hedef iş yükünde gecikme/kullanılabilirlik ölçülmüş. Destek ve olay müdahale sorumlusu atanmış. Güvenli müşteri kullanımına geçiş için bütçe ve işletim planı mevcut.
 
 ### R12 — AI destekli analiz ve denetimli iş akışları
+
+**Güncel sıra:** 15 Kasım 2026 son kullanıcı kararıyla en sona ertelendi;
+olay adayları, kayıtlı genel arama bildirimleri ve haber kaynaklarından
+önce model veya LLM entegrasyonu başlatılmaz.
 
 **Plan durumu:** 13 Kasım 2026 kullanıcı kararıyla gelecekteki teslim planına isteğe bağlı LLM analiz desteği eklendi. Henüz model kurulmadı ve bu özellik uygulanmadı. İlk teslim kayıtlı kanıttan açıklama, günlük özet ve vaka taslağı üretir; web paneli, REST API veya tüm veri kaynaklarının tamamlanmasını gerektirmez. Araç kullanan çok adımlı otomasyon bu ilk kapsamın dışında kalır. Kullanım, aşamalar ve kabul ölçümleri [LLM planında](LLM_PLAN.md) tanımlıdır.
 

@@ -1,22 +1,26 @@
-# XTI motoru ve mevcut .NET platformuna entegrasyon
+# XTI motoru yol haritası ve tüketici ekibe teslim sınırı
 
 **Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
 **Mevcut sürüm:** 0.140.4 / şema 64.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
-uygulandı. Yeni istihbarat özelliklerinden önce aşağıdaki STB sağlamlaştırma
-sırası geçerlidir. .NET tüketicisi henüz bağlı değildir.
+uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
+Sırada olay adayları, kaydedilmiş genel aramalar ve haber kaynakları var.
+.NET tüketicisi henüz bağlı değildir; bağlantıyı repoyu kullanan ekip yapar.
 [Çalışan v1 sözleşmesi](../ENGINE_CONTRACT.md).
 
 Bu repo Python tabanlı **veri toplama, istihbarat ve analiz motorudur**.
-Ürettiği kaynaklı bilgiler daha sonra mevcut .NET platformuna bağlanır.
+Ürettiği kaynaklı bilgileri repoyu kullanan ekip kendi platformuna bağlar.
 Uygulama backend'i, giriş, kullanıcı oturumu, roller ve web deneyimi
 .NET tarafında kalır. Bu repo ikinci bir uygulama backend'i veya kimlik
 platformu geliştirmez. Yerel terminal kullanımı korunur.
 
 **Son kullanıcı açıklaması:** Gelecekteki platform .NET ve PostgreSQL
 kullanacak. Bugünkü geliştirme, deneme ve kişisel kullanım SQLite ile sürer.
-Bu bilgi şimdi PostgreSQL kurulumu veya veri taşıması başlatma talebi değildir.
-Öncelik mevcut motorun kurulabilirliği, güvenilirliği ve bakım düzenidir.
+.NET tüketicisi, platforma özgü bağlantı ve PostgreSQL yerleşimi/veri geçişi
+repoyu kullanacak ekibin sorumluluğudur; bu repo bunları uygulama işi olarak
+üstlenmez. Motorun görevi kararlı sözleşme, kaynaklı sonuç, örnekler ve
+kullanım belgeleri sunmaktır. Entegrasyon teslim hazırlığı ile geniş veri
+paylaşımı/LLM desteği en sona alınmıştır; ilk üç özellik bunları beklemez.
 [0145 kararı](../decisions/0145-stabilization-first-local-engine.md).
 
 Bu belge güncel teslim sırasıdır. Önceki
@@ -27,7 +31,7 @@ ve [çalışan durum](../STATUS.md) plan ile uygulamayı ayırır.
 
 ## 1. Görev paylaşımı
 
-| Alan | XTI motoru — bu repo | Mevcut .NET platformu |
+| Alan | XTI motoru — bu repo | Repoyu kullanan ekip / .NET platformu |
 |---|---|---|
 | Kaynaklar | İnternetten izinli toplama, kaynak sağlığı, normalleştirme | Hangi yetkili kullanıcının hangi işi isteyebileceği |
 | İstihbarat | Gözlem, IOC, kaynaklı CTI ilişkisi, olay adayı ve analiz | Sonuçların ürün içinde sunumu ve iş akışına katılması |
@@ -35,7 +39,7 @@ ve [çalışan durum](../STATUS.md) plan ile uygulamayı ayırır.
 | Arama/izleme | Kayıtlı veri araması, izleme tanımı, değişim ve yerel bildirim olayı | Kullanıcıya sunum, abonelik yetkisi ve gerekirse dış bildirim kanalı |
 | Vaka | Mevcut yerel vaka/karar geçmişini koruma; kaynaklı kanıt ve inceleme işlemleri | Gelecekteki ekip ataması, kullanıcı yetkisi, SLA ve ürün vaka deneyimi |
 | Kapsam | Güvenilen çağrıdaki izinli hedef/veri alanını bütün işlemlerde uygulama | Kimlik/rol kararı; kullanıcı girdisini doğrulanmış motor kapsamına dönüştürme |
-| Bağlantı | Sürümlü girdi/çıktı, işlem ve kanıt kimliği, hata/durum | Sözleşmeyi tüketen .NET adaptörü |
+| Bağlantı | Sürümlü girdi/çıktı, işlem ve kanıt kimliği, hata/durum; örnekler ve belgeler | .NET adaptörünün geliştirilmesi, dağıtımı ve gerçek platform kabulü |
 
 Motorun kanıt veritabanı ile .NET uygulamasının kullanıcı veritabanı ayrı
 sorumluluklardır. .NET motor tablolarını doğrudan okuyup yazan bir katman
@@ -45,7 +49,8 @@ Aynı vaka/durum iki tarafta bağımsız düzenlenip sessizce eşitlenmez; her
 yazma işleminin sahibi açık tanımlanır. Mevcut kullanıcı verisi silinmez.
 
 PostgreSQL'in gelecekteki fiziksel yerleşimi, motor kayıtlarının taşınma
-kapsamı ve bağlantı teknolojisi ilgili platform incelenince netleştirilir.
+kapsamı ve bağlantı teknolojisi repoyu kullanan ekip tarafından kendi
+platformu incelenerek netleştirilir.
 Ortak PostgreSQL sunucusu seçilmesi ortak tablo sahipliği veya müşteri
 yetkisi anlamına gelmez. Gerekli bir geçişte kayıt kimlikleri, kaynak/kanıt
 bağları, olay sırası, atomik bildirim/iş kayıtları ve yedekten dönüş ayrıca
@@ -95,9 +100,9 @@ flowchart LR
     RESULT --> CONTRACT
 ```
 
-Şema hedef tasarımdır; mevcut .NET projesi bu çalışma sırasında incelenmedi
-ve bağlanmadı. Bütün teknik kararları o projenin dağıtımına dair varsayımla
-vermek yerine veri sözleşmesi şimdi, taşıma biçimi uygun aşamada seçilir.
+Şema hedef tasarımdır; .NET tarafını repoyu kullanan ekip geliştirir ve
+bağlar. Bu repo veri sözleşmesini ve örnekleri sağlar; platforma özgü
+taşıma/dağıtım kararı tüketici ekibe aittir.
 
 ## 4. Önce sürümlü motor sözleşmesi
 
@@ -136,8 +141,8 @@ sürüm davranışı ayrıca uygulanır.
 
 ### Taşıma kararı
 
-İlk bağlantı doğrulaması, örnek çıktıları ve sonra izinli salt okunur
-komutları tüketen küçük bir .NET adaptörüyle yapılır. Bu adaptör mevcut
+Tüketici ekip ilk bağlantıyı, örnek çıktıları ve sonra izinli salt okunur
+komutları tüketen küçük bir .NET adaptörüyle doğrular. Bu adaptör mevcut
 .NET uygulamasını yeniden yazmaz. Aynı Linux ortamında süreç/JSON yolu
 bir adaydır; ayrı makinelerde gerekirse iç HTTP veya başka taşıma seçilir.
 Projenin .NET sürümü, işletim sistemi ve yerleşimi görülmeden kesin taşıma
@@ -183,24 +188,26 @@ bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
 
 ## 6. Uygulama sırası
 
-ENG kimlikleri önceki işleri takip etmek için korunur. Yeni özellikleri
-öne alan eski sıra değişmiştir; güncel öncelik aşağıdaki STB adımlarıdır.
+ENG kimlikleri önceki işleri takip etmek için korunur. Mevcut STB paketi
+tamamlandı; yakın özellik sırası ENG-03 ve ENG-04'tür. Entegrasyon için
+teslim hazırlığı ve ENG-07 en sondadır; gerçek .NET uygulaması dış ekibe aittir.
 
 | Adım | Teslim | Tamamlanma ölçütü |
 |---|---|---|
 | **ENG-01 — Motor/.NET sözleşmesi** | 0.139.0: sürümlü yerel `search`, `record.get`, `sources.status` ve örnekleri uygulandı | Salt okuma, eski komut uyumu, tam/boş/hatalı/eski kaynak, kapsam reddi ve kayıt referansı kabulü; gerçek .NET tüketicisi ENG-05'te açık |
 | **ENG-02 — Bileşen ve kaynak düzeni** | 0.140.0: üç mevcut araç için ortak pin, açık yapılandırma ve yerel kurulum kataloğu; CLI/engine okuması uygulandı | Kurulum gözlemi canlı kaynak durumundan ayrı, araç yokken eski kanıt okunabilir, pin kayması testli; yeni araçlar aynı sınırla eklenir |
-| **ENG-03 — Bekleyen iki özellik** | Kaynaklar arası olay adayları ve kaydedilmiş genel arama bildirimleri; sağlamlaştırma önceliği nedeniyle bekliyor | Kaynak/tarih ayrımı, sessiz başlangıç, tekrar önleme, tutarlı tam sonuç ve insan kararı; RapidFuzz yalnız fayda gösterirse |
+| **ENG-03 — Sıradaki iki özellik** | Önce kaynaklar arası olay adayları, ardından kaydedilmiş genel arama bildirimleri | Kaynak/tarih ayrımı, sessiz başlangıç, tekrar önleme, tutarlı tam sonuç ve insan kararı; RapidFuzz yalnız fayda gösterirse |
 | **ENG-04 — Bekleyen haber ve kaynak genişlemesi** | feedparser ile RSS/Atom; sonra kanıtlanmış kapsam boşluğuna yeni kaynaklar | Kaynak atfı, tarih, tekilleştirme ve gerçek erişim; hata ile sonuç yokluğu ayrı |
-| **ENG-05 — .NET bağlantı kabulü** | Salt okunur tüketici denemesi; ardından kalıcı iş başlatma/durum/sonuç ve seçilen taşıma | Gerçek iki taraflı test; sürüm, kısmi sonuç, sayfalama, cevap kaybı, tekrar, iptal ve yanlış kapsam |
+| **ENG-05 — Tüketici ekibe teslim; en sonda** | Bu repo sözleşme, örnekler ve belgeleri sağlar; .NET adaptörünü ve gerçek bağlantı kabulünü repoyu kullanan ekip yapar | Motorun kendi sözleşme testleri korunur; platform sürüm/taşıma/kapsam ve iki taraflı kabulü tüketici ekibin sorumluluğudur |
 | **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü; araç kurulum bütünlüğü ve kesinti sonrası geri dönüş | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
-| **ENG-07 — Sonraki motor yetenekleri** | Gerektikçe STIX/diğer paylaşım çıktıları, kapsamlı kaynak modülleri ve isteğe bağlı LLM | Her özellik kaynaklı sonuç sözleşmesiyle teslim edilir; model/sağlayıcı hatası çekirdeği durdurmaz |
+| **ENG-07 — En sona ertelenen motor yetenekleri** | Gerektikçe geniş STIX/diğer paylaşım çıktıları ve isteğe bağlı LLM | İlk üç özellikten sonra değerlendirilir; kaynaklı sonuç sözleşmesi korunur, model/sağlayıcı hatası çekirdeği durdurmaz |
 
 ENG-01'in ilk yerel okuma teslimi ve ENG-02'nin mevcut araç düzeni
 tamamlandı. [Bileşen kataloğu](../COMPONENTS.md) tam bağımlılık/kurulum
 bütünlüğü veya canlı çalışma kabulü değildir; ileri işletim işleri ENG-06'da
-açıktır. Olay adayları, genel arama bildirimi, RSS ve LLM geliştirmesi bu
-sağlamlaştırma döneminde bekler. Mevcut özelliklerin kullanımı devam eder.
+açıktır. Olay adayları, genel arama bildirimi ve RSS sıradaki motor
+özellikleridir; geniş paylaşım ve LLM en sondadır. Mevcut özelliklerin
+kullanımı devam eder.
 
 | Öncelik | Somut iş | Kabul kanıtı |
 |---|---|---|
@@ -208,7 +215,7 @@ sağlamlaştırma döneminde bekler. Mevcut özelliklerin kullanımı devam eder
 | **STB-02 — Kurulum ve güncelleme** | Desteklenen temiz Linux ortamında klonlama, kurulum, tekrar kurulum, güncelleme ve araç ortamı geri dönüşünü doğrulama | Yeni makinede belgelenmiş adımlar çalışır; kesinti sonrası önceki çalışan ortam ve kayıtlar korunur |
 | **STB-03 — Veri ve iş güvenilirliği** | Bozuk kayıt, yedek/restore, kesilmiş iş ve tekrar denemesini birlikte sınama; sır saklama ve erişim sınırını iyileştirme | Kanıt/karar kimliği kaybolmaz, aynı iş yanlışlıkla çoğalmaz, sırlar çıktıya taşınmaz; işletici kurtarma adımlarını uygulayabilir |
 | **STB-04 — İşletim ve kapasite** | Kaynak hatası, ağ kesintisi, yeniden başlama, disk baskısı ve uzun süreli yerel çalışmayı ölçme | Sonuç/ölçüm, kullanılan makine ve veri hacmiyle kaydedilir; kaynak hatası boş başarı olmaz; ölçülmemiş SLA veya kapasite ilan edilmez |
-| **STB-05 — Gelecekteki platform kabulü** | İlgili .NET uygulamasıyla okuma ve kalıcı iş sözleşmesini doğrulama; PostgreSQL yerleşimi ve gerekiyorsa veri geçişini somut platforma göre tasarlama | Gerçek iki taraflı akış, cevap kaybı/tekrar/kapsam denemeleri ve gerekiyorsa taşınan kayıtların eşdeğerliği; kullanıcı/rol yönetimi .NET'te kalır |
+| **STB-05 — Tüketici ekibin gelecekteki platform kabulü** | Repoyu kullanan ekip .NET bağlantısını, platform PostgreSQL yerleşimini ve gerekiyorsa veri geçişini gerçekleştirir; XTI sözleşme/örnek/belge sağlar | Gerçek iki taraflı akış ve dağıtım kabulü tüketici ekibe aittir; motorun veri/kanıt/iş bütünlüğü sorumluluğu bu repoda kalır |
 | **STB-06 — Teslim paketi** | Kurulum/kullanım/kurtarma rehberi, sürüm değişikliği, desteklenen ortam ve bilinen sınırları yayımlama | Başka kişi sözlü yardımsız kurup temel senaryoyu tamamlar; açık işler ve hangi kabulün geçtiği görünürdür |
 
 STB-01'in 0.140.1 dilimi bu incelemede belirlenen CI ve güncel kullanım
@@ -232,8 +239,9 @@ ayrımı seçilmez. Özellik geliştirmesine dönüş tamamlanan kabul ve açık
 işler üzerinden yeniden değerlendirilir.
 
 0.140.4 ile STB-01–04 ve STB-06'nın aşağıda tanımlanan mevcut kişisel
-motor kapsamı tamamlandı. STB-05 gerçek .NET/PostgreSQL platformunu
-gerektirir ve bu teslimden ayrıdır. Ölçümlü işletim kabulü 5.000 sentetik
+motor kapsamı tamamlandı. STB-05 repoyu kullanan ekibin gerçek
+.NET/PostgreSQL platform kabulüdür; bizim uygulama işimiz değildir.
+Ölçümlü işletim kabulü 5.000 sentetik
 domain, gerçek systemd ve 600 saniyelik tekrarla sınırlıdır; 7/24 hizmet
 seviyesi veya işletim sistemi yeniden açılışı kabulü sayılmaz.
 
@@ -262,9 +270,9 @@ güncelleme, yarım iş ve yedekten dönüş adımları aynı rehberdedir. V1 ye
 okuma sınırı ile üç aracın kurulum kataloğu kullanılabilir. Şema 64 ve
 mevcut veriler korunur.
 
-Gerçek .NET/PostgreSQL bağlantısı hedef platform hazır olduğunda STB-05
-ile yapılır. Yeni özellik sırası ENG-03, ENG-04 ve ihtiyaç halinde ENG-07
-olarak korunur; bu teslim yeni kaynak, panel veya LLM başlatmaz. Sonraki
+Gerçek .NET/PostgreSQL bağlantısını hedef platform hazır olduğunda repoyu
+kullanan ekip yapar. Bizim yakın sıramız ENG-03 ve ENG-04'tür; entegrasyon
+teslim hazırlığı, geniş paylaşım ve LLM en sona ertelenmiştir. Sonraki
 değişiklikler aynı hata/kesinti/veri koruma ve kurulum kabulünden geçer.
 
 ## 9. Toplu sağlamlaştırma iş listesi ve bitiş ölçütleri
@@ -351,21 +359,26 @@ adımlar otomatik kabul ve yerel geçici komutlarla doğrulandı.
    Yeni bulgu mevcut işin ölçütüyle ilişkilendirilir; kapsam büyümesi ayrıca
    görünür yazılır. Sorunsuz birkaç testten üretim garantisi çıkarılmaz.
 
-### Gerçek platform geldiğinde yapılacaklar
+### En sonda tüketici ekibe teslim sınırı
 
-STB-05 kapsamında mevcut .NET projesiyle dört okuma işleminin gerçek
-tüketici kabulü yapılır. Sonra engine üzerinden kalıcı iş başlatma,
-durum/sonuç okuma, cevap kaybında tekrar güvenliği ve kapsam denetimi
-uygulanır. PostgreSQL yerleşimi ve gerekiyorsa veri taşıma aynı platform
-incelenerek kararlaştırılır; kimlik/kanıt/karar geçmişi ve geri dönüş
-eşdeğerliği doğrulanır. Bunlar bugünkü SQLite kabulünün bitiş koşulu
-değildir; ilgili .NET kodu ve hedef çalışma ortamı gerektirir.
+Biz motorun sürümlü sözleşmesini, örnek istek/yanıtlarını, kullanım ve
+kurtarma belgelerini sağlarız. Bugünkü engine v1 dört salt okunur işlem
+sunar; kalıcı iş başlatma/durum/iptal sınırı henüz uygulanmadı. Motor
+sözleşmesinin ileride genişlemesi, kendi veri ve tekrar güvenliği testleriyle
+ayrı motor teslimi olur; .NET adaptörü yazmayı gerektirmez.
+
+STB-05'te .NET adaptörünü geliştirme, taşıma/dağıtım seçimi, gerçek iki
+taraflı kabul ve platform PostgreSQL yerleşimi/veri geçişi repoyu kullanan
+ekibe aittir. Bu işleri bizim uygulama listemize geri eklemeyiz. Tüketici
+ekip motorun belgelenmiş kapsamını kullanır; henüz uygulanmamış iş veya
+müşteri yalıtımı davranışını var sayamaz.
 
 ### Sağlamlaştırmadan sonraki özellik sırası
 
 ENG-03 kaynaklar arası olay adayları ve kayıtlı genel arama bildirimleri;
-ENG-04 RSS/Atom ve ölçülmüş katkısı olan kaynaklar; ENG-07 ihtiyaç halinde
-paylaşım çıktıları ve isteğe bağlı LLM desteği. Her yeni açık kaynak
+ENG-04 RSS/Atom ve ölçülmüş katkısı olan kaynaklar. Entegrasyon teslim
+hazırlığı ile ENG-07 geniş paylaşım ve isteğe bağlı LLM desteği en sona
+kalır. Gerçek .NET bağlantısı dış ekibin işidir. Her yeni açık kaynak
 bileşende görev, lisans, sabit sürüm, veri katkısı ve hata halinde çekirdek
 davranışı önce değerlendirilir. Bu liste bu özellikleri şimdi uygulamaya
 alma veya ertelenmiş web/oturum kapsamını geri açma kararı değildir.

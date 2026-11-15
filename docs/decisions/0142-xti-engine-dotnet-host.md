@@ -3,6 +3,13 @@
 **Tarih:** 15 Kasım 2026 · **Durum:** Kullanıcı kararı; uygulama bekliyor.
 **Mevcut sürüm:** 0.138.0 / şema 64.
 
+**15 Kasım 2026 son kullanıcı netleştirmesi:** Aşağıdaki .NET tüketicisi ve
+gerçek platform kabulünü repoyu kullanacak ekip gerçekleştirir; bu repo
+.NET adaptörü geliştirmeyi üstlenmez. Platform PostgreSQL yerleşimi/veri
+geçişi de tüketici ekibin işidir. Biz motorun sözleşmesini, örneklerini ve
+belgelerini sağlarız. Entegrasyon teslim hazırlığı ile geniş paylaşım/LLM
+en sona ertelendi. Motorun veri/kanıt/iş bütünlüğü sorumluluğu korunur.
+
 ## Bağlam
 
 Kullanıcı uygulama backend'i ve oturum yönetiminin mevcut .NET platformuna

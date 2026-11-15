@@ -1,6 +1,6 @@
 # XTI — Açık kaynak bileşen seçim planı
 
-**Tarih:** 15 Kasım 2026. **Uygulama:** 0.140.1 / şema 64.
+**Tarih:** 15 Kasım 2026. **Uygulama:** 0.140.4 / şema 64.
 **Durum:** Yeni bileşenler için araştırmaya dayalı plan tercihleri.
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). Bu teslim yeni paket kurmaz veya mevcut
@@ -14,9 +14,11 @@ ENG-02 parçasıdır. XTI veri toplama/analiz ve kaynaklı kayıt motorudur.
 bu repo için geri çekilmiştir. Her motor bileşeninin görevi sınırlıdır;
 sonuçları ortak modele alınarak .NET'e kararlı sözleşmeyle sunulur.
 
-Güncel öncelik mevcut SQLite motorunu sağlamlaştırmaktır. Aşağıdaki yeni
-kütüphane/özellik tercihleri bu dönemde bekler. .NET/PostgreSQL gelecekteki
-platform bilgisidir; şimdi veritabanı kurulumu veya taşıması başlatılmaz.
+Mevcut SQLite motorunun 11 maddelik sağlamlaştırma paketi tamamlandı.
+Sırada olay adayları, kayıtlı genel arama bildirimleri ve haber kaynakları
+var. Entegrasyon teslim hazırlığı ile geniş paylaşım/LLM en sona kalır.
+.NET adaptörü ve platform PostgreSQL yerleşimi/veri geçişi repoyu
+kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
 
 ## 1. Net seçimler
 
@@ -27,8 +29,8 @@ platform bilgisidir; şimdi veritabanı kurulumu veya taşıması başlatılmaz.
 | Kaydedilmiş genel arama ve bildirim | Mevcut XTI arama, CTI kayıtlı arama ve bildirim desenleri | On kayıt türü için kalıcı kimlik, tam sonuç farkı ve bildirim | Yeni arama motoru/harici platform eklenmez; onaylı ENG-03 |
 | Haber/RSS/Atom okuma | **feedparser** | XTI'nın indirdiği sınırlı yanıtı ayrıştırma | Haber modülü ENG-04 için seçildi |
 | Haber sayfasından ana metin | **Trafilatura** | Önceden alınmış HTML'den metin/metadata çıkarma | RSS özeti yetersizse ikinci dilim; ilk haber tesliminin zorunlu parçası değil |
-| .NET bağlantısı | Sürümlü motor istek/sonuç sözleşmesi | Mevcut uygulama servisleri üzerinden veri ve iş durumu | ENG-01/05; taşıma biçimi dağıtıma göre seçilir, Python uygulama backend'i kurulmaz |
-| Geniş STIX nesne aktarımı | **stix2** | XTI kaydı ile standart nesneler arasında oluşturma/ayrıştırma | Paylaşım aşaması ENG-07 için seçildi |
+| Motor bağlantı sözleşmesi | Sürümlü motor istek/sonuç sözleşmesi | Motorun desteklediği veri ve işlemler için sözleşme, örnek ve belge | ENG-01/05; son aşamada teslim hazırlığı. .NET adaptörü/gerçek bağlantı kabulü tüketici ekibin işi |
+| Geniş STIX nesne aktarımı | **stix2** | XTI kaydı ile standart nesneler arasında oluşturma/ayrıştırma | En sona ertelenen ENG-07 tercihi |
 | Backend, giriş ve panel | Mevcut **.NET platformu** | Motor bu tarafa kaynaklı kayıt/analiz sunar | Bu repoda FastAPI/Keycloak/panel geliştirme işi yok |
 
 Burada "seçildi", kullanılacak görev ve proje tercihini belirtir. Paket
@@ -206,14 +208,15 @@ ikisini birlikte kurma kararı verilmez.
 
 ## 7. Bu seçimden sonraki teslim
 
-Önce [motor planının](ENGINE_INTEGRATION_ROADMAP.md) STB sağlamlaştırma
-işleri ilerler. Olay adayları, RapidFuzz deneyi, genel kayıtlı arama ve
-haber modülü bekler. Özellik geliştirmesine dönüldüğünde bu tercihler
-somut katkı/kabul koşullarıyla yeniden değerlendirilir.
+[Motor planındaki](ENGINE_INTEGRATION_ROADMAP.md) mevcut STB paketi
+tamamlandı. Önce olay adayları ve ölçülmüş faydası varsa RapidFuzz,
+sonra genel kayıtlı arama ve haber modülü ele alınır. Tercihler somut
+katkı/kabul koşullarıyla yeniden değerlendirilir.
 ENG-01'in yerel okuma sınırı 0.139.0'da
 [uygulandı](../ENGINE_CONTRACT.md); ENG-02 mevcut araç düzeni 0.140.0'da
 [kataloğa](../COMPONENTS.md) bağlandı. 0.140.1 doğrulama/belge düzeltmesidir.
-Paylaşım paketleri kendi aşamasında eklenir; backend/panel .NET tarafındadır.
+Entegrasyon teslim hazırlığı ve paylaşım/LLM en sondadır; gerçek .NET
+bağlantısı, backend/panel ve platform PostgreSQL işleri tüketici ekibe aittir.
 
 Yeni kütüphane tercihleri hâlâ plandır; haber/benzerlik/paylaşım özellikleri
 bu seçim belgesiyle uygulanmış sayılmaz. Araştırma ve yerel kod incelemesi

@@ -3,29 +3,41 @@
 **15 Kasım 2026 — 0.140.4, şema 64 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
-**15 Kasım 2026 hedef kararı — .NET bağlantısı henüz uygulanmadı:** Bu repo mevcut
-.NET platformuna bağlanacak XTI motorudur. Toplama, analiz, kaynaklı
-kanıt/ilişkiler ve iş geçmişi burada; uygulama backend'i, kullanıcı/giriş
-oturumu, rol ve web deneyimi .NET tarafındadır. Bağlantı küçük adaptörler
-ve sürümlü istek/sonuç sözleşmesi kullanır; iki taraf birbirinin veritabanı
-şemasına doğrudan bağlanmaz. İlk yerel stdin/stdout JSON okuma sınırı
-0.139.0'da eklendi; kurumsal .NET dağıtımının taşıma seçimi henüz yapılmadı.
+**15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
+başka bir platformun kullanabileceği XTI motorunu, kararlı sürümlü
+sözleşmeleri, örnekleri ve belgeleri sunar. Toplama, analiz, kaynaklı
+kanıt/ilişkiler, iş geçmişi ve bunların veri bütünlüğü burada geliştirilir.
+.NET istemcisi ve bağlantı adaptörü, uygulama backend'i, kullanıcı/giriş
+oturumu, rol ve web paneli repoyu kullanan ekibin sorumluluğundadır.
+Platform entegrasyonu en son ele alınır. Hedef bağlantı sürümlü istek/sonuç
+sözleşmesini kullanır; iki taraf birbirinin veritabanı şemasına doğrudan
+bağlanmaz. İlk yerel stdin/stdout JSON okuma sınırı 0.139.0'da eklendi;
+kurumsal dağıtımın taşıma seçimi tüketen ekibe aittir ve henüz yapılmadı.
 Yerel açık kaynak bileşenler tercih edilir; harici platform zorunlu olmaz.
 Yerel kullanım ve mevcut vaka/karar/toplama oturumu geçmişi korunur.
-Kuruluş grupları müşteri erişim yalıtımı değildir. .NET'in doğruladığı
-kapsam motorun iş/arama/sonuç sınırında da uygulanır; serbest kurum etiketi
-yetki sayılmaz. [0142 kararı](decisions/0142-xti-engine-dotnet-host.md)
-ve [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel sınırdır.
+Kuruluş grupları müşteri erişim yalıtımı değildir. İleride ortak müşteri
+verisine erişim sağlanacaksa platformun doğruladığı kapsam motorun
+iş/arama/sonuç sınırında da uygulanmalı ve ayrıca sınanmalıdır; bu yetki
+sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
+[0142 kararı](decisions/0142-xti-engine-dotnet-host.md) ilk hedefi,
+[motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
 Aşağıdaki bölümler mevcut 0.140.4 uygulamasını anlatır.
 
 0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
 ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite
 geliştirme, deneme ve kişisel kullanım için korunur. .NET/PostgreSQL
-gelecekteki platform bilgisidir; mevcut veri taşınmaz. Gerçek platform
-incelenmeden sürücü, fiziksel veritabanı ayrımı veya geçiş kapsamı seçilmez.
-İlerideki geçişte kayıt/kanıt kimlikleri, atomik yazma, olay sırası, eşzamanlı
-iş davranışı ve geri dönüş aynı anlamı korumalıdır.
+gelecekteki platform bilgisidir; mevcut veri taşınmaz. Platformun
+PostgreSQL yerleşimi, fiziksel veritabanı ayrımı ve gerekiyorsa geçişin
+uygulanması kullanan ekibe aittir. Motorun küçük depolama portları ve
+adaptör sınırları korunur; motor için başka bir depo adaptörü gerekirse
+ayrı kapsam ve kabul ister. Böyle bir değişiklikte kayıt/kanıt kimlikleri,
+atomik yazma, olay sırası, eşzamanlı iş davranışı ve geri dönüş aynı anlamı
+korumalıdır. Motor bu sözleşmelerden ve bütünlük kontrollerinden sorumludur.
 [0145 kararı](decisions/0145-stabilization-first-local-engine.md).
+
+Mevcut sınırlı STIX IOC çıktısı korunur. Geniş STIX/TAXII paylaşımı ve
+isteğe bağlı LLM desteği en son, ihtiyaç olduğunda değerlendirilecek
+başlıklardır; bugünkü çalışan kapsamı genişletmezler.
 
 `EngineReadService` mevcut arama ve kaynak durumu servisleri ile küçük
 `EngineRecordRepository` portunu birleştirir. Domain sözleşmesi sürüm,
@@ -207,9 +219,10 @@ ayrıntıları açıklar.
 ve `CtiFeedService` işlemlerini tek çalışma kilidi altında seri yürütür.
 Kaynak sonuçları kendi depolarında saklanır; son `UnifiedAnalysisService`
 görünümü bu kayıtlardan okunur. Donmuş plan/adım/sonuç modelleri terminal ve
-JSON tarafından kullanılır. Servis CLI, HTTP veya SQLite import etmez;
-ilerideki .NET bağlantı adaptörü aynı işlevi çağırabilir. Genel workflow motoru
-yoktur; CLI, 0.132.0'dan itibaren kalıcı oturum ve açık devam için bu çekirdeği
+JSON tarafından kullanılır. Servis CLI, HTTP veya SQLite import etmez.
+Gelecekteki motor iş sözleşmesi bu çekirdeğe dayanabilir; tüketen ekibin
+.NET adaptörü sürümlü sözleşmeyi kullanır. Engine v1 toplama başlatmaz.
+Genel workflow motoru yoktur; CLI, 0.132.0'dan itibaren kalıcı oturum ve açık devam için bu çekirdeği
 `CollectionHistoryService` ile kullanır. Kendiliğinden tekrar başlatma yapılmaz.
 Ayrıntılar [0127 numaralı karardadır](decisions/0127-explicit-passive-collection.md).
 
@@ -235,7 +248,7 @@ Komut kaynak istemcilerini çalıştırmaz, depolama oluşturmaz veya değiştir
 
 Aktif ürün yönü savunmacı OSINT/dijital risk izlemedir. Ürün, sürüm, paket ve CVE modülleri geçmiş veri ve şema uyumluluğu için kod tabanında korunur; `analyze` bileşimine ve yeni teslim sırasına dahil edilmez. Bu ayrım veri silmez ve eski komutların sonuçlarını yeni dış risk kanıtı gibi sunmaz.
 
-**Planlanan, henüz uygulanmamış LLM sınırı:** İsteğe bağlı analiz servisi mevcut uygulama servislerinden kapsamı sınırlı kanıtları okuyacak; küçük bir model sözleşmesi üzerinden değiştirilebilir yerel/harici sağlayıcı adaptörünü çağıracaktır. Domain kuralları model kütüphanesine bağlı olmayacak. İlk sürümün kanıt, insan kararı veya dış eylem üzerinde yazma yetkisi olmayacak; taslak model çıktısı kanıttan ayrı, kaynak kimlikleri ve model/prompt sürümüyle gösterilecek. LLM hatası mevcut toplama/inceleme akışını durdurmayacak. Bu sınır aşağıdaki uygulanmış yapı diyagramına dahil değildir; ayrıntılar [LLM planındadır](roadmap/LLM_PLAN.md).
+**En son, ihtiyaç halinde değerlendirilecek LLM sınırı — uygulanmadı:** Böyle bir destek eklenirse isteğe bağlı analiz servisi mevcut uygulama servislerinden kapsamı sınırlı kanıtları okuyacak; küçük bir model sözleşmesi üzerinden değiştirilebilir yerel/harici sağlayıcı adaptörünü çağıracaktır. Domain kuralları model kütüphanesine bağlı olmayacak. İlk sürümün kanıt, insan kararı veya dış eylem üzerinde yazma yetkisi olmayacak; taslak model çıktısı kanıttan ayrı, kaynak kimlikleri ve model/prompt sürümüyle gösterilecek. LLM hatası mevcut toplama/inceleme akışını durdurmayacak. Bu sınır aşağıdaki uygulanmış yapı diyagramına dahil değildir; ayrıntılar [LLM planındadır](roadmap/LLM_PLAN.md).
 
 ```text
 Terminal → Uygulama servisi

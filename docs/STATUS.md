@@ -4,9 +4,11 @@
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
-**Son ürün yönü:** Bu repo mevcut .NET platformuna bağlanacak XTI toplama
-ve analiz motorudur. Uygulama backend'i, kullanıcı/giriş oturumu, roller ve
-web deneyimi .NET tarafında kalır. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
+**Son ürün yönü:** Bu repo başka platformlara bağlanabilen XTI toplama
+ve analiz motorudur. .NET adaptörü, platform bağlantısı, uygulama backend'i,
+kullanıcı/giriş oturumu, roller ve web deneyimi repoyu kullanacak ekibe
+aittir. Biz motoru, sürümlü sözleşmesini, örneklerini ve belgelerini
+sağlarız. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
 araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
 veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
@@ -14,8 +16,9 @@ veya müşteri yalıtımı henüz uygulanmadı. Şema değişmedi.
 **Güncel teslim:** Mevcut SQLite motoru için tanımlanan 11 maddelik
 sağlamlaştırma paketi, aşağıdaki ortam ve kabul senaryolarında tamamlandı.
 Kişisel terminal kullanımı, kurulum/güncelleme ve kurtarma yolu hazırdır.
-Gelecekteki .NET/PostgreSQL bağlantısı ayrı aşamadır; şimdi PostgreSQL
-kurulumu veya veri taşıması yapılmıyor. [0145 kararı](decisions/0145-stabilization-first-local-engine.md)
+Gelecekteki .NET bağlantısı ve platform PostgreSQL yerleşimi/veri geçişi
+repoyu kullanan ekibin işidir. Entegrasyon teslim hazırlığı ile geniş
+paylaşım ve LLM en sona ertelendi. [0145 kararı](decisions/0145-stabilization-first-local-engine.md)
 ve motor planındaki sınırlar geçerlidir.
 
 **Hazır bileşen araştırması:** [Seçim planı](roadmap/COMPONENT_SELECTION_PLAN.md)
@@ -1944,10 +1947,11 @@ alındı ve 12 kayıtlı adres ile mevcut kanıtlar korundu.
 güncelleme/kurtarma, karma kayıtların geri yüklenmesi, kesilmiş işin devamı,
 gizlilik, gerçek systemd ve ölçümlü kapasite kabulü yukarıda kayıtlıdır.
 [Motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) her işin bitiş kanıtını
-ve sınırını gösterir. SQLite ile kişisel kullanım devam eder. .NET/PostgreSQL
-gelecekteki platformdur; gerçek bağlantı ve gerekiyorsa veri geçişi ayrı
-kabul işidir. Uygulama backend'i, oturum ve panel .NET tarafındadır.
-Olay adayları, genel kayıtlı arama bildirimleri, RSS ve LLM bu dönemde bekler.
+ve sınırını gösterir. SQLite ile kişisel kullanım devam eder. Sıradaki
+motor işleri olay adayları, genel kayıtlı arama bildirimleri ve RSS'tir.
+Entegrasyon için teslim hazırlığı, geniş paylaşım ve LLM en sondadır.
+.NET bağlantısını, platform PostgreSQL yerleşimini ve veri geçişini
+repoyu kullanan ekip yapar; bu repo motor, sözleşme, örnek ve belge sağlar.
 Otomatik HTML rapor arşivi plandan çıkarılmıştır; mevcut komutla HTML
 raporu kullanılabilir.
 
@@ -1976,10 +1980,12 @@ kapsamı, doğrulanmış katkı ve mevcut mimari sınırlar korunacak.
 Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı ve korunur. Gelecekteki
 uygulama backend'i, ekip rolleri ve panel mevcut .NET platformundadır;
 motorun kapsam/kanıt/iş sözleşmesi ayrıca doğrulanacaktır. STIX/standart
-paylaşım ve geniş kaynaklar motor yetenekleri olarak planlıdır. E-posta/SMS
+paylaşım genişlemesi en sona ertelenmiş motor yeteneğidir; yeni kaynaklar
+ölçülmüş katkıya göre ele alınır. E-posta/SMS
 ürün kanalları .NET tarafında; insan onaylı takedown ayrı kapsamdır.
 13 Kasım 2026'da planlanan
-isteğe bağlı LLM desteği korunur: kaynaklı açıklama, günlük özet, vaka taslağı
+isteğe bağlı LLM desteği en sonda değerlendirilmek üzere korunur:
+kaynaklı açıklama, günlük özet, vaka taslağı
 ve salt okuma soru-cevap. Henüz model kurulmadı veya harici API bağlanmadı;
 [LLM planı](roadmap/LLM_PLAN.md) geçerlidir. Sunucu envanteri, ürün/sürüm,
 paket ve CVE eşleştirmesi aktif plan dışındadır. Doğrudan forum/pazar/Telegram,
