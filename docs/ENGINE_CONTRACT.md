@@ -5,7 +5,9 @@
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
 kaynak durumu ve proje araç kataloğu. Mevcut terminal komutları ve `--json` çıktıları
-korunur. Bu teslim yeni paket, veritabanı geçişi veya HTTP sunucusu eklemez.
+korunur. 0.142.0 engine v1'e yeni işlem, paket veya HTTP sunucusu eklemez.
+Yerel kayıtlı arama için gereken şema 64→65 geçişi ayrı ve açık
+`./xti migrate` adımıdır; [güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
 Bu okuma katmanı yeni internet toplaması başlatmaz. İnternetten veri alan
 mevcut toplama komutları kullanılmaya devam eder; `engine` onların sakladığı

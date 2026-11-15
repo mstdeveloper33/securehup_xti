@@ -70,14 +70,81 @@ kurulmadı; test edilmiş paket sürümleri henüz seçilmedi.
   64 MiB. Aşımda kısmi sonuç veya veri silme yapılmaz. Geçmiş okuması
   doğrulama maliyeti taşır; ölçülmüş kurumsal kapasite iddiası değildir.
 
-**0.142.0 hedefli doğrulaması:** Yeni kimlik/fark, depolama, terminal,
-bildirim ve geçiş testleri; mevcut genel arama, engine sözleşmesi/kayıtları
-ve mimariyle birlikte 103 testte, 36,593 saniyede geçti. Tüm migration
-paketi ayrıca 223/223 başarılıdır. Yeni geçiş kabul betiğinin 14 testinden
-12'si geçti; Linux `/proc` isteyen ikisi Mac'te atlandı. Gerçek CLI ile
-geçici şema 64 verisinin açık geçişi, tam eski tablo/rowid/SQL/kanıt
-koruması ve geçiş öncesi yedeği doğrulandı. Genel test ve gerçek Linux
-güncelleme/kurtarma sonuçları tamamlanınca ayrıca kaydedilecek.
+**0.142.0 hedefli doğrulaması:** Son kod `3abafe5` için yeni kimlik/fark,
+depolama, terminal, bildirim, geçiş ve Linux kabul betiği testleri; mevcut
+genel arama, engine sözleşmesi/kayıtları ve mimariyle birlikte 120 testte,
+41,052 saniyede tamamlandı: 118 başarılı, Linux `/proc` isteyen iki test
+Mac'te atlandı. Gerçek SQLite kullanan eşzamanlılık regresyonu `add`,
+`disable` ve `run` sırasında araya giren yazının korunduğunu, zamanın
+kilit alındıktan sonra alındığını doğrular. Tüm migration paketi ayrıca
+223/223 başarılıdır. Geçici şema 64 verisinin açık geçişi, tam eski
+tablo/rowid/SQL/kanıt koruması ve geçiş öncesi yedeği gerçek CLI ile sınandı.
+
+Yerel genel `./scripts/check` turu macOS 26.6.2 arm64 / Python 3.13.3
+üzerinde 2.209 testte, 872,016 saniyede tamamlandı: 2.206 başarılı, hata
+yok, üç atlama. Atlamalar iki Linux süreç sahipliği testi ile
+`systemd-analyze` kontrolüdür. Genel tur ilk özellik koduyla başlatıldı;
+sonraki kabul betiği JSON düzeltmesi ve kilit zamanı düzeltmesinin güncel
+testleri yukarıdaki ayrı 120 testlik son turda doğrulandı. Gerçek CLI
+örneğinde üç domain sessiz başlangıç oluşturdu; dördüncü domain bir
+bildirim üretti, değişmeyen tekrar üretmedi. Bir kayıtlık gösterimde tam
+toplam ve devam komutu korundu. Gerçek kullanıcı veritabanı değiştirilmedi.
+
+**0.142.0 Linux güncelleme/kurtarma kabulü — `a868194`:** Önceki yayımlı
+`9cdf32c` sürümünden açık şema 64→65 geçişi iki araç ailesinde geçti.
+Tüm eski satırlar, rowid/DDL ve kanıt korundu. Eski kodun 65'i reddi,
+geçiş öncesi 64 yedeğinin yalnız yeni dizine açılması ve aday sürüme dönüş
+doğrulandı. Gerçek pip/uv alt süreci sırasında zorla kesme, miras alınan
+kilit, iki kez açık kurtarma ve araç kimliği/engine kayıtlarının korunması
+geçti. Kabul Python 3.11.18 kullandı; korunan eski marka ortamı 3.12.3,
+Harvester ortamı 3.14.10 idi. Bu süreç çökmesi kabulüdür; elektrik/disk
+arızası deneyi değildir. [Sherlock/Maigret](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43724430865/job/132843181876),
+[Harvester](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43724430865/job/132843181518).
+
+İlk güncelleme kabulünde gerçek geçiş başarılıydı; test betiği eski kodun
+JSON içindeki Unicode kaçışlı Türkçe hata mesajını ham metin olarak
+karşılaştırdığı için durmuştu. `a868194` JSON'u çözüp hata kodu ve mesajı
+denetler; iki regresyon ekler. Yukarıdaki tekrar iki araçta da başarılıdır.
+Son `3abafe5` yalnız kayıtlı arama yazma zamanını ve ilgili regresyonu
+değiştirir; kurulum/geçiş kodunu değiştirmez.
+
+**0.142.0 temiz Linux kurulum kabulü — `6bbcc4f`:** Sherlock/Maigret
+Python 3.11 ve 3.12 ile ayrı, Harvester kendi kabul işinde başarılıdır.
+Gerçek paket kurulumu/tekrar, geçici kayıtların korunması, engine okuması
+ve yeni dizine yedekten dönüş doğrulandı; hedef taraması yapılmadı.
+[Marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43723804542),
+[Harvester kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43723804646).
+
+**0.142.0 Linux işletim kabulü — `6bbcc4f`:** Ubuntu x86_64 / Python
+3.11.18 üzerinde beş kontrollü kaynak hatası, gerçek systemd kullanıcı
+yöneticisi, düşük disk ve 600,007 saniyelik 45 tekrar geçti. Kaynak hata
+deneyleri gerçek CLI'ye kontrollü HTTP yanıtları verdi; soket erişimi
+kapalıydı. 100/1.000/5.000 sentetik domain araması sırasıyla
+1,439/0,902/0,991 saniye, yedek + geri yükleme 0,118/0,119/0,126 saniye
+sürdü. Alt süreçlerde gözlenen en yüksek RSS 66.850.816 bayttı. 48 MiB
+tmpfs'te 64 MiB rezerv ön kontrolü mevcut kaydı koruyarak işlemi reddetti;
+disk doldurulmadı. Gerçek systemd başlatma, durdurma/tekrar, meşgul işin
+reddi, kaynak hata kodu ve kaçırılan zamanın bir kez telafisi doğrulandı.
+Bu genel işletim kabulüdür; 50.000 kayıtlı arama eşleşmesi için kapasite
+ölçümü, sürekli çalışan işçi, yeniden başlatma/güç kaybı veya 7/24 hizmet
+garantisi değildir. [İşletim kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43723819582/job/132841293159).
+
+**0.142.0 son Linux hızlı kontrolü — `3abafe5`:** 787 test, 505,556
+saniye; tamamı başarılı, atlanan test yoktur. Son kilit zamanı regresyonu
+bu pakete dahildir. [CI kaydı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43724909855/job/132844708969).
+
+**0.142.0 Linux genel test paketi — `6bbcc4f`:** Ubuntu 24.04 / Python
+3.11.18 üzerinde `./scripts/check` 2.209 testte, 1.367,662 saniyede geçti;
+hata veya atlanan test yoktur. Bu ilk özellik kodunun genel kabulüdür;
+sonraki iki düzeltmenin hedefli, hızlı ve gerçek güncelleme kabulü yukarıda
+ayrı kod kimlikleriyle kayıtlıdır. İlk workflow içindeki eski güncelleme
+işleri başarısız kaldığından tüm workflow başarılı diye gösterilmez;
+genel test işinin sonucu ile düzeltilmiş güncelleme tekrarının sonucu
+ayrı değerlendirilir. [Genel test işi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/43723819582/job/132841293288).
+
+11 belgedeki 305 yerel dosya bağlantısı ve 14 yeni terminal komut örneği
+denetlendi; örnekler mevcut komut parser'ıyla uyumludur. Son teslim kaydı
+yalnız bu belge ve engine rehberindeki geçiş açıklamasını günceller.
 [Kullanım](../README.md#genel-aramayı-kaydet-ve-değişiklikleri-izle).
 
 **0.141.0 teslimi ve o sürümün kabulü:**
