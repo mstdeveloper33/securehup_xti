@@ -1,7 +1,26 @@
-# XTI motoru yol haritası ve tüketici ekibe teslim sınırı
+# XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.147.1 / çekirdek şema 69, ayrı platform iş şeması 1.
+**Mevcut sürüm:** 0.150.0 / çekirdek şema 72, ayrı platform iş şeması 1.
+
+**Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
+geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
+yararlanılacak. Motorun veri modeli, kuralları, iş yürütmesi ve sürümlü
+bağlantısı bizim kontrolümüzde kalacak. OpenCTI ile karşılaştırma, kapsam
+boşluklarını belirlemek içindir; OpenCTI/IntelOwl kurulumu zorunlu değildir.
+Bu karar repo görünürlüğünü, mevcut üçüncü taraf lisanslarını veya dağıtım
+izinlerini kendiliğinden değiştirmez.
+
+**İlk ticari işletim kararı:** Motor yalnız kendi sunucularımızda çalışacak;
+müşteriler kendi platformumuz üzerinden kullanacak. Müşteri sunucusuna
+kurulum ve müşteriye motor paketi dağıtımı ilk sürümün kapsamında değildir.
+Bu seçenekler ileride ayrı ihtiyaç ve kabul koşullarıyla değerlendirilebilir.
+
+**Güncel geliştirme sırası:** Aşağıdaki §6.1–6.4'teki **MTR-00–08** motor
+genişleme planı geçerlidir. ENG/STB kayıtları önceki teslimlerin geçmişini
+korur. Yeni MTR işleri henüz uygulanmış değildir; bu plan güncellemesi
+0.150.0 kodunu, bağımlılıklarını veya şema 72'yi değiştirmez.
+
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
 ENG-03'ün kaynaklar arası olay adayları ile kayıtlı genel arama ve yerel
@@ -14,6 +33,13 @@ ve kuruluş raporundaki firma/tedarikçi içeriklerini ekler.
 0.147.0 firma kayıt alanı ayrımını, kalıcı profil işi kabul/durum/sonuç/iptal
 sözleşmesini, sade firma içerik görünümünü ve iki veritabanını birlikte
 koruyan platform yedek/geri dönüşünü ekler.
+0.148.0 sınırlandırılmış kesin-IP Nmap TCP kanıtını; 0.149.0 sürümlü genel
+IP/CIDR hedef envanteri ve değiştirilemez dry-run planını ekler. 0.150.0
+kalıcı Nmap işi/worker, hedef ilerlemesi, iptal, kesinti kurtarması ve
+hedef başına kanıtı tamamlar. TCP/SYN/UDP, servis/sürüm, OS ve seçili NSE
+tipli seçeneklerle terminal ve firma kapsamlı platforma bağlanır.
+Canlı gelişmiş Nmap kabulü, işletim yetkileri ve yüksek hacim kapasite
+ölçümü açıktır. Ham argüman, parola deneme ve exploit sözleşmeye eklenmez.
 [Platform kullanım sözleşmesi](../PLATFORM_ENGINE.md).
 16 Kasım [canlı RSS kabulü](../NEWS_SOURCE_ACCEPTANCE.md) iki turda 70
 kaydın tekrar kayıt/bildirim oluşturmadan korunmasını doğruladı. Tavily
@@ -248,7 +274,144 @@ başlatıcı ve servis hesabı tüketici ekipte kalır. Platform protokolünde
 sunulmayan yerel yönetim komutları son kullanıcıya doğrudan açılmaz.
 [Sınır ve kabul ayrıntısı](../PLATFORM_ENGINE.md).
 
-## 6. Uygulama sırası
+## 6. Motor yeteneklerini genişletme sırası
+
+### 6.1 Ürün kapsamı ve mevcut durum
+
+Hedef; bir firma, domain, IP veya gösterge hakkında motorun hangi kanıta
+dayandığını, ilgili kayıtları, değişimleri ve inceleme nedenlerini kendi
+platformumuza sunmasıdır. CTI bilgisi, dış yüzey kanıtı ve firma içerikleri
+ortak araştırma akışında kullanılacak; kaynak kayıtlarının özgün anlamı
+korunacaktır. Her yeni yetenek CLI ve firma kapsamlı sözleşme üzerinden
+teslim edilir; ekran tamamlanıncaya kadar motor işlemi ertelenmez.
+
+Başlangıçta IOC/CTI/ATT&CK, domain/yüzey, firma/tedarikçi, vaka, arama ve
+iş geçmişi zaten vardır. Bunlar yeniden yazılmayacak. Yeni model mevcut
+kimliklere başvuracak; veri dönüşümü gerekiyorsa eski kanıt/karar geçmişi
+korunan, yedekli ve ayrıca doğrulanan bir geçiş olacaktır.
+
+MTR-00 mevcut sürümün kabulü ve ticari bileşen kararıdır. MTR-01–05 yeni
+motor yetenekleridir. MTR-06 ilk günden ölçülür ve ilgili üretim yükünden
+önce tamamlanır. Geniş STIX/TAXII ile LLM, önceki kullanıcı kararı gereği
+MTR-07–08'de kalır. Web paneli, kullanıcı/oturum/rol yönetimi ve .NET
+istemcisi platform ekibindedir. Motor firma kapsamını ve paylaşım
+kurallarını veri okuma, yazma ve iş yürütmede uygulamaktan sorumludur.
+
+### 6.2 İş paketleri ve tamamlanma ölçütleri
+
+| Sıra / tür | Kullanıcının kazanacağı yetenek | Somut motor teslimi | Tamamlanma ölçütü |
+|---|---|---|---|
+| **MTR-00 — Mevcut teslimi doğrulama** | Kurduğu sürümde hangi özelliklerin gerçekten çalıştığını bilme | Linux VM sürüm/commit kaydı; kurulum, güncelleme ve yedekten dönüş; yetkili hedefte Nmap kanıtı; ticari bileşen/dağıtım kaydı | Sahte süreç testinden ayrı gerçek sonuç kaydedilir. Nmap yetkileri ve kullanıcıya ait kayıt alanı birlikte sınanır. Eksik anahtar veya kaynak kesintisi başarı sayılmaz. Ticari kullanımı netleşmemiş bileşen ürün paketinde onaylı sayılmaz. |
+| **MTR-01 — Ortak istihbarat ve kanıt modeli** | Domain/IP, aktör, kampanya, malware, rapor ve altyapı bilgilerini aynı araştırmada kullanma | Mevcut kayıtlara kararlı başvurular; kaynak iddiası ve gerçek gözlemin ayrımı; tarih, güncellik, güven, ilişki türü, firma ve paylaşım kapsamı; yeni türler ihtiyaç sırasıyla | Eski kimlikler ve kaynak geçmişi korunur. Aynı gözlem tekrar gelince çoğalmaz. Çelişen iddialar ayrı görünür. Yeni kayıt türünün terminal, platform ve yedek kabulü birlikte geçer. |
+| **MTR-02 — İlişki araştırması ve kimlik incelemesi** | “Bu IP hangi kayıtlarla ilişkili ve bu bağlantı nereden geliyor?” sorusunu yanıtlama | Önce kayıtlı doğrudan ilişkiler ve sınırlı iki adımlı yollar; ardından açıklamalı kural çıkarımı; alternatif ad adayları ve insan onaylı, geri alınabilir kimlik birleştirme | Her bağlantıda özgün kanıt, tarih ve ilişki türü bulunur. Kaynak iddiası, gözlem, insan kararı ve kural çıkarımı ayrılır. Ortak IP veya benzer ad otomatik aktör/olay eşitliği yaratmaz. Kaynak geri çekilince çıkarım yeniden değerlendirilir; eski kanıt korunur. |
+| **MTR-03 — Kaynak ve zenginleştirme kapsamı** | Domain/IP/URL/hash araştırmasında daha fazla kaynaklı bağlam görme | Mevcut adaptörlerde ortak kaynak sözleşmesi; ilk yeni veri adayı MISP warninglists; ardından eksik URL/hash kapsamına katkısı ölçülen sağlayıcı; gerektiğinde rapor metni ayrıştırma | Her kaynak için erişim, maliyet, ticari saklama/paylaşma, pin, zaman/sorgu sınırı, hata ve tekrar davranışı kaydedilir. Eski veri kesintide korunur. Warninglist eşleşmesi otomatik “temiz” kararı değildir. Paket lisansı ile veri hakkı ayrı doğrulanır. |
+| **MTR-04 — Kalite, öncelik ve değişim** | Hangi kaydın yeni, eski, çelişkili veya öncelikli olduğunu gerekçeleriyle görme | Sürümlü güncellik ve IOC yaşam döngüsü politikaları; kaynak güveni, kanıt gücü ve inceleme önceliğinin ayrı alanları; kaynak değişimiyle yeniden değerlendirme | Öncelik değişiminin gerekçesi ve kural sürümü tekrar üretilebilir. Kaynak yokluğu sıfır risk olmaz. Zamanla eskiyen kayıt silinmez. İnsan kararı otomatik ezilmez; aynı kanıt yeni alarm üretmez. |
+| **MTR-05 — Yönetilebilir motor akışları** | Seçtiği kaynaklarla toplama → ilişkilendirme → değerlendirme → sonuç akışını çalıştırma | Sürümlü, izinli işlem adımlarından akış; bağımlılık, bütçe, iş ilerlemesi, iptal/kurtarma; kalan terminal işlemlerini ürün ihtiyacı sırasıyla platform sözleşmesine açma | Akış adımları ve kaynak maliyeti başlamadan görülebilir. Aynı istek tekrar iş yaratmaz. Belirsiz dış istek otomatik tekrar edilmez. Ücretli kaynak açık seçim gerektirir. Adımlar genel komut/kod çalıştıramaz. |
+| **MTR-06 — Üretim ve kapasite** | Ölçülmüş yük altında sürekli çalışan, kurtarılabilir hizmet | Süre/iş hacmi/hata/disk/bellek ölçümü, kuyruk beklemesi, uzun süreli Linux kabulü, sürüm geri dönüşü ve kurtarma denemesi; ölçüm gerektirirse depo/arama/çoklu worker tasarımı | Test makinesi ve yük profiliyle sonuç yayımlanır. İki firmanın yük/kapsam ayrımı, veri kaybı ve tekrar davranışı sınanır. Kapasite sınırı veri sessizce kesilerek gizlenmez. Ölçülmemiş SLA veya OpenCTI eşdeğerliği ilan edilmez. |
+| **MTR-07 — Standart paylaşım, en son** | İstihbaratı diğer güvenlik sistemleriyle alışveriş yapma | Geniş STIX 2.1 nesne/ilişki aktarımı, içe alma, TAXII, değişiklik/geri çekme ve paylaşım kısıtları | İçe/dışa dönüşte kimlik, ilişki, kaynak ve kısıtlar korunur. Karşı sistemle kabul yapılır. Kaynak lisansı veya firma kapsamı izin vermeyen bilgi dışarı çıkmaz. |
+| **MTR-08 — LLM desteği, en son** | Kanıtlara dayanan özet, ilişki önerisi ve analist açıklaması | Yerel/API model adaptörü, kaynak referanslı sınırlı bağlam, maliyet/gizlilik ayarları, değerlendirme kümesi | Model yokken çekirdek çalışır. Öneri gerçek kayıt veya doğrulanmış tehdit sayılmaz. Model firma sınırını, kaynak yetkisini veya araç izinlerini değiştiremez. Kalite/maliyet ölçülmeden etkin varsayılan olmaz. |
+
+Bu sıra bütün ayrıntıların bitmesini bekleyen büyük bir yeniden yazım
+değildir. İlk dar MTR-01/02 tesliminden sonra MTR-03 kaynak katkısı eklenir;
+kimlik incelemesi ve daha geniş model ölçülmüş ihtiyaçla genişler.
+MTR-05'in firma kapsamlı işlem sözleşmesi her yeni dilimde uygulanır;
+genel akış kurucusu daha sonra gelir. MTR-06'nın ölçümleri tüm dilimlere
+eşlik eder. Takvim ve kapasite taahhüdü, ekip/dağıtım/yük belli olmadan verilmez.
+
+### 6.3 İlk geliştirme paketi: ilişkili kanıt araştırması
+
+**Kabul raporu önceliği:** Kullanıcının 0.147.1 Linux raporu üzerine
+MTR-00 kapsamında CTI izleme ve yeni klasör izinleri düzeltildi; umask
+testi taşınabilir hale getirildi. Kalan kısmi kanıt gösterimi, kısa
+collect/search/rapor görünümü ve kaynak hazırlığı işleri
+[kabul incelemesinde](../ACCEPTANCE_REVIEW.md) ölçütleriyle izlenir.
+Bu kayıt sonraki Nmap sürümlerinin canlı kabulünü tamamlamaz.
+
+İlk yeni özellik, **kayıtlı bir domain veya kesin IP'den ilişkili kanıta
+ulaşma** olacaktır. Başlangıçta mevcut kaynakların kayıtları kullanılır;
+bu görünümü okumak yeni internet sorgusu veya aktif tarama başlatmaz.
+Verinin alınması mevcut toplama işleriyle sürer.
+
+Mevcut [CTI bağlamı](../../src/xti/application/cti_context.py),
+[varlık ilişkileri](../../src/xti/application/asset_relations.py) ve
+[birleşik analiz](../../src/xti/application/analysis.py) bu paketin
+başlangıç parçalarıdır. Yeni değer; ayrı görünümleri firma kapsamında
+kaynaklı araştırma yollarıyla birleştirmek ve sürümlü platform işlemine
+açmaktır. Daha önce doğrudan CTI ilişkisi veya IOC eşleştirmesi olmadığı
+iddia edilmez.
+
+1. Ürün için gerekli motor işlemleri listelenir: bugün sözleşmede olan,
+   yalnız terminalde olan ve yeni eklenecek olan açıkça ayrılır.
+2. Mevcut domain/IP, DNS, IOC ve doğrudan CTI bağlantıları ortak kaynaklı
+   ilişki görünümüne uyarlanır. Özgün kayıt/çalışma kimliği, gözlem zamanı,
+   kaynak iddiası ve insan kararı aynen korunur.
+3. Aynı firma içindeki aynı tip/değere ait gözlem ve IOC başvuruları,
+   özgün kayıtlar silinmeden ortak araştırma düğümünde açıklanır. Domain
+   → IP → doğrudan bağlı CTI kaydı iki ilişki adımıdır; kaynak iddiaları
+   bu düğüm ve bağların kanıtıdır. İlk sorgu en fazla iki ilişki adımı,
+   belirlenmiş düğüm/bağlantı bütçesi
+   ve kararlı sayfalama kullanır. Limit dolarsa eksik kapsam açık görünür;
+   bütün geçmişin tarandığı iddia edilmez. Sonuçtaki her yol açıklanır.
+4. Firma kapsamlı istek/sonuç şeması ve terminal görünümü birlikte eklenir.
+   Arayüz ekibine örnek istek, örnek sonuç ve hata durumları verilir;
+   .NET veya ekran kodu bu pakette geliştirilmez.
+5. Aynı IP'yi paylaşan farklı firmalar, paylaşımlı barındırma, eski DNS,
+   geri çekilmiş IOC, çelişen aktör iddiası, döngü ve sınıra ulaşma
+   örnekleriyle doğrulanır. Şema değişirse mevcut kayıt/yedek uyumu sınanır.
+
+Örnek sonuç: “Bu domain şu tarihte bu IP'ye çözülmüş. Bu IP hakkında şu
+kaynakta şu iddia var. İddianın bağlandığı CTI kaydı ve dayanağı bunlar.”
+Bu yol domainin saldırgan kontrolünde olduğunu veya firmanın ihlal
+edildiğini kendiliğinden kanıtlamaz. Kaynakta olmayan ilişki uydurulmaz.
+
+İlk paket yeni graph veritabanı, tüm varlıkların toplu dönüşümü, otomatik
+profil birleştirme veya LLM gerektirmez. NetworkX/RapidFuzz ancak sonraki
+somut işlemin ölçülen ihtiyacını karşılıyorsa seçilir. Böylece kayıtlı
+veriden elde edilen yeni fayda, bağımlılık değişikliğinden ayrı sınanır.
+
+### 6.4 Ticari kullanım, dağıtım ve korunacak kararlar
+
+- Kullanıcı ilk ticari kullanım için **yalnız kendi sunucularımızda
+  hizmet** modelini seçti. İlk üretim kabulü merkezi kurulum/güncelleme,
+  yedek/kurtarma, firma kapsamı ve firma başına iş/kaynak bütçelerine
+  odaklanır. Müşteri sunucusuna kurulum ve motor paketi dağıtımı ilk
+  teslimin gereksinimi değildir; ileride ayrı kapsam olarak ele alınır.
+  Bu tercih tek fiziksel sunucu veya bütün firmaların aynı veri alanını
+  kullanması zorunluluğu getirmez.
+- React/.NET platformu kullanıcı ve rol yetkisini doğrular; motorun
+  kontrollü iç bağlantısı işleri kabul eder, ayrı çalıştırıcılar yürütür.
+  Motor firma sınırını ve kaynak kapsamını her adımda uygular. Sunucu
+  bakımını, anahtar yönetimini ve işletim izlemesini hizmeti sunan ekip
+  üstlenir. Bu işletim tasarımı henüz kurulmuş bir hizmet değildir.
+- Lisans ve veri kullanım değerlendirmesi kendi sunucularımızda sunulan
+  ticari hizmet senaryosuna göre yapılır. Sunucunun bize ait olması,
+  bütün ticari kullanım ve müşteriye veri sunma haklarının otomatik
+  sağlandığı anlamına gelmez.
+- Kaynak erişimi ücretsiz olsa bile müşterilere sunma, saklama, raporda
+  kullanma ve yeniden dağıtma koşulları kaynak kartında tutulur. İlk yeni
+  paket zorunlu ücretli API istemez; ücretli kaynaklar seçilebilir kalır.
+- Nmap, NPSL/OEM koşulları; theHarvester ise sabit sürümünün GPL koşulları
+  nedeniyle ticari dağıtım bakımından ayrıca incelenecek mevcut
+  bileşenlerdir. Mevcut kurulumların çalışması ticari ürün onayı değildir.
+  Bileşeni değiştirme, ayrı kullanım düzeni veya lisans edinme kararı,
+  somut dağıtım biçimi ve ilgili haklar üzerinden verilir.
+  [Nmap OEM](https://nmap.org/oem/), [bileşen kaydı](../../THIRD_PARTY.md).
+- Açık kaynak kod veya tüm platformu kopyalamak varsayılan yöntem olmaz.
+  Kullanılacak küçük bileşen, sürüm/commit, transitif bağımlılıklar,
+  telif/lisans bildirimleri ve veri haklarıyla değerlendirilir.
+  [Bileşen planı](COMPONENT_SELECTION_PLAN.md) bu seçimleri kaydeder.
+- Kaynak kodu için kontrollü özel depo ve dağıtım erişimi ürün hedefidir.
+  Mevcut GitHub görünürlüğü/önceki yayın durumu ayrıca doğrulanmalıdır;
+  bu plan bir erişim değişikliği veya geriye dönük lisans değişikliği değildir.
+- .NET/React uygulaması, kullanıcı/rol/oturum ve platformun PostgreSQL
+  kurulumu tüketici ekibindedir. Motor için farklı depo adaptörü gerekirse
+  veri/iş/kanıt sözleşmesi bu ekip ile birlikte tanımlanır; yalnız bağlantı
+  adresi değiştirerek SQLite davranışının taşındığı varsayılmaz.
+- Önceden ertelenen geniş marka koruması, e-posta/SMS, genel CVE/paket
+  envanteri ve aktif istismar işleri bu planla otomatik açılmaz. Nmap'in
+  seçili mevcut kanıt kapsamı korunur. LLM ve geniş STIX/TAXII en sondadır.
+
+### Önceki ENG teslimlerinin kaydı
 
 ENG kimlikleri önceki işleri takip etmek için korunur. Mevcut STB paketi
 ve ENG-03'ün iki ilk teslimi tamamlandı. ENG-04'ün ilk haber teslimi

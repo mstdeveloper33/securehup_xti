@@ -13,12 +13,23 @@ _BACKUP = {
     "clock_error": "Son yedek zamanı tutarsız",
 }
 _RECOVERY = {"ready": "Yerel hazırlık uygun", "attention": "İnceleme gerekiyor"}
+_PERMISSIONS = {
+    "private": "Yalnız sahibine açık",
+    "missing": "Klasör henüz yok",
+    "unknown": "İzinler doğrulanamadı",
+    "unreadable": "İzinler okunamadı",
+    "invalid_type": "Gerçek bir klasör değil",
+    "foreign_owner": "Başka kullanıcıya ait",
+    "writable_by_others": "Grup veya diğer kullanıcılar yazabilir",
+    "accessible_by_others": "Grup veya diğer kullanıcılara erişim izni var",
+}
 _NEXT = {
     "create_backup": "Yeni tutarlı yedek oluştur: ./xti backup",
     "free_disk_space": "Yeni yazma/yedek öncesi diskte alan aç",
     "review_retention": "Saklama önizlemesini incele: ./xti storage cleanup",
     "copy_off_device": "Doğrulanmış yedeği ayrı fiziksel ortama kopyala",
     "test_restore": "Yedeği boş bir klasöre geri yükleyerek tatbikat yap",
+    "review_directory_permissions": "Kayıt/yedek klasörlerinin sahibini ve izinlerini incele; kişisel klasörler için 0700 kullan",
 }
 
 
@@ -55,6 +66,11 @@ def report_lines(report: StorageReadinessReport) -> list[str]:
         )
     if report.backup_error is not None:
         lines.append(f"Yedek doğrulama hatası: {safe_text(report.backup_error)}")
+    for item in report.directory_permissions:
+        lines.append(
+            f"Klasör izni: {safe_text(item.path)} | {safe_text(item.mode or 'bilinmiyor')} | "
+            f"{_PERMISSIONS.get(item.status, 'İzinler doğrulanamadı')}"
+        )
     lines.extend([
         f"Saklama ({report.retention_days} gün): temizliğe uygun "
         f"{report.cleanup_eligible_count}, korunan {report.cleanup_protected_count}, "

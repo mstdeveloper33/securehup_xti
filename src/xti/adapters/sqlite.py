@@ -8,6 +8,8 @@ import sqlite3
 import tempfile
 from typing import Iterator
 from uuid import uuid4
+from xti.adapters.private_directories import create_private_directory
+from xti.adapters.nmap_jobs_schema import create as create_nmap_jobs_schema
 
 from xti.domain.assets import Asset
 from xti.adapters.schema import (
@@ -81,6 +83,8 @@ from xti.adapters.schema import (
     migrate_surface_discovery_provider_schema,
     create_surface_mail_schema,
     create_surface_service_schema,
+    create_surface_nmap_schema,
+    create_nmap_management_schema,
     create_surface_cname_schema,
     create_surface_change_notification_schema,
     create_surface_schema,
@@ -152,7 +156,7 @@ class SQLiteAssetRepository:
             return
         temporary = None
         try:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
+            create_private_directory(self.path.parent)
             temporary = self._temporary_path(self.path.parent)
             connection = sqlite3.connect(temporary)
             try:
@@ -174,6 +178,9 @@ class SQLiteAssetRepository:
                 create_surface_discovery_history_schema(connection)
                 create_surface_mail_schema(connection)
                 create_surface_service_schema(connection)
+                create_surface_nmap_schema(connection)
+                create_nmap_management_schema(connection)
+                create_nmap_jobs_schema(connection)
                 create_surface_cname_schema(connection)
                 create_supplier_candidate_schema(connection)
                 create_case_schema(connection)
@@ -358,6 +365,18 @@ class SQLiteAssetRepository:
             ).fetchone()[0]
             surface_service_checks = connection.execute(
                 "SELECT COUNT(*) FROM surface_service_checks"
+            ).fetchone()[0]
+            surface_nmap_checks = connection.execute(
+                "SELECT COUNT(*) FROM surface_nmap_checks"
+            ).fetchone()[0]
+            surface_nmap_target_scopes = connection.execute(
+                "SELECT COUNT(*) FROM surface_nmap_target_scopes"
+            ).fetchone()[0]
+            active_surface_nmap_target_scopes = connection.execute(
+                "SELECT COUNT(*) FROM surface_nmap_target_scopes WHERE active = 1"
+            ).fetchone()[0]
+            surface_nmap_plans = connection.execute(
+                "SELECT COUNT(*) FROM surface_nmap_plans"
             ).fetchone()[0]
             surface_cname_checks = connection.execute(
                 "SELECT COUNT(*) FROM surface_cname_checks"
@@ -729,6 +748,10 @@ class SQLiteAssetRepository:
             "surface_discovery_run_count": surface_discovery_runs,
             "surface_mail_check_count": surface_mail_checks,
             "surface_service_check_count": surface_service_checks,
+            "surface_nmap_check_count": surface_nmap_checks,
+            "surface_nmap_target_scope_count": surface_nmap_target_scopes,
+            "active_surface_nmap_target_scope_count": active_surface_nmap_target_scopes,
+            "surface_nmap_plan_count": surface_nmap_plans,
             "surface_cname_check_count": surface_cname_checks,
             "active_kev_entry_count": kev_entries,
             "vulnerability_source_run_count": vulnerability_source_runs,
@@ -1036,6 +1059,12 @@ class SQLiteAssetRepository:
                     create_mention_group_schema(connection)
                 if 56 <= version < 69:
                     migrate_collection_news_schema(connection)
+                if version < 70:
+                    create_surface_nmap_schema(connection)
+                if version < 71:
+                    create_nmap_management_schema(connection)
+                if version < 72:
+                    create_nmap_jobs_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)
@@ -1068,7 +1097,7 @@ class SQLiteAssetRepository:
         try:
             with self._connection(readonly=True, allow_legacy=True) as source:
                 self._check_integrity(source)
-                destination.parent.mkdir(parents=True, exist_ok=True)
+                create_private_directory(destination.parent)
                 temporary = self._temporary_path(destination.parent)
                 target = sqlite3.connect(temporary)
                 try:

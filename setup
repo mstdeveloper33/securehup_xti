@@ -12,6 +12,7 @@ case "${1:-}" in
     --help|-h)
         echo "Kullanım: ./setup [--core-only]"
         echo "Varsayılan kurulum çekirdekle birlikte Maigret, Sherlock ve haber okuyucusunu kurar."
+        echo "Nmap işletim sistemi aracıdır; yalnız gerekirse ayrıca ./scripts/setup-nmap çalıştırılır."
         echo "--core-only marka araçlarını ve RSS/Atom okuyucusunu kurmadan çekirdeği hazırlar."
         exit 0
         ;;
@@ -40,5 +41,6 @@ else
 fi
 printf 'İlk domainini ekle: ./xti assets add example.com\n'
 printf 'Aramayı başlat:      ./xti scan example.com --typos\n'
+printf 'İsteğe bağlı Nmap:   ./scripts/setup-nmap\n'
 printf 'Yardımı aç:          ./xti --help\n'
 

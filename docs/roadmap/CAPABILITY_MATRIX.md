@@ -1,6 +1,17 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
-**Güncel teslim tarihi:** 16 Kasım 2026 · **Sürüm:** 0.147.1 / çekirdek şema 69.
+**Güncel teslim tarihi:** 16 Kasım 2026 · **Sürüm:** 0.150.0 / çekirdek şema 72.
+
+**Ürün yönü:** Kendi platformumuzun kapalı kaynak motoru. Mevcut kapsam
+üzerindeki yeni geliştirmeler [MTR-00–08 planında](ENGINE_INTEGRATION_ROADMAP.md)
+sıralanır; ilk paket domain/IP, IOC ve doğrudan CTI kanıtlarını ortak
+araştırma yollarıyla platforma sunacaktır. Bu plan yeni tamamlanmış
+yetenek veya olgunluk puanı değildir. Bileşen lisansı ve veri paylaşım
+hakları ticari kullanım biçimine göre ayrıca değerlendirilecektir.
+
+İlk ticari kullanım yalnız kendi sunucularımızda hizmet sunma olarak
+seçildi. Müşteri sunucusuna kurulum ilk teslim hedefi değildir; merkezi
+işletimde firma ayrımı ve kapasite kabulü geçerliliğini korur.
 
 **Son hedef güncellemesi:** Bu repo, mevcut .NET platformuna bağlanacak
 XTI veri toplama ve analiz motorudur. .NET uygulama backend'i, kullanıcı
@@ -117,7 +128,7 @@ Referans kapsamı: dijital varlık keşfi, keşif ilişkileri, DNS/TLS, servis v
 | CAP-026 | DNS değişiklikleri | Değişim, veri bayatlığı ve kaynak kesintisini ayırma | ASM-02 | R4 / B0→B1 |
 | CAP-027 | TLS sertifikaları | Süre, ad eşleşmesi ve doğrulama bulguları | ASM-03 | R4 / B0 |
 | CAP-028 | E-posta DNS yapılandırması | MX/SPF/DMARC değişimi; DKIM yalnız bilinen seçiciyle, kaynak ve sınır açıklaması | ASM-03 | R4 / B0 |
-| CAP-029 | Port ve servis envanteri | Yalnız yetkili kapsamda sınırlı aktif kontrol; sabit 10 TCP portu var, UDP/serbest port/banner açık | ASM-04 | R4 / B0 |
+| CAP-029 | Port ve servis envanteri | Yetkili genel IP/CIDR envanteri, plan, kalıcı worker/iptal/kurtarma, TCP/SYN/UDP, servis/sürüm/OS ve seçili NSE kanıtı var; etkin host grubu 1. Canlı gelişmiş tarama ve yüksek hacim kabulü bekliyor | ASM-04 | R4 / B0 |
 | CAP-030 | Teknoloji adayları | Aktif kapsam dışında; açık porttan ürün veya sürüm çıkarılmıyor | — | Kapsam dışı |
 | CAP-031 | Yapılandırma ve takeover adayları | Salt-okunur TLS/e-posta/seçili port adayları ve CNAME hedef NXDOMAIN adayı var; açık panel, delegasyon ve gerçek takeover doğrulaması açık | ASM-05 | R4 / B0 |
 | CAP-032 | Bulut/API/mobil varlıklar | Kaynak erişimine göre envanter ve sahiplik adayı | ASM-06 | R4 / B0→B2 |

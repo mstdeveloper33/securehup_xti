@@ -1,5 +1,70 @@
 # Değişiklik Kaydı
 
+## Yayımlanmamış kabul düzeltmeleri — 0.150.0 çalışma ağacı
+
+- CTI izleme denetimi ilgisiz IOC/varlık kataloğunu 10.000 izleme sınırına
+  saymaz; kaynaklı geçmiş ve kopuk bağlantı denetimi korunur.
+- Yeni veri/yedek/geri yükleme klasörleri ve eksik ara klasörler `0700`
+  oluşturulur. Eski izinler otomatik değiştirilmez; `storage readiness`
+  klasör izinlerini terminal/JSON'da ve kurtarma hazırlığında gösterir.
+- Zamanlı yedek testinin `umask 002` altında kırılması giderildi; büyük
+  IOC kataloğu ve farklı umask değerleri için regresyon testleri eklendi.
+- Günlük kullanımda doğru `schedule generate --output ... --at ...`
+  örneği; [Linux raporu değerlendirmesi](docs/ACCEPTANCE_REVIEW.md).
+- Tam test turu `umask 002` ile: 2.665 test, 2.661 başarılı, macOS'ta
+  Linux'a özgü dört atlama; hata yok. Çekirdek şema 72 değişmedi.
+
+## 0.150.0 — 16 Kasım 2026
+
+- Yetkili Nmap planları için kalıcı iş kabulü, tekrar önleme anahtarı,
+  hedef başına kayıt, iptal, kesinti kurtarması ve yalnız hiç başlanmamış
+  hedefleri devam ettirme. Yeni kayıt yoluna taşınmış eski işler tekrar
+  çalıştırılamaz. Şema 72 iki tablo ekler; açık geçiş önce yedek alır.
+- V1 plan byte/hash'i korunur. V2 TCP connect/SYN/UDP, servis/sürüm,
+  OS tahmini, seçili NSE ve ayrı süre seçeneklerini dondurur. Raw socket
+  seçenekleri yetkili worker gerektirir; otomatik sudo yoktur.
+- NSE kataloğu: banner, ssh-hostkey, ssl-cert ve TCP 445'e bağlı
+  smb-vuln-ms17-010 yanıt kontrolü. Ham argüman, genel NSE kategorileri,
+  parola denemesi ve exploit eklenmedi. Kaynak çıktısı kesin risk kararı değildir.
+- Firma kapsamlı platform JSON plan/kuyruk/sonuç işlemleri; ayrı açık
+  `platform nmap-worker`. Temiz subprocess ortamı, sınırlı stdout/stderr,
+  çocuk sürece taşınan kilit ve normal iptalde süreç grubu temizliği.
+- Port durumlarında UDP belirsizliği korunur; ayrıntı sınırında kısmi kanıt
+  açık gösterilir. Gerçek Nmap'in dış varlıksız DOCTYPE bildirimi her iki
+  XML adaptöründe kabul edilir; özel DTD/entity reddedilir.
+- Genel `check-fast`: 1.311 test, 1.307 başarılı, dört Linux atlaması.
+  Son XML/süreç düzenlemeleri sonrasında 77 Nmap/platform testi geçti.
+  Gerçek Nmap kurulu olmadığı için canlı gelişmiş tarama kabulü yapılmadı.
+- [Kullanım](docs/NMAP_MANAGED.md), [mimari karar](docs/decisions/0155-managed-nmap-execution.md).
+
+## 0.149.0 — 16 Kasım 2026
+
+- Kayıtlı ve etkin domain dış yüzeyi altında adlandırılmış kesin genel IP/CIDR
+  hedef envanteri; kapsam içi hariç tutmalar, gerçek hedef sayısı ve hash'i,
+  yetki gerekçesi, geri çekme ve eklemeli sürüm geçmişi.
+- Hedefin kesin sürümünü port, süre, hız, retry, gecikme, paralellik, host
+  grubu, hedef ve probe bütçesiyle donduran değiştirilemez Nmap dry-run planı.
+  16'dan fazla hedef ve 1024'ten fazla port açık onay ister; ham Nmap argümanı
+  kabul edilmez.
+- Şema 71 üç bütünlük denetimli tablo ekler; 70→71 geçişi yedek alır. Bu sürüm
+  geniş CIDR planını çalıştırmaz; kalıcı iş/worker, ilerleme, iptal ve kesinti
+  kurtarması sonraki çalıştırma katmanının ön koşuludur.
+- `check-fast`: 1.287 test, 1.283 başarılı, macOS'ta beklenen dört Linux
+  atlaması, hata yok. Canlı hedef trafiği üretilmedi.
+  [Karar](docs/decisions/0154-managed-nmap-targets-and-plans.md),
+  [durum](docs/STATUS.md).
+
+## 0.148.0 — 16 Kasım 2026
+
+- İsteğe bağlı Nmap TCP-connect adaptörü; güvenli/uzatılmış/tam/özel TCP port
+  profilleri ile süre, azami hız, retry, hedef ve yaklaşık probe sınırları.
+- Yalnız kayıtlı domainin güncel DNS yanıtındaki en fazla 16 kesin genel IP
+  çalıştırılabilir. Ham argüman, UDP, SYN/root, NSE, sürüm/banner ve işletim
+  sistemi keşfi yoktur; sonuçlar ayrı ve eklemeli kanıt olarak saklanır.
+- Nmap kurulumu ayrı ve tekrar güvenli betikle yapılır; şema 70 önceki kanıtı
+  koruyan yedekli geçiştir.
+  [Karar](docs/decisions/0153-bounded-authorized-nmap-adapter.md).
+
 ## 0.145.0 — 15 Kasım 2026
 
 - `mentions groups`: bir kuruluş ve açıkça seçilmiş tedarikçiler için

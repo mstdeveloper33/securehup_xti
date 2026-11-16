@@ -85,6 +85,11 @@ class CLITests(unittest.TestCase):
         self.assertEqual(report["local_recovery_status"], "ready")
         self.assertEqual(report["managed_backup_count"], 1)
         self.assertEqual(report["latest_backup_schema_version"], SCHEMA_VERSION)
+        self.assertEqual(report["permission_status"], "private")
+        self.assertEqual(
+            [(item["status"], item["mode"]) for item in report["directory_permissions"]],
+            [("private", "0700"), ("private", "0700"), ("missing", None)],
+        )
         self.assertEqual(database.read_bytes(), before_database)
         self.assertEqual(backup.read_bytes(), before_backup)
 

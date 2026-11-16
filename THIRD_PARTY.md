@@ -1,5 +1,38 @@
 # Üçüncü Taraf Yazılım ve Veri Bildirimi
 
+**16 Kasım 2026 ürün kararı:** XTI kendi platformumuzun kapalı kaynak
+motoru olarak geliştiriliyor. Aşağıdaki üçüncü taraf bildirimleri ve
+lisansları korunur. Teknik olarak kurulmuş bir araç ticari ürün içinde
+kullanım/dağıtım bakımından otomatik onaylı değildir. Nmap ve theHarvester
+için dağıtım biçimine bağlı değerlendirme; bütün veri sağlayıcıları için
+saklama, müşteriye sunma ve paylaşma hakları
+[bileşen seçim planında](docs/roadmap/COMPONENT_SELECTION_PLAN.md) izlenir.
+Gelecekte düşünülen paketler kurulu bağımlılık listesine eklenmez.
+
+İlk ticari işletim kendi sunucularımızda müşterilere hizmet sunma olarak
+seçildi. Bileşen ve veri hakları bu kullanım biçimiyle değerlendirilecek;
+müşteriye kurulum paketi dağıtımı ilk teslimin kapsamında değildir.
+
+## Nmap sistem aracı
+
+0.148.0'dan itibaren isteğe bağlıdır; 0.150.0 yönetilen TCP/SYN/UDP,
+servis/sürüm, OS ve seçili NSE çalıştırmasını ekler. Kaynak kodu, ikili
+dosya veya NSE scriptleri bu repoya kopyalanmaz. `scripts/setup-nmap`
+sistem paket yöneticisini kullanır; kurulu araç `--version` ile Nmap 7.x
+olarak kontrol edilir. İşin kanıtı gerçek sürümü taşır. İşletici sistem
+paketinin ve script dosyalarının güvenilirliğinden sorumludur; paket
+içeriği tam commit/hash pin'iyle sabitlenmiş sayılmaz.
+
+Nmap'in lisansı [NPSL](https://nmap.org/npsl/)'dir; kurulu sürümün LICENSE
+dosyası esas alınır. Kapalı kaynak ürüne entegrasyon/dağıtım için
+[OEM koşulları](https://nmap.org/oem/) ayrıca değerlendirilmelidir. Ayrı
+süreç veya sistem paketi kullanmak otomatik lisans muafiyeti olarak
+yorumlanmaz. Kişisel kullanım kararı ticari dağıtım onayı değildir.
+
+Seçili NSE kaydı ve resmî açıklamaları [Nmap kullanımında](docs/NMAP_MANAGED.md)
+listelenir. Bunlar XTI'ın yazdığı zafiyet imzaları değildir; Nmap çıktısı
+kaynaklı kanıt olarak korunur.
+
 ## Tavily arama hizmeti
 
 0.144.0, kullanıcının kendi hesabı ve API anahtarıyla isteğe bağlı

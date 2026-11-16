@@ -321,20 +321,17 @@ class SQLiteCtiSavedSearchRepository:
         if len(item_rows) > _MAX_ITEMS:
             raise StorageError("Kayıtlı CTI arama sonuç geçmişi güvenli sınırı aşıyor.")
         items = tuple(cls._item(row, runs) for row in item_rows)
-        entity_rows = connection.execute(
-            "SELECT id FROM cti_entities ORDER BY id LIMIT ?", (_MAX_SEARCHES + 1,),
-        ).fetchall()
-        indicator_rows = connection.execute(
-            "SELECT id FROM cti_indicators ORDER BY id LIMIT ?", (_MAX_SEARCHES + 1,),
-        ).fetchall()
-        if len(entity_rows) > _MAX_SEARCHES or len(indicator_rows) > _MAX_SEARCHES:
-            raise StorageError("Kayıtlı CTI arama hedef kapsamı güvenli sınırı aşıyor.")
-        entity_ids = {_uuid(row[0]) for row in entity_rows}
-        indicator_ids = {_uuid(row[0]) for row in indicator_rows}
-        if any(
-            item.record_id not in (entity_ids if item.kind == "entity" else indicator_ids)
-            for item in items
-        ):
+        # The bounded history above, not the unrelated intelligence catalog,
+        # determines the audit scope. Indexed lookups retain dangling-reference
+        # detection without imposing the watch-count limit on every feed's IOC.
+        missing_target = connection.execute(
+            "SELECT 1 FROM cti_saved_search_run_items AS item WHERE "
+            "(item.kind='entity' AND NOT EXISTS "
+            "(SELECT 1 FROM cti_entities WHERE id=item.record_id)) OR "
+            "(item.kind='indicator' AND NOT EXISTS "
+            "(SELECT 1 FROM cti_indicators WHERE id=item.record_id)) LIMIT 1"
+        ).fetchone()
+        if missing_target is not None:
             raise StorageError("Kayıtlı CTI arama sonuç hedefi bozuk; işlem durduruldu.")
         by_run: dict[str, list[CtiSavedSearchRunItem]] = {key: [] for key in runs}
         for item in items:

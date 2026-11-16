@@ -1,8 +1,102 @@
 # XTI — Güncel Uygulama Durumu
 
-**16 Kasım 2026 · 0.147.1 · Çekirdek şema 69.**
+**16 Kasım 2026 · 0.150.0 · Çekirdek şema 72.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
+
+**Güncel ürün kararı — plan, yeni özellik teslimi değildir:** Motor kendi
+ticari platformumuz için kapalı kaynak geliştirilecek. Lisansı ve veri
+koşulları uygun hazır bileşenlerden yararlanılacak. Mevcut 0.150.0 üzerine
+ortak istihbarat modeli, ilişkili kanıt araştırması, kaynak genişletme,
+kalite/öncelik ve yönetilebilir akışlar [MTR-00–08 planına](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
+alındı. İlk yeni paket mevcut domain/IP, IOC ve CTI kanıtlarını kaynaklı
+araştırma yollarıyla platforma açacak. Bu plan henüz uygulanmadı; sürüm,
+veritabanı, bağımlılıklar ve depo görünürlüğü değişmedi. Kullanıcının
+0.147.1 / şema 69 Linux deneme raporu alındı; rapor sonraki Nmap
+teslimlerinin kabulü değildir. [İnceleme ve kalan işler](ACCEPTANCE_REVIEW.md).
+
+**Çalışma ağacındaki kabul düzeltmeleri:** CTI izlemesinin ilgisiz büyük
+IOC kataloğu nedeniyle durması yeniden üretildi ve giderildi. 10.001
+kontrollü IOC ile dar aktör izlemesi ekleme/çalıştırma/listeleme geçti.
+Zamanlı yedek testinin `umask 002` taşınabilirliği düzeltildi. Yeni veri,
+yedek ve geri yükleme klasörleri `0700` ile oluşturulur; mevcut geniş
+izinler değiştirilmeden `storage readiness` içinde gösterilir. İlgili
+44 test `umask 002` altında geçti. Aynı ayarla son kodun tam turunda
+2.665 test / 1.145,005 saniye: 2.661 başarılı, macOS'ta Linux'a özgü
+dört atlama, hata yok. Ortam Python 3.13.3; kullanıcının Linux/Python
+3.14 tekrar kabulü ayrı kalır. Bu düzeltmeler şema geçişi gerektirmez.
+
+**İlk ticari işletim tercihi:** Motor kendi sunucularımızda çalışacak,
+müşteriler platform üzerinden kullanacak. Müşteri sunucusuna kurulum
+ilk teslimin dışında kalır. Bu karar yol haritasına işlendi; çalışan
+bir sunucu hizmeti veya yeni dağıtım yapıldığı anlamına gelmez.
+
+**0.150.0 yönetilen Nmap çalıştırması:** Kalıcı plan işi kabulü, tek hedefli
+worker, hedef düzeyinde ilerleme, çalışan/kuyruktaki işi iptal, kilitli
+kurtarma ve hiç başlanmamış hedefleri açık devam komutuyla işleme eklendi.
+Eski plan JSON/hash'leri korunur; v2 seçenekleri TCP connect/SYN/UDP,
+servis/sürüm yoğunluğu, OS tahmini, banner/ssh-hostkey/ssl-cert ve seçili
+MS17-010 kontrolünü taşır. Root isteyen seçenekler yetkisiz ortamda
+reddedilir. Ham argüman, genel NSE kategorisi, parola denemesi ve exploit yoktur.
+Şema 72 iki eklemeli iş tablosu ekler; geçiş yedeklidir.
+
+Firma kapsamlı platformda `nmap.*` plan/kabul/durum/sonuç/iptal işlemleri ve
+ayrı `nmap-worker`/`nmap-recover` girişleri vardır. İstek yolu ağ kullanmaz.
+Sonuçlar UDP belirsizliğini, sürüm/OS iddiasını ve sınırlı NSE çıktısını
+korur; otomatik CVE/risk veya kesin zafiyet kararı üretmez. Paket hızı tüm
+ek trafik için kesin kota değildir; etkin host grubu 1'dir. Kurtarılan
+belirsiz hedef tekrar çalıştırılmaz. Yeni yola restore edilen eski işler
+çalıştırma için reddedilir. [Kullanım](NMAP_MANAGED.md),
+[karar](decisions/0155-managed-nmap-execution.md).
+
+Bu ortamda gerçek Nmap kurulu değildir. Canlı TCP/SYN/UDP/OS/NSE kabulü
+yapılmadı; yerel kabul sahte süreç/XML, SQLite ve gerçek CLI/platform
+girişlerini kapsar. Aşağıdaki eski sürüm kayıtları tarihî doğrulamalardır.
+
+**0.150.0 yerel doğrulaması:** Genel `check-fast` turunda 1.311 test
+620,678 saniyede tamamlandı; 1.307 test geçti, Linux'a özgü dört test
+macOS'ta atlandı ve hata olmadı. Son küçük XML/süreç düzeltmeleri ayrıca
+77 Nmap/platform testinde 50,907 saniyede hatasız doğrulandı; bu genel tur
+son değişiklikler sonrasında yeniden çalıştırılmış sayılmaz.
+[Kabul kaydı](FUNCTIONAL_ACCEPTANCE.md).
+
+**0.149.0 yönetilen Nmap temeli:** `surface nmap targets` kayıtlı ve etkin
+domain altında adlandırılmış kesin genel IP veya en fazla 4096 adreslik CIDR
+kapsamını, ana kapsam içi hariç tutmaları, gerçek hedef sayısı/hash'i, yetki
+gerekçesi ve eklemeli sürüm geçmişiyle yönetir. `surface nmap plans` hedefin
+kesin sürümünü; TCP portu, süre, hız, retry, gecikme, paralellik, host grubu,
+hedef ve probe bütçesiyle değiştirilemez SHA-256 kimlikli dry-run planına
+dönüştürür. 16'dan fazla hedef ve 1024'ten fazla port ayrı açık onay ister.
+Şema 71 bu kayıtları üç ayrı bütünlük denetimli tabloda tutar; 70→71 geçişi
+önce yedek alır. Mevcut küçük `surface nmap check` yolu değişmedi.
+
+Bu teslim geniş CIDR'yi çalıştırmaz. Kalıcı iş/attempt, worker, ilerleme,
+iptal, kesinti kurtarması ve hedef başına sonuç teslimi kurulmadan planın
+eşzamanlı terminal döngüsünde çalıştırılması güvenilir sayılmadı. Ham Nmap
+argümanı, SYN/root, UDP, NSE, `-sV`, banner, OS, parola, exploit ve zafiyet
+taraması hâlâ yoktur.
+
+**0.149.0 yerel doğrulaması:** Son `check-fast` turunda 1.287 test
+540,786 saniyede tamamlandı; 1.283 test geçti, Linux'a özgü dört test
+macOS'ta atlandı ve hata olmadı. Tur yeni domain/SQLite/migration/CLI Nmap
+yönetim testleriyle bütün önceki çekirdek regresyonlarını birlikte çalıştırdı.
+Canlı hedef trafiği üretilmedi.
+
+**0.148.0 aktif servis kanıtı:** Mevcut bağımlılıksız sabit 10 port kontrolü
+korunurken Nmap ayrı ve isteğe bağlı bir TCP-connect sağlayıcısı olarak
+eklendi. Süre, paket hızı, yeniden deneme, kesin hedef sayısı, port kapsamı ve
+yaklaşık probe bütçesi doğrulanmış sınırlar içinde seçilebilir. Geniş port ve
+çoklu hedef açık ek onay gerektirir; ham Nmap argümanı, UDP, SYN/root, NSE,
+banner, sürüm/OS keşfi yoktur. Her hedefin güncel domain DNS cevabında olması
+gerekir. Sonuçlar şema 70'te ayrı `surface_nmap_checks` tablosuna eklemeli
+yazılır ve mevcut teknoloji/risk akışına otomatik katılmaz.
+
+**0.148.0 yerel doğrulaması:** Son dosya kümesinin `check-fast` turunda
+1.278 test 543,316 saniyede tamamlandı; 1.274 test geçti, Linux'a özgü dört
+test macOS'ta atlandı ve hata olmadı. Bu tur Nmap plan/adaptör/CLI/kalıcılık,
+şema 69→70 yükseltmesi ve sistem paketi kurulum betiğinin çevrimdış
+sözleşme testlerini de içerir. Makinede Nmap kurulu olmadığı ve kesin
+yetkili IP verilmediği için canlı port trafiği üretilmedi.
 
 **0.147.1 kullanım düzeltmesi:** Tavily dışındaki canlı ve yerel kullanım
 denemesinde bulunan Google DNS TXT biçimi uyumsuzluğu giderildi. Tırnaksız
@@ -1540,6 +1634,22 @@ hizmet işletimi veya .NET tüketicisi kabulü yerine geçmez.
 - Açık, kapalı ve belirsiz sonucu ayırma; belirsizi kapalı, port etiketini doğrulanmış ürün veya açık portu zafiyet saymama.
 - Her servis kontrolünü yetki gerekçesi, DNS kanıtı, sabit port planı, özet ve değişimle eklemeli saklama; `surface services show` ile internetsiz okuma.
 - Şema 13'ü önce doğrulanmış yedeğe alıp bütün eski satırları koruyarak boş servis geçmişiyle şema 14'e geçiren işlemsel migration.
+- `surface nmap readiness/check/show` ile işletim sistemi Nmap 7.x kurulumunu doğrulama, yetkili kesin genel IP'de ayarlanabilir TCP-connect kanıtı alma ve geçmişi ağsız okuma.
+- `safe`, `extended`, `full` ve `custom` port profilleri; 10–3600 saniye, 1–1000 paket/sn, 0–3 yeniden deneme, 1–16 hedef ve 1–1.000.000 yaklaşık probe bütçesini ağdan önce doğrulama.
+- 1024 porttan geniş ve çok hedefli plan için ayrı açık onay; CIDR/aralık/hostname, ham Nmap argümanı, UDP, SYN/root, NSE, sürüm/OS/banner toplamayı reddetme.
+- Her kesin IP'yi güncel A/AAAA cevabına sabitleme; araç uyumsuzluğu, DNS engeli, süreç hatası veya süre aşımında port durumu iddiası üretmeme.
+- XML'i 16 MiB ile sınırlayıp hedef/protokol/sayaç bütünlüğünü doğrulama; ham XML yerine SHA-256, durum toplamları, sınırlı açık port ayrıntısı, plan ve bütün işletim sınırlarını saklama.
+- Nmap kanıtını ayrı `surface_nmap_checks` tablosunda tutma; mevcut hafif servis, teknoloji, CVE, görünüm ve alarm anlamını otomatik değiştirmeme; şema 69→70 geçişinde yedek ve boş başlangıç.
+- `surface nmap targets save/list/show/revoke` ile yetkili genel IP/CIDR
+  kapsamını, kapsam içi hariç tutmaları, gerçek hedef sayısı/hash'i ve tam
+  yaşam döngüsü geçmişini ağ çalıştırmadan yönetme.
+- `surface nmap plans create/list/show` ile hedef sürümü, TCP portları, süre,
+  hız, retry, gecikme, paralellik, host grubu, hedef ve probe bütçesini
+  değiştirilemez/idempotent dry-run planında dondurma.
+- Özel/yerel/ayrılmış adres içeren veya 4096 adresi aşan kapsamı; kapsam dışı
+  ya da tüm hedefi kaldıran hariç tutmayı; onaysız geniş hedef/port planını
+  reddetme. Şema 70→71 geçişinde önce yedek alıp yeni yönetim tablolarını boş
+  başlatma; eski Nmap kanıtından yetki veya plan uydurmama.
 - `surface overview KÖK` ile kayıtlı kökü, pasif alt alan adı adaylarını, son DNS/IP/TLS sertifikasını, MX ve açık TCP kanıtını tek terminal/JSON görünümünde birleştirme.
 - Alt alan adı, IP, sertifika kapsamı ve posta sunucusu ilişkilerini dayandıkları kanıt türü, kimliği ve zamanıyla açıklama.
 - Aktif kapsam, son pasif keşif ve aday durum toplamlarını aynı SQLite okuma anlık görüntüsünden gösterme; aday örneğini 1–100 arasında sınırlama.
@@ -1945,6 +2055,16 @@ Hedef kontrolü Google Public DNS ve tek genel IP üzerinde HTTPS HEAD ile sın�
 `surface mail check` yalnız kullanıcı komutuyla kök MX/SPF/DMARC görünümünü alır. DKIM seçici keşfi, MTA-STS/TLS-RPT, SMTP/TLS teslim deneyi, DMARC toplu raporu, e-posta gönderimi veya arka plan zamanlaması yoktur. Kayıt varlığı/yokluğu ya da değişimi güvenlik, teslimat, sahiplik veya yanlış yapılandırma hükmü değildir. Google Public DNS harici kamu hizmetidir; erişilebilirliği ve koşulları platform tarafından garanti edilmez.
 
 `surface services check` yalnız sabit 10 TCP portuna ve tek açıkça belirtilen genel IP'ye bağlantı dener. Banner, ürün/sürüm doğrulaması, UDP, serbest port aralığı, bütün DNS IP'leri, CVE eşleştirmesi veya zafiyet taraması yoktur. DNS eşleşmesi ve kullanıcı gerekçesi teknik IP sahiplik kanıtı değildir. Açık port yalnız o andaki TCP bağlantı kanıtıdır; “kapalı” başka IP'leri, UDP'yi veya daha sonraki zamanı kapsamaz.
+
+`surface nmap check` seçilebilir TCP port kapsamını destekler fakat yalnız açıkça verilen, güncel DNS'te doğrulanan en fazla 16 kesin genel IP'yi sırayla işler. `max-rate` kesin byte/paket kotası değil Nmap gönderim hızı tavanıdır; işletim sistemi TCP paketleri ve ağ yeniden iletimleri bu yaklaşık plan bütçesinin birebir karşılığı değildir. Nmap sistem paketi ayrıca kurulmalıdır; XTI yalnız 7.x uyumluluğunu doğrular. Tam port profili ayrıca onay ister ve uzun sürebilir. UDP, masscan, banner, `-sV`, NSE, OS/parola/zafiyet taraması uygulanmadı. Nmap geçmişi dış yüzey görünümü, teknoloji ipucu, değişiklik bildirimi veya vaka kanıtına henüz otomatik bağlanmaz.
+
+`surface nmap targets` ve `surface nmap plans`, kurumsal geniş çalışmanın
+yetkili hedef ve değiştirilemez dry-run temelidir; bu komutlar hedef ağına
+çıkmaz. Plan kaydı “tarama tamamlandı” anlamına gelmez. Geniş plan için
+kalıcı kuyruk/worker, ilerleme, iptal, kesinti kurtarması ve hedef başına
+sonuç henüz uygulanmadığından `plans run` komutu yoktur. Planın hedef sürümü
+sonradan güncellense de eski plan değişmez; çalıştırma açıldığında yeni plan
+gerektiren politika ayrıca doğrulanacaktır.
 
 `surface technologies` yalnız son servis kanıtındaki açık TCP portlarını yaygın kullanım ipucu olarak gösterir. Üretici, ürün, sürüm, CPE veya paket bilgisi doğrulamaz; hiçbir ipucu CVE maruziyeti oluşturmaz. Kapalı/belirsiz port teknoloji yokluğu, güncel ipucu da ürünün hâlâ aynı olduğu anlamına gelmez.
 

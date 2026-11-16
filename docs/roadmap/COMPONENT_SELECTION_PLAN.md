@@ -1,7 +1,16 @@
-# XTI — Açık kaynak bileşen seçim planı
+# XTI — Kapalı kaynak motor için bileşen seçim planı
 
-**Tarih:** 16 Kasım 2026. **Uygulama:** 0.146.0 / şema 69.
+**Tarih:** 16 Kasım 2026. **Uygulama:** 0.150.0 / şema 72.
 **Durum:** Uygulanan bileşenler ile araştırmaya dayalı plan tercihleri ayrı gösterilir.
+**Ürün yönü:** Kendi platformumuzun kapalı kaynak motoru geliştiriliyor.
+Üçüncü taraf kod/veri kendi lisansında kalır. Güncel motor genişleme
+sırası [MTR-00–08 planındadır](ENGINE_INTEGRATION_ROADMAP.md).
+
+**İlk işletim modeli:** Kullanıcı yalnız kendi sunucularımızda hizmet
+sunmayı seçti. Bileşenler bu ticari hizmet ve müşteriye sonuç sunma
+biçimiyle değerlendirilecek. Müşteriye kurulum paketi dağıtımı ilk teslim
+işi değildir; bu karar mevcut lisans incelemelerini tamamlanmış saymaz.
+
 Mevcut üç aracın ortak kimliği ve yerel kurulum kataloğu 0.140.0'da
 [uygulandı](../COMPONENTS.md). 0.143.0 haber modülü feedparser 6.0.14 ve
 feedparser-sgmllib 2.1.0 kullanır; mevcut üç aracın sürümleri korunur.
@@ -32,6 +41,52 @@ Yeni yayıncılar ölçülmüş katkıyla seçilir. Entegrasyon teslim
 hazırlığı ile geniş paylaşım/LLM en sona kalır.
 .NET adaptörü ve platform PostgreSQL yerleşimi/veri geçişi repoyu
 kullanan ekibe aittir; bu repo sözleşme, örnek ve belge sağlar.
+
+## 0. Ticari ürün için seçim ve yeniden kullanım
+
+Bu bölüm 16 Kasım kullanıcı netleştirmesidir. İlk yeni paket mevcut XTI
+kanıt/ilişki servislerini tekrar kullanır. Her yeni yetenek için önce
+uygun kütüphane veya dar veri kaynağı değerlendirilir; bütün bir platformun
+veritabanı, worker ve arayüzünü taşımak ön koşul yapılmaz.
+
+| Bileşen | Motor içindeki iş | Karar / ticari kullanımda incelenecek koşul |
+|---|---|---|
+| Mevcut XTI CTI bağlamı, varlık ilişkileri ve birleşik analiz | İlk domain/IP ilişkili kanıt sorgusu | MTR-01/02'nin ilk tesliminde tekrar kullanılacak; aynı servisler yeniden yazılmayacak |
+| Sherlock / Maigret | İncelenmiş kullanıcı adı kaynakları | Mevcut pin/adaptör korunur. MIT lisans bildirimleri, geçişli paketler ve sorgulanan sitelerin koşulları ayrı izlenir |
+| feedparser / feedparser-sgmllib | RSS/Atom ayrıştırma | Mevcut BSD-2-Clause / PSF-2.0 paketleri korunur; yayıncı içeriğinin ticari sunum hakkı paket lisansından çıkarılmaz |
+| Nmap | Yönetilen port/servis kanıtı | Mevcut teknik entegrasyon var. NPSL/OEM nedeniyle kapalı ürün kullanımı ve dağıtımı MTR-00'da netleştirilecek; ayrı süreç veya kullanıcıya kurdurma otomatik muafiyet değildir |
+| theHarvester | Mevcut Common Crawl / Wayback adaptörü | Sabit sürüm GPL-2.0-only olarak kayıtlı. Ürüne dağıtım/entegrasyon şekli ayrıca incelenecek; kaynak kodunu kapalı çekirdeğe kopyalama varsayılan değildir |
+| **MISP warninglists** | Paylaşımlı altyapı / yaygın servis bağlamıyla yanlış alarm incelemesine yardım | MTR-03'ün ilk yeni veri adayı. Depo genel beyanı CC0-1.0; listeye/üst kaynağa özgü bildirimler korunacak. MISP sunucusu gerekmez; commit, liste seçimi, kapsam ve snapshot kabulü henüz yapılmadı |
+| **RapidFuzz** | Alternatif ad / benzer başlık adaylarını sıralama | MIT; MTR-02 kimlik incelemesi için ölçümlü aday. Kimlik eşitliği veya otomatik birleştirme kararı vermez; şu an kurulu değildir |
+| **NetworkX** | Gerçek ihtiyaç oluşursa sınırlı çok adımlı ilişki algoritmaları | BSD-3-Clause; MTR-02 deney adayı. Graph veritabanı değildir. Python 3.11 desteğini bozacak sürüm seçilmez; ilk dar sorgu için zorunlu değildir |
+| **Trafilatura** | İzinli rapor/HTML içinden metin çıkarma | Apache-2.0; MTR-03'te içerik ihtiyacı varsa aday. Site erişimi, metnin saklanması/paylaşılması ve telif hakları ayrıca incelenir; genel crawler otomatik açılmaz |
+| **stix2** | Standart nesne ve ilişki içe/dışa aktarımı | BSD-3-Clause; MTR-07'ye ertelenmiş aday. Ayrıştırıcı, paylaşım hakkını veya iddia doğruluğunu sağlamaz |
+| OpenCTI / IntelOwl | Karşılaştırma ve gerekirse ayrı sağlayıcı deneyi | Zorunlu bağımlılık veya topluca kopyalanacak kod değildir. OpenCTI CE/EE ayrımı korunur; bir connector'ın OpenCTI SDK/kuyruk/STIX bağımlılığı bizim adaptörümüze kendiliğinden uymaz |
+
+Kütüphane ve veri projesi adayları için resmî dayanaklar:
+[MISP warninglists ve liste lisansları](https://github.com/MISP/misp-warninglists#license),
+[RapidFuzz lisansı](https://raw.githubusercontent.com/rapidfuzz/RapidFuzz/main/LICENSE),
+[NetworkX lisansı](https://raw.githubusercontent.com/networkx/networkx/main/LICENSE.txt),
+[Trafilatura lisansı](https://raw.githubusercontent.com/adbar/trafilatura/master/LICENSE),
+[stix2 lisansı](https://raw.githubusercontent.com/oasis-open/cti-python-stix2/master/LICENSE).
+Bunlar 16 Kasım 2026 araştırma bağlantılarıdır; hareketli upstream dalı
+kurulum pin'i değildir. Kesin sürüm/commit, transitif paketler ve bütünlük
+değerleri seçim sırasında ayrıca kaydedilecek; bugün yeni paket kurulmadı.
+
+Nmap için [NPSL](https://nmap.org/npsl/) ve [OEM](https://nmap.org/oem/),
+mevcut theHarvester pin'i için [üçüncü taraf kaydı](../../THIRD_PARTY.md),
+OpenCTI için [CE/EE ayrımı](https://docs.opencti.io/latest/administration/enterprise/)
+esas alınır. Kaynak kodunun erişilebilir olması, her lisansın kapalı
+üründe aynı biçimde kullanılabileceği anlamına gelmez. Bu tablo sürüm ve
+dağıtım biçimi incelenmeden verilmiş nihai lisans uygunluğu kararı değildir.
+
+Bir bileşen/kaynak kartı en az şu bilgileri tutacak: çözdüğü kullanıcı işi,
+pin ve bakım kaynağı, lisans/telif/NOTICE, geçişli bağımlılıklar, uygulama
+ile iletişim sınırı, gönderilen/saklanan veri, ticari yeniden sunum hakkı,
+firma bazlı anahtar ve kota, hata/kesinti davranışı, Linux kabulü ve
+güncellemeden geri dönüş. Kaynak hakkı firma bazındaysa ortak müşteri
+önbelleği kendiliğinden açılmayacak. Ücretli kaynak ilk kurulumun zorunlu
+bağımlılığı olmayacak; ürün kodu ile üçüncü taraf bildirimleri ayrı tutulacak.
 
 ## 1. Net seçimler
 

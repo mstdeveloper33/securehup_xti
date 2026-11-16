@@ -20,6 +20,8 @@ from xti.adapters.mentions_schema import MENTIONS_DDL
 from xti.adapters import mentions_schema_metadata
 from xti.adapters.mention_group_schema import MENTION_GROUP_DDL
 from xti.adapters import mention_group_schema_metadata
+from xti.adapters import nmap_management_schema as nmap_management_schema_metadata
+from xti.adapters import nmap_jobs_schema
 from xti.adapters.collection_public_notice_schema import (
     COLLECTION_HISTORY_V60_DDL,
     COLLECTION_RECEIPT_V60_COLUMNS, migrate_collection_public_notice_schema,
@@ -31,7 +33,8 @@ from xti.adapters.collection_news_schema import (
 )
 
 
-SCHEMA_VERSION = 69
+SCHEMA_VERSION = 72
+NMAP_MANAGEMENT_DDL = nmap_management_schema_metadata.NMAP_MANAGEMENT_DDL
 
 ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
 APPLICATION_ID = 0x58544901
@@ -469,6 +472,16 @@ SURFACE_SERVICE_DDL = (
     "authorization_reason TEXT NOT NULL, result TEXT NOT NULL, "
     "state_sha256 TEXT NOT NULL, change TEXT NOT NULL, recorded_at TEXT NOT NULL)",
     "CREATE INDEX surface_service_checks_asset_id ON surface_service_checks(asset_id)",
+)
+
+SURFACE_NMAP_DDL = (
+    "CREATE TABLE surface_nmap_checks ("
+    "id TEXT PRIMARY KEY NOT NULL, execution_id TEXT NOT NULL, "
+    "asset_id TEXT NOT NULL REFERENCES surface_scopes(asset_id) ON DELETE RESTRICT, "
+    "authorization_reason TEXT NOT NULL, result TEXT NOT NULL, "
+    "state_sha256 TEXT NOT NULL, recorded_at TEXT NOT NULL)",
+    "CREATE INDEX surface_nmap_checks_asset_id ON surface_nmap_checks(asset_id)",
+    "CREATE INDEX surface_nmap_checks_execution_id ON surface_nmap_checks(execution_id)",
 )
 
 SURFACE_CNAME_DDL = (
@@ -1382,6 +1395,8 @@ TABLES = {
     **news_schema_metadata.TABLES,
     **mentions_schema_metadata.TABLES,
     **mention_group_schema_metadata.TABLES,
+    **nmap_management_schema_metadata.TABLES,
+    **nmap_jobs_schema.TABLES,
     'public_notice_watches': [('id', 'TEXT', 1, 1), ('organization_id', 'TEXT', 1, 0), ('active', 'INTEGER', 1, 0), ('revision', 'INTEGER', 1, 0), ('created_at', 'TEXT', 1, 0), ('updated_at', 'TEXT', 1, 0)],
     'public_notice_watch_events': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('watch_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('action', 'TEXT', 1, 0), ('revision', 'INTEGER', 1, 0), ('reason', 'TEXT', 1, 0), ('recorded_at', 'TEXT', 1, 0)],
     'public_notice_watch_runs': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('watch_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('source_run_id', 'TEXT', 1, 0), ('watch_event_id', 'TEXT', 1, 0), ('previous_run_id', 'TEXT', 0, 0), ('recorded_at', 'TEXT', 1, 0), ('scope_json', 'TEXT', 1, 0), ('scope_sha256', 'TEXT', 1, 0), ('result_sha256', 'TEXT', 1, 0), ('matched_count', 'INTEGER', 1, 0), ('baseline_count', 'INTEGER', 1, 0), ('added_count', 'INTEGER', 1, 0), ('updated_count', 'INTEGER', 1, 0), ('removed_count', 'INTEGER', 1, 0), ('unchanged_count', 'INTEGER', 1, 0)],
@@ -1634,6 +1649,12 @@ TABLES = {
         ("authorization_reason", "TEXT", 1, 0), ("result", "TEXT", 1, 0),
         ("state_sha256", "TEXT", 1, 0), ("change", "TEXT", 1, 0),
         ("recorded_at", "TEXT", 1, 0),
+    ],
+    "surface_nmap_checks": [
+        ("id", "TEXT", 1, 1), ("execution_id", "TEXT", 1, 0),
+        ("asset_id", "TEXT", 1, 0),
+        ("authorization_reason", "TEXT", 1, 0), ("result", "TEXT", 1, 0),
+        ("state_sha256", "TEXT", 1, 0), ("recorded_at", "TEXT", 1, 0),
     ],
     "surface_cname_checks": [
         ("id", "TEXT", 1, 1), ("asset_id", "TEXT", 1, 0),
@@ -2257,6 +2278,8 @@ UNIQUE_KEYS = {
     **news_schema_metadata.UNIQUE_KEYS,
     **mentions_schema_metadata.UNIQUE_KEYS,
     **mention_group_schema_metadata.UNIQUE_KEYS,
+    **nmap_management_schema_metadata.UNIQUE_KEYS,
+    **nmap_jobs_schema.UNIQUE_KEYS,
     'public_notice_watches': {('organization_id',), ('id',)},
     'public_notice_watch_events': {('id',), ('watch_id', 'revision')},
     'public_notice_watch_runs': {('id',), ('watch_id', 'source_run_id')},
@@ -2318,6 +2341,7 @@ UNIQUE_KEYS = {
     "surface_candidate_notifications": {("id",), ("candidate_id",)},
     "surface_mail_checks": {("id",)},
     "surface_service_checks": {("id",)},
+    "surface_nmap_checks": {("id",)},
     "surface_cname_checks": {("id",)},
     "surface_change_notifications": {
         ("id",), ("surface_check_id",), ("mail_check_id",), ("service_check_id",),
@@ -2436,6 +2460,7 @@ INDEXES = {
     **news_schema_metadata.INDEXES,
     **mentions_schema_metadata.INDEXES,
     **mention_group_schema_metadata.INDEXES,
+    **nmap_management_schema_metadata.INDEXES,
     'public_notice_watches_active_organization': ('public_notice_watches', ('active', 'organization_id')),
     'public_notice_watch_events_watch_sequence': ('public_notice_watch_events', ('watch_id', 'sequence')),
     'public_notice_watch_runs_watch_sequence': ('public_notice_watch_runs', ('watch_id', 'sequence')),
@@ -2522,6 +2547,8 @@ INDEXES = {
     ),
     "surface_mail_checks_asset_id": ("surface_mail_checks", ("asset_id",)),
     "surface_service_checks_asset_id": ("surface_service_checks", ("asset_id",)),
+    "surface_nmap_checks_asset_id": ("surface_nmap_checks", ("asset_id",)),
+    "surface_nmap_checks_execution_id": ("surface_nmap_checks", ("execution_id",)),
     "surface_cname_checks_asset_id": ("surface_cname_checks", ("asset_id",)),
     "surface_change_notifications_read_sequence": (
         "surface_change_notifications", ("read_at", "sequence"),
@@ -2729,6 +2756,8 @@ FOREIGN_KEYS = {
     **news_schema_metadata.FOREIGN_KEYS,
     **mentions_schema_metadata.FOREIGN_KEYS,
     **mention_group_schema_metadata.FOREIGN_KEYS,
+    **nmap_management_schema_metadata.FOREIGN_KEYS,
+    **nmap_jobs_schema.FOREIGN_KEYS,
     'public_notice_watches': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT')},
     'public_notice_watch_events': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watches', 'watch_id', 'id', 'NO ACTION', 'RESTRICT')},
     'public_notice_watch_runs': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watches', 'watch_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watch_events', 'watch_event_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watch_runs', 'previous_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_runs', 'source_run_id', 'id', 'NO ACTION', 'RESTRICT')},
@@ -2831,6 +2860,9 @@ FOREIGN_KEYS = {
         ("surface_scopes", "asset_id", "asset_id", "NO ACTION", "RESTRICT"),
     },
     "surface_service_checks": {
+        ("surface_scopes", "asset_id", "asset_id", "NO ACTION", "RESTRICT"),
+    },
+    "surface_nmap_checks": {
         ("surface_scopes", "asset_id", "asset_id", "NO ACTION", "RESTRICT"),
     },
     "surface_cname_checks": {
@@ -3268,7 +3300,19 @@ VERSION_TABLES = {
     67: frozenset(TABLES),
     68: frozenset(TABLES),
     69: frozenset(TABLES),
+    70: frozenset(TABLES),
+    71: frozenset(TABLES),
+    72: frozenset(TABLES),
 }
+
+for _legacy_version in range(1, 72):
+    VERSION_TABLES[_legacy_version] -= nmap_jobs_schema.TABLES.keys()
+
+for _legacy_version in range(1, 71):
+    VERSION_TABLES[_legacy_version] -= nmap_management_schema_metadata.TABLES.keys()
+
+for _legacy_version in range(1, 70):
+    VERSION_TABLES[_legacy_version] -= {"surface_nmap_checks"}
 
 for _legacy_version in range(1, 68):
     VERSION_TABLES[_legacy_version] -= {*mention_group_schema_metadata.TABLES, "mention_notification_operations"}
@@ -3679,6 +3723,83 @@ def create_surface_service_schema(connection: sqlite3.Connection) -> None:
         connection.execute(statement)
 
 
+def _validate_staged_surface_nmap_schema(connection: sqlite3.Connection) -> None:
+    """Accept only a complete, exact and empty staged v70 Nmap layout."""
+    names = (
+        "surface_nmap_checks", "surface_nmap_checks_asset_id",
+        "surface_nmap_checks_execution_id",
+    )
+    existing = set(connection.execute(
+        "SELECT name FROM sqlite_schema WHERE name IN (?, ?, ?)", names,
+    ).fetchall())
+    if existing != {(name,) for name in names}:
+        raise SchemaError("Nmap kontrol kayıt düzeni eksik veya beklenmeyen biçimde.")
+    for name, statement in zip(names, SURFACE_NMAP_DDL):
+        object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+        declaration = connection.execute(
+            "SELECT sql FROM sqlite_schema WHERE name = ? AND type = ?", (name, object_type),
+        ).fetchone()
+        if declaration is None or " ".join(declaration[0].split()) != " ".join(statement.split()):
+            raise SchemaError("Nmap kontrol kayıt düzeni beklenen biçimde değil.")
+    if connection.execute("SELECT COUNT(*) FROM surface_nmap_checks").fetchone()[0] != 0:
+        raise SchemaError("Eski şema sürümünde Nmap kanıtı bulunamaz.")
+
+
+def create_surface_nmap_schema(connection: sqlite3.Connection) -> None:
+    """Create separately stored, bounded Nmap TCP evidence."""
+    existing = connection.execute(
+        "SELECT 1 FROM sqlite_schema WHERE name LIKE 'surface_nmap_checks%' LIMIT 1"
+    ).fetchone()
+    if existing is not None:
+        _validate_staged_surface_nmap_schema(connection)
+        return
+    for statement in SURFACE_NMAP_DDL:
+        connection.execute(statement)
+
+
+def _validate_staged_nmap_management_schema(connection: sqlite3.Connection) -> None:
+    """Accept only the complete, exact and empty staged v71 management layout."""
+    expected = {
+        (
+            statement.split()[2],
+            "index" if statement.startswith("CREATE INDEX") else "table",
+        )
+        for statement in NMAP_MANAGEMENT_DDL
+    }
+    names = tuple(name for name, _object_type in expected)
+    placeholders = ",".join("?" for _name in names)
+    actual = set(connection.execute(
+        f"SELECT name, type FROM sqlite_schema WHERE name IN ({placeholders})", names,
+    ).fetchall())
+    if actual != expected:
+        raise SchemaError("Yönetilen Nmap kayıt düzeni eksik veya beklenmeyen biçimde.")
+    for statement in NMAP_MANAGEMENT_DDL:
+        name = statement.split()[2]
+        object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+        declaration = connection.execute(
+            "SELECT sql FROM sqlite_schema WHERE name=? AND type=?", (name, object_type),
+        ).fetchone()
+        if declaration is None or " ".join(declaration[0].split()) != " ".join(statement.split()):
+            raise SchemaError("Yönetilen Nmap kayıt düzeni beklenen biçimde değil.")
+    for table_name in nmap_management_schema_metadata.TABLES:
+        if connection.execute(f'SELECT COUNT(*) FROM "{table_name}"').fetchone()[0] != 0:
+            raise SchemaError("Eski şema sürümünde yönetilen Nmap kaydı bulunamaz.")
+
+
+def create_nmap_management_schema(connection: sqlite3.Connection) -> None:
+    """Create versioned target scopes and immutable managed Nmap plans."""
+    names = tuple(nmap_management_schema_metadata.TABLES)
+    placeholders = ",".join("?" for _name in names)
+    existing = connection.execute(
+        f"SELECT 1 FROM sqlite_schema WHERE name IN ({placeholders}) LIMIT 1", names,
+    ).fetchone()
+    if existing is not None:
+        _validate_staged_nmap_management_schema(connection)
+        return
+    for statement in NMAP_MANAGEMENT_DDL:
+        connection.execute(statement)
+
+
 def create_surface_cname_schema(connection: sqlite3.Connection) -> None:
     """Create approved exact-domain append-only CNAME evidence."""
     for statement in SURFACE_CNAME_DDL:
@@ -3964,6 +4085,31 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
     objects = set(connection.execute(
         "SELECT name, type FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'"
     ).fetchall())
+    if version < 70 and any(
+        name.startswith("surface_nmap_checks") for name, _object_type in objects
+    ):
+        _validate_staged_surface_nmap_schema(connection)
+        objects -= {
+            ("surface_nmap_checks", "table"),
+            ("surface_nmap_checks_asset_id", "index"),
+            ("surface_nmap_checks_execution_id", "index"),
+        }
+    managed_nmap_objects = {
+        (
+            statement.split()[2],
+            "index" if statement.startswith("CREATE INDEX") else "table",
+        )
+        for statement in NMAP_MANAGEMENT_DDL
+    }
+    if version < 71 and objects.intersection(managed_nmap_objects):
+        _validate_staged_nmap_management_schema(connection)
+        objects -= managed_nmap_objects
+    job_objects = {(name, "table") for name in nmap_jobs_schema.TABLES}
+    if version < 72 and objects.intersection(job_objects):
+        nmap_jobs_schema.validate(connection, empty=True)
+        objects -= job_objects
+    if version >= 72:
+        nmap_jobs_schema.validate(connection)
     expected = {(name, "table") for name in tables} | {(name, "index") for name in indexes}
     if objects != expected:
         raise SchemaError("Veritabanının kayıt düzeni beklenen biçimde değil.")
@@ -4345,6 +4491,33 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             ).fetchone()[0]
             if " ".join(declaration.split()) != " ".join(statement.split()):
                 raise SchemaError("Servis kontrol kayıt düzeni beklenen biçimde değil.")
+    if "surface_nmap_checks" in tables:
+        for name, statement in zip(
+            (
+                "surface_nmap_checks", "surface_nmap_checks_asset_id",
+                "surface_nmap_checks_execution_id",
+            ),
+            SURFACE_NMAP_DDL,
+        ):
+            object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+            declaration = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE name = ? AND type = ?", (name, object_type),
+            ).fetchone()[0]
+            if " ".join(declaration.split()) != " ".join(statement.split()):
+                raise SchemaError("Nmap kontrol kayıt düzeni beklenen biçimde değil.")
+    if "surface_nmap_target_scopes" in tables:
+        for statement in NMAP_MANAGEMENT_DDL:
+            name = statement.split()[2]
+            object_type = "index" if statement.startswith("CREATE INDEX") else "table"
+            declaration = connection.execute(
+                "SELECT sql FROM sqlite_schema WHERE name = ? AND type = ?",
+                (name, object_type),
+            ).fetchone()
+            if (
+                declaration is None
+                or " ".join(declaration[0].split()) != " ".join(statement.split())
+            ):
+                raise SchemaError("Yönetilen Nmap kayıt düzeni beklenen biçimde değil.")
     if "surface_cname_checks" in tables:
         for name, statement in zip(
             ("surface_cname_checks", "surface_cname_checks_asset_id"),

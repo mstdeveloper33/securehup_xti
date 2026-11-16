@@ -1,8 +1,20 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.147.1 · **Tarih:** 16 Kasım 2026 · **Çekirdek şema:** 69.
+**Sürüm:** 0.150.0 · **Tarih:** 16 Kasım 2026 · **Çekirdek şema:** 72.
 
-0.147.1, canlı DNS kullanımında görülen TXT biçimi hatasını düzeltir.
+**Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
+İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
+müşteri sunucusuna kurulum ilk sürümün kapsamına alınmamıştır.
+Lisans ve veri kullanım koşulları uygun hazır bileşenlerden yararlanılır.
+Ortak istihbarat, ilişki araştırması ve kaynak kapsamı için sonraki işler
+[motor geliştirme planında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md)
+kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
+
+0.150.0, yetkili IP/CIDR Nmap planlarını kalıcı kuyruk, hedef başına kanıt,
+iptal ve kesinti kurtarmasıyla çalıştırır. TCP connect/SYN/UDP,
+servis/sürüm, OS tahmini ve seçilmiş NSE kontrolleri tipli seçeneklerdir.
+Terminal ve firma kapsamlı platform JSON girişi aynı motoru kullanır.
+SYN/UDP/OS yetkili çalıştırıcı ister. [Kullanım ve sınırlar](docs/NMAP_MANAGED.md).
 Tavily dışındaki gerçek kaynak ve yerel kullanım sonuçları, başarısız
 arşiv erişimleri dahil, [kullanım kabulünde](docs/FUNCTIONAL_ACCEPTANCE.md)
 ayrı gösterilir.
@@ -1731,6 +1743,107 @@ Program önce yazdığın IP'nin o anda `markam.com` DNS cevabında bulunduğunu
 Sonuçlar `Açık`, `Kapalı` veya `Belirsiz` olur. Belirsiz sonuç kapalı sayılmaz. Port yanındaki “SSH adayı” veya “HTTPS adayı” ifadesi yalnız yaygın port kullanımını anlatır; o ürünün gerçekten çalıştığını kanıtlamaz. Açık port da zafiyet, saldırı veya sahiplik kararı değildir.
 
 Her kontrol önceki kanıtı silmeden kaydedilir. Sonraki çalışmada port durumu değişirse önceki ve yeni durum gösterilir. `surface services show` internete bağlanmaz. Kontrol ücretli API, nmap, masscan veya ek Python paketi kullanmaz; Python'un sınırlı ağ bağlantısıyla çalışır.
+
+## Yetkili sunucularda ayarlanabilir Nmap TCP kanıtı
+
+Daha geniş veya özel bir TCP port kapsamı gerektiğinde Nmap ayrı bir aktif
+kanıt sağlayıcısıdır. Önce işletim sistemi aracını tek komutla kurup doğrula:
+
+```sh
+./scripts/setup-nmap
+./xti surface nmap readiness
+```
+
+macOS'ta Homebrew, Linux'ta desteklenen sistem paket yöneticisi kullanılır.
+Nmap repoya kopyalanmaz; Python bağımlılığı değildir. XTI yalnız doğrulanmış
+Nmap 7.x ailesini, `-sT -Pn -n --unprivileged` profilinde çalıştırır.
+
+Varsayılan güvenli profil mevcut 10 TCP portunu Nmap ile kontrol eder:
+
+```sh
+./xti surface nmap check markam.com \
+  --address 93.184.216.34 \
+  --reason "Yönettiğim kurumsal sunucunun kesin genel IP adresi"
+
+./xti surface nmap show markam.com
+```
+
+Süre ve trafik temposu özelleştirilebilir:
+
+```sh
+./xti surface nmap check markam.com \
+  --address 93.184.216.34 \
+  --reason "Yönettiğim kurumsal sunucu" \
+  --profile custom --ports 22,80,443,8000-8100 \
+  --timeout-seconds 180 --max-rate 40 --max-retries 1 \
+  --target-limit 1 --max-probes 500
+```
+
+Profiller `safe`, `extended` (`1-1024`), `full` (`1-65535`) ve `custom`dır.
+1024 porttan geniş kapsam ayrıca `--confirm-wide-scan` ister. Birden fazla
+kesin IP, tekrarlanan `--address` ile verilir; `--target-limit` yanında
+`--confirm-multi-target` da zorunludur. En fazla 16 IP kabul edilir. CIDR,
+IP aralığı, hostname hedefi ve ham Nmap argümanı bu doğrudan `check` komutunda
+kabul edilmez.
+
+`--max-rate` Nmap'in paket/saniye tavanıdır; kesin byte kotası değildir.
+`--max-probes`, `port × hedef × (yeniden deneme + 1)` planının kabul sınırıdır.
+Her hedef yine güncel domain DNS cevabında bulunmalı ve bütün DNS adresleri
+genel IP olmalıdır. Plan ve kullanılan bütün sınırlar sonuçla birlikte
+eklemeli kaydedilir.
+
+Bu katman UDP, SYN/root taraması, NSE, `-sV`, banner, işletim sistemi keşfi,
+ürün/sürüm veya CVE sonucu üretmez. Nmap kanıtı mevcut hafif servis
+kanıtından ayrı tutulur; `surface overview`, teknoloji ipuçları ve alarm
+mantığına kendiliğinden karışmaz. Açık port yalnız o andaki TCP
+erişilebilirliğidir.
+
+Kurumsal kullanıma hazırlanacak adlandırılmış IP/CIDR kapsamını ve bütün
+sınırları ağ bağlantısı kurmadan kaydetmek için:
+
+```sh
+./xti surface nmap targets save markam.com production \
+  --network "YETKILI_GENEL_IP_VEYA_CIDR" \
+  --reason "Yönettiğimiz kurumsal genel IP aralığı"
+
+./xti surface nmap targets show markam.com production
+
+./xti surface nmap plans create markam.com \
+  --target production --profile custom --ports 22,80,443,8000-8100 \
+  --timeout-seconds 180 --max-rate 40 --max-retries 1 \
+  --scan-delay-ms 25 --max-parallelism 16 --max-hostgroup 8 \
+  --max-targets 14 --max-probes 5000
+
+./xti surface nmap plans list markam.com
+```
+
+`targets save` yalnız kanonik kesin genel IP veya en fazla 4096 adreslik
+genel CIDR kabul eder. Kapsamdaki her adres doğrulanır; özel/yerel/ayrılmış
+adres içeren bütün aralık reddedilir. Hariç tutmalar ana kapsam içinde olmalı
+ve kapsamın tamamını kaldıramaz. Hedef güncellemeleri ve geri çekmeleri
+eklemeli geçmişte kalır.
+
+`plans create` hedef kapsamının o anki sürümünü, gerçek hedef sayısını,
+portları ve tüm işletim sınırlarını SHA-256 kimlikli değiştirilemez bir
+dry-run kaydında dondurur; Nmap çalıştırmaz. 16'dan fazla hedef ayrıca
+`--confirm-range-scan`, 1024'ten fazla port `--confirm-wide-scan` ister.
+`YETKILI_GENEL_IP_VEYA_CIDR` yer tutucusunu kendi yetkili adresinle değiştir.
+Eski `surface nmap check` küçük ve DNS'e sabit kesin-IP kontrolleri içindir.
+Yönetilen planı çalıştırmak için:
+
+```sh
+./xti surface nmap jobs submit markam.com PLAN_KIMLIGI --request-key kontrol-001
+./xti surface nmap jobs worker markam.com IS_KIMLIGI
+./xti surface nmap jobs show markam.com IS_KIMLIGI
+./xti surface nmap jobs cancel markam.com IS_KIMLIGI
+```
+
+`plans create` ayrıca `--scan-type tcp_connect|tcp_syn|udp`,
+`--service-detection`, `--version-intensity`, `--os-detection`,
+`--script`, `--script-timeout-seconds`, `--max-duration-seconds` alır.
+UDP açık custom port seçimi ister. `./xti --json surface nmap capabilities`
+arayüzün okuyabileceği seçenek kataloğudur.
+[Gelişmiş kullanım, sonuç anlamı ve kurtarma](docs/NMAP_MANAGED.md).
 
 ## Seçili dış yüzey kontrollerini terminal açıkken tekrarla
 

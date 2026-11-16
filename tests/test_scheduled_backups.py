@@ -102,7 +102,7 @@ class ScheduledBackupTests(unittest.TestCase):
         self.assertEqual(outside.read_bytes(), original)
 
     def test_foreign_entries_preserved_but_reserved_unreceipted_backup_fails_closed(self):
-        self.repository.directory.mkdir()
+        self.repository.directory.mkdir(mode=0o700)
         foreign = self.repository.directory / "notes.txt"; foreign.write_text("keep me")
         report = self.backup(keep=1)
         self.assertTrue(any("notes.txt" in warning for warning in report.warnings))

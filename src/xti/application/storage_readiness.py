@@ -84,15 +84,24 @@ class StorageReadinessService:
         retention_status = (
             "attention" if cleanup.eligible_count or cleanup.invalid_time_count else "clear"
         )
+        permissions = snapshot.directory_permissions
+        permission_status = (
+            "attention" if any(item.status not in {"private", "missing", "unknown"}
+                               for item in permissions)
+            else "unknown" if not permissions or any(item.status == "unknown" for item in permissions)
+            else "private"
+        )
         local_recovery_status = (
             "ready" if backup_status == "current" and disk_status == "sufficient"
-            and snapshot.scan_complete else "attention"
+            and snapshot.scan_complete and permission_status == "private" else "attention"
         )
         next_steps = []
         if backup_status in {"missing", "invalid", "stale", "clock_error"}:
             next_steps.append("create_backup")
         if disk_status == "low":
             next_steps.append("free_disk_space")
+        if permission_status != "private":
+            next_steps.append("review_directory_permissions")
         if cleanup.eligible_count or cleanup.invalid_time_count:
             next_steps.append("review_retention")
         if snapshot.managed_backup_count:
@@ -128,6 +137,8 @@ class StorageReadinessService:
             local_recovery_status=local_recovery_status,
             off_device_backup_status="unknown",
             restore_test_status="not_recorded",
+            permission_status=permission_status,
+            directory_permissions=permissions,
             next_steps=tuple(next_steps),
             notes=(
                 "Yalnız kayıt klasöründeki backups/*.db dosyaları yönetilen yedek sayılır.",
@@ -135,5 +146,6 @@ class StorageReadinessService:
                 "Yedek bütünlüğü geri yükleme tatbikatının yerine geçmez; tatbikat kaydı tutulmuyor.",
                 "Saklama görünümü önizlemedir; hiçbir kayıt veya yedek otomatik silinmez.",
                 "Bu komut yalnız yerel dosya ve kayıtları okur; internete bağlanmaz ve yazmaz.",
+                "İzin kontrolü bilinen kayıt/yedek klasörlerinin POSIX sahibi ve mod bitleriyle sınırlıdır; üst dizinler ve ACL denetlenmez.",
             ),
         )

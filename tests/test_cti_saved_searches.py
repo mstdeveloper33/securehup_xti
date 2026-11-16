@@ -11,7 +11,9 @@ import unittest
 from unittest.mock import patch
 from uuid import UUID
 
+from xti.adapters.certpl_warning import parse_certpl_warning_response
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.sqlite_cti_feeds import SQLiteCtiFeedRepository
 from xti.adapters.sqlite_cti_indicators import SQLiteCtiIndicatorRepository
 from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_cti_saved_searches import SQLiteCtiSavedSearchRepository
@@ -19,6 +21,7 @@ from xti.application.cti_indicators import CtiIndicatorService
 from xti.application.cti_knowledge import CtiKnowledgeService
 from xti.application.cti_saved_searches import CtiSavedSearchService
 from xti.domain.assets import ValidationError
+from xti.domain.cti_feeds import CERTPL_POLICY
 from xti.interfaces.cli import main
 
 
@@ -165,6 +168,80 @@ class CtiSavedSearchTests(unittest.TestCase):
             with self.assertRaisesRegex(StorageError, "özeti bozuk"):
                 call()
         self.assertEqual(self.path.read_bytes(), corrupt)
+
+    def test_large_unrelated_feed_does_not_disable_watch_add_list_or_runs(self):
+        # Exercise the reported 10,000-record boundary with a complete local feed.
+        # No live source or target is contacted.
+        body = "\n".join((
+            "! Title: CERT.PL's Warning List", "! Version: 202610301100",
+            "! Expires: 1 hours", "! Homepage: https://cert.pl/lista-ostrzezen/",
+            *(f"unrelated-{index}.example.test" for index in range(10_001)), "",
+        )).encode()
+        feed = SQLiteCtiFeedRepository(self.path, CERTPL_POLICY).apply(
+            parse_certpl_warning_response(body, fetched_at=NOW),
+            started_at=NOW.isoformat(), finished_at=NOW.isoformat(),
+        )
+        self.assertEqual(feed.indicator_count, 10_001)
+        actor = self.knowledge.add_entity(
+            "threat-actor", "Acceptance Actor", source_name="fixture",
+            source_reference="local:acceptance", confidence=50,
+            description="Controlled acceptance fixture; not a real actor claim.",
+        )
+        code, output, error = self.call_cli(
+            "cti", "watch-add", "securehup-cti-narrow", "Acceptance Actor",
+            "--kind", "entity", "--entity-type", "threat-actor",
+        )
+        self.assertEqual((code, error), (0, ""))
+        watch_id = json.loads(output)["data"]["saved_search"]["id"]
+        for _ in range(2):
+            code, output, error = self.call_cli("cti", "watch-run", watch_id)
+            self.assertEqual((code, error), (0, ""))
+            result = json.loads(output)["data"]
+            self.assertEqual(result["run"]["total_count"], 1)
+            self.assertEqual(result["items"][0]["record_id"], actor.entity.id)
+        self.assertEqual(result["run"]["unchanged_count"], 1)
+        before = self.path.read_bytes()
+        code, output, error = self.call_cli("cti", "watch-list")
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(len(json.loads(output)["data"]["records"]), 1)
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_watch_count_limit_does_not_limit_unrelated_entity_catalog(self):
+        self.entity("Example One")
+        self.entity("Example Two")
+        with patch("xti.adapters.sqlite_cti_saved_searches._MAX_SEARCHES", 1):
+            watch = self.saved.add("Only watch", "Example", kind="entity")
+            run = self.saved.run(watch.saved_search.id)
+            self.assertEqual(run.run.total_count, 2)
+            self.assertEqual(len(self.saved.list()), 1)
+
+    def test_missing_entity_or_indicator_target_still_fails_closed(self):
+        self.entity()
+        self.indicators.add(
+            "domain", "example.test", source_name="fixture",
+            source_reference="local:indicator", confidence=50,
+            description="Controlled local indicator fixture.",
+        )
+        watch = self.saved.add("Example watch", "Example")
+        run = self.saved.run(watch.saved_search.id)
+        self.assertEqual(run.run.total_count, 2)
+        for item in run.items:
+            with self.subTest(kind=item.kind):
+                with closing(sqlite3.connect(self.path)) as connection, connection:
+                    connection.execute(
+                        "UPDATE cti_saved_search_run_items SET record_id=? WHERE id=?",
+                        ("11111111-1111-4111-8111-111111111111", item.id),
+                    )
+                before = self.path.read_bytes()
+                for call in (self.saved.list, lambda: self.saved.show_run(run.run.id)):
+                    with self.assertRaisesRegex(StorageError, "sonuç hedefi bozuk"):
+                        call()
+                self.assertEqual(self.path.read_bytes(), before)
+                with closing(sqlite3.connect(self.path)) as connection, connection:
+                    connection.execute(
+                        "UPDATE cti_saved_search_run_items SET record_id=? WHERE id=?",
+                        (item.record_id, item.id),
+                    )
 
     def test_failed_item_insert_rolls_back_the_run_header(self):
         watch = self.saved.add("Example watch", "Example")

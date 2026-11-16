@@ -15,6 +15,7 @@ from xti.adapters.sqlite import SQLiteAssetRepository
 from xti.adapters.sqlite_maintenance import SQLiteMaintenanceRepository
 from xti.application.storage_readiness import StorageReadinessService
 from xti.domain.assets import ValidationError
+from xti.interfaces.storage_readiness import report_lines
 
 
 NOW = datetime(2026, 10, 29, 12, tzinfo=timezone.utc)
@@ -69,6 +70,42 @@ class StorageReadinessTests(unittest.TestCase):
         self.assertIn("test_restore", report.next_steps)
         self.assertEqual(self.path.read_bytes(), before_database)
         self.assertEqual(backup.read_bytes(), before_backup)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permissions required")
+    def test_shared_data_and_backup_permissions_are_visible_without_changing_them(self):
+        backup = self.backup()
+        self.root.chmod(0o775)
+        backup.parent.chmod(0o755)
+        before = {path: path.read_bytes() for path in (self.path, backup)}
+        report = self.service.show()
+        self.assertEqual(report.permission_status, "attention")
+        self.assertEqual(report.local_recovery_status, "attention")
+        self.assertIn("review_directory_permissions", report.next_steps)
+        self.assertEqual(
+            [(item.status, item.mode) for item in report.directory_permissions],
+            [("writable_by_others", "0775"), ("accessible_by_others", "0755"),
+             ("missing", None)],
+        )
+        self.assertIn("Grup veya diğer kullanıcılar yazabilir", "\n".join(report_lines(report)))
+        self.assertEqual({path: path.read_bytes() for path in (self.path, backup)}, before)
+        self.assertEqual(self.root.stat().st_mode & 0o777, 0o775)
+        self.assertEqual(backup.parent.stat().st_mode & 0o777, 0o755)
+
+        # An operator can explicitly tighten access; the next read reflects it.
+        self.root.chmod(0o700)
+        backup.parent.chmod(0o700)
+        report = self.service.show()
+        self.assertEqual((report.permission_status, report.local_recovery_status), ("private", "ready"))
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permissions required")
+    def test_scheduled_backup_directory_is_included_in_permission_readiness(self):
+        self.backup()
+        scheduled = self.root / "scheduled-backups"
+        scheduled.mkdir(mode=0o700)
+        scheduled.chmod(0o770)
+        report = self.service.show()
+        self.assertEqual(report.permission_status, "attention")
+        self.assertEqual(report.directory_permissions[-1].status, "writable_by_others")
 
     def test_invalid_latest_backup_is_reported_without_hiding_older_valid_copy(self):
         valid = self.backup("older.db", at=NOW - timedelta(hours=2))

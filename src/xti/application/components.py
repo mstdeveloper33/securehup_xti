@@ -93,7 +93,8 @@ class ComponentCatalogService:
             'observed_at': now.astimezone(timezone.utc).isoformat(),
             'scope': 'project-managed-tools', 'components': rows,
             'notes': [
-                'Yalnız entegre üç harici araç; tüm veri kaynaklarının veya geçişli paketlerin envanteri değildir.',
+                'Yalnız proje tarafından yönetilen üç Python aracı; tüm veri kaynaklarının, sistem araçlarının veya geçişli paketlerin envanteri değildir.',
+                "Sistem Nmap kurulumu 'surface nmap readiness' ile doğrulanır; hedef/plan/işler 'surface nmap targets/plans/jobs', seçenek kataloğu 'surface nmap capabilities' altında yönetilir.",
                 'Beklenen pinler gözlenen sürüm gibi sunulmaz; kurulum denetimi araç çalıştırmaz, indirme veya internet sorgusu yapmaz.',
                 'Denetimler bağımsız yerel okumalardır; eşzamanlı kurulum sırasında ortak kesit garantisi yoktur.',
                 'Bu görünüm ayar değiştirmez veya kurulum başlatmaz; komutlar yalnız işleticiye yol gösterir.',

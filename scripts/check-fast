@@ -14,6 +14,7 @@ sh -n \
     scripts/bootstrap-python \
     scripts/setup-brand \
     scripts/setup-harvester \
+    scripts/setup-nmap \
     scripts/verify-brand
 
 "$XTI_PROJECT_DIR/scripts/python" -m compileall -q src
@@ -22,6 +23,10 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_mail_dns_probe.py \
     tests/test_https_probe.py \
     tests/test_mail.py \
+    tests/test_nmap_scan.py \
+    tests/test_nmap_cli.py \
+    tests/test_nmap_management.py \
+    tests/test_nmap_execution.py \
     tests/test_company_workspaces.py \
     tests/test_company_content.py \
     tests/test_engine_jobs_storage.py \
@@ -45,6 +50,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_mention_group_monitor.py \
     tests/test_linux_upgrade_acceptance.py \
     tests/test_setup.py \
+    tests/test_setup_nmap.py \
     tests/test_news_installation.py \
     tests/test_rss_atom_news.py \
     tests/test_news_service.py \
@@ -128,6 +134,11 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_attack_catalog.py \
     tests/test_scheduling.py \
     tests/test_scheduled_backups.py \
+    tests/test_storage_readiness.py \
+    tests/test_cti_saved_searches.py \
+    tests/test_cti_saved_search_notifications.py \
+    tests/test_cti_saved_search_monitor.py \
+    tests/test_cti_saved_search_batch.py \
     tests/test_scheduling_cli.py \
     tests/test_ci_configuration.py \
     tests/test_cli.py \

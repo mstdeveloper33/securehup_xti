@@ -1,8 +1,8 @@
 # XTI günlük kullanım
 
-Bu belge 0.147.1 / çekirdek şema 69 kullanımını kapsar. Eski kayıt alanında
+Bu belge 0.150.0 / çekirdek şema 72 kullanımını kapsar. Eski kayıt alanında
 önce `./xti doctor` ile durumu kontrol et. Geçiş gerekiyorsa açık
-`./xti migrate` komutu önce geri dönüş yedeği alır; şema 69 için yeniden
+`./xti migrate` komutu önce geri dönüş yedeği alır; şema 72 için yeniden
 geçiş gerekmez. Çok firmalı kurulum ve kalıcı profil işleri
 [platform rehberindedir](PLATFORM_ENGINE.md).
 
@@ -29,6 +29,33 @@ Ekran, hangi aracın kurulu olduğunu ve eldeki kayıtların durumunu gösterir.
 Hiç çalıştırılmamış kaynak, hata veren kaynak ve tamamlanmış boş arama ayrı
 görünür. Satırdaki sonraki komut, eksik kurulumu veya veri yenilemeyi başlatmak
 içindir. Durum ekranını açmak yeni arama başlatmaz.
+
+Yetkili olduğun kesin genel IP'de ayarlanabilir TCP servis kanıtı gerekiyorsa
+Nmap isteğe bağlı bir sistem aracıdır:
+
+```sh
+./scripts/setup-nmap
+./xti surface nmap readiness
+./xti surface nmap check example.com \
+  --address 93.184.216.34 --reason "Yönettiğim kesin genel IP"
+./xti surface nmap show example.com
+
+./xti surface nmap targets save example.com production \
+  --network "YETKILI_GENEL_IP_VEYA_CIDR" \
+  --reason "Yönettiğim genel IP aralığı"
+./xti surface nmap plans create example.com \
+  --target production --max-targets 7 --max-probes 200
+```
+
+Önce domaini `assets add` ve `surface approve` ile kaydet; IP/CIDR yer
+tutucusunu kendi yetkili değerinle değiştir. Eski `nmap check` yolu DNS
+eşleşmesi ister. Yönetilen `targets` yolu ayrı kaydedilmiş IP yetkisini
+kullanır. `targets` ve `plans` yalnız sürümlü kapsam/plan kaydeder.
+Planı çalıştırmak için `surface nmap jobs submit` ve ardından açık
+`surface nmap jobs worker` gerekir. İptal ve kurtarma dahil
+[yönetilen Nmap rehberini](NMAP_MANAGED.md) kullan.
+Özel port, süre ve trafik sınırlarının
+tam açıklaması [README'deki Nmap bölümündedir](../README.md#yetkili-sunucularda-ayarlanabilir-nmap-tcp-kanıtı).
 
 ### İstersen kayıtlarını kuruluş altında grupla
 
@@ -188,6 +215,16 @@ okunabilir kalır, fakat çalıştırma başlamaz. Profil kendi başına zamanla
 Linux'ta günlük/haftalık çalışma için `schedule generate` ile dosya üretip
 açıkça etkinleştirebilirsin; yedek ve kurtarma adımları
 [Linux zamanlama rehberindedir](LINUX_SCHEDULING.md).
+
+Örneğin yukarıda kaydettiğin `gunluk` profili için:
+
+```sh
+./xti schedule generate gunluk --output ./.xti-data/zamanlama-gunluk --at 09:00 --timezone Europe/Istanbul --keep 7
+```
+
+Çıktı klasörü seçeneği `--output`, saat seçeneği `--at` şeklindedir;
+`--output-dir` bu komutun seçeneği değildir. Dosya üretimi zamanlayıcıyı
+kendiliğinden etkinleştirmez.
 
 Toplama çıktısındaki oturum kimliğiyle neyin tamamlandığını görebilirsin:
 
@@ -541,6 +578,20 @@ görünümü yenileyebilirsin; önceki vaka hareketleri korunur.
 
 Bu rutin komutları çalıştırdığın zaman işler. Yerel veriler `.xti-data`
 klasöründedir; GitHub'a gönderilmez. Yedeği ayrıca başka bir diskte sakla.
+
+Kayıt ve yedek klasörlerinin izinlerini de kontrol edebilirsin:
+
+```sh
+./xti storage readiness
+./xti --json storage readiness
+```
+
+Yeni veri, yedek ve geri yükleme klasörleri yalnız sahibine açık (`0700`)
+oluşturulur. Önceden oluşmuş klasörlerin izinleri otomatik değiştirilmez.
+Çıktıda “Grup veya diğer kullanıcılar yazabilir” görülürse ilgili kişisel
+klasörün sahibini ve erişim ihtiyacını kontrol ederek izinlerini daralt.
+JSON'da `permission_status` ve `directory_permissions` aynı durumu taşır;
+izin sorunu olan bir klasör, güncel yedeği olsa da tam hazır gösterilmez.
 
 ## Tarihî kanıtı vakaya bağla ve HTML raporu al
 

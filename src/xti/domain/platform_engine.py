@@ -7,13 +7,14 @@ from xti.domain.engine import (
 from xti.domain.cti_knowledge import normalize_knowledge_id
 from xti.domain.collection_profiles import normalize_profile_name
 from xti.domain.assets import ValidationError
+from xti.domain.nmap_platform import NMAP_OPERATIONS, parse_nmap_parameters
 
 
 PLATFORM_CONTRACT_VERSION = 1
 PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
-)
+) + NMAP_OPERATIONS
 
 
 def _fields(value, allowed, required=()):
@@ -45,7 +46,9 @@ def parse_platform_request(value):
         return parse_engine_request(value)
     parameters = value['parameters']
     try:
-        if operation == 'organization.content':
+        if operation in NMAP_OPERATIONS:
+            normalized = parse_nmap_parameters(operation, parameters)
+        elif operation == 'organization.content':
             _fields(parameters, {'organization_id', 'scope_offset', 'scope_limit',
                     'offset', 'limit', 'stale_after_hours'}, {'organization_id'})
             normalized = {'organization_id': normalize_knowledge_id(parameters['organization_id'])}

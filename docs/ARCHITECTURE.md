@@ -1,9 +1,47 @@
 # XTI Motorunun Mimarisi
 
-**16 Kasım 2026 — 0.147.1, çekirdek şema 69 ana proje yapısı.**
+**16 Kasım 2026 — 0.150.0, çekirdek şema 72 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
-0.147.1'in DNS TXT düzeltmesi yalnız `https_probe` adaptöründedir.
+**Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
+geliştiriliyor. Motorun veri/kanıt modeli, iş kuralları, firma kapsamı ve
+sürümlü sözleşmesi XTI'da; uygulama oturumu, roller ve React/.NET bağlantısı
+platform ekibindedir. Uygun üçüncü taraf bileşenler küçük adaptörlerin
+arkasında kalır. [MTR motor genişleme planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
+gelecek işlerdir; mevcut mimarinin uygulandığı kapsam aşağıda belirtilir.
+İlk ilişki araştırması mevcut servisleri kullanacak; graph deposu veya
+PostgreSQL geçişi bu planla uygulanmış sayılmaz.
+
+**Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
+sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı
+çalıştırıcıları veri/iş kapsamını yönetecek. Merkezi işletimde firma
+ayrımı, firma başına bütçe ve kurtarma sınırları korunacak. Müşteriye
+motor kurulum paketi ilk teslimde yoktur; bu tasarım henüz dağıtılmadı.
+
+Linux kullanım raporundan gelen düzeltmelerde kayıtlı CTI arama denetimi
+yalnız çalışma sonuçlarının mevcut kanıta başvurularını doğrular; bütün
+IOC/varlık kataloğunu izleme sayısı sınırına dahil etmez. Geçmiş ve sonuç
+bütünlüğü sınırları korunur. `private_directories` adaptörü yalnız yeni
+klasörleri `0700` ile oluşturur; eski izinleri değiştirmez. Dosya sistemi
+adaptörü izin gerçeklerini domain kayıtlarıyla iletir; uygulama servisi
+kurtarma hazırlığını, terminal/JSON katmanı gösterimini belirler.
+[Kabul incelemesi](ACCEPTANCE_REVIEW.md); şema 72 değişmedi.
+
+0.150.0 `NmapExecutionService` ile ayrı depo/çalıştırıcı portları üzerinden
+kalıcı Nmap işlerini yürütür. V1 plan byte'ları korunur; v2 tipli gelişmiş
+seçeneklerdir. İş kabulü ağ kullanmaz, worker ortak çekirdek kilidini çocuk
+Nmap sürecine devreder. Başlangıç ve sonuç hedef başına ayrı commit edilir;
+iptal kısa SQLite işlemiyle kilidi beklemeden kaydedilir. Olay zinciri,
+istek/plan/yol bağı, kurtarma ve sayfalı kanıt aynı uygulama servisinde
+terminal ile firma kapsamlı platform girişine sunulur. Şema 72 iki tablo
+ekler; eski plan/kanıt anlamını değiştirmez.
+[0155 kararı](decisions/0155-managed-nmap-execution.md) geçerlidir;
+aşağıdaki 0.149.0 dry-run sınırı o teslimin tarihî kapsamıdır.
+
+0.149.0'ın Nmap yönetim katmanı ayrı domain/port/application/adaptör
+sınırlarında sürümlü IP/CIDR envanteri ile değiştirilemez dry-run planlarını
+ekler. 0.148.0'ın aktif Nmap kanıtı ayrı `surface_nmap_checks` tablosunda
+kalır; mevcut hafif servis kanıtının anlamı değişmez.
 Kaynak JSON'unun tırnaksız metni aynen korunur; tırnaklı parçaların DNS
 kaçışları ayrı çözülür. Bitişik tırnaklı parçalar desteklenir; sayısal
 kaçışlar üç ASCII rakamı ve 0–255 sınırı gerektirir. Kaynak hatası, boş
@@ -489,7 +527,7 @@ Terminal → Uygulama servisi
 | domain | Varlık/gözlem/bulgu/iş/kontrol/bildirim/istisna/dış yüzey/e-posta DNS/servis/pasif aday, ransomware iddiası ve kuruluş/domain izlemesi, tedarikçi ilişkisi ve kaynak bağlı iddia görünümü, yerel vaka/kanıt/görev/aktivite, maruziyet, iş önemi, IOC, CTI varlık/ilişki, webhook hedef/teslim, birleşik analiz, internet erişim bağlamı, teknoloji ipucu ve zafiyet kaynak modelleri ile keşif çalışması/kaynak kataloğu/değerlendirme/durum/izleme modelleri, aday ve inceleme sırası kuralları | Terminal, dosya okuma ve veritabanını bilmez |
 | ports | Kayıt, kaynak, vaka/kanıt çözümleme, sosyal kullanıcı adı önizleme kaynağı, hedef/servis kontrolü, ransomware iddia kaynağı/snapshot geçmişi/kuruluş-domain izleme ve monitor oturum deposu, zafiyet kaynağı/deposu, IOC, CTI bilgi grafiği ve tam-snapshot besleme deposu, bildirim kutusu, webhook deposu/taşıması, tam adres istisnası, dış yüzey/e-posta DNS/pasif keşif/ilişki görünümü, durum özeti, izleme ve yürütme kilidi sözleşmeleri | Yalnız ortak modeller |
 | application | Arama/iş/izleme yaşam döngüsü, yerel vaka ve kaynak-denetimli kanıt orkestrasyonu, kaynak kataloğu, sosyal kullanıcı adı girdi/platform sınırları, sınır kontrollü toplu yürütme ve ön plan tekrarı, açık ransomware iddiası yerel araması, tam-snapshot fark yaşam döngüsü, kuruluş/domain izleme ve tedarikçiyle ağsız tam ad/domain ilişkilendirmesi, açık yenileme+toplu çalışma ve sınırlı ön plan tekrar orkestrasyonu, kalite ve geri bildirim ölçümü, istisna, dış yüzey/e-posta DNS/servis kapsamı, kayıtlı yüzey+marka+kesin IOC birleşik analizi, kaynaklı IOC yaşam döngüsü ve STIX 2.1 IOC dönüşümü, açık seçimli webhook kuyruk/imza/teslim akışı, CTI varlık/ilişki yaşam döngüsü ve denetlenebilir tam-snapshot besleme senkronu, insan beyanlı iş önemi, KEV/EPSS/NVD katalog yaşam döngüsü, sürümlü üretici kaynak değerlendirmesi, açık ve envanterden Ubuntu paket sınırı karşılaştırması, devam edilebilir NVD tarih penceresi, kapsama/boşluk ve operasyon anlık görüntüsü, salt-okunur boşluk bölme planı, sınırlı çoklu tek-sayfa yürütme, denetimli yeniden başlatma ve birleşik zafiyet bağlamı, kanıt ilişkileri, açıklanabilir maruziyet ve teknoloji ipuçları, sınırlı pasif alt alan adı keşfi/izlemesi, kontrol seçimi, tekilleştirme, inceleme, okundu işlemleri, güncellik ve rapor | Kurallar ve sözleşmeler |
-| adapters | SQLite, migration, vaka/aktivite depolaması ve mevcut kaynakların bütünlük denetimli vaka anlık görüntüsü, kilit, sabit commit'li Maigret CLI ve CLI sürüm isteğini kullanmayan sabit Sherlock kütüphane işçisi ile katı NDJSON dönüşümü, ransomware iddia çalışma/öğe geçmişi ve kuruluş/domain izleme kanıtları, kaynaklı IOC/CTI bilgi grafiği, Feodo Tracker/CERT Polska tam-snapshot kaydı, ThreatCluster ransomware iddia akışı ve MITRE ATT&CK Enterprise STIX kaynağı, arşiv/HTTPS/sabit TCP kontrolü, genel-IP'ye sabit webhook HTTPS taşıması, CISA KEV, FIRST EPSS, tek-CVE/tarih-pencereli NVD ve Canonical Ubuntu OSV HTTPS/SQLite adaptörleri, sürümlü değerlendirme verisi, atomik STIX/gizli anahtar/dosya/JSON raporu ve PSL | Dış veri biçimleri ve ortak sözleşmeler |
+| adapters | SQLite, migration, vaka/aktivite depolaması ve mevcut kaynakların bütünlük denetimli vaka anlık görüntüsü, kilit, sabit commit'li Maigret CLI ve CLI sürüm isteğini kullanmayan sabit Sherlock kütüphane işçisi ile katı NDJSON dönüşümü, ransomware iddia çalışma/öğe geçmişi ve kuruluş/domain izleme kanıtları, kaynaklı IOC/CTI bilgi grafiği, Feodo Tracker/CERT Polska tam-snapshot kaydı, ThreatCluster ransomware iddia akışı ve MITRE ATT&CK Enterprise STIX kaynağı, arşiv/HTTPS/sabit TCP kontrolü, ayrı sınırlandırılmış Nmap TCP süreç/XML adaptörü, genel-IP'ye sabit webhook HTTPS taşıması, CISA KEV, FIRST EPSS, tek-CVE/tarih-pencereli NVD ve Canonical Ubuntu OSV HTTPS/SQLite adaptörleri, sürümlü değerlendirme verisi, atomik STIX/gizli anahtar/dosya/JSON raporu ve PSL | Dış veri biçimleri ve ortak sözleşmeler |
 | interfaces | Komut, çıktı ve başlangıçta parçaları bağlama | Servis ve başlangıçta somut adaptör |
 | config | Veri konumunu belirleme | Dosya oluşturmaz |
 
@@ -755,6 +793,49 @@ Her sonuç `surface_checks` içinde append-only saklanır. Kanonik durum; DNS du
 `SurfaceServiceScanService`, kayıtlı varlık ve etkin domain kapsamına ek olarak kesin genel IP ile görünür yetki gerekçesi ister. `BoundedServicePortProbe` Google DNS A/AAAA cevabında bu IP'yi arar; eşleşme yoksa veya herhangi bir özel/yerel adres varsa hedefe bağlanmaz. Eşleşmede yalnız belirtilen tek IP'nin sabit 10 TCP portuna, port başına bir saniye ve toplam 20 saniye içinde bağlantı dener. DNS sonrası işletim sistemi ad çözümlemesi, serbest port, UDP, banner, protokol verisi, ürün/sürüm veya dış tarama süreci yoktur.
 
 `surface_service_checks` yetki gerekçesi, DNS kanıtı, kesin IP, açık/kapalı/belirsiz port durumları, politika sürümü, özet ve değişimi eklemeli saklar. `unknown` kapalı sayılmaz. Değişim DNS, adres, kontrol edilen IP ve port geçişlerini ayırır. Yazma transaction'ı kapsamı yeniden doğrular; arada kaldırılırsa sonuç yazılmaz. `surface services show` salt okunurdur. Şema 13→14 geçişi kurtarma yedeğinden sonra tabloyu boş oluşturur. Ayrıntılar [sınırlı servis kararı](decisions/0025-approved-pinned-service-inventory.md) içindedir.
+
+`NmapSurfaceScanService`, ayrı `NmapProbe` ve `NmapScanRepository` portlarına
+bağlıdır. Plan domain katmanında `safe/extended/full/custom` port kapsamını;
+10–3600 saniye, 1–1000 paket/sn, 0–3 yeniden deneme, 1–16 kesin hedef ve
+1–1.000.000 yaklaşık probe bütçesi sınırlarını doğrular. 1024 porttan geniş
+veya çok hedefli plan açık ek onay olmadan uygulama katmanına geçmez. Hedefler
+yalnız tekil kesin genel IP'dir; CIDR, aralık, hostname ve ham araç argümanı
+yoktur.
+
+`NmapTcpConnectProbe` araç uyumluluğunu hedef ağına çıkmadan doğrular; sonra
+mevcut Google DNS güvenlik kapısıyla her IP'yi domainin güncel A/AAAA
+görünümüne sabitler. Alt süreç yalnız argüman listesiyle `-sT -Pn -n
+--unprivileged` çalıştırır. Süre, çıktı ve XML biçimi sınırlıdır; DTD/entity,
+hedef uyuşmazlığı, TCP dışı veya tutarsız sayaç reddedilir. `-sV`, banner,
+NSE, UDP, SYN/root, OS keşfi ve traceroute yoktur. XML'in kendisi yerine özeti,
+açık portların sınırlı ayrıntısı ve durum toplamları saklanır.
+
+`surface_nmap_checks`, mevcut `surface_service_checks` tablosundan ayrıdır.
+Bu nedenle Nmap sonucu dış yüzey ilişkisi, teknoloji/CVE ipucu, değişiklik
+kutusu veya risk kararı üretmez. Kapsam kayıt transaction'ında tekrar
+doğrulanır. Şema 69→70 doğrulanmış geri dönüş yedeğinden sonra boş tabloyu
+ekler; eski kayıtlardan Nmap kanıtı türetmez. Ayrıntılar [0153 numaralı
+karardadır](decisions/0153-bounded-authorized-nmap-adapter.md).
+
+`NmapManagementService`, `NmapManagementRepository` portu üzerinden yalnız
+kayıtlı ve etkin dış yüzey kapsamına adlandırılmış genel IP/CIDR hedefi
+bağlar. Domain katmanı bütün CIDR adreslerini en fazla 4096 hedef sınırında
+tek tek genel-IP politikasından geçirir; hariç tutmaları kanonikleştirir,
+gerçek hedef sayısını ve hedef-listesi özetini hesaplar. SQLite adaptörü
+güncel kapsamı ve her sürümün tam tanımını ayrı eklemeli olay zincirinde
+doğrular.
+
+Yönetilen plan hedef olayının kesin sürümünü, TCP port ifadesini, hedef
+başına süreyi, paket hızı/retry/gecikme/paralellik/host-grubu sınırlarını ve
+toplam probe bütçesini kanonik JSON + SHA-256 ile dondurur. Aynı plan
+idempotenttir; eski plan hedef güncellendiğinde değişmez. Şema 71 planı hem
+hedef kapsamı/varlık bileşik anahtarına hem hedef olay sürümüne yabancı
+anahtarla bağlar; uygulama katmanı snapshot/hash eşitliğini ayrıca denetler.
+
+Bu model henüz geniş hedefi çalıştırmaz. Kalıcı iş, attempt, ilerleme, iptal,
+kesinti kurtarması ve hedef başına sonuç teslimi tamamlanmadan CIDR eşzamanlı
+terminal döngüsüne açılmaz. Mevcut en fazla 16 kesin-IP `surface nmap check`
+yolu korunur. Ayrıntılar [0154 numaralı karardadır](decisions/0154-managed-nmap-targets-and-plans.md).
 
 `SurfaceDiscoveryService`, kayıtlı kök varlık, `DomainSource` ve ayrı `SurfaceCandidateRepository` sözleşmelerine bağlıdır. `surface discover`, seçilen adaptöre yalnız `%.kök` desenini verir ve doğrulanmış yanıttan kökün kesin altındaki kanonik adları seçer. Varsayılan crt.sh adaptörü sertifika kayıtlarını kullanır. İsteğe bağlı theHarvester adaptörü sabit commit'teki ayrı Python 3.14 ortamında yalnız Common Crawl ve Wayback Archive P0 kaynaklarını tek işçiyle çalıştırır; geçici HOME kullanır ve yalnız katı JSONL hostname kanıtını kabul eder. DNS, e-posta, kişi, screenshot, takeover ve doğrudan hedef işlemleri kapalıdır. Kökün kendisi ve kapsam dışı adlar aday olmaz; bulunan hedefe bağlanılmaz.
 

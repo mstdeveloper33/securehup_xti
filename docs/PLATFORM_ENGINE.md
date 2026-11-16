@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.147.0 · protokol `xti-platform` v1 · çekirdek şema 69.**
+**Uygulama 0.150.0 · protokol `xti-platform` v1 · çekirdek şema 72.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -165,6 +165,80 @@ Hatalar kararlı kod taşır: örneğin `scope_unavailable`, `scope_mismatch`,
 `not_found`, `invalid_parameters`, `idempotency_conflict`, `profile_changed`,
 `busy`, `storage_error`. Hata cevabı SQL, dosya yolu, ham istisna veya sır
 dökmez. Desteklenmeyen ana sürüm/alan/işlem reddedilir.
+
+## Nmap işleri ve arayüz seçenekleri
+
+0.150.0'ın `nmap.*` işlemleri aynı firma alanında, ayrı Nmap plan/iş
+kayıtlarıyla çalışır. `nmap.capabilities` boş parametrelerle tipli seçenek
+kataloğunu verir. Domain onayı ve IP/CIDR hedef envanteri güvenilen
+işletici tarafından önceden kaydedilir; `nmap.targets.list` bunları okur.
+
+Arayüzden bir plan oluşturma isteği:
+
+```json
+{
+  "contract_version": 1,
+  "request_id": "nmap-plan-001",
+  "operation": "nmap.plans.create",
+  "parameters": {
+    "expected_workspace_id": "ALAN_UUID",
+    "domain": "example.com",
+    "target_name": "production",
+    "profile": "custom",
+    "ports": "22,80,443",
+    "scan_type": "tcp_connect",
+    "max_rate_pps": 25,
+    "options": {
+      "service_detection": true,
+      "version_intensity": 2,
+      "os_detection": false,
+      "scripts": ["banner", "ssl-cert"],
+      "script_timeout_seconds": 15,
+      "max_duration_seconds": 900
+    }
+  }
+}
+```
+
+`ALAN_UUID`, seçilmiş alanın gerçek UUID değeridir. Plan cevabı `data.plan`
+altındadır. Diğer plan alanları `timeout_seconds`, `max_retries`,
+`scan_delay_ms`, `max_parallelism`, `max_hostgroup`, `max_targets`,
+`max_probe_budget`, `confirm_wide_scan`, `confirm_range_scan` olabilir.
+Ham komut, dosya yolu, script dosyası ve tanımsız alan reddedilir.
+
+| İşlem | Parametreler | Cevap |
+|---|---|---|
+| `nmap.targets.list` | `domain`, isteğe bağlı `limit` | `targets` |
+| `nmap.plans.show` | `domain`, `plan_id` | Kayıtlı plan |
+| `nmap.jobs.submit` | `domain`, `plan_id`, `key`, `expected_workspace_id` | `job` |
+| `nmap.jobs.list` | `domain`, isteğe bağlı `offset`, `limit` | `jobs` |
+| `nmap.jobs.status` | `domain`, `job_id` | `job` |
+| `nmap.jobs.result` | `domain`, `job_id`, isteğe bağlı `offset`, `limit` | `job`, `results`, `total_results`, `next_offset` |
+| `nmap.jobs.cancel` | `domain`, `job_id` | İptal durumu dahil `job` |
+| `nmap.jobs.resume` | `domain`, `job_id`, `expected_workspace_id` | Hiç başlanmamış hedefler için kuyruk durumu |
+
+`key` aynı domain/plan isteğini tekrar güvenli yapar. İş özeti `id`,
+`plan_id`, `domain`, `status`, hedef/başlangıç/sonuç/bekleyen sayıları,
+iptal isteği ve hedef durum sayaçları taşır. `results` hedef başına port
+durumu/servis/OS/NSE kanıtıdır; hedefler sayfalıdır, hedef içi ayrıntı
+sınırları ve `truncated` açıkça korunur. Liste işlemlerinde sayfa boyu
+kadar kayıt geldikçe `offset` artırılabilir; boş sayfa sonu gösterir.
+
+İstek yolu Nmap'i başlatmaz. Güvenilen işletici ayrı süreçte çalıştırır:
+
+```sh
+./xti platform nmap-worker --root "$PWD/.xti-platform" --company firma-a \
+  --domain example.com --job-id IS_KIMLIGI
+./xti platform nmap-recover --root "$PWD/.xti-platform" --company firma-a \
+  --domain example.com --job-id IS_KIMLIGI
+```
+
+SYN/UDP/OS için sistem yetkileri bu worker'ın işletim konusudur. Firma
+seçimi, oturum/rol denetimi ve React/.NET bağlantısı tüketici ekiptedir.
+Çalışan Nmap ortak çekirdek kilidini tutar; platform yedeği bu çalışma
+sırasında alınamaz. Yeni yola restore edilen Nmap işleri eski plan ve
+kanıt olarak okunur; tekrar çalıştırmak yeni açık iş kabulü gerektirir.
+[Nmap kullanım ve sonuç sınırları](NMAP_MANAGED.md).
 
 ## Kalıcı iş ve worker
 

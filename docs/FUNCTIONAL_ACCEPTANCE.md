@@ -6,6 +6,70 @@ Denemeler özel geçici kayıt alanlarında yapıldı; kullanıcının mevcut
 veritabanı taşınmadı veya değiştirilmedi. Ham kaynak yanıtları, hedef
 kanıtları, geçici veritabanları ve özel çalışma raporları repoya eklenmedi.
 
+## Kullanıcı Linux raporu ve yerel regresyon düzeltmeleri
+
+Kullanıcı 0.147.1 / şema 69 için 50 komut ailesine dokunan gerçek hedef ve
+kontrollü örnek veri denemesi bildirdi. Bildirilen 2.603 testte tek hata,
+zamanlı yedek testinin `umask 002` altında oluşturduğu geniş klasör izniydi.
+Ham VM günlükleri burada doğrulanmadı; bu sonuç sonraki Nmap sürümlerine
+ait değildir. [Bulgu değerlendirmesi ve kalan işler](ACCEPTANCE_REVIEW.md).
+
+CTI izleme ekleme/listeleme hatası 10.001 kontrollü IOC ile yeniden
+üretildi. Hata bütün ilgisiz kataloğa izleme sınırı uygulanmasıydı.
+Düzeltme yalnız kaydedilmiş sonuç başvurularını doğrular; bozuk
+entity/indicator bağlantıları ve tutarsız geçmiş hâlâ reddedilir.
+Yeni klasör izinleri `000`, `002`, `022`, `077` maskelerinde; eski
+geniş izinlerin salt okunur raporlanması ve zamanlı yedek koruması sınandı.
+İlgili 44 test `umask 002` ile 12,473 saniyede geçti. Son kodun tam
+`./scripts/check` turu da `umask 002` altında 2.665 testi 1.145,005
+saniyede tamamladı: 2.661 başarılı, Linux'a özgü dört test macOS'ta
+atlandı; hata yok. Ortam macOS 26.6.2 arm64 / Python 3.13.3'tür.
+Bu sonuç kullanıcının Linux/Python 3.14 ortamındaki tekrar kabulün veya
+gerçek Nmap taramasının yerine geçmez. Kod test turu sırasında değiştirilmedi.
+
+## 0.150.0 yönetilen Nmap kabulü
+
+Kalıcı plan işi, hedef başına ilerleme/kanıt, iptal, kesinti kurtarması ve
+firma kapsamlı platform işlemleri eklendi. TCP connect/SYN/UDP, servis/sürüm,
+OS ve seçili NSE seçenekleri plan/argv/XML sınırlarında yerel olarak sınandı.
+Gerçek CLI, SQLite ve sahte Nmap alt süreçleri kullanıldı; test hedeflerine
+ağ paketi gönderilmedi. İş kuyruğu, tekrar anahtarı, kapsam geri çekme,
+kayıt alanı ayrımı, bozuk geçmiş reddi ve yedekten iş tekrarı engeli doğrulandı.
+Şema 71→72 geçişi yedek alarak eski planları korudu.
+
+Genel `check-fast` turu 1.311 testi 620,678 saniyede tamamladı: 1.307 başarılı,
+Linux'a özel dört test macOS'ta atlandı, hata yok. Bu turdan sonraki XML ve
+çocuk süreç kapanışı kontrolleri ayrıca hedefli testlerle doğrulandı;
+genel tur son küçük değişikliklerden sonra tekrar çalıştırılmış sayılmaz.
+Son dosya kümesinde 77 Nmap/platform testi 50,907 saniyede geçti. Bu tur,
+iki çıktı akışını kapatıp çalışmaya devam eden çocuk sürecin de iptal
+edilebildiğini, süre/çıktı sınırlarını ve UTF-16 DTD geçişinin reddini kapsar.
+
+Bu ortamda gerçek Nmap kurulu değildir. Canlı TCP/SYN/UDP/OS/NSE kabulü,
+Linux root çalışma düzeni ve kurumsal yük ölçümü bu yerel sonuçla doğrulanmış
+sayılmaz. Kurulum ve kesin yetkili hedefle canlı kabul ayrıca gerekir.
+[Seçenekler ve kullanım sınırları](NMAP_MANAGED.md).
+
+## Önceki Nmap teslimleri
+
+0.149.0 / çekirdek şema 71, ağ çalıştırmadan sürümlü genel IP/CIDR hedef
+envanteri ve değiştirilemez Nmap dry-run planları ekledi. Kanonik hedef,
+hariç tutma, gerçek hedef sayısı/hash, port/hız/süre/retry/gecikme/
+paralellik/host-grubu ve toplam probe bütçesi; domain, uygulama, SQLite ve
+terminal kabul testleriyle doğrulandı. Bu teslimde geniş CIDR üzerinde canlı
+Nmap çalıştırılmadı; kalıcı kuyruk/worker sonraki teslimdir.
+Son `check-fast` turu 1.287 testi 540,786 saniyede çalıştırdı; 1.283'ü geçti,
+Linux'a özgü dört test macOS'ta atlandı ve hata olmadı. Canlı hedef trafiği
+üretilmedi.
+
+0.148.0 / çekirdek şema 70 sonradan ayrı Nmap TCP adaptörünü ekledi. Bu
+belgedeki gerçek hedef kabulünde Nmap çalıştırılmadı; kesin yetkili IP olmadan
+canlı port taraması yapılmadı. Nmap plan, XML ayrıştırma, DNS engeli, süre
+aşımı, terminal, kalıcılık, bozuk kanıt, yedek/restore ve şema 69→70 geçişi
+yerel sahte süreç/DNS kanıtlarıyla doğrulandı.
+Son `check-fast` turu Nmap testleri dahil 1.278 test çalıştırdı; 1.274'ü
+geçti, Linux'a özgü dört test macOS'ta atlandı ve hata olmadı.
+
 ## Gerçek internet bağlantıları
 
 Hedef, kullanıcının daha önce yetki verdiği domain ve marka adıydı.

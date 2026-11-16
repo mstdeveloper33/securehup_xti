@@ -1,8 +1,10 @@
 """Persistence, duplicate prevention and non-destructive recovery checks."""
 
 from contextlib import closing
+import os
 from pathlib import Path
 import sqlite3
+import stat
 import tempfile
 import unittest
 
@@ -58,6 +60,39 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(restored.list(), [original])
         self.assertEqual(restored.inspect()["integrity"], "ok")
         self.assertEqual(len(self.repository.list()), 2)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permissions required")
+    def test_new_data_backup_and_restore_directories_are_private_for_common_umasks(self):
+        for mask in (0o000, 0o002, 0o022, 0o077):
+            with self.subTest(umask=oct(mask)):
+                root = self.root / f"umask-{mask:o}"
+                database = root / "nested" / "data" / "xti.db"
+                backup = root / "snapshot" / "backups" / "copy.db"
+                restored = root / "recovery" / "data" / "xti.db"
+                previous = os.umask(mask)
+                try:
+                    storage = SQLiteAssetRepository(database)
+                    storage.initialize()
+                    storage.add("example.com")
+                    storage.backup(backup)
+                    SQLiteAssetRepository.restore(backup, restored)
+                finally:
+                    os.umask(previous)
+                for path in (root, *root.rglob("*")):
+                    expected = 0o700 if path.is_dir() else 0o600
+                    self.assertEqual(stat.S_IMODE(path.stat().st_mode), expected, str(path))
+                self.assertEqual(SQLiteAssetRepository(restored).list()[0].value, "example.com")
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permissions required")
+    def test_existing_directory_permissions_are_not_silently_rewritten(self):
+        existing = self.root / "existing"
+        existing.mkdir()
+        existing.chmod(0o775)
+        storage = SQLiteAssetRepository(existing / "xti.db")
+        storage.initialize()
+        storage.backup(existing / "copy.db")
+        storage.initialize()
+        self.assertEqual(stat.S_IMODE(existing.stat().st_mode), 0o775)
 
     def test_backup_refuses_to_replace_an_existing_file(self):
         destination = self.root / "existing.db"

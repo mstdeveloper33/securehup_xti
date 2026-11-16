@@ -36,6 +36,8 @@ def register_platform_parser(commands):
         ('disable', 'Yeni firma erişimini kapat; kayıtları koru.'),
         ('backup', 'Firma kanıtları ve iş kayıtlarını birlikte yeni yedeğe al.'),
         ('restore', 'Firma yedeğini aynı firma kimliğiyle yeni kayıt alanına aç.'),
+        ('nmap-worker', 'Seçilen firmanın açık Nmap işini çalıştır.'),
+        ('nmap-recover', 'Kesilmiş Nmap işini kaydet; otomatik tekrar yapma.'),
     ):
         action = actions.add_parser(name, help=help_text)
         action.add_argument('--root', required=True, help='Güvenilen başlatıcının özel kayıt kökü.')
@@ -48,6 +50,9 @@ def register_platform_parser(commands):
             action.add_argument('--output', required=True)
         elif name == 'restore':
             action.add_argument('--source', required=True)
+        elif name in {'nmap-worker', 'nmap-recover'}:
+            action.add_argument('--domain', required=True)
+            action.add_argument('--job-id', required=True)
 
 
 def platform_manifest():
@@ -58,6 +63,7 @@ def platform_manifest():
         'authentication_owner': 'consuming_platform',
         'request_network_access': False,
         'job_type': 'saved_collection_profile',
+        'additional_job_types': ['managed_nmap_plan'],
         'worker': 'explicit_one_job',
         'idempotency': 'company_and_key_bound_to_profile_revision',
         'submission_fence': 'expected_workspace_id',
@@ -89,6 +95,9 @@ def _data(value):
 
 
 def execute_platform_request(context, request):
+    if request.operation.startswith('nmap.'):
+        from xti.interfaces.nmap_platform import execute_platform_nmap
+        return execute_platform_nmap(context, request)
     if request.operation in ENGINE_OPERATIONS:
         return make_engine_service(context.database).execute(request)
     if request.operation == 'organization.content':
@@ -191,6 +200,11 @@ def run_platform(args, *, stream=None, output=None):
                 data = _data(make_platform_jobs(context).work_one(job_id=args.job_id))
             elif action == 'recover':
                 data = _data(make_platform_jobs(context).recover())
+            elif action in {'nmap-worker', 'nmap-recover'}:
+                from xti.interfaces.nmap_execution import make_nmap_service
+                service = make_nmap_service(context.database)
+                method = service.work if action == 'nmap-worker' else service.recover
+                data = {'job': method(args.domain, args.job_id).summary()}
             elif action == 'backup':
                 from xti.adapters.platform_backup import backup_platform_workspace
                 backup_platform_workspace(context, Path(args.output))

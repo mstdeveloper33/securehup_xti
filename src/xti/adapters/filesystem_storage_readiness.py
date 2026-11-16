@@ -7,7 +7,7 @@ import shutil
 import stat
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
-from xti.domain.storage_readiness import StorageReadinessSnapshot
+from xti.domain.storage_readiness import DirectoryPermission, StorageReadinessSnapshot
 
 
 _MAX_SCANNED_FILES = 10_000
@@ -25,6 +25,29 @@ class FileSystemStorageReadinessRepository:
     def __init__(self, database_path: Path) -> None:
         self.database_path = Path(database_path).expanduser().absolute()
         self.data_directory = self.database_path.parent
+
+    @staticmethod
+    def _permissions(path: Path) -> DirectoryPermission:
+        if os.name != "posix":
+            return DirectoryPermission(str(path), "unknown", None)
+        try:
+            info = path.lstat()
+        except FileNotFoundError:
+            return DirectoryPermission(str(path), "missing", None)
+        except OSError:
+            return DirectoryPermission(str(path), "unreadable", None)
+        mode = stat.S_IMODE(info.st_mode)
+        if not stat.S_ISDIR(info.st_mode):
+            status = "invalid_type"
+        elif info.st_uid != os.geteuid():
+            status = "foreign_owner"
+        elif mode & 0o022:
+            status = "writable_by_others"
+        elif mode & 0o077:
+            status = "accessible_by_others"
+        else:
+            status = "private"
+        return DirectoryPermission(str(path), status, f"{mode:04o}")
 
     @staticmethod
     def _tree_usage(root: Path) -> tuple[int, int, int, bool]:
@@ -124,4 +147,8 @@ class FileSystemStorageReadinessRepository:
             tree_complete and backup_complete,
             disk.total, disk.free, len(backups), latest_path, latest_bytes,
             latest_modified, latest_valid, latest_version, latest_error,
+            tuple(self._permissions(path) for path in (
+                self.data_directory, backup_directory,
+                self.data_directory / "scheduled-backups",
+            )),
         )

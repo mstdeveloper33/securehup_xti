@@ -1,0 +1,82 @@
+#!/bin/sh
+# Install or verify the host-managed Nmap dependency used by the bounded adapter.
+set -eu
+
+XTI_NMAP_MODE=install
+case "$#" in
+    0) ;;
+    1)
+        case "$1" in
+            --check) XTI_NMAP_MODE=check ;;
+            --help|-h)
+                echo "Kullanım: ./scripts/setup-nmap [--check]"
+                echo "Seçeneksiz çalıştırma Nmap'i desteklenen sistem paket yöneticisiyle kurar."
+                echo "--check yalnız mevcut kurulumu kontrol eder; sistemde değişiklik yapmaz."
+                exit 0
+                ;;
+            *)
+                echo "Bilinmeyen seçenek: $1" >&2
+                exit 2
+                ;;
+        esac
+        ;;
+    *)
+        echo "En fazla bir seçenek kullanılabilir." >&2
+        exit 2
+        ;;
+esac
+
+if command -v nmap >/dev/null 2>&1; then
+    exec nmap --version
+fi
+
+if [ "$XTI_NMAP_MODE" = check ]; then
+    echo "Nmap kurulu değil." >&2
+    exit 1
+fi
+
+xti_install_system_package() {
+    if [ "$(id -u)" -eq 0 ]; then
+        exec "$@"
+    fi
+    if ! command -v sudo >/dev/null 2>&1; then
+        echo "Sistem paketi kurulumu için sudo bulunamadı; Nmap'i sistem yöneticinle kur." >&2
+        exit 1
+    fi
+    exec sudo "$@"
+}
+
+XTI_SYSTEM_NAME=$(uname -s)
+case "$XTI_SYSTEM_NAME" in
+    Darwin)
+        if ! command -v brew >/dev/null 2>&1; then
+            echo "Homebrew bulunamadı. Önce https://brew.sh üzerinden Homebrew kur." >&2
+            exit 1
+        fi
+        exec brew install nmap
+        ;;
+    Linux)
+        if command -v apt-get >/dev/null 2>&1; then
+            echo "Nmap sistem paketi kurulacak; sudo parolası istenebilir."
+            xti_install_system_package apt-get install -y nmap
+        elif command -v dnf >/dev/null 2>&1; then
+            echo "Nmap sistem paketi kurulacak; sudo parolası istenebilir."
+            xti_install_system_package dnf install -y nmap
+        elif command -v pacman >/dev/null 2>&1; then
+            echo "Nmap sistem paketi kurulacak; sudo parolası istenebilir."
+            xti_install_system_package pacman -S --needed nmap
+        elif command -v zypper >/dev/null 2>&1; then
+            echo "Nmap sistem paketi kurulacak; sudo parolası istenebilir."
+            xti_install_system_package zypper --non-interactive install nmap
+        elif command -v apk >/dev/null 2>&1; then
+            echo "Nmap sistem paketi kurulacak; sudo parolası istenebilir."
+            xti_install_system_package apk add nmap
+        fi
+        echo "Desteklenen paket yöneticisi bulunamadı; Nmap 7.x'i sistem yöneticinle kur." >&2
+        exit 1
+        ;;
+    *)
+        echo "Otomatik Nmap kurulumu yalnız macOS ve Linux için destekleniyor." >&2
+        exit 1
+        ;;
+esac

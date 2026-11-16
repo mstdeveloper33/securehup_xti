@@ -6,6 +6,13 @@ from xti.domain.operations import StorageUsage
 
 
 @dataclass(frozen=True, slots=True)
+class DirectoryPermission:
+    path: str
+    status: str
+    mode: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class StorageReadinessSnapshot:
     data_directory: str
     database_path: str
@@ -23,6 +30,7 @@ class StorageReadinessSnapshot:
     latest_backup_valid: bool | None
     latest_backup_schema_version: int | None
     latest_backup_error: str | None
+    directory_permissions: tuple[DirectoryPermission, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,3 +69,5 @@ class StorageReadinessReport:
     restore_test_status: str
     next_steps: tuple[str, ...]
     notes: tuple[str, ...]
+    permission_status: str = "unknown"
+    directory_permissions: tuple[DirectoryPermission, ...] = ()

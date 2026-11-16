@@ -1,6 +1,19 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 16 Kasım 2026 · **Mevcut uygulama:** 0.147.1 / çekirdek şema 69.
+**Plan güncellemesi:** 16 Kasım 2026 · **Mevcut uygulama:** 0.150.0 / çekirdek şema 72.
+
+**Son ürün netleştirmesi:** Kendi ticari platformumuz için kapalı kaynak
+motor geliştiriliyor. Yeni motor yeteneklerinin güncel sırası
+[MTR-00–08](ENGINE_INTEGRATION_ROADMAP.md) planıdır: ortak istihbarat,
+ilişki araştırması, kaynak genişletme, kalite/öncelik, yönetilebilir işler
+ve ölçülmüş üretim kabulü. Geniş STIX/TAXII ve LLM en sonda kalır.
+Bu sıra aşağıdaki tarihî ürün/ENG kayıtlarını genişletir; yeni MTR
+yetenekleri uygulanmış sayılmaz. Bileşenlerin ticari kullanım ve veri
+hakları [seçim planında](COMPONENT_SELECTION_PLAN.md) ayrıca izlenir.
+
+**İlk ticari işletim:** Yalnız kendi sunucularımızda platform hizmeti.
+Merkezi kurulum/bakım, firma kapsamı ve kaynak bütçeleri ilk üretim
+kabulüne dahildir. Müşteri sunucusuna kurulum sonraki ayrı seçenektir.
 
 **Güncel karar:** Bu repo başka platformlara bağlanabilen profesyonel
 XTI veri toplama ve analiz motorudur. .NET adaptörü ve gerçek platform

@@ -154,6 +154,13 @@ from xti.adapters.redhat_csaf_vex import RedHatCsafVexSource
 from xti.adapters.suse_csaf_vex import SuseCsafVexSource
 from xti.adapters.service_probe import BoundedServicePortProbe
 from xti.adapters.sqlite_services import SQLiteSurfaceServiceScanRepository
+from xti.adapters.nmap_scan import NmapTcpConnectProbe
+from xti.adapters.sqlite_nmap_scans import SQLiteNmapScanRepository
+from xti.adapters.sqlite_nmap_management import SQLiteNmapManagementRepository
+from xti.interfaces.nmap_execution import (
+    register_nmap_execution_parsers, execute_nmap_work_command, make_nmap_service,
+)
+from xti.domain.nmap_options import nmap_capabilities
 from xti.adapters.evaluation_dataset import EvaluationDataError, load_evaluation_dataset
 from xti.application.assets import AssetService
 from xti.application.analysis import UnifiedAnalysisRefreshService, UnifiedAnalysisService
@@ -260,6 +267,8 @@ from xti.application.surface import (
 from xti.application.mail import SurfaceMailService
 from xti.application.cname import SurfaceCnameService
 from xti.application.services import SurfaceServiceScanService
+from xti.application.nmap_scan import NmapSurfaceScanService
+from xti.application.nmap_management import NmapManagementService
 from xti.application.surface_monitor import (
     MailSurfaceMonitorRunner,
     ServiceSurfaceMonitorRunner,
@@ -455,6 +464,15 @@ from xti.interfaces.services import (
     detail_lines as service_detail_lines,
     result_status as service_result_status,
 )
+from xti.interfaces.nmap_scan import (
+    check_lines as nmap_check_lines,
+    detail_lines as nmap_detail_lines,
+    readiness_lines as nmap_readiness_lines,
+)
+from xti.interfaces.nmap_management import (
+    execute_nmap_management_command, register_nmap_management_parsers,
+)
+from xti.domain.nmap_scan import NMAP_PROFILES, build_nmap_scan_plan
 from xti.interfaces.surface_monitor import report_lines as surface_monitor_report_lines
 from xti.interfaces.surface_freshness import report_lines as surface_freshness_report_lines
 from xti.interfaces.surface_exposure import report_lines as surface_exposure_report_lines
@@ -2871,6 +2889,70 @@ def build_parser() -> Parser:
         "--history-limit", type=int, default=20,
         help="Gösterilecek son kontrol (1–100).",
     )
+    surface_nmap = surface_actions.add_parser(
+        "nmap",
+        help="Onaylı kesin IP'lerde sınırlandırılmış Nmap TCP servis kanıtı al.",
+    )
+    nmap_actions = surface_nmap.add_subparsers(dest="nmap_action", required=True)
+    nmap_actions.add_parser(
+        "readiness", help="Nmap kurulumunu ve desteklenen sürümü ağ kullanmadan doğrula.",
+    )
+    nmap_check = nmap_actions.add_parser(
+        "check", help="Ayarlanabilir ama sınırlı Nmap -sT kontrolü çalıştır.",
+    )
+    nmap_check.add_argument("domain", help="Etkin dış yüzey kapsamındaki domain.")
+    nmap_check.add_argument(
+        "--address", action="append", required=True,
+        help="Yönetmeye yetkili olduğun kesin genel IP; her hedef için tekrarlanabilir.",
+    )
+    nmap_check.add_argument(
+        "--reason", required=True, help="Bu kesin IP'leri kontrol etmeye neden yetkili olduğun.",
+    )
+    nmap_check.add_argument(
+        "--profile", choices=NMAP_PROFILES, default="safe",
+        help="safe, extended (1-1024), full (1-65535) veya custom; varsayılan safe.",
+    )
+    nmap_check.add_argument(
+        "--ports", help="Yalnız custom profilinde: 443,8443 veya 1-1024 biçimi.",
+    )
+    nmap_check.add_argument(
+        "--timeout-seconds", type=int,
+        help="Hedef başına kesin süre sınırı (10–3600); profil varsayılanı kullanılır.",
+    )
+    nmap_check.add_argument(
+        "--max-rate", type=int,
+        help="Nmap azami paket/saniye hızı (1–1000); kesin bayt kotası değildir.",
+    )
+    nmap_check.add_argument(
+        "--max-retries", type=int,
+        help="Port başına Nmap yeniden deneme sınırı (0–3).",
+    )
+    nmap_check.add_argument(
+        "--target-limit", type=int,
+        help="Bu komutta izin verilen kesin IP sayısı (1–16).",
+    )
+    nmap_check.add_argument(
+        "--max-probes", type=int,
+        help="Port × hedef × deneme için yaklaşık üst bütçe (1–1000000).",
+    )
+    nmap_check.add_argument(
+        "--confirm-wide-scan", action="store_true",
+        help="1024'ten fazla TCP portu seçtiğini açıkça onayla.",
+    )
+    nmap_check.add_argument(
+        "--confirm-multi-target", action="store_true",
+        help="Birden fazla kesin IP hedefini açıkça onayla.",
+    )
+    nmap_show = nmap_actions.add_parser(
+        "show", help="Kaydedilmiş Nmap geçmişini göster; Nmap veya internet çalıştırmaz.",
+    )
+    nmap_show.add_argument("domain", help="Kayıtlı domain.")
+    nmap_show.add_argument(
+        "--history-limit", type=int, default=20,
+        help="Gösterilecek son hedef kaydı (1–100).",
+    )
+    register_nmap_management_parsers(nmap_actions)
+    register_nmap_execution_parsers(nmap_actions)
     backup = commands.add_parser("backup", help="Tutarlı bir veritabanı yedeği al.")
     backup.add_argument("--output", type=Path, help="Yeni yedek dosyasının konumu.")
     restore = commands.add_parser("restore", help="Yedeği boş bir kayıt alanına geri yükle.")
@@ -5171,10 +5253,37 @@ def run(args: argparse.Namespace) -> int | None:
                 as_json=args.json,
             )
             return None
+        if args.surface_action == "nmap" and args.nmap_action == "capabilities":
+            data = nmap_capabilities()
+            emit(data, ["Nmap türleri: " + ", ".join(data["scan_types"]),
+                        "NSE kontrolleri: " + ", ".join(s["id"] for s in data["scripts"])], as_json=args.json)
+            return None
+        if args.surface_action == "nmap" and args.nmap_action == "jobs":
+            data, lines = execute_nmap_work_command(make_nmap_service(settings.database), args)
+            emit(data, lines, as_json=args.json)
+            return None
+        if args.surface_action == "nmap" and args.nmap_action == "readiness":
+            version, executable = NmapTcpConnectProbe().readiness()
+            emit(
+                {"state": "ready", "version": version, "executable": executable},
+                nmap_readiness_lines(version, executable), as_json=args.json,
+            )
+            return None
         surface_repository = SQLiteSurfaceRepository(settings.database)
         surface_service = SurfaceService(repository, surface_repository)
         candidate_repository = SQLiteSurfaceCandidateRepository(settings.database)
         candidate_service = SurfaceDiscoveryService(repository, candidate_repository)
+        if args.surface_action == "nmap" and args.nmap_action in {"targets", "plans"}:
+            data, lines = execute_nmap_management_command(
+                NmapManagementService(
+                    repository, surface_repository,
+                    SQLiteNmapManagementRepository(settings.database),
+                    LocalExecutionLock(settings.database),
+                ),
+                args,
+            )
+            emit(data, lines, as_json=args.json)
+            return None
         if args.surface_action == "cname":
             cname_repository = SQLiteSurfaceCnameRepository(settings.database)
             cname_service = SurfaceCnameService(
@@ -5241,6 +5350,65 @@ def run(args: argparse.Namespace) -> int | None:
                         print(line)
                     if notified:
                         print("Değişiklik için yerel bildirim oluşturuldu: ./xti inbox")
+                return 0 if status == "complete" else 3
+        elif args.surface_action == "nmap":
+            nmap_repository = SQLiteNmapScanRepository(settings.database)
+            nmap_service = NmapSurfaceScanService(
+                repository, surface_repository, nmap_repository,
+            )
+            if args.nmap_action == "show":
+                details = nmap_service.show(
+                    args.domain, history_limit=args.history_limit,
+                )
+                emit(asdict(details), nmap_detail_lines(details), as_json=args.json)
+            elif args.nmap_action == "check":
+                addresses = tuple(args.address)
+                plan = build_nmap_scan_plan(
+                    args.profile, target_count=len(addresses), ports=args.ports,
+                    timeout_seconds=args.timeout_seconds, max_rate_pps=args.max_rate,
+                    max_retries=args.max_retries, target_limit=args.target_limit,
+                    max_probe_budget=args.max_probes,
+                    confirm_wide_scan=args.confirm_wide_scan,
+                    confirm_multi_target=args.confirm_multi_target,
+                )
+                scope, addresses, reason, plan = nmap_service.prepare(
+                    args.domain, addresses, args.reason, plan,
+                )
+                probe = NmapTcpConnectProbe()
+                probe.readiness()
+                progress = terminal_progress(args.json)
+                if progress:
+                    progress(
+                        f"Yetkili Nmap TCP kontrolü: {scope.asset_value} → "
+                        f"{len(addresses)} kesin IP, {plan.port_count} port"
+                    )
+                with LocalExecutionLock(settings.database).acquire():
+                    checks = NmapSurfaceScanService(
+                        repository, surface_repository, nmap_repository, probe,
+                    ).check(scope.asset_value, addresses, reason, plan)
+                statuses = tuple(check.result.status for check in checks)
+                status = (
+                    "complete" if statuses and all(item == "complete" for item in statuses)
+                    else "failed" if statuses and all(item == "failed" for item in statuses)
+                    else "timeout" if statuses and all(item == "timeout" for item in statuses)
+                    else "partial"
+                )
+                data = {
+                    "status": status, "plan": asdict(plan),
+                    "checks": [asdict(check) for check in checks],
+                }
+                if args.json:
+                    print(json.dumps({
+                        "ok": status == "complete", "data": data,
+                    }, ensure_ascii=True))
+                else:
+                    print(
+                        f"Nmap çalışma sonucu: {status} | "
+                        f"{len(checks)} kesin IP kaydı"
+                    )
+                    for check in checks:
+                        for line in nmap_check_lines(check, indent="  "):
+                            print(line)
                 return 0 if status == "complete" else 3
         elif args.surface_action == "mail":
             mail_repository = SQLiteSurfaceMailRepository(settings.database)
@@ -5614,6 +5782,7 @@ def run(args: argparse.Namespace) -> int | None:
                     f"keşif çalışması: {data['surface_discovery_run_count']}.",
                     f"E-posta DNS temel kaydı: {data['surface_mail_check_count']} kontrol.",
                     f"Sınırlı servis envanteri: {data['surface_service_check_count']} kontrol.",
+                    f"Yetkili Nmap TCP kanıtı: {data['surface_nmap_check_count']} hedef kaydı.",
                     f"CNAME hedef kanıtı: {data['surface_cname_check_count']} kontrol.",
                     f"CISA KEV kataloğu: {data['active_kev_entry_count']} etkin kayıt; "
                     f"kaynak çalışması: {data['vulnerability_source_run_count']}.",
