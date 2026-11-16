@@ -30,6 +30,8 @@ _CONTENT_STATUSES = {"source_candidate": "arama adayı", "retained_candidate": "
 
 
 def register_organization_report_parser(actions: _SubParsersAction) -> None:
+    from xti.interfaces.company_content import register_company_content_parser
+    register_company_content_parser(actions)
     parser = actions.add_parser("report", help="Kuruluşun açıkça bağlı kayıtlı kanıtlarını birleştir; ağa çıkmaz.")
     parser.add_argument("organization_id")
     parser.add_argument("--target-offset", type=int, default=0)

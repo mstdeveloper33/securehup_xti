@@ -271,8 +271,10 @@ class SQLiteCollectionProfileRepository:
             profiles, _ = self._audit(connection)
             return self._find(profiles, name_key)
 
-    def list(self, *, active_only: bool = True, limit: int = 100) -> tuple[CollectionProfile, ...]:
+    def list(self, *, active_only: bool = True, limit: int = 100, offset: int = 0) -> tuple[CollectionProfile, ...]:
         _limit(limit, maximum=501)
+        if type(offset) is not int or not 0 <= offset <= 1_000_000:
+            raise ValidationError("Profil sayfa başlangıcı 0–1.000.000 olmalı.")
         if type(active_only) is not bool:
             raise ValidationError("Profil etkinlik filtresi doğru/yanlış olmalı.")
         with self._storage._connection(readonly=True) as connection:
@@ -281,7 +283,7 @@ class SQLiteCollectionProfileRepository:
             return tuple(sorted(
                 (profile for profile in profiles.values() if not active_only or profile.active),
                 key=lambda value: (value.name_key, value.id),
-            )[:limit])
+            )[offset:offset + limit])
 
     def details(self, name: str, *, event_limit: int = 50) -> CollectionProfileDetails:
         name_key = profile_name_key(name)

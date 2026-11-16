@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**16 Kasım 2026 · 0.146.0 · Şema 69.**
+**16 Kasım 2026 · 0.147.0 · Çekirdek şema 69.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -9,20 +9,60 @@ ve analiz motorudur. .NET adaptörü, platform bağlantısı, uygulama backend'i
 kullanıcı/giriş oturumu, roller ve web deneyimi repoyu kullanacak ekibe
 aittir. Biz motoru, sürümlü sözleşmesini, örneklerini ve belgelerini
 sağlarız. [Motor yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
-geçerlidir. 0.139.0 sürümlü yerel engine okuma sınırını, 0.140.0 ortak
-araç kimliği ve yerel kurulum kataloğunu uygular. .NET bağlantısı, ağ servisi
-veya müşteri yalıtımı henüz uygulanmadı. 0.146.0 RSS toplama profilleri ve
-kuruluş içerik raporu için şema 69'a açık yedekli geçiş ekler; engine v1'in
-dört işlemi korunur.
+geçerlidir. 0.147.0, güvenilen başlatıcının seçtiği ayrı firma kayıt alanları
+üzerinde sürümlü `xti-platform` girişini ekler. Firma kapsamı arama, içerik,
+iş ve sonuç okumalarında uygulanır. .NET bağlantısı, kullanıcı/rol yönetimi,
+HTTP servisi ve web paneli tüketici ekibin sorumluluğunda kalır. Kişisel
+`engine` v1'in dört okuma işlemi ve mevcut terminal kullanımı korunur.
+Geniş STIX/TAXII ve LLM bu teslimin kapsamına alınmadı.
 
 **16 Kasım kullanıcı hedefi:** Firma/tedarikçi hakkında bulunan içerik,
-başlığı, mevcut açıklaması veya ilgili bölümü, özgün bağlantısı ve varsa
-yayın tarihiyle sunulacak. Toplam haber toplama sayıları işletim ayrıntısıdır.
-Mevcut `mentions` ve kuruluş içerik raporu temel alınır. Tam makale alma
-ayrı zorunlu teslim adımı olmaktan çıkarıldı; gerekirse bu hedef için
-değerlendirilir. Bu açıklama plan yönüdür; uygulama/JSON veya şema değişmedi.
+başlığı, mevcut açıklaması, özgün bağlantısı ve varsa yayın tarihiyle
+sunulur. 0.147.0'ın `organizations content` komutu ve platformun
+`organization.content` işlemi mevcut `mentions` kanıtlarını kesin kuruluş
+ve açık tedarikçi ilişkileriyle okur. Hiç kontrol edilmemiş, başarılı boş,
+başarısız, eski ve sonucu belirsiz kapsamlar ayrı gösterilir. Güncel/tarihî
+içerikler ve sayfalama toplamları korunur. Tam makale alma, otomatik özet
+ve yeni kaynak ekleme bu görünümün parçası değildir.
 
-**Güncel teslim:** 0.146.0, seçilmiş RSS kaynaklarını mevcut `collect`,
+**Güncel teslim — 0.147.0:** Firma alanı açık kurulumla oluşturulur; mevcut
+kişisel veri kendiliğinden taşınmaz. Platform JSON'u dosya yolu veya firma
+seçemez. Bilinmeyen, kapalı, kimlik bağı bozuk ya da güvensiz izinli alan
+reddedilir; kişisel varsayılan alana geri düşülmez. İş kabulü yalnız
+kayıtlı profil/sürümü seçer ve kaynak çağırmaz. Tam profil, izleme tanımları
+ve kaynak sözleşmeleri dondurulur. Aynı tekrar anahtarı aynı işi döndürür;
+çakışan seçim reddedilir. Ayrı worker en fazla bir işi çalıştırır; oturum
+bağı kaynak isteğinden önce saklanır. İptal yalnız bekleyen işi kapatır;
+kesinti kurtarması kaynakları kendiliğinden tekrar çağırmaz.
+
+Çekirdek şema 69 değişmedi. Sürüm 1 iş kuyruğu ayrı `engine-jobs.sqlite3`
+dosyasında açıkça kurulur. Platform yedeği çekirdek kanıtlarını ve iş
+anahtarlarını birlikte korur; geri yükleme yalnız yeni alana yapılır.
+Yedekte bekleyen işler `cancelled/restored_uncertain` olarak kapatılır;
+yeni alan kimliği eski alana yönelik gecikmiş iş kabullerini reddeder.
+Kuruluş grupları tek başına müşteri yetkisi değildir; kullanıcı–firma
+eşlemesi ve eski kurulumun durdurulması dağıtım ekibine aittir.
+[Kullanım ve sınırlar](PLATFORM_ENGINE.md),
+[mimari karar](decisions/0152-company-scoped-platform-engine.md).
+
+**0.147.0 yerel doğrulaması:** Son kodun tam test turunda 2.595 test
+1.009,038 saniyede tamamlandı: 2.591 başarılı, Linux'a özel dört test
+atlandı; hata yok. Son hedefli tur 58 testi 17,589 saniyede geçti.
+Gerçek alt süreçli çevrimdışı kabul, iki firmada 100 ve 1.000'er
+kayıtla 36 okuma, kaynak öncesi/kalıcı makbuz sonrası SIGTERM, eşzamanlı
+worker ve tekrar isteğini sınadı. Son kodda kabul 38,516 saniyede tamamlandı;
+okuma p95'i 0,545 saniye, en yüksek çocuk süreç belleği 68.009.984 bayt,
+geçici kayıt alanı 5.046.819 bayttı. Kaynak çağrıları kesinti sınırına göre
+0 veya 1 kaldı; diğer firmanın işi çalışabildi. Bu yerel kabul macOS
+arm64/Python 3.13.3/SQLite 3.53.2 ortamına aittir. Aynı kabul betiği
+[Linux iş akışında](https://github.com/mstdeveloper33/securehup_xti/actions/workflows/platform-acceptance.yml)
+Python 3.11 ve 3.13 ile çalıştırılır; kullanılacak commit'in sonucu iş
+günlüğünden doğrulanmalıdır. Canlı Tavily kullanılmadı; gerçek firma/tedarikçi kabulü
+kullanıcının daha sonra sağlayacağı anahtarı bekler. Sürekli hizmet veya
+canlı kaynak kalitesi bu ölçümden çıkarılmaz.
+[Ölçümler ve tekrar çalıştırma](PLATFORM_ACCEPTANCE.md).
+
+**Önceki teslim — 0.146.0:** Seçilmiş RSS kaynaklarını mevcut `collect`,
 profil ve Linux zamanlama akışına bağlar. `--only-news` yalnız haber işi;
 `--news-source` ve `--search-watch` açık kaynak/arama seçimi sağlar.
 Eski varsayılan üç domain görevi değişmez. Haber araması için üç yayıncı
@@ -135,7 +175,8 @@ Anahtar repodan/veritabanından ayrı özel kullanıcı dosyasında veya ortamda
 tutulur. `plan` ağsızdır; yerel sonuç okuma anahtar gerektirmez. Kredi
 sayacı yalnız bu veri alanında kaynakça bildirilen tüketimi gösterir;
 hesap bakiyesi veya fatura değildir. Kuruluş–tedarikçi toplu izleme ve
-zamanlama 0.145.0'da eklendi; müşteri yalıtımı henüz uygulanmadı.
+zamanlama 0.145.0'da eklendi; bu teslimlerde müşteri yalıtımı yoktu.
+0.147.0'ın ayrı platform alanı sınırı yukarıda anlatılır.
 
 **0.144.0 doğrulaması:** Tavily taşıması/anahtar, domain/depo/geçiş,
 servis/CLI, genel arama/engine ve ilgili mevcut kontrolleri içeren 115 test
@@ -2374,7 +2415,8 @@ kapsamı, doğrulanmış katkı ve mevcut mimari sınırlar korunacak.
 
 Tedarikçi ve kişisel yerel vaka çekirdekleri tamamlandı ve korunur. Gelecekteki
 uygulama backend'i, ekip rolleri ve panel mevcut .NET platformundadır;
-motorun kapsam/kanıt/iş sözleşmesi ayrıca doğrulanacaktır. STIX/standart
+motorun firma kapsamlı kanıt/iş sözleşmesi 0.147.0'da eklenmiştir.
+Güncel doğrulama kapsamı bu belgenin başında kayıtlıdır. STIX/standart
 paylaşım genişlemesi en sona ertelenmiş motor yeteneğidir; yeni kaynaklar
 ölçülmüş katkıya göre ele alınır. E-posta/SMS
 ürün kanalları .NET tarafında; insan onaylı takedown ayrı kapsamdır.

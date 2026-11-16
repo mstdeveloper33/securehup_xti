@@ -1,0 +1,106 @@
+name: XTI platform isolation acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/platform-acceptance.yml"
+      - "pyproject.toml"
+      - "scripts/python"
+      - "scripts/bootstrap-python"
+      - "scripts/run_python.py"
+      - "scripts/check-platform-acceptance.py"
+      - "src/xti/**"
+      - "tests/platform_acceptance_worker.py"
+      - "tests/test_platform*.py"
+      - "tests/test_company_workspaces.py"
+      - "tests/test_company_content.py"
+      - "tests/test_engine_job*.py"
+  pull_request:
+    paths:
+      - ".github/workflows/platform-acceptance.yml"
+      - "pyproject.toml"
+      - "scripts/python"
+      - "scripts/bootstrap-python"
+      - "scripts/run_python.py"
+      - "scripts/check-platform-acceptance.py"
+      - "src/xti/**"
+      - "tests/platform_acceptance_worker.py"
+      - "tests/test_platform*.py"
+      - "tests/test_company_workspaces.py"
+      - "tests/test_company_content.py"
+      - "tests/test_engine_job*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xti-platform-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  platform-acceptance:
+    name: Platform acceptance (Python ${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Select the configured Python for XTI
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Verify offline company isolation, capacity and process recovery
+        id: acceptance
+        run: >-
+          ./scripts/python scripts/check-platform-acceptance.py
+          --output "$RUNNER_TEMP/xti-platform-acceptance.json"
+      - name: Record synthetic measurements and fixed acceptance limits
+        if: always()
+        env:
+          ACCEPTANCE_RESULT: ${{ steps.acceptance.outcome }}
+          ACCEPTANCE_PYTHON: ${{ matrix.python }}
+        run: |
+          ./scripts/python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          result_path = Path(os.environ["RUNNER_TEMP"]) / "xti-platform-acceptance.json"
+          report = None
+          if result_path.is_file():
+              content = result_path.read_text(encoding="utf-8")
+              report = json.loads(content)
+              print(content)
+          else:
+              print("The acceptance process did not produce its synthetic JSON report.")
+          lines = [
+              "### Linux platform acceptance",
+              f"- Python matrix: {os.environ['ACCEPTANCE_PYTHON']}",
+              f"- Acceptance step: {os.environ['ACCEPTANCE_RESULT']}",
+              f"- Report status: {report['status'] if report else 'not produced'}",
+              "- Configured fixtures: two companies, 100 and 1,000 records per company, 36 read requests.",
+              "- Worker contention and SIGTERM recovery use local synthetic source fixtures.",
+              "- No live source collection, external tool execution or active probing.",
+              "- This bounded acceptance does not establish continuous service or a 24/7 guarantee.",
+          ]
+          if report is not None:
+              lines += ["", "Fixed limits selected before execution:", "```json",
+                        json.dumps(report["thresholds"], indent=2), "```"]
+              if "summary" in report:
+                  lines += ["", "Measured reads:", "```json",
+                            json.dumps(report["summary"], indent=2), "```"]
+          with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as stream:
+              stream.write("\n".join(lines) + "\n")
+          PY

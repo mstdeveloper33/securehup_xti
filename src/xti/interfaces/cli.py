@@ -19,6 +19,7 @@ from uuid import uuid4
 
 from xti import __version__
 from xti.interfaces.engine import register_engine_parser, run_engine
+from xti.interfaces.platform_engine import DataDirectoryAction, register_platform_parser, run_platform
 from xti.interfaces.components import register_components_parser, make_component_service, component_lines
 from xti.interfaces.event_candidates import (
     register_event_candidates_parser, make_event_candidate_service, execute_event_candidates_command,
@@ -741,7 +742,7 @@ def build_parser() -> Parser:
     )
     parser.add_argument("--version", action="version", version=f"XTI {__version__}")
     parser.add_argument(
-        "--data-dir", default=os.environ.get("XTI_DATA_DIR", ".xti-data"),
+        "--data-dir", default=os.environ.get("XTI_DATA_DIR", ".xti-data"), action=DataDirectoryAction,
         help="Kayıt klasörü (varsayılan: .xti-data veya XTI_DATA_DIR).",
     )
     parser.add_argument("--json", action="store_true", help="Otomasyon için JSON çıktı üret.")
@@ -804,6 +805,7 @@ def build_parser() -> Parser:
     register_news_parser(commands)
     register_mentions_parser(commands)
     register_engine_parser(commands)
+    register_platform_parser(commands)
     register_components_parser(commands)
     register_event_candidates_parser(commands)
     brand = commands.add_parser(
@@ -3384,6 +3386,8 @@ def emit_cycle(
 
 
 def run(args: argparse.Namespace) -> int | None:
+    if args.command == "platform":
+        return run_platform(args)
     settings = Settings.from_path(args.data_dir)
     if args.command == "engine":
         return run_engine(settings.database, describe=args.describe)
@@ -3566,7 +3570,16 @@ def run(args: argparse.Namespace) -> int | None:
         )
         emit(data, lines, as_json=args.json)
     elif args.command == "organizations":
-        if args.organization_action == "report":
+        if args.organization_action == "content":
+            from xti.adapters.sqlite_company_content import SQLiteCompanyContentRepository
+            from xti.application.company_content import CompanyContentService
+            from xti.interfaces.company_content import content_lines
+            data = CompanyContentService(SQLiteCompanyContentRepository(settings.database)).show(
+                args.organization_id, scope_offset=args.scope_offset, scope_limit=args.scope_limit,
+                offset=args.offset, limit=args.limit, stale_after_hours=args.stale_after_hours,
+            )
+            lines = content_lines(data, data_dir=settings.data_dir, history=args.history)
+        elif args.organization_action == "report":
             data, lines = execute_organization_report_command(
                 OrganizationReportService(SQLiteOrganizationReportRepository(settings.database)), args,
             )
@@ -6767,6 +6780,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         args = parser.parse_args(values)
         return run(args) or 0
     except (ValidationError, UsageError) as exc:
+        if isinstance(exc, UsageError):
+            from xti.interfaces.platform_engine import platform_command_requested, report_platform_usage_error
+            if platform_command_requested(values):
+                report_platform_usage_error()
+                return 2
         report_error("validation_error", str(exc), as_json=as_json)
         return 2
     except (StorageError, FeedbackError) as exc:

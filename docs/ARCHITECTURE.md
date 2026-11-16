@@ -1,27 +1,66 @@
-# Yerel Uygulamanın Mimarisi
+# XTI Motorunun Mimarisi
 
-**16 Kasım 2026 — 0.146.0, şema 69 ana proje yapısı.**
+**16 Kasım 2026 — 0.147.0, çekirdek şema 69 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
-**15 Kasım 2026 görev sınırı — .NET bağlantısı henüz uygulanmadı:** Bu repo
+**Güncel görev sınırı — .NET bağlantısı tüketici ekibe ait:** Bu repo
 başka bir platformun kullanabileceği XTI motorunu, kararlı sürümlü
 sözleşmeleri, örnekleri ve belgeleri sunar. Toplama, analiz, kaynaklı
 kanıt/ilişkiler, iş geçmişi ve bunların veri bütünlüğü burada geliştirilir.
 .NET istemcisi ve bağlantı adaptörü, uygulama backend'i, kullanıcı/giriş
 oturumu, rol ve web paneli repoyu kullanan ekibin sorumluluğundadır.
-Platform entegrasyonu en son ele alınır. Hedef bağlantı sürümlü istek/sonuç
-sözleşmesini kullanır; iki taraf birbirinin veritabanı şemasına doğrudan
-bağlanmaz. İlk yerel stdin/stdout JSON okuma sınırı 0.139.0'da eklendi;
-kurumsal dağıtımın taşıma seçimi tüketen ekibe aittir ve henüz yapılmadı.
+Motorun platform girişi sürümlü istek/sonuç sözleşmesini kullanır; iki
+taraf birbirinin veritabanı şemasına doğrudan bağlanmaz. İlk kişisel
+stdin/stdout JSON okuma sınırı 0.139.0'da, güvenilen başlatıcıyla ayrı firma
+alanları ve kalıcı iş kabulü 0.147.0'da eklendi. Kurumsal taşıma, kimlik
+doğrulama ve web uygulaması tüketen ekibin sorumluluğundadır.
 Yerel açık kaynak bileşenler tercih edilir; harici platform zorunlu olmaz.
 Yerel kullanım ve mevcut vaka/karar/toplama oturumu geçmişi korunur.
-Kuruluş grupları müşteri erişim yalıtımı değildir. İleride ortak müşteri
-verisine erişim sağlanacaksa platformun doğruladığı kapsam motorun
-iş/arama/sonuç sınırında da uygulanmalı ve ayrıca sınanmalıdır; bu yetki
-sınırı bugün uygulanmış değildir. Serbest kurum etiketi yetki sayılmaz.
+Kuruluş grupları müşteri erişim yalıtımı değildir. 0.147.0'ın `platform`
+girişinde doğrulanmış firma alanı iş/arama/içerik/sonuç sınırına uygulanır.
+Serbest kurum etiketi yetki sayılmaz; firma seçimini kullanıcı JSON'u
+yapamaz. Dosyalara sahip olan yöneticiye karşı yalıtım iddiası yoktur.
 [0142 kararı](decisions/0142-xti-engine-dotnet-host.md) ilk hedefi,
 [motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) güncel görev sınırını kaydeder.
 Aşağıdaki bölümler mevcut uygulamayı ve önceki teslimlerin sınırlarını anlatır.
+
+`domain.company_workspace` firma anahtarı ve kayıt kimliği kurallarını
+taşır; dosya erişimi `company_workspaces` adaptöründedir. Özel izinli kayıt
+kökü, firma listesi ve alan işaretçisi aynı kimlik bağını doğrular. Bilinmeyen,
+kapalı, bağlantılı veya güvensiz dosya/dizin başka kayıt alanına yönlendirilmez.
+Somut servis bağlantıları `interfaces.platform_engine` ve `platform_jobs`
+içinde kurulur. Kişisel `interfaces.engine` sözleşmesi aynı kalır.
+
+`EngineJobService` küçük kuyruk ve çalıştırıcı portlarına bağlıdır.
+`SQLiteEngineJobRepository` çekirdek şemadan ayrı, açıkça kurulan sürüm 1
+`engine-jobs.sqlite3` dosyasını kullanır. Değişmez istek anahtarı/hash'i,
+dondurulmuş profil/izleme/kaynak planı ve eklemeli iş olayları saklanır.
+`CollectionProfileJobRunner`, mevcut `CollectionHistoryService` üzerinden
+çalışır. Plan ortak çekirdek kilidi altında yeniden doğrulanır; oturum
+bağlantısı ilk kaynak isteğinden önce yan dosyaya yazılır. İki veritabanı
+tek atomik işlem olarak sunulmaz: aradaki kesinti belirsiz durumu korur,
+otomatik yeniden deneme başlatmaz. Worker kilidi ve atomik sahiplenme
+aynı işi iki çalıştırıcının almasını engeller; iptal yalnız kuyruktaki işe
+uygulanır. Sonuçlar sınırlı, değişmez kaynak makbuzu başvurularıdır.
+
+Platform yedeği kuyruk ve çekirdek kilitleri altında her iki SQLite
+görüntüsünü doğrular; çekirdek okuma işlemi eski yazıcıların araya girmesini
+engeller. Mevcut hedef üzerine yazılmaz. Yeni alana geri yüklemede kuyrukta
+bekleyen eski işler tekrar gönderilmez ve alan kimliği yenilenir.
+`jobs.submit` içindeki `expected_workspace_id` yalnız seçilmiş alanla
+eşitlik denetimidir; alan seçemez. Böylece eski alana ait gecikmiş kabul
+isteği yeni alanda iş oluşturamaz. Eski dağıtımın durdurulması işletim işidir.
+
+`CompanyContentService` küçük salt okunur porttan yapılandırılmış firma
+içeriği alır. SQLite adaptörü mevcut kesin kuruluş/tedarikçi kapsamını ve
+gerçek kaynak çalışmasının kayıtlarını tek okuma işleminde kullanır.
+Bağlantısı kaldırılmış tedarikçinin tarihî kanıtı güncel ortak kayıtla
+değiştirilmez. Başlık, mevcut kaynak açıklaması, URL/tarih ve eşleşme
+gerekçesi; güncel/tarihî kapsam ve başarısız/boş/eski/belirsiz durumlarla
+birlikte sunulur. Okuma anahtar veya ağ gerektirmez. İlk platform işi
+toplama profilidir; ücretli Tavily grup çalışmaları bu kuyruğa eklenmez.
+[0152 kararı](decisions/0152-company-scoped-platform-engine.md),
+[platform sözleşmesi](PLATFORM_ENGINE.md).
 
 0.146.0 mevcut `CollectionHistoryService` ve zamanlama akışına açık RSS
 kaynağı/haber araması seçimlerini ekler. Yeni seçim olmayan v1 profil/plan
@@ -68,14 +107,17 @@ olarak saklar. Güncel görünüm ve önce/sonra farkı denetlenmiş geçmişten
 kimliğe girer; rank/puan değişimi anlamlı içerik değişimi sayılmaz.
 Genel arama ve mevcut kayıtlı arama yeni `mention` türünü destekler;
 engine v1 dört işlemle kalır. Kuruluş–tedarikçi grup izleme 0.145.0'da
-eklenir; tenant ayrımı henüz yoktur. [0149 kararı](decisions/0149-tavily-company-mentions.md).
+eklenir; bu eski teslimlerin kendi içinde müşteri ayrımı yoktur.
+0.147.0 ayrı firma alanı sınırını yukarıda tanımlanan platform girişinde
+uygular. [0149 kararı](decisions/0149-tavily-company-mentions.md).
 
 0.140.4 mevcut motorun tanımlanan sağlamlaştırma paketini tamamlar;
 ortam, ölçümler ve kabul sınırları [durum kaydındadır](STATUS.md). SQLite
 geliştirme, deneme ve kişisel kullanım için korunur. .NET/PostgreSQL
 gelecekteki platform bilgisidir; mevcut veri taşınmaz. Platformun
-PostgreSQL yerleşimi, fiziksel veritabanı ayrımı ve gerekiyorsa geçişin
-uygulanması kullanan ekibe aittir. Motorun küçük depolama portları ve
+PostgreSQL yerleşimi ve gerekiyorsa ona geçişin uygulanması kullanan ekibe
+aittir. 0.147.0 motoru firma başına ayrı SQLite kayıt alanı sunar; eski
+veriyi kendiliğinden taşımaz. Motorun küçük depolama portları ve
 adaptör sınırları korunur; motor için başka bir depo adaptörü gerekirse
 ayrı kapsam ve kabul ister. Böyle bir değişiklikte kayıt/kanıt kimlikleri,
 atomik yazma, olay sırası, eşzamanlı iş davranışı ve geri dönüş aynı anlamı
@@ -96,11 +138,12 @@ mevcut kanıt okuyucularıyla çözer; dışarı çıkan alanlar v1 için açık
 Kaynak adının gösterim metni kayıt namespace'i değildir. Katalog geçmişi,
 sosyal çalışma öğesi ve insan kararı kendi bağlarını korur.
 
-Engine isteği yalnız güvenilen başlatıcının seçtiği kişisel kayıt alanını
+Kişisel `engine` v1 isteği yalnız başlatıcının seçtiği kayıt alanını
 okur; JSON dosya yolu/tenant/serbest komut kabul etmez. Yeni iş, ağ erişimi
 veya kimlik sistemi yoktur. Arama sayfaları ve ayrıntı ayrı okumalardır;
 engine kaynak durumu bütün kaynaklar için tek snapshot değildir. Mevcut
-terminal ve `--json` zarfı değişmedi.
+terminal ve `--json` zarfı değişmedi. Çok firmalı işler ayrı `platform`
+girişindedir; kişisel okuma sözleşmesinin işlem listesi genişletilmedi.
 [0143 kararı](decisions/0143-versioned-engine-read-contract.md)
 ve [v1 kullanım rehberi](ENGINE_CONTRACT.md).
 

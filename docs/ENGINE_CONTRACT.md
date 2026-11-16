@@ -1,19 +1,23 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.145.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 68.
+**Uygulama:** 0.147.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 69.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
 kaynak durumu ve proje araç kataloğu. Mevcut terminal komutları ve `--json` çıktıları
-korunur. 0.143.0 `news`, 0.144.0 `mention` kayıt ailesini ekler; dört işlem
-değişmez. 0.145.0 grup toplama/zamanlama komutları yerel CLI sınırındadır;
-yeni engine işlemi eklenmez. Grup geçmişi için şema 67→68 geçişi ayrı ve açık
-`./xti migrate` adımıdır; [güncelleme rehberi](GETTING_STARTED.md) uygulanır.
+korunur. `news` ve `mention` kayıt aileleri bu dört işlemle okunur.
+0.146.0 haber profilleri için çekirdek şemayı 69'a taşımıştır; mevcut
+kayıt alanlarının geçişi ayrı ve açık `./xti migrate` adımıdır.
+[Güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
 Bu okuma katmanı yeni internet toplaması başlatmaz. İnternetten veri alan
 mevcut toplama komutları kullanılmaya devam eder; `engine` onların sakladığı
-sonuçları okur. .NET bağlantısı, kullanıcı oturumu, müşteri yalıtımı ve engine
-üzerinden uzun iş başlatma henüz uygulanmadı.
+sonuçları okur. Bu kişisel `engine` girişinde firma seçimi veya kalıcı iş
+kuyruğu yoktur. 0.147.0'ın ayrı [platform protokolü](PLATFORM_ENGINE.md),
+güvenilen başlatıcının seçtiği firmaya özel kayıt alanını doğrular; içerik
+okuma ve kalıcı iş kabulü/durum/sonuç/iptal işlemlerini sağlar. Kaynakları
+çalıştıran worker ayrıca açıkça çağrılır. Platform işlemleri bu belgedeki
+`engine` v1'e eklenmez; iki girişin sözleşme sürümü ayrı ayrı `1`'dir.
 
 Bu repo motoru, sürümlü sözleşmeleri, kullanım örneklerini ve belgeleri
 sunar. .NET istemcisini ve bağlantısını repoyu kullanan ekip geliştirir;
@@ -23,8 +27,9 @@ gerekiyorsa veri geçişi de kullanan ekibin sorumluluğundadır; bu sürüm
 PostgreSQL geçişi yapmaz. Motorun depolama portları, veri bütünlüğü ve
 iş sözleşmeleri bu repoda korunur ve geliştirilir.
 
-Platform entegrasyonu en son ele alınır; geniş STIX/TAXII paylaşımı ve
-isteğe bağlı LLM desteği de en son, ihtiyaç halinde değerlendirilir.
+Gerçek .NET bağlantısı, kullanıcı oturumu ve yetkilendirme tüketici
+platformun işidir. Geniş STIX/TAXII paylaşımı ve isteğe bağlı LLM desteği
+en son, ihtiyaç halinde değerlendirilir.
 Mevcut sınırlı STIX çıktısı değişmez. Güncel sıra ve sorumluluklar
 [motor planındadır](roadmap/ENGINE_INTEGRATION_ROADMAP.md).
 
@@ -91,7 +96,7 @@ Cevabın ortak alanları:
 | `contract_version` / `engine_version` | Cevabın sözleşme ve uygulama sürümü |
 | `request_id` / `operation` | Tanınan istek kimliği ve işlem; çözülemeyen alan `null` olabilir |
 | `status` | Yerel okuma tamamlandıysa `complete`, hata varsa `error` |
-| `scope` | Bu sürümde `{"mode":"local-workspace"}` |
+| `scope` | Bu girişte `{"mode":"local-workspace"}` |
 | `data` | Başarıda işlem sonucu; hatada `null` |
 | `error` | Başarıda `null`; hatada `code`, `message`, `retryable` |
 
@@ -114,7 +119,7 @@ değerlerini sabit tutmalı, kullanıcı metnini shell komutu olarak üretmemeli
 | `include_inactive` | Boolean; varsayılan `false` |
 | `offset` / `limit` | Sayfa başlangıcı ve boyutu; varsayılan `0` / `50` |
 
-On bir kayıt ailesi: `domain`, `finding`, `social`, `ransomware`, `public-notice`,
+On iki kayıt ailesi: `domain`, `finding`, `social`, `ransomware`, `public-notice`,
 `case`, `supplier`, `organization`, `cti`, `indicator`, `news`, `mention`.
 
 Firma/tedarikçi içerik referansı `kind="mention"`,
@@ -191,6 +196,8 @@ birleşebilir. Desteklenen bütün eşlemeler `engine --describe` içinde vardı
 | Sosyal izleme / sosyal çalışma öğesi | `local-social` |
 | Ransomware iddiası | `threatcluster` veya `ransomlook` |
 | Kamu ihlal olayı | `hibp` |
+| Yayıncı haberi | `cisa`, `ncsc` veya `cert-fr` |
+| Firma/tedarikçi içerik adayı | `tavily` |
 | Vaka / tedarikçi / kuruluş | `local-case-management` / `local-suppliers` / `local-organizations` |
 | CTI varlığı / IOC | `local-cti` / `local-ioc` |
 
@@ -304,7 +311,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.145.0",
+  "engine_version": "0.147.0",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",
@@ -329,14 +336,15 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 
 ## Entegrasyon sınırı ve sürüm uyumu
 
-Bu sürüm güvenilen yerel çalışma alanını bütünüyle okur. İşletici veri
+Bu `engine` girişi güvenilen yerel çalışma alanını bütünüyle okur. İşletici veri
 alanını ve süreç erişimini yönetir. Serbest kurum etiketi, domain filtresi
-veya dosya yolu kullanıcı yetkisi sayılmaz. Ortak müşteri verisine açılma,
-servis kimliği ve platformun yetki bağlamının motor boyunca uygulanması
-ayrı teslim ve kabul gerektirir. Platform kimlik ve yetkilendirme
-bağlantısını kullanan ekip sağlar; motorun kendi iş/arama/sonuç sınırındaki
-kapsam doğrulaması motor sözleşmesinin sorumluluğu olarak kalır. Bu sürüm
-ortak müşteri erişimi için hazır bir yetki sistemi sunmaz.
+veya dosya yolu kullanıcı yetkisi sayılmaz. Firma kapsamında çalışma için
+[ayrı platform girişi](PLATFORM_ENGINE.md) kullanılır; platform JSON'undan
+firma veya dosya yolu seçilemez. Firma eşlemesini, kimliği ve yetkiyi
+tüketici uygulama doğrular. Motor seçilen kayıt alanının firma bağını ve
+iş/arama/sonuç kapsamını denetler. Bu sınır, servis hesabının dosyalarına
+tam erişimi olan işleticiye karşı yalıtım veya hazır bir kullanıcı yetki
+sistemi değildir.
 
 İstemci desteklediği `contract_version` değerini doğrulamalıdır. İsteklerin
 alanları açıkça tanımlanır; bilinmeyen istek alanları reddedilir. Cevaplara
@@ -345,9 +353,10 @@ engellememelidir. Alan silme, tip veya anlam değiştirme yeni sözleşme sürü
 gerektirir; iç modeldeki değişiklik dış cevaba kendiliğinden taşınmaz.
 
 Gerçek .NET tüketicisi ve platforma taşıma bağlantısı kullanan ekibin
-işidir; bu repo bunları geliştirmez. Engine üzerinden kalıcı iş
-başlatma/durum/iptal sözleşmesi ise motorun gelecekteki kapsamıdır ve henüz
-uygulanmadı. Bu teslim dört işlemli ilk okuma sınırıdır. Gelecekteki iş
-sözleşmesi de motorun veri bütünlüğü ve kurtarma kurallarını korumalıdır.
+işidir; bu repo bunları geliştirmez. Kalıcı iş kuyruğu ve firma alanını
+iş geçmişiyle birlikte yedekleme 0.147.0 platform protokolünde uygulanır.
+Kişisel `engine` v1 dört salt okuma işlemiyle kalır; platform zarfı ayrıca
+`protocol="xti-platform"` ve firma kapsamı taşır. İstemci hangi girişi
+kullandığını açıkça seçmelidir.
 [Güncel motor planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md) ve
 [0143 karar kaydı](decisions/0143-versioned-engine-read-contract.md).

@@ -1,16 +1,18 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.146.0 · **Tarih:** 16 Kasım 2026 · **Şema:** 69.
+**Sürüm:** 0.147.0 · **Tarih:** 16 Kasım 2026 · **Çekirdek şema:** 69.
 
-Bugünkü sürüm SQLite ile terminalden kullanılan kişisel uygulamadır.
-Geliştirme, test ve sonuçları inceleme bu düzenle devam eder. Bu repo
-toplama ve analiz motorunu, kararlı sürümlü sözleşmeleri, kullanım
-örneklerini ve belgeleri sunar; kaynaklı kanıt ve iş geçmişini korur.
-Gelecekteki .NET platformuna bağlantıyı repoyu kullanan ekip geliştirir.
+XTI, SQLite ile kişisel terminal kullanımını ve güvenilen başlatıcının
+seçtiği ayrı firma alanlarında platform kullanımını destekler. Bu repo
+toplama ve analiz motorunu, sürümlü sözleşmeleri, kullanım örneklerini
+ve belgeleri sunar; kaynaklı kanıt ve iş geçmişini korur. Platform girişi
+firma kapsamlı okuma, kalıcı toplama işi kabulü, açık worker ve birlikte
+yedek/geri yükleme sağlar. .NET bağlantısını repoyu kullanan ekip geliştirir.
 .NET istemcisi/backend'i, kullanıcı/oturum/rol yönetimi, web paneli ve
 platformun PostgreSQL yerleşimi ile gerekiyorsa veri geçişi o ekibin
 sorumluluğundadır. Motorun veri bütünlüğü ve iş sözleşmeleri bu repoda
-geliştirilmeye devam eder; platform entegrasyonu en son ele alınır.
+geliştirilmeye devam eder. Firma seçimi JSON isteğine veya kuruluş adına
+bırakılmaz; platformun yetkilendirdiği başlatıcı tarafından yapılır.
 Uygun yerel açık kaynak bileşenler kullanılır; OpenCTI/IntelOwl zorunlu
 değildir ve henüz bağlı değildir. .NET bağlantısı da henüz uygulanmadı.
 Mevcut sınırlı STIX çıktısı korunur; geniş STIX/TAXII paylaşımı ve isteğe
@@ -38,6 +40,16 @@ projedeki araçların kurulum bilgisini okur. Eski komutlar ve `--json` çıktı
 başlatmaz; mevcut toplama komutları kullanılmaya devam eder. Dört işlem
 korunur; haber ve firma içerik kayıtlarını da okuyabilir. [Engine kullanım ve sözleşme rehberi](docs/ENGINE_CONTRACT.md).
 
+Çok firmalı kullanım için ayrı `./xti platform` girişi vardır. Her firmanın
+kanıtları ve kalıcı iş anahtarları kendi kayıt alanında tutulur. Aynı iş
+isteği eski işi döndürür; kesilmiş iş otomatik yeniden çalıştırılmaz.
+`organizations content KURULUS_KIMLIGI` kayıtlı firma/tedarikçi başlığını,
+mevcut açıklamasını, bağlantısını ve yayın tarihini gösterir; güncel ve
+tarihî kapsamı, boş sonucu ve kaynak hatasını ayırır.
+[Platform kurulumu, sözleşme ve kurtarma](docs/PLATFORM_ENGINE.md).
+Bu görünüm internet araması yapmaz. Gerçek firma/tedarikçi Tavily kabulü
+kullanıcının daha sonra sağlayacağı anahtarı bekler.
+
 Bağlı açık kaynak araçlarını tek yerde görmek için:
 
 ```sh
@@ -64,8 +76,8 @@ Aktif ürün kapsamı dış kaynaklı OSINT/XTI'dır. Sunucu içine ajan kurulma
 
 ## Hızlı başlangıç
 
-Çekirdek için Python 3.11 veya daha yeni bir sürüm gerekir. Temiz Linux
-kurulumu Ubuntu 24.04 x86_64 üzerinde Python 3.11 ve 3.12 ile doğrulandı;
+Çekirdek için Python 3.11 veya daha yeni bir sürüm gerekir. Önceki Linux
+kabul turlarında temiz kurulum Ubuntu 24.04 x86_64 üzerinde Python 3.11 ve 3.12 ile doğrulandı;
 ayrıntılar aşağıdaki [ortam tablosundadır](#sınanmış-ortamlar).
 Kurulum global Python ortamına paket kurmaz; sosyal kullanıcı adı araçlarını
 ve haber ayrıştırıcısını proje içindeki `.venv` ortamına kurar:
@@ -647,9 +659,10 @@ komutuyla yeniden deneyebilirsin. Ani kesintiden kalan açık oturumlar için
 ait `jobs`, `surface runs` ve `ioc status` geçmişleri de korunur. Kayıtlı
 profilin zamanlama dosyaları ayrı `schedule generate` komutuyla hazırlanır;
 `collect` hizmet veya takvim kurmaz. Normal `analyze` komutu ağsız kalır.
-İş mantığı terminalden bağımsız uygulama servisindedir. Gelecekteki iş
-sözleşmesi bu akışı dış uygulamalara açmayı hedefler; .NET bağlantısını
-kullanan ekip geliştirir. Mevcut engine v1 toplama başlatmaz.
+İş mantığı terminalden bağımsız uygulama servisindedir. Kayıtlı toplama
+profili, [platform iş sözleşmesi](docs/PLATFORM_ENGINE.md) üzerinden
+kuyruğa alınabilir; ayrı worker en fazla bir işi çalıştırır. .NET bağlantısını
+kullanan ekip geliştirir. Kişisel `engine` v1 okuma sözleşmesi korunur.
 
 ## Bulguları vaka altında yönet
 

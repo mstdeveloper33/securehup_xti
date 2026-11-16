@@ -1,7 +1,7 @@
 # XTI motoru yol haritası ve tüketici ekibe teslim sınırı
 
-**Karar:** 15 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.146.0 / şema 69.
+**Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
+**Mevcut sürüm:** 0.147.0 / çekirdek şema 69, ayrı platform iş şeması 1.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
 ENG-03'ün kaynaklar arası olay adayları ile kayıtlı genel arama ve yerel
@@ -11,6 +11,10 @@ istekli web/haber araması ve kaynaklı geçmiş ekler. 0.145.0 kuruluş–tedar
 izleme grubunu, bütçeli düzenli Tavily toplamasını ve mevcut inbox bağlantısını
 uygular. 0.146.0 RSS profillerini, seçilmiş haber araması/inbox bağlantısını
 ve kuruluş raporundaki firma/tedarikçi içeriklerini ekler.
+0.147.0 firma kayıt alanı ayrımını, kalıcı profil işi kabul/durum/sonuç/iptal
+sözleşmesini, sade firma içerik görünümünü ve iki veritabanını birlikte
+koruyan platform yedek/geri dönüşünü ekler.
+[Platform kullanım sözleşmesi](../PLATFORM_ENGINE.md).
 16 Kasım [canlı RSS kabulü](../NEWS_SOURCE_ACCEPTANCE.md) iki turda 70
 kaydın tekrar kayıt/bildirim oluşturmadan korunmasını doğruladı. Tavily
 anahtarı kullanıcı tercihiyle sonraya bırakıldı; gerçek Tavily kabulü
@@ -31,8 +35,8 @@ kullanacak. Bugünkü geliştirme, deneme ve kişisel kullanım SQLite ile süre
 .NET tüketicisi, platforma özgü bağlantı ve PostgreSQL yerleşimi/veri geçişi
 repoyu kullanacak ekibin sorumluluğudur; bu repo bunları uygulama işi olarak
 üstlenmez. Motorun görevi kararlı sözleşme, kaynaklı sonuç, örnekler ve
-kullanım belgeleri sunmaktır. Entegrasyon teslim hazırlığı ile geniş veri
-paylaşımı/LLM desteği en sona alınmıştır; ilk üç özellik bunları beklemez.
+kullanım belgeleri sunmaktır. 0.147.0 motorun çok firmalı teslim sınırını
+uygular; geniş STIX/TAXII ve LLM kullanıcı kararıyla bu teslimin dışındadır.
 [0145 kararı](../decisions/0145-stabilization-first-local-engine.md).
 
 Bu belge güncel teslim sırasıdır. Önceki
@@ -64,8 +68,8 @@ Genel RSS kataloğu bir kaynak adaptörüdür; kullanıcıdan tüm haberleri
 gezmesi beklenmez. Tam metin çıkarımı yalnız bu hedefi karşılamak için
 gerektiği ölçüde değerlendirilir; ayrı haber okuyucu ürünü veya bütün
 makalelerin arşivi teslim koşulu değildir. Bu bölüm ürün yönüdür;
-mevcut komut veya JSON biçimini kendiliğinden değiştirmez. .NET ekranını
-repoyu kullanan ekip oluşturur.
+0.147.0'da `organizations content` ve `organization.content` bu sade
+görünümü uygular. .NET ekranını repoyu kullanan ekip oluşturur.
 
 ## 1. Görev paylaşımı
 
@@ -166,9 +170,11 @@ gerekir; yeni ağ API'si veya engine işlemi eklenmez.
 koruyarak `news/news_article` türünü ve üç yayıncı namespace'ini açıkça
 ekler. Eski kayıtlı aramalar somut on tür kapsamını korur; haber izleme
 kapsamı açık yeni/güncellenmiş tanımla seçilir.
-`request_id` yalnız ilişkilendirmedir; iş kimliği ve kalıcı tekrar önleme
-henüz yoktur. Kapsam güvenilen başlatıcının seçtiği kişisel kayıt alanıdır;
-paylaşımlı müşteri yetkisi tamamlandı sayılmaz. Daha geniş sözleşme sınırları:
+Eski `engine` sözleşmesinde `request_id` yalnız ilişkilendirmedir; kapsam
+güvenilen başlatıcının seçtiği kişisel kayıt alanıdır. 0.147.0 ayrı
+`xti-platform` protokolüyle kayıtlı firma kapsamını ve kalıcı iş anahtarını
+uygular. `request_id` burada da iş tekrar anahtarı değildir.
+Sözleşme sınırları:
 
 | Bölüm | Tanımlanacak alan ve davranış |
 |---|---|
@@ -209,17 +215,18 @@ etme, süreci durdurma ve kalıcı işi iptal etme ayrı davranışlardır.
 
 ### Uzun süren işler
 
-Mevcut toplama geçmişi ve kalıcı işler kullanılır; dış istemciden kabul,
-iş kimliği, durum/sonuç okuma ve tekrar güvenliği ayrıca tamamlanır.
-`collect` bugün senkron sonuç döndürür; erken kabul yanıtı varmış gibi
-sunulmaz. Her web isteğinde sınırsız yeni süreç başlatılmaz.
+0.147.0 kayıtlı profil ve açık profil sürümü için kalıcı `jobs.submit`,
+`jobs.status`, `jobs.result`, `jobs.cancel` işlemlerini sağlar. Kuyruğa
+kabul kaynak çağırmaz; güvenilen işletim süreci `platform worker` ile
+bir işi yürütür. Eski `collect` senkron kalır. Tavily grup işleri bu
+ilk platform kuyruğuna dahil değildir; mevcut bütçeli grup akışı korunur.
 
-Aynı istek kimliği ve aynı içerik tekrar geldiğinde mevcut iş tanınır;
-aynı kimlikle farklı istek çatışma olarak reddedilir. Cevabın kaybolması
-ikinci işi körlemesine başlatmaz. Başarılı, kısmi, başarısız, meşgul,
-kesilmiş ve sonucu belirsiz durumlar gerçek motor durumlarıyla eşlenir.
-İptal/kurtarma tamamlanmış kaynak kayıtlarını silmez. Bellek içi kuyruk
-kalıcı kabul veya yeniden başlatma güvencesi değildir.
+Aynı firma ve `idempotency_key` ile aynı istek mevcut işi döndürür;
+farklı içerik çatışmadır. İşin profil/izleme/kaynak planı dondurulur,
+çalışmadan önce yeniden doğrulanır. Kesintide kanıt ve tekrar anahtarları
+korunur; belirsiz iş otomatik tekrarlanmaz. Kurtarma açık komuttur.
+Geri yüklenen alan yeni `workspace_id` alır; eski bağlamın iş kabulleri
+reddedilir, yedekteki bekleyen işler otomatik çalıştırılmaz.
 
 ## 5. Kapsam ve yetki sınırı
 
@@ -228,19 +235,26 @@ gelen izinli kapsamı uygular; düz bir `tenant_id` veya `--data-dir` değeri
 yetki sayılmaz. Yerel tek kullanıcı kipinden doğrudan ortak müşteri
 veritabanına geçilmez. Mevcut kuruluş grupları güvenlik kiracısı değildir.
 
-İlk kurumsal kabul tek kuruluşa ayrılmış motor/veri alanıyla yapılabilir.
-Paylaşılan motor gerekecekse kapsam arama, iş, sonuç, kanıt dosyası,
-bildirim, dışa aktarım ve LLM girdisinde korunmalıdır. Servis kimliği ve
-veri alanı eşlemesini güvenilen sunucu belirler; istemcinin serbest girdisi
-belirlemez. .NET'te kimlik yönetimi olması motoru açık, kapsam denetimsiz
-bir hizmete dönüştürmez. Bu kapsam kabulü henüz yapılmadı.
+0.147.0 tek motor kodunu ayrı firma kayıt alanlarıyla çalıştırır.
+Güvenilen başlatıcı kayıt kökünü ve firmayı seçer; JSON isteği dosya yolu
+veya firma alanı seçemez. Bilinmeyen/kapalı firma, güvensiz izin veya
+yanlış dosya bağı reddedilir; kişisel alana geri dönüş yoktur. Her alanın
+kanıt ve iş veritabanı ayrıdır. Aynı kayıt/iş kimliğiyle başka firmaya
+erişim test edilir. Kuruluşlar bu alanın içindeki iş nesneleridir.
+
+Bu sınır sunucu yöneticisine veya aynı servis hesabının dosya yazma
+yetkisine karşı yalıtım değildir. Kullanıcı–firma yetkisi, güvenilen
+başlatıcı ve servis hesabı tüketici ekipte kalır. Platform protokolünde
+sunulmayan yerel yönetim komutları son kullanıcıya doğrudan açılmaz.
+[Sınır ve kabul ayrıntısı](../PLATFORM_ENGINE.md).
 
 ## 6. Uygulama sırası
 
 ENG kimlikleri önceki işleri takip etmek için korunur. Mevcut STB paketi
 ve ENG-03'ün iki ilk teslimi tamamlandı. ENG-04'ün ilk haber teslimi
-uygulandı; devamında kaynak katkısı ve toplama iş akışı değerlendirilecek. Entegrasyon için
-teslim hazırlığı ve ENG-07 en sondadır; gerçek .NET uygulaması dış ekibe aittir.
+uygulandı; RSS toplama bağlantısı 0.146.0, platform teslim sınırı
+0.147.0 ile eklendi. Gerçek .NET uygulaması dış ekibe aittir;
+ENG-07 bu teslimin dışındadır.
 
 | Adım | Teslim | Tamamlanma ölçütü |
 |---|---|---|
@@ -248,7 +262,7 @@ teslim hazırlığı ve ENG-07 en sondadır; gerçek .NET uygulaması dış ekib
 | **ENG-02 — Bileşen ve kaynak düzeni** | 0.140.0: üç mevcut araç için ortak pin, açık yapılandırma ve yerel kurulum kataloğu; CLI/engine okuması uygulandı | Kurulum gözlemi canlı kaynak durumundan ayrı, araç yokken eski kanıt okunabilir, pin kayması testli; yeni araçlar aynı sınırla eklenir |
 | **ENG-03 — Olay adayları ve genel arama izlemesi** | 0.141.0: olay adayları; 0.142.0: `search-watch`, yerel inbox ve sınırlı ön plan tekrarı uygulandı | Kaynak/tarih ayrımı, değişmez tanım ve tam sonuç/kapsam kanıtı, sessiz başlangıç, yeni/anlamlı değişmiş eşleşmede atomik bildirim; yalnız çıkarılma geçmişte kalır |
 | **ENG-04 — Haber ve kaynak genişlemesi** | 0.143.0 RSS/Atom; 0.144.0 Tavily tekil arama; 0.145.0 bütçeli kuruluş/tedarikçi izleme; 0.146.0 RSS profili/zamanlama/inbox ve birleşik içerik raporu uygulandı. Gerçek Tavily kabulü ve ölçülmüş kaynak boşlukları sonraki kapsam | Kaynak atfı, kalıcı kanıt, eski sonuçları koruma; kesin hedef/sorgu kapsamı, kalıcı bütçe ve kesintide tekrar güvenliği; ilk sessiz başlangıç ve yeni/değişen içerik bildirimi |
-| **ENG-05 — Tüketici ekibe teslim; en sonda** | Bu repo sözleşme, örnekler ve belgeleri sağlar; .NET adaptörünü ve gerçek bağlantı kabulünü repoyu kullanan ekip yapar | Motorun kendi sözleşme testleri korunur; platform sürüm/taşıma/kapsam ve iki taraflı kabulü tüketici ekibin sorumluluğudur |
+| **ENG-05 — Tüketici ekibe teslim** | 0.147.0 firma kapsamı, kalıcı profil işleri, sade içerik, yedek/kurtarma ve platform rehberi; .NET adaptörü dış ekipte | Motor sözleşmesi, firma ayrımı ve gerçek süreç kesintisi sınanır; gerçek platform bağlantısı ve dağıtım kabulü tüketici ekipte |
 | **ENG-06 — Motor işletimi** | Temiz Linux kurulum, kaynak kesintisi, yeniden başlatma, yedek/geri dönüş ve kapasite ölçümü; araç kurulum bütünlüğü ve kesinti sonrası geri dönüş | İlk adımdan itibaren yürür; gerçek kurumsal kullanımdan önce ilgili koşullar geçer |
 | **ENG-07 — En sona ertelenen motor yetenekleri** | Gerektikçe geniş STIX/diğer paylaşım çıktıları ve isteğe bağlı LLM | İlk üç özellikten sonra değerlendirilir; kaynaklı sonuç sözleşmesi korunur, model/sağlayıcı hatası çekirdeği durdurmaz |
 
@@ -260,8 +274,8 @@ haber toplama dilimleri tamamlandı. Tavily kuruluş/tedarikçi grup izleme,
 bütçe, zamanlama ve inbox bağlantısı da 0.145.0'da eklendi. RSS haberlerinin
 `collect` profillerine ve zamanlamaya katılması ile birleşik içerik raporu
 0.146.0'da eklendi ve RSS akışı iki gerçek kaynak turunda doğrulandı.
-Tavily canlı kabulü anahtar eklenince yapılacak. Yakın hedef seçilen
-firma/tedarikçiyle ilgili kaynaklı içerikleri sade biçimde sunmaktır.
+Tavily canlı kabulü anahtar eklenince yapılacak. Seçilen firma/tedarikçiyle
+ilgili kaynaklı içeriklerin sade sunumu 0.147.0'da uygulandı.
 Tam metin çıkarımı ve yeni kaynaklar ancak bu hedefte ölçülen ihtiyaçla
 ele alınır; zorunlu ayrı teslim aşamaları değildir. Geniş paylaşım ve LLM en sondadır. Mevcut
 özelliklerin kullanımı devam eder.
@@ -353,8 +367,8 @@ XTI'da kalır. Makale sayfaları ve ekler otomatik açılmaz.
   kurar; `--core-only` paket indirmeyen çekirdek seçimi olarak kalır.
 
 Bu ilk teslim `collect` görevi, toplu kaynak yenilemesi, otomatik
-zamanlama veya kuruluş raporuna haber ekleme yapmaz. Bunlar mevcut
-iş/kanıt sözleşmeleriyle ayrı kabul gerektiren sonraki işlerdir. Yeni
+zamanlama veya kuruluş raporuna haber ekleme yapmıyordu; ilgili profil,
+zamanlama ve içerik raporu dilimleri 0.146.0'da eklendi. Yeni
 kaynak ancak ücretsiz erişim, koşullar, sağlanan farklı veri ve hata
 davranışı ölçüldükten sonra eklenir. [0148 kararı](../decisions/0148-publisher-news-feeds.md),
 [çalışan kapsam ve kabul kaydı](../STATUS.md).
@@ -428,10 +442,10 @@ Gerçek .NET/PostgreSQL bağlantısını hedef platform hazır olduğunda repoyu
 kullanan ekip yapar. ENG-03'ün olay adayı ve kayıtlı genel arama dilimleri
 uygulandı; ENG-04'ün ilk haber kaynakları da kullanılabilir. 0.146.0,
 haberlerin toplama/zamanlama iş akışını ve kuruluş içerik raporunu ekledi.
-Yakın kapsam firma/tedarikçi içerik sonuçlarının sade sunumu ve anahtar
-hazır olduğunda Tavily'nin gerçek kullanım kabulüdür. Tam makale alma
-ayrı zorunlu iş değildir; motor bağlantısını tamamlama çalışmasını bekletmez.
-Entegrasyon teslim hazırlığı, geniş paylaşım ve LLM en sona ertelenmiştir. Sonraki
+0.147.0 sade içerik sunumunu, firma ayrımını, profil işi sözleşmesini ve
+platform yedek/kurtarmasını uygular. Anahtar hazır olduğunda Tavily'nin
+gerçek kullanım kabulü yapılır. Tam makale alma ayrı zorunlu iş değildir.
+Geniş STIX/TAXII ve LLM bu teslimin dışındadır. Sonraki
 değişiklikler aynı hata/kesinti/veri koruma ve kurulum kabulünden geçer.
 
 ## 9. Toplu sağlamlaştırma iş listesi ve bitiş ölçütleri
@@ -521,16 +535,16 @@ adımlar otomatik kabul ve yerel geçici komutlarla doğrulandı.
 ### En sonda tüketici ekibe teslim sınırı
 
 Biz motorun sürümlü sözleşmesini, örnek istek/yanıtlarını, kullanım ve
-kurtarma belgelerini sağlarız. Bugünkü engine v1 dört salt okunur işlem
-sunar; kalıcı iş başlatma/durum/iptal sınırı henüz uygulanmadı. Motor
-sözleşmesinin ileride genişlemesi, kendi veri ve tekrar güvenliği testleriyle
-ayrı motor teslimi olur; .NET adaptörü yazmayı gerektirmez.
+kurtarma belgelerini sağlarız. Eski engine v1 dört salt okunur işlem
+sunar. 0.147.0 ayrı platform protokolüne firma kapsamı ve kalıcı profil
+işi başlatma/durum/sonuç/iptal sınırını ekler; .NET adaptörü geliştirilmez.
 
 STB-05'te .NET adaptörünü geliştirme, taşıma/dağıtım seçimi, gerçek iki
 taraflı kabul ve platform PostgreSQL yerleşimi/veri geçişi repoyu kullanan
 ekibe aittir. Bu işleri bizim uygulama listemize geri eklemeyiz. Tüketici
-ekip motorun belgelenmiş kapsamını kullanır; henüz uygulanmamış iş veya
-müşteri yalıtımı davranışını var sayamaz.
+ekip motorun belgelenmiş kapsamını kullanır; ortak tablolu PostgreSQL
+yalıtımı, HTTP servisi veya tüm yerel yazma işlemleri destekleniyormuş
+gibi davranamaz.
 
 ### Sağlamlaştırmadan sonraki özellik sırası
 
@@ -544,10 +558,10 @@ kullanıcı hedefi seçilen firma/tedarikçiyle ilgili içeriği görmektir.
 Genel haber sayıları işletim ayrıntısı olarak kalır. Tam makale alma
 zorunlu sıradaki özellik değildir. Gerçek Tavily kabulü anahtar eklenince
 yapılır; yeni kaynak ve metin çıkarımı yalnız ölçülmüş ihtiyaçla seçilir.
-Motorun iş başlatma/takip/rapor sözleşmesi ile teslim kabulü kalan işlerdir.
-Entegrasyon teslim
-hazırlığı ile ENG-07 geniş paylaşım ve isteğe bağlı LLM desteği en sona
-kalır. Gerçek .NET bağlantısı dış ekibin işidir. Her yeni açık kaynak
+0.147.0 motorun firma kapsamlı iş başlatma/takip/içerik ve yedek/kurtarma
+sözleşmesini ekler. Son doğrulamalar [STATUS](../STATUS.md) içinde
+kaydedilir. ENG-07 geniş paylaşım ve isteğe bağlı LLM bu teslimin dışındadır.
+Gerçek .NET bağlantısı dış ekibin işidir. Her yeni açık kaynak
 bileşende görev, lisans, sabit sürüm, veri katkısı ve hata halinde çekirdek
 davranışı önce değerlendirilir. Bekleyen özellikler uygulanmış sayılmaz;
 ertelenmiş web/oturum kapsamı geri açılmaz.

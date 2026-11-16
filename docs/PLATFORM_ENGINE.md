@@ -1,0 +1,265 @@
+# Çok firmalı platform motoru
+
+**Uygulama 0.147.0 · protokol `xti-platform` v1 · çekirdek şema 69.**
+
+Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
+arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
+kullanıcıyı ve yetkisini doğrular; güvenilen başlatıcı doğru firmayı seçer.
+Motor bu firma için kayıtlı alanı doğrular ve bütün işlemi o alanda yürütür.
+Mevcut kişisel `engine` v1 ve terminal komutları korunur.
+
+## Firma alanını hazırlama
+
+Normal `./setup` sonrasında, repo kökünde yerel deneme:
+
+```sh
+./xti platform provision --root "$PWD/.xti-platform" --company firma-a
+./xti platform provision --root "$PWD/.xti-platform" --company firma-b
+./xti platform request --root "$PWD/.xti-platform" --company firma-a --describe
+```
+
+Kök üst klasörü mevcut olmalı. Firma kimliği küçük ASCII harf/rakam,
+tire ve alt çizgi kullanan sabit kimliktir; görünen kuruluş adı değildir.
+Kök, kayıt listesi ve firma dizinleri özel izinlerle oluşturulur. Var olan
+kişisel klasör otomatik benimsenmez. Eski veriler taşınmaz veya silinmez.
+Çekirdek veritabanının yanında sürüm 1 `engine-jobs.sqlite3` iş kuyruğu vardır.
+Kurulum yarıda kalırsa eksik alan erişim için reddedilir; üzerine otomatik
+kurulum yapılmaz. İşletici alanı inceleyip kapatabilir ve yeni alan kurabilir.
+
+Kaynak/izleme profilini hazırlamak güvenilen işletici işidir:
+
+```sh
+./xti --data-dir "$PWD/.xti-platform/firma-a" assets add example.com
+./xti --data-dir "$PWD/.xti-platform/firma-a" organizations add "Örnek Firma"
+./xti --data-dir "$PWD/.xti-platform/firma-a" profiles save haberler example.com --only-news --news-source cisa
+```
+
+Bu son örnek kaynak akışını sınamak içindir; firma hakkındaki web araması
+[mentions](MENTIONS.md) ve [izleme grupları](MENTION_GROUPS.md) üzerinden
+yapılır. Profillerin mevcut pasif kaynak ve açık izleme seçimleri korunur.
+Platform kuyruğunun ilk iş türü kayıtlı toplama profilidir; Tavily grup
+işi bu kuyruğa otomatik eklenmez. Firma API anahtarları, zamanlama ve
+uygulama yetkileri entegrasyon ekibinin açık kapsam seçimiyle yönetilmelidir;
+ortak kullanıcı anahtarını farklı müşteriler adına kendiliğinden kullanmayın.
+
+## Firma içeriklerini görme
+
+```sh
+./xti --data-dir "$PWD/.xti-platform/firma-a" organizations content KURULUS_KIMLIGI
+./xti --data-dir "$PWD/.xti-platform/firma-a" organizations content KURULUS_KIMLIGI --history
+```
+
+`KURULUS_KIMLIGI` yerine kuruluş oluştururken verilen kimliği yazın.
+Başlık, mevcut açıklama, kaynak bağlantısı, varsa yayın tarihi ve eşleşen
+ifade gösterilir. Kontrol yapılmamış, boş başarılı sonuç, eski kayıt ve
+son kontrol hatası ayrı anlatılır. Geçmiş içerik `--history` ile ayrıca
+açılır; sayfa sonundaki komutla kalan sonuçlara ulaşılır.
+
+Bu okuma yeni internet araması başlatmaz, anahtar okumaz ve kredi tüketmez.
+Kaynak önerisi ile görünen metinde firma eşleşmesi ayrıdır; aynı adlı
+başka şirket veya doğrulanmamış iddia otomatik kesin bulgu olmaz. Genel
+haber indirme sayıları bu firma görünümünün odağı değildir.
+
+## Başka uygulamadan çağırma
+
+Güvenilen başlatıcı sabit çalıştırıcı ve ayrı argümanlar kullanır:
+
+```sh
+./xti platform request --root "$PWD/.xti-platform" --company firma-a
+```
+
+stdin'e tek UTF-8 JSON yazılır ve kapatılır. Örnek:
+
+```json
+{"contract_version":1,"request_id":"arama-1","operation":"search","parameters":{"query":"example.com","kinds":["domain"],"limit":20}}
+```
+
+Her cevap tek JSON belgesidir. `protocol`, `contract_version`,
+`engine_version`, `request_id`, `operation`, `status`, `scope`, `data`,
+`error` alanları vardır. `scope`, `mode="company-workspace"`, `company_id`,
+`registry_id` ve `workspace_id` taşır; dosya yolu içermez. Firma alanı
+doğrulanmadan oluşan hatalarda `scope=null` olabilir. Girdi 64 KiB, çıktı
+8 MiB ile sınırlıdır.
+
+| İşlem | Girdi | Davranış |
+|---|---|---|
+| `search`, `record.get`, `sources.status`, `components.list` | [Mevcut okuma sözleşmesi](ENGINE_CONTRACT.md) seçenekleri | Seçilmiş firma alanında okuma; araç kurulumu ortak işletim bilgisidir |
+| `organization.content` | `organization_id`; isteğe bağlı `scope_offset`, `scope_limit`, `offset`, `limit`, `stale_after_hours` | Kaynaklı firma/tedarikçi içerikleri, ayrı geçmiş ve kaynak durumları |
+| `profiles.list` | İsteğe bağlı `offset`, `limit` | Etkin profil adı, kimliği, sürümü ve seçilen domain; devam sayfası |
+| `jobs.submit` | `idempotency_key`, `profile_name`, `profile_revision`, `expected_workspace_id` | Kalıcı kabul; kaynak isteği veya arka plan süreç başlatmaz |
+| `jobs.status` | `job_id` | Kaydedilmiş durum, kaynak oturumu ve sonuç varlığı |
+| `jobs.result` | `job_id` | Durum ve varsa değişmez kaynak makbuzları; kesintide sonuç özeti boş olabilir |
+| `jobs.cancel` | `job_id` | Yalnız bekleyen işi iptal eder; kayıt ve tekrar anahtarı korunur |
+
+Liste sınırı 1–500, kapsam sayfası 1–100, başlangıç 0–1.000.000, güncellik
+eşiği 1–8.760 saattir. `profiles.list` sonucunda `profiles`, `offset`,
+`limit`, `has_more` ve `next_offset` bulunur. Profil satırları `id`, `name`,
+`revision`, `domain` ve `definition_sha256` taşır.
+
+Firma içeriği için örnek istek:
+
+```json
+{"contract_version":1,"request_id":"icerik-1","operation":"organization.content","parameters":{"organization_id":"00000000-0000-0000-0000-000000000000","scope_limit":20,"offset":0,"limit":20,"stale_after_hours":24}}
+```
+
+Sıfırlı `organization_id` yerine seçilen firma alanındaki gerçek kuruluş
+kimliğini yazın. Bu kuruluş kimliği platformun `company_id` değeriyle aynı
+alan değildir; başka firmanın kuruluş kimliği seçili alanı değiştiremez.
+
+`organization.content` sonucunda `organization` (`id`, `name`, `active`),
+`state`, `observed_at`, `stored_data_only=true`,
+`consistency="single_read_snapshot"`, `stale_after_hours`, `scopes`,
+`sections` ve `notes` bulunur. `scopes`, `sections.content` ve
+`sections.historical_content` sayfaları `items`, `total_count`, `offset`,
+`limit`, `has_more` taşır. JSON'da iki içerik bölümü de her zaman vardır;
+`--history` yalnız terminal gösterimini değiştirir. Kapsam ve içerik
+sayfaları bağımsızdır; toplamlar ve kuruluş durumu kapsam sayfasıyla
+daralmaz. Ayrı istekler arasında kayıtlar değişebilir.
+
+İçerik satırlarında `title`, `available_excerpt`, `source_url`,
+`published_at`, `target`, `source_run_id`, `scope_status`, `status`,
+`match_status`, `matched_terms` ve `match_fields` bulunur. Açıklama
+yoksa `available_excerpt=null`, `excerpt_status="unavailable"` olur;
+varsa `excerpt_status="available"`, kısaltılma bilgisi `excerpt_truncated`
+alanındadır. `match_status="visible_match"` görünür başlık/özet/bağlantı
+eşleşmesini, `provider_candidate` yalnız sağlayıcı önerisini anlatır.
+Her iki durumda `candidate=true`; bu bir tehdit doğrulaması değildir.
+
+Üst düzey `state`, kuruluşun bütün güncel kapsamlarını değerlendirir.
+`scopes.items[].state` tek kapsamın durumudur; `partial` ve `inactive`
+yalnız kuruluş özetinde kullanılır.
+
+| `state` | Kuruluş özetindeki anlamı |
+|---|---|
+| `content_found` | Güncel kapsamların son kontrolleri başarılı ve güncel; en az biri içerik adayı döndürmüş |
+| `no_content` | Bütün güncel kapsamların son kontrolleri başarılı, güncel ve boş |
+| `not_checked` | Güncel kapsamlar henüz kontrol edilmemiş |
+| `check_failed` | Bütün güncel kapsamlarda son deneme başarısız |
+| `stale` | Bütün güncel kapsamlarda son deneme başarılı, ancak kayıtlı başarı güncellik eşiğinin dışında |
+| `outcome_unknown` | Bütün güncel kapsamlarda sonuç belirsiz veya kayıtlı başarı zamanı görünüm saatinin ilerisinde |
+| `partial` | Güncel kapsamların durumları farklı ve en az birinde eksik, başarısız, eski veya belirsiz kontrol var |
+| `inactive` | Kuruluş etkin değil; kayıtlı içerik geçmişi korunuyor |
+
+Başarılı dolu ve boş kontrollerin birlikte bulunması `content_found`
+üretir. `no_content` internette içerik olmadığını kanıtlamaz; önceki
+arama kanıtları `sections.content` içinde `status="retained_candidate"`
+olarak kalabilir. Kapsamın `source_status`, `freshness`, `latest_attempt`,
+`latest_success` ve `latest_success_result_count` alanları son denemeyi
+önceki başarıdan ayırır.
+
+`jobs.submit`, `jobs.status` ve `jobs.cancel` doğrudan `data` içinde iş
+özetini verir: `job_id`, `idempotency_key`, `request_sha256`,
+`payload_sha256`, `profile`, `status`, `created_at`, `started_at`,
+`finished_at`, `collection_session_id`, `result_available`, `error_code`.
+`jobs.result` ise `data.job` içinde aynı özeti, `data.result` içinde
+kayıtlı sonucu verir. Sonuç henüz kaydedilmemişse `data.result=null` olur.
+Kayıtlı sonuç `collection_session_id`, `collection_status`, `asset_value`,
+`analysis_status`, `started_at`, `finished_at` ve `steps` taşır. Her adımın
+`step_key`, `source`, `status` ve `receipt` alanı vardır; kaynak makbuzu
+bulunmayan adımda `receipt=null` olur.
+
+`status=complete` komutun tamamlandığını belirtir. İçindeki iş durumu
+`queued`, `running`, `complete`, `partial`, `failed`, `interrupted` veya
+`cancelled` olabilir. Kaynak durumunu komut başarısıyla karıştırmayın.
+Hatalar kararlı kod taşır: örneğin `scope_unavailable`, `scope_mismatch`,
+`not_found`, `invalid_parameters`, `idempotency_conflict`, `profile_changed`,
+`busy`, `storage_error`. Hata cevabı SQL, dosya yolu, ham istisna veya sır
+dökmez. Desteklenmeyen ana sürüm/alan/işlem reddedilir.
+
+## Kalıcı iş ve worker
+
+Önce `profiles.list` ile güncel profil sürümünü; `--describe` cevabının
+`scope.workspace_id` alanından güncel veri alanı kimliğini alın. İş örneği:
+
+```json
+{"contract_version":1,"request_id":"gonderim-1","operation":"jobs.submit","parameters":{"idempotency_key":"firma-a-gunluk-20261116","profile_name":"haberler","profile_revision":1,"expected_workspace_id":"00000000-0000-0000-0000-000000000000"}}
+```
+
+Sıfırlı UUID yer tutucudur; gerçek `scope.workspace_id` ile değiştirin.
+Bu alan firma seçmez; güvenilen başlatıcının seçtiği alanla eşit olmalıdır.
+Yedekten yeni alana dönüşte eski alanı hedefleyen gecikmiş istekler böylece
+yeni iş oluşturamaz. `request_id` cevap eşleştirmesi içindir; tekrar
+güvenliği ayrı `idempotency_key` alanıdır.
+
+Aynı firma + anahtar + profil/sürüm tekrarında eski iş döner. Aynı anahtar
+başka seçimle kullanılırsa çatışma oluşur. Profilin tam tanımı, kaynak
+sürümü ve seçilen izleme tanımları kabulde dondurulur; worker öncesi
+değişmişlerse farklı işi sessizce çalıştırmaz. Eski anahtarlar silinmez;
+firma başına en fazla 10.000 iş korunur. Bu sınır ölçülmüş hizmet kapasitesi
+değildir; sınıra ulaşınca yeni kabul açık hatayla durur.
+
+```sh
+./xti platform worker --root "$PWD/.xti-platform" --company firma-a
+./xti platform worker --root "$PWD/.xti-platform" --company firma-a --job-id IS_KIMLIGI
+./xti platform recover --root "$PWD/.xti-platform" --company firma-a
+```
+
+Worker ön planda en fazla bir işi alır. Dağıtık daemon veya HTTP sunucusu
+kurulmaz; sürekli çalıştırma politikasını platform işletimi belirler.
+Aynı firmada iki worker aynı işi alamaz. İş oturum bağı ilk kaynak isteği
+öncesi kalıcıdır. Kesilmiş iş otomatik yeniden denenmez; `recover` canlı
+worker varken reddedilir. Sonuç yazımından önce kesintide kaynak makbuzları
+çekirdek geçmişinde korunur; `collection_session_id` ile incelenebilir.
+Başarılı kaynağı tekrar çağırmak yerine mevcut `collections show/resume`
+yolu işletici tarafından açık incelemeyle kullanılabilir. Bu yeni yürütme,
+eski platform işinin değişmez sonucunu geriye dönük değiştirmez.
+
+## Birlikte yedek ve yeni alana dönüş
+
+```sh
+./xti platform backup --root "$PWD/.xti-platform" --company firma-a --output "$PWD/.xti-platform-backups/ilk"
+./xti platform restore --root "$PWD/.xti-platform-restored" --company firma-a --source "$PWD/.xti-platform-backups/ilk"
+```
+
+Yedek üst klasörünü önceden özel izinlerle oluşturun. Yedek çekirdek
+kanıtları, iş kuyruğunu ve bütünlük manifestini birlikte içerir; sır
+dosyaları dahil değildir. Çalışan veya sonucu belirsiz `running` iş varsa
+önce inceleme/kurtarma gerekir. Mevcut dosya/alan üzerine yazılmaz;
+bozuk, eksik veya farklı firmaya ait yedek reddedilir. WAL kullanan
+değiştirilmiş kurulum bu birlikte yedek akışında desteklenmez.
+
+Geri yükleme aynı firma için yeni alan kimliği üretir. Yedekte bekleyen
+işler, eski kurulumda yedek sonrasında çalışmış olabilecekleri için
+`cancelled/restored_uncertain` olur; kimlik ve anahtarları korunur.
+Tamamlanmış veya yarım işler tekrar çalıştırılmaz. Eski kurulumun
+durdurulması ve yedek sonrası kayıtların uzlaştırılması işletim işidir;
+yedekte olmayan son kayıtlar geri kazanılmış sayılmaz. Kişisel `backup`
+yalnız çekirdek DB'yi kapsar; platform tesliminde bu birlikte yedek yolunu
+kullanın. Firma alanları başka kimlikle yeniden etiketlenmez.
+
+Kurulum veya geri yükleme cevabı kaybolursa önce `request --describe`
+ile alanın tamamlanıp tamamlanmadığını kontrol edin. Yarım kurulum için
+yerinde onarma/devam komutu yoktur; `recover` yalnız iş durumlarını düzeltir.
+Etkilenen firmanın eski başlatıcısını ve workerlarını durdurun, kayıt bağı
+okunabiliyorsa `disable` uygulayın ve eski dosyaları koruyun. İlk boş
+kurulum için aynı firma kimliğiyle daha önce kullanılmamış ayrı kökte
+`provision`; veri kurtarmak için doğrulanmış birlikte yedekten `restore`
+kullanın. Başarılı doğrulamadan sonra güvenilen eşlemeyi ve alan kimliğini
+güncelleyin. Kayıt listesini elle silmek/düzenlemek veya mevcut hedefin
+üzerine yazmak desteklenen kurtarma yolu değildir.
+
+## Dağıtım sınırı ve doğrulama
+
+Platform JSON'undan firma/dosya/komut seçimi yapılamaz. .NET uygulaması
+kullanıcı girdisini doğrudan `--root`, `--company`, `--data-dir` veya shell
+metnine dönüştürmemeli; doğrulanmış firma eşlemesini kullanmalıdır.
+Firma kökü/ebeveynleri güvenilir sahiplik ve izin gerektirir; symlink,
+hardlink, iç içe kayıt kökü ve güvensiz paylaşım reddedilir. `disable`
+yeni seçimleri kapatır; başlamış işlemi geriye dönük iptal etmez.
+
+```sh
+./xti platform disable --root "$PWD/.xti-platform" --company firma-a
+```
+
+Servis hesabına veya kayıt dosyalarına tam erişimi olan işleticiye karşı
+bu katman güvenlik sınırı değildir. Rol/oturum, ağ kimlik doğrulaması,
+API hız sınırı, sunucu hesapları ve gerçek .NET/PostgreSQL yerleşimi
+tüketici ekibin işidir. Motorun firma sınırı kabulü ayrı test edilir;
+bu belge platformun tamamının güvenlik onayı veya 7/24 hizmet taahhüdü değildir.
+
+Kabul komutu `./scripts/python scripts/check-platform-acceptance.py --help`
+ile görülebilir. Çevrimdışı geçici alanda farklı firmalar, gerçek alt
+süreçler, worker kesintisi, tekrar isteği, süre/bellek/disk ölçümü sınanır.
+[Karar](decisions/0152-company-scoped-platform-engine.md),
+[ölçümlü kabul](PLATFORM_ACCEPTANCE.md), [güncel sonuçlar](STATUS.md),
+[teslim yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md).

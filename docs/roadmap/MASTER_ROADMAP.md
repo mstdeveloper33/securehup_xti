@@ -1,6 +1,6 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 15 Kasım 2026 · **Mevcut uygulama:** 0.143.0 / şema 66.
+**Plan güncellemesi:** 16 Kasım 2026 · **Mevcut uygulama:** 0.147.0 / çekirdek şema 69.
 
 **Güncel karar:** Bu repo başka platformlara bağlanabilen profesyonel
 XTI veri toplama ve analiz motorudur. .NET adaptörü ve gerçek platform
@@ -12,10 +12,13 @@ ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
 sınırları belirler; ENG kimlikleri korunur. Mevcut sağlamlaştırma paketi
 tamamlandı. Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da,
 kayıtlı genel arama ve yerel bildirimleri 0.142.0'da uygulandı. 0.143.0,
-üç yayıncıdan ilk RSS/Atom haber toplama dilimini ekler. Sonraki kapsam,
-haberlerin toplama iş akışına bağlanması ve ölçülen kaynak boşluklarıdır.
-Entegrasyon teslim hazırlığı ile geniş paylaşım ve
-LLM en sondadır. Bu sıra önceki EIP
+üç yayıncıdan ilk RSS/Atom haber toplama dilimini ekler. 0.144.0–0.146.0
+Tavily firma/tedarikçi izlemesini, bütçeyi, RSS toplama bağlantısını ve
+kuruluş içerik raporunu ekledi. 0.147.0 firma kayıt alanı ayrımını, kalıcı
+profil işi sözleşmesini, sade içerik görünümünü ve platform yedek/kurtarmasını
+uygular. [Platform rehberi](../PLATFORM_ENGINE.md). Tavily canlı kabulü
+anahtar gelene kadar bekler. Yeni kaynaklar ölçülmüş ihtiyaçla seçilir.
+Geniş STIX/TAXII ve LLM bu teslimin dışındadır. Bu sıra önceki EIP
 sırasının ve bu belgedeki eski geniş
 ürün tasarımının yerine geçer. Hazır açık kaynak kütüphane/araçlar tercih
 edilir; OpenCTI/IntelOwl zorunlu platform veya ilk kurulum değildir.
@@ -33,7 +36,8 @@ ve veri geçişi repoyu kullanan ekipte kalır.
 0.139.0, [engine v1 yerel okuma sözleşmesini](../ENGINE_CONTRACT.md) ekler:
 arama, kayıt/kanıt ayrıntısı ve kaynak durumu. ENG-01'in bu ilk teslimi
 tamamdır; .NET tüketicisi ENG-05'te dış ekibe ait teslim sınırıdır.
-Motorun kalıcı iş sözleşmesi henüz uygulanmadı; ayrıca ele alınır.
+0.147.0 ayrı platform protokolünde kalıcı profil işi sözleşmesini ve
+firma kapsamını ekler; eski yerel okuma sözleşmesi korunur.
 
 0.140.0, ENG-02'nin mevcut üç araç düzenini tamamlar: ortak incelenmiş
 pinler, kullanım kapsamı ve yerel kurulum kataloğu CLI/engine üzerinden

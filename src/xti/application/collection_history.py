@@ -101,6 +101,16 @@ class CollectionHistoryService:
     def show(self, session_id: str) -> CollectionSessionDetails:
         return self.repository.get(session_id)
 
+    def freeze_profile(self, profile: CollectionProfile) -> CollectionFrozenPlan:
+        """Freeze current watch definitions and source contracts without running a source."""
+        definition = normalize_profile_definition(profile.definition)
+        collection = self.collection_factory(definition)
+        plan = collection.plan(definition.asset_value, **collection_options(definition))
+        return freeze_collection_plan(
+            definition, plan, contracts=self._contracts(collection, plan),
+            origin=self.repository.profile_origin(profile),
+        )
+
     def recover(self) -> tuple[str, ...]:
         self.repository.list(limit=1)
         with self.lock.acquire():
@@ -115,6 +125,8 @@ class CollectionHistoryService:
         progress: Callable[[str], None] | None = None,
         preflight: Callable[[], None] | None = None,
         profile: CollectionProfile | None = None,
+        session_started: Callable[[str], None] | None = None,
+        expected_plan: CollectionFrozenPlan | None = None,
     ) -> CollectionResult:
         definition = self._definition(
             domain, tasks=tasks, typos=typos, stale_after_hours=stale_after_hours,
@@ -138,8 +150,12 @@ class CollectionHistoryService:
             frozen = freeze_collection_plan(
                 definition, plan, contracts=self._contracts(collection, plan), origin=origin,
             )
+            if expected_plan is not None and frozen != expected_plan:
+                raise ValidationError('Toplama izleme tanımı veya kaynak sözleşmesi dondurulmuş motor işiyle uyuşmuyor.')
             self.repository.recover_interrupted(recorded_at=self._now())
-            details, steps, analysis = self._execute(collection, plan, frozen, progress=progress)
+            details, steps, analysis = self._execute(
+                collection, plan, frozen, progress=progress, session_started=session_started,
+            )
         return CollectionResult(
             plan, details.session.started_at, details.session.finished_at,
             details.session.status, steps, analysis, session_id=details.session.id,
@@ -207,6 +223,7 @@ class CollectionHistoryService:
     def _execute(
         self, collection: CollectionService, plan: CollectionPlan, frozen: CollectionFrozenPlan, *,
         parent_id: str | None = None, progress: Callable[[str], None] | None = None,
+        session_started: Callable[[str], None] | None = None,
     ) -> tuple[CollectionSessionDetails, tuple[CollectionStep, ...], UnifiedAnalysisReport]:
         details = self.repository.begin(frozen, started_at=self._now(), parent_id=parent_id)
         session_id = details.session.id
@@ -216,6 +233,10 @@ class CollectionHistoryService:
         skipped = {}
         analyzing = False
         try:
+            # The platform queue persists this link before any source request.
+            # Failure here stops execution; no progress-message parsing is needed.
+            if session_started is not None:
+                session_started(session_id)
             if progress:
                 progress(f"Toplama oturumu: {session_id}")
             units = {unit.step_key: unit for unit in frozen.units}

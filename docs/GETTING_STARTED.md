@@ -1,10 +1,15 @@
 # XTI hızlı başlangıç
 
+**Sürüm 0.147.0 · çekirdek şema 69.** Aşağıdaki numaralı adımlar kişisel
+terminal kullanımını başlatır. Aynı motoru ayrı firma kayıt alanlarıyla
+çalıştırmak için [platform adımlarını](#çok-firmalı-platform-kullanımı) kullan.
+
 XTI için Git, çekirdekte Python 3.11 veya daha yeni bir sürüm ve ilk kurulumda
-internet bağlantısı gerekir. Ubuntu 24.04 x86_64 üzerinde Python 3.11 ve
-3.12 ile gerçek temiz Maigret/Sherlock kurulumu doğrulandı;
+internet bağlantısı gerekir. Önceki kabul turlarında Ubuntu 24.04 x86_64
+üzerinde Python 3.11 ve 3.12 ile gerçek temiz Maigret/Sherlock kurulumu doğrulandı;
 [sınanmış ortamlar](../README.md#sınanmış-ortamlar) ve kabul bağlantıları
-bu sürümün kapsamını gösterir. Diğer Python/işletim sistemi sürümleri için
+doğrulanan kod/sürüm kapsamını gösterir. Güncel platform kabulünün durumu
+[durum kaydında](STATUS.md) ayrıdır. Diğer Python/işletim sistemi sürümleri için
 aynı kurulum sonucu varsayılmaz.
 
 Global Python ortamına paket kurulmaz; Maigret, Sherlock ve haber ayrıştırıcısı
@@ -92,6 +97,47 @@ Komutların listesini ve her komutun seçeneklerini şöyle görebilirsin:
 Son komut pasif kaynakların neden kabul edildiğini ve incelenip ertelenen
 araçları sürümlü, ağsız bir raporda gösterir.
 
+## Çok firmalı platform kullanımı
+
+Kurulumdan sonra güvenilen işletici firma alanlarını açıkça oluşturur:
+
+```sh
+./xti platform provision --root "$PWD/.xti-platform" --company firma-a
+./xti platform request --root "$PWD/.xti-platform" --company firma-a --describe
+```
+
+Bu alan kişisel `.xti-data` klasöründen ayrıdır; mevcut veriler otomatik
+taşınmaz. Platform kullanıcısının yetkisini .NET ekibi doğrular. Güvenilen
+başlatıcı firma seçimini yapar; JSON isteği dosya veya firma seçemez.
+Kullanıcı/rol yönetimi ve web paneli bu motorun içinde kurulmaz.
+
+İşletici firma alanında kayıtlı toplama profilini hazırladıktan sonra
+`jobs.submit` ile profil/sürüm ve tekrar anahtarı kabul edilir. İstek kaynak
+çağırmaz; aşağıdaki komut en fazla bir işi çalıştırır:
+
+```sh
+./xti platform worker --root "$PWD/.xti-platform" --company firma-a
+./xti platform recover --root "$PWD/.xti-platform" --company firma-a
+```
+
+`recover` kesilmiş işi işaretler; kaynak çağrısını yeniden başlatmaz.
+`jobs.status`, `jobs.result` ve bekleyen işler için `jobs.cancel` aynı
+firma kapsamında çalışır. İstek örnekleri, alan kimliği denetimi ve ayrı
+çekirdek/kuyruk yedeği [platform rehberindedir](PLATFORM_ENGINE.md).
+
+Kayıtlı firma/tedarikçi içeriklerini sade biçimde açmak için:
+
+```sh
+./xti --data-dir "$PWD/.xti-platform/firma-a" organizations content KURULUS_KIMLIGI
+```
+
+Kuruluş kimliğini bu firma alanındaki kuruluş listesinden al. Görünüm
+başlık, mevcut açıklama, kaynak bağlantısı ve yayın tarihini gösterir;
+geçmiş kapsam için `--history` eklenir. Okuma internet araması başlatmaz.
+Tavily araması mevcut [firma izleme grupları](MENTION_GROUPS.md) üzerinden
+kendi anahtarınla yapılır; gerçek firma/tedarikçi kabulü anahtar verilene
+kadar ertelenmiştir. Geniş STIX/TAXII ve LLM bu teslimde eklenmedi.
+
 ## Verinin konumu
 
 Varsayılan kişisel veri klasörü `.xti-data` dizinidir. Bu klasör Git tarafından
@@ -107,6 +153,10 @@ Yedek almak için:
 ```sh
 ./xti backup
 ```
+
+Bu kişisel yedek yalnız çekirdek veritabanını kapsar. Platform alanında
+iş anahtarlarını da koruyan `platform backup` ve yeni alan oluşturan
+`platform restore` akışını kullan; [örnekler ve kurtarma sınırları](PLATFORM_ENGINE.md#birlikte-yedek-ve-yeni-alana-dönüş).
 
 ## Sosyal kullanıcı adı araçları
 
@@ -153,16 +203,19 @@ git pull
 `./setup` eski şemayı otomatik değiştirmez. Bir geçiş gerekiyorsa açıkça
 `./xti migrate` çalıştırmanı ister; böylece yerel verin sessizce değiştirilmez.
 
-0.145.0 için şema 67→68 geçişi gerekir. Güncel kodla `./xti migrate`
-çalıştırıldığında önce benzersiz bir kurtarma yedeği alınır; mevcut kayıtlar
-korunarak firma izleme grubu geçmişi ve bildirim bağları eklenir; kayıtlı
-aramalara opsiyonel kesin sorgu kapsamı eklenir. Eski tanım ve kanıt
-JSON/hash'leri değişmez. Daha eski şemalarda önceki gerekli adımlar da
-uygulanır. Eski kod şema 68'i açmaz.
+0.147.0 çekirdek şema 69'u korur; şema 69'daki kişisel veritabanı için
+yeni geçiş gerekmez. Şema 68'deysen 0.146.0'ın haber toplama/arama
+bağlarını ekleyen 68→69 geçişi gerekir. Güncel kodla `./xti migrate`
+çalıştırıldığında önce benzersiz kurtarma yedeği alınır; eski kayıtlar,
+tanım/kanıt JSON'u ve hash'leri korunur. Daha eski şemalarda önceki gerekli
+adımlar da uygulanır. Eski kod yeni şemayı açmayabilir.
 Eski sürüme dönmek gerekiyorsa geçiş öncesi yedeği aşağıdaki geri yükleme
-akışıyla ayrı, yeni bir veri dizinine aç; çalışan şema 68 dosyasının üzerine
+akışıyla ayrı, yeni bir veri dizinine aç; çalışan veritabanının üzerine
 yazma. Tavily için ek paket kurulmaz; `./xti mentions configure` ile özel
 anahtarını tanımla. [Tekil arama](MENTIONS.md), [bütçeli firma/tedarikçi izleme](MENTION_GROUPS.md).
+
+Platform alanının sürüm 1 iş kuyruğu `platform provision` ile ayrı dosyada
+açıkça kurulur; kişisel `migrate` mevcut veriyi platform alanına taşımaz.
 
 0.143.0'daki RSS/Atom haber bağımlılıkları henüz yoksa `./scripts/setup-brand`
 çalıştır. Mevcut ortamda paketler yoksa kurucu eski ortamı yedekleyip yeni
