@@ -76,6 +76,67 @@ class MailDnsParserTests(unittest.TestCase):
             (0, ("v=DMARC1; p=reject",)),
         )
 
+    def test_literal_json_txt_records_are_preserved_without_dns_escape_decoding(self):
+        values = (
+            "google-site-verification=synthetic-fixture",
+            "v=spf1 include:_spf.example.net -all",
+            r"verification=synthetic\032fixture",
+            r"verification=synthetic\٠٣٢fixture",
+        )
+        content = response(DOMAIN, 16, answer=tuple(row(DOMAIN, 16, value) for value in values))
+        self.assertEqual(parse_mail_dns_response(content, DOMAIN, 16), (0, tuple(sorted(values))))
+
+    def test_quoted_chunks_and_escapes_keep_existing_dns_decoding(self):
+        cases = (
+            ('"v=spf1 " "-all"', "v=spf1 -all"),
+            ('"v=spf1 ""-all"', "v=spf1 -all"),
+            ('"v=DMARC1;"" p=" "reject"', "v=DMARC1; p=reject"),
+            (r'"v=spf1\032-all"', "v=spf1 -all"),
+            (r'"verification=\065\255"', "verification=A\u00ff"),
+            (r'"verification=\"fixture\";path=C:\\fixture"', 'verification="fixture";path=C:\\fixture'),
+        )
+        for encoded, expected in cases:
+            with self.subTest(encoded=encoded):
+                content = response(DOMAIN, 16, answer=(row(DOMAIN, 16, encoded),))
+                self.assertEqual(parse_mail_dns_response(content, DOMAIN, 16), (0, (expected,)))
+
+    def test_quoted_decimal_escapes_require_three_ascii_digits(self):
+        values = (
+            r'"verification=\0"', r'"verification=\00"',
+            r'"verification=\12x"', r'"verification=\256"',
+            r'"verification=\999"', r'"verification=\1²3"',
+            r'"verification=\٠٣٢"', r'"verification=\¹²³"',
+            r'"verification=\½"',
+        )
+        for value in values:
+            with self.subTest(value=value), self.assertRaises(_ProbeFailure):
+                parse_mail_dns_response(
+                    response(DOMAIN, 16, answer=(row(DOMAIN, 16, value),)), DOMAIN, 16,
+                )
+
+    def test_malformed_quoted_or_mixed_txt_never_falls_back_to_literal(self):
+        values = (
+            '"v=spf1 -all', 'v=spf1 -all"', '"v=spf1 "-all',
+            '"v=spf1 " "-all" trailing', 'prefix "v=spf1 -all"',
+            '"v=spf1 ""-all', '"v=spf1 ""-all"trailing', '"verification=fixture\\',
+            r'"verification=\256"', '""',
+        )
+        for value in values:
+            with self.subTest(value=value), self.assertRaises(_ProbeFailure):
+                parse_mail_dns_response(response(DOMAIN, 16, answer=(row(DOMAIN, 16, value),)), DOMAIN, 16)
+
+    def test_literal_and_quoted_txt_keep_text_and_wire_limits(self):
+        for value in ("x" * 2048, '"' + "x" * 2048 + '"'):
+            self.assertEqual(parse_mail_dns_response(
+                response(DOMAIN, 16, answer=(row(DOMAIN, 16, value),)), DOMAIN, 16), (0, ("x" * 2048,)))
+        invalid = (None, True, 16, "", "x" * 2049, '"' + "x" * 2049 + '"',
+                   "x" * 8193, '"' + "x" * 8192 + '"', "value\x00", "value\n", "value\x7f",
+                   "value\ud800", r'"value\000"', r'"value\010"')
+        for value in invalid:
+            with self.subTest(value_type=type(value).__name__, size=len(value) if isinstance(value, str) else None), \
+                    self.assertRaises(_ProbeFailure):
+                parse_mail_dns_response(response(DOMAIN, 16, answer=(row(DOMAIN, 16, value),)), DOMAIN, 16)
+
     def test_cname_chain_is_finite_and_bound_to_question(self):
         content = response(DOMAIN, 16, answer=(
             row(DOMAIN, 5, "policy.example.net."),
@@ -93,7 +154,7 @@ class MailDnsParserTests(unittest.TestCase):
 
     def test_malformed_txt_mixed_null_mx_and_wrong_question_fail_closed(self):
         fixtures = (
-            response(DOMAIN, 16, answer=(row(DOMAIN, 16, "v=spf1 -all"),)),
+            response(DOMAIN, 16, answer=(row(DOMAIN, 16, 'v=spf1 -all"'),)),
             response(DOMAIN, 15, answer=(
                 row(DOMAIN, 15, "0 ."), row(DOMAIN, 15, "10 mail.example.com."),
             )),
@@ -144,6 +205,42 @@ class MailDnsProbeTests(unittest.TestCase):
         ))
         self.assertEqual(len(result.errors), 1)
         self.assertNotIn("untrusted remote detail", result.errors[0])
+
+    def test_unquoted_unrelated_txt_reports_spf_missing_instead_of_query_failure(self):
+        fixtures = self.fixtures()
+        fixtures[(DOMAIN, 16)] = response(DOMAIN, 16, answer=(
+            row(DOMAIN, 16, "google-site-verification=synthetic-fixture"),
+        ))
+        result = FixtureProbe(fixtures).check(DOMAIN)
+        self.assertEqual((result.mx_status, result.spf_status, result.dmarc_status),
+                         ("present", "missing", "missing"))
+        self.assertEqual((result.spf_records, result.errors), ((), ()))
+
+    def test_unquoted_spf_and_dmarc_are_selected_alongside_unrelated_txt(self):
+        fixtures = self.fixtures()
+        fixtures[(DOMAIN, 16)] = response(DOMAIN, 16, answer=(
+            row(DOMAIN, 16, "google-site-verification=synthetic-fixture"),
+            row(DOMAIN, 16, "v=spf1 -all"),
+        ))
+        fixtures[("_dmarc." + DOMAIN, 16)] = response("_dmarc." + DOMAIN, 16, answer=(
+            row("_dmarc." + DOMAIN, 16, "v=DMARC1; p=reject"),
+        ))
+        result = FixtureProbe(fixtures).check(DOMAIN)
+        self.assertEqual((result.spf_status, result.spf_records), ("present", ("v=spf1 -all",)))
+        self.assertEqual((result.dmarc_status, result.dmarc_records), ("present", ("v=DMARC1; p=reject",)))
+        self.assertEqual(result.errors, ())
+
+    def test_literal_backslashes_cannot_decode_into_policy_prefixes(self):
+        fixtures = self.fixtures()
+        fixtures[(DOMAIN, 16)] = response(DOMAIN, 16, answer=(
+            row(DOMAIN, 16, r"v\=spf1 -all"), row(DOMAIN, 16, r"v=spf1\032-all"),
+        ))
+        fixtures[("_dmarc." + DOMAIN, 16)] = response("_dmarc." + DOMAIN, 16, answer=(
+            row("_dmarc." + DOMAIN, 16, r"v=DMARC1\059 p=reject"),
+        ))
+        result = FixtureProbe(fixtures).check(DOMAIN)
+        self.assertEqual((result.spf_status, result.dmarc_status), ("missing", "missing"))
+        self.assertEqual((result.spf_records, result.dmarc_records, result.errors), ((), (), ()))
 
     def test_invalid_root_stops_before_context_or_query(self):
         contexts = []

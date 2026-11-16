@@ -1,7 +1,7 @@
 # XTI motoru yol haritası ve tüketici ekibe teslim sınırı
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.147.0 / çekirdek şema 69, ayrı platform iş şeması 1.
+**Mevcut sürüm:** 0.147.1 / çekirdek şema 69, ayrı platform iş şeması 1.
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
 ENG-03'ün kaynaklar arası olay adayları ile kayıtlı genel arama ve yerel

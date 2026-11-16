@@ -1,6 +1,11 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.147.0 · **Tarih:** 16 Kasım 2026 · **Çekirdek şema:** 69.
+**Sürüm:** 0.147.1 · **Tarih:** 16 Kasım 2026 · **Çekirdek şema:** 69.
+
+0.147.1, canlı DNS kullanımında görülen TXT biçimi hatasını düzeltir.
+Tavily dışındaki gerçek kaynak ve yerel kullanım sonuçları, başarısız
+arşiv erişimleri dahil, [kullanım kabulünde](docs/FUNCTIONAL_ACCEPTANCE.md)
+ayrı gösterilir.
 
 XTI, SQLite ile kişisel terminal kullanımını ve güvenilen başlatıcının
 seçtiği ayrı firma alanlarında platform kullanımını destekler. Bu repo

@@ -1,8 +1,22 @@
 # XTI — Güncel Uygulama Durumu
 
-**16 Kasım 2026 · 0.147.0 · Çekirdek şema 69.**
+**16 Kasım 2026 · 0.147.1 · Çekirdek şema 69.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
+
+**0.147.1 kullanım düzeltmesi:** Tavily dışındaki canlı ve yerel kullanım
+denemesinde bulunan Google DNS TXT biçimi uyumsuzluğu giderildi. Tırnaksız
+TXT metni, tırnaklı/bitişik parçalar ve geçerli ASCII sayısal kaçışlar
+desteklenir; bozuk metin kontrollü hata olarak kalır. Çekirdek şema 69
+değişmedi. İlgili 103 test 21,178 saniyede geçti; önceki 2.595 testlik
+genel tur bu yama için yeniden çalıştırılmış sayılmaz.
+
+Dokuz ücretsiz kaynağın gerçek alımı, domain/yüzey ve sosyal denemeler,
+aynı veri alanındaki birleşik kuruluş raporu ve 114 yerel CLI çağrısı
+[kullanım kabulünde](FUNCTIONAL_ACCEPTANCE.md) kayıtlıdır. Common Crawl
+bu turda 504, Wayback zaman aşımı verdi; bunlar başarılı keşif değildir.
+Eski yerel araç ortamının eksik RSS paketleri normal kurulumla onarıldı;
+kullanıcının eski veritabanı kendiliğinden taşınmadı.
 
 **Son ürün yönü:** Bu repo başka platformlara bağlanabilen XTI toplama
 ve analiz motorudur. .NET adaptörü, platform bağlantısı, uygulama backend'i,

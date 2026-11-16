@@ -243,9 +243,17 @@ def parse_cname_dns_response(
 
 
 def _txt_data(value: object) -> str:
-    """Decode the quoted DNS presentation form used by the JSON endpoint."""
-    if not isinstance(value, str) or not 2 <= len(value) <= 8192:
+    """Accept literal JSON text or decode strictly quoted DNS presentation text."""
+    if not isinstance(value, str) or not 1 <= len(value) <= 8192:
         raise _ProbeFailure("DNS TXT kaydı beklenen biçimde değil.")
+    # Live Google JSON answers also contain plain TXT strings. Preserve those
+    # literally: DNS escape decoding belongs only to the quoted form. Any quote
+    # selects the strict parser below, so malformed presentation is not repaired
+    # or reinterpreted as literal text.
+    if '"' not in value:
+        if len(value) > 2048 or not value.isprintable():
+            raise _ProbeFailure("DNS TXT kaydı desteklenen metin sınırını aştı.")
+        return value
     parts: list[str] = []
     index = 0
     while index < len(value):
@@ -263,10 +271,11 @@ def _txt_data(value: object) -> str:
                 index += 1
                 if index >= len(value):
                     raise _ProbeFailure("DNS TXT kaydındaki kaçış eksik.")
-                if (
-                    index + 2 < len(value) and value[index:index + 3].isdigit()
-                ):
-                    code = int(value[index:index + 3])
+                if value[index].isnumeric():
+                    digits = value[index:index + 3]
+                    if len(digits) != 3 or not digits.isascii() or not digits.isdigit():
+                        raise _ProbeFailure("DNS TXT kaydındaki kaçış geçersiz.")
+                    code = int(digits)
                     if code > 255:
                         raise _ProbeFailure("DNS TXT kaydındaki kaçış geçersiz.")
                     character = chr(code)
@@ -281,7 +290,8 @@ def _txt_data(value: object) -> str:
             raise _ProbeFailure("DNS TXT kaydının tırnağı tamamlanmadı.")
         index += 1
         parts.append("".join(part))
-        if index < len(value) and value[index] != " ":
+        # Google also emits adjacent quoted chunks with no separating space.
+        if index < len(value) and value[index] not in (' ', '"'):
             raise _ProbeFailure("DNS TXT parçaları beklenen biçimde ayrılmadı.")
     decoded = "".join(parts)
     if not 1 <= len(decoded) <= 2048 or not decoded.isprintable():

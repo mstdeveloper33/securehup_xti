@@ -19,6 +19,9 @@ sh -n \
 "$XTI_PROJECT_DIR/scripts/python" -m compileall -q src
 exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_architecture.py \
+    tests/test_mail_dns_probe.py \
+    tests/test_https_probe.py \
+    tests/test_mail.py \
     tests/test_company_workspaces.py \
     tests/test_company_content.py \
     tests/test_engine_jobs_storage.py \

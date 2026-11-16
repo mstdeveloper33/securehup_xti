@@ -1,7 +1,10 @@
 # XTI günlük kullanım
 
-Bu belge 0.143.0 kullanımını kapsar. Yeni kodla eski veritabanını kullanmadan önce `./xti migrate`
-çalıştır; şema 66 geçişi önce geri dönüş yedeği alır.
+Bu belge 0.147.1 / çekirdek şema 69 kullanımını kapsar. Eski kayıt alanında
+önce `./xti doctor` ile durumu kontrol et. Geçiş gerekiyorsa açık
+`./xti migrate` komutu önce geri dönüş yedeği alır; şema 69 için yeniden
+geçiş gerekmez. Çok firmalı kurulum ve kalıcı profil işleri
+[platform rehberindedir](PLATFORM_ENGINE.md).
 
 Kuruluşa özel HIBP bildirimleri için `./xti notices watch enable KURULUS_KIMLIGI`
 ile açık izleme seçilir. Katalog yenilenince ilk ölçüm sessizdir; sonraki

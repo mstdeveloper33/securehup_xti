@@ -1,7 +1,13 @@
 # XTI Motorunun Mimarisi
 
-**16 Kasım 2026 — 0.147.0, çekirdek şema 69 ana proje yapısı.**
+**16 Kasım 2026 — 0.147.1, çekirdek şema 69 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+
+0.147.1'in DNS TXT düzeltmesi yalnız `https_probe` adaptöründedir.
+Kaynak JSON'unun tırnaksız metni aynen korunur; tırnaklı parçaların DNS
+kaçışları ayrı çözülür. Bitişik tırnaklı parçalar desteklenir; sayısal
+kaçışlar üç ASCII rakamı ve 0–255 sınırı gerektirir. Kaynak hatası, boş
+kayıt ve mevcut politika ayrımı ile şema/iş sözleşmeleri korunur.
 
 **Güncel görev sınırı — .NET bağlantısı tüketici ekibe ait:** Bu repo
 başka bir platformun kullanabileceği XTI motorunu, kararlı sürümlü
