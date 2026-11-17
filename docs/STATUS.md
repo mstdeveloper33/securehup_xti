@@ -1,17 +1,33 @@
 # XTI — Güncel Uygulama Durumu
 
-**17 Kasım 2026 · 0.150.0 · Çekirdek şema 72.**
+**17 Kasım 2026 · 0.151.0 · Çekirdek şema 72.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
+
+**0.151.0 kullanım iyileştirmesi:** Kaynak durumu ile kuruluşun terminal ve
+HTML raporu son denemenin kısmi kaydını, tam başarılı çalışma yokluğunu,
+başarısız denemeyi ve korunan tam sonucun güncelliğini ayrı anlatır.
+`collect`, `search`, `organizations report --summary` kısa terminal
+görünümü ekler. Kaynak hataları, kapsam ve sayfalama korunur; kuruluşta
+özette yer almayan kayıt sayıları açıktır. Ayrıntı komutları seçili veri
+alanında okuma yapar. JSON alanları/protokol sürümü, veri saklama ve toplama davranışı
+değişmez; şema geçişi veya yeni bağımlılık yoktur.
+[Kullanım](DAILY_USE.md#kısa-görünüm-ve-kayıt-ayrıntıları).
+
+**0.151.0 yerel doğrulaması:** `umask 002` altında kaynak durumu, toplama,
+arama, kuruluş terminal/HTML görünümü ve engine/platform uyumunun 211
+testi 227,090 saniyede geçti; hata ve atlama yok. Bu ilgili regresyon
+kapsamıdır, tam test paketi veya Linux canlı kaynak kabulü değildir.
+[Kabul kaydı](ACCEPTANCE_REVIEW.md#01510--kısmi-kanıt-ve-kısa-görünüm-kabulü).
 
 **Güncel ürün kararı — plan, yeni özellik teslimi değildir:** Motor kendi
 ticari platformumuz için kapalı kaynak geliştirilecek. Lisansı ve veri
 koşulları uygun hazır bileşenlerden yararlanılacak. Mevcut 0.150.0 üzerine
 ortak istihbarat modeli, ilişkili kanıt araştırması, kaynak genişletme,
 kalite/öncelik ve yönetilebilir akışlar [MTR-00–08 planına](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
-alındı. İlk yeni paket mevcut domain/IP, IOC ve CTI kanıtlarını kaynaklı
-araştırma yollarıyla platforma açacak. Bu plan henüz uygulanmadı; sürüm,
-veritabanı, bağımlılıklar ve depo görünürlüğü değişmedi. Kullanıcının
+alındı. İlk yeni MTR paketi mevcut domain/IP, IOC ve CTI kanıtlarını kaynaklı
+araştırma yollarıyla platforma açacak. Bu MTR işleri henüz uygulanmadı;
+0.151.0 mevcut kapsamın kullanım iyileştirmesidir. Kullanıcının
 0.147.1 / şema 69 Linux deneme raporu alındı; rapor sonraki Nmap
 teslimlerinin kabulü değildir. [İnceleme ve kalan işler](ACCEPTANCE_REVIEW.md).
 

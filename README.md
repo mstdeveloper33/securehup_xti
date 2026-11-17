@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.150.0 · **Tarih:** 16 Kasım 2026 · **Çekirdek şema:** 72.
+**Sürüm:** 0.151.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 72.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -9,6 +9,12 @@ Lisans ve veri kullanım koşulları uygun hazır bileşenlerden yararlanılır.
 Ortak istihbarat, ilişki araştırması ve kaynak kapsamı için sonraki işler
 [motor geliştirme planında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
+
+0.151.0, kaynak hatası, tamamlanmış boş sonuç, kısmi kanıt ve korunan eski
+sonucu daha açık gösterir. `collect`, `search` ve `organizations report`
+komutlarında `--summary` kısa terminal görünümünü seçer; ayrıntı komutları
+seçili veri klasörünü korur. JSON, toplama kapsamı ve kayıtlar değişmez.
+[Örnek kullanım](docs/DAILY_USE.md#kısa-görünüm-ve-kayıt-ayrıntıları).
 
 0.150.0, yetkili IP/CIDR Nmap planlarını kalıcı kuyruk, hedef başına kanıt,
 iptal ve kesinti kurtarmasıyla çalıştırır. TCP connect/SYN/UDP,

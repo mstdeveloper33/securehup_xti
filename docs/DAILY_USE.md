@@ -1,6 +1,6 @@
 # XTI günlük kullanım
 
-Bu belge 0.150.0 / çekirdek şema 72 kullanımını kapsar. Eski kayıt alanında
+Bu belge 0.151.0 / çekirdek şema 72 kullanımını kapsar. Eski kayıt alanında
 önce `./xti doctor` ile durumu kontrol et. Geçiş gerekiyorsa açık
 `./xti migrate` komutu önce geri dönüş yedeği alır; şema 72 için yeniden
 geçiş gerekmez. Çok firmalı kurulum ve kalıcı profil işleri
@@ -26,9 +26,49 @@ kullanıcı adını yaz. Komutları proje klasöründe çalıştır. İlk kez ku
 ```
 
 Ekran, hangi aracın kurulu olduğunu ve eldeki kayıtların durumunu gösterir.
-Hiç çalıştırılmamış kaynak, hata veren kaynak ve tamamlanmış boş arama ayrı
-görünür. Satırdaki sonraki komut, eksik kurulumu veya veri yenilemeyi başlatmak
+Hiç çalıştırılmamış kaynak, hata veren kaynak, kısmi kanıt ve tamamlanmış
+boş arama ayrı görünür. Son deneme başarısız olsa da varsa korunan tam
+sonucun güncel/eski olduğu belirtilir. “Tam başarılı çalışma yok” kısmi
+kanıtın yokluğu değildir. Kayıt sayısı satırın kaynak kapsamına aittir;
+ortak katalogdaki kayıtlar firmanın bulgu sayısı değildir.
+Satırdaki sonraki komut, eksik kurulumu veya veri yenilemeyi başlatmak
 içindir. Durum ekranını açmak yeni arama başlatmaz.
+
+### Kısa görünüm ve kayıt ayrıntıları
+
+```sh
+./xti collect example.com --summary
+./xti collect --profile gunluk --summary
+./xti search "example.com" --summary
+./xti organizations report KURULUS_KIMLIGI --summary
+./xti sources status --domain example.com --details
+```
+
+`collect` kaynakları normal biçimde çalıştırır; `--summary` yalnız sonucu
+kısaltır. Diğer komutlar kayıtları okur. Kayıtlı profilin veya domainin
+yerine kendi değerini yaz. Varsayılan ayrıntılı görünüm de kullanılabilir.
+
+- Toplama özeti kaynak başına sonucu ve hatayı korur. Genel yayıncı haber
+  listesi basılmaz; seçilmiş haber aramasının adı ve eşleşme sayısı görünür.
+  İlk karşılaştırma tabanı yeni alarm diye sunulmaz.
+- Arama özeti sayfadaki her kaydın adını/değerini, türünü, durumunu,
+  kaynağını ve ayrıntıya geçişini gösterir. Filtreler, toplam ve sonraki
+  sayfa komutu korunur. Kaynak kapsamı ve hata notları kısaltılmaz.
+- Kuruluş özeti bölüm başına mevcut sayfanın ilk üç kaydını, toplamı ve
+  özette yer almayan sayıyı gösterir. “Bu sayfanın tam ayrıntısı” komutu
+  aynı hedef/sayfa/güncellik ayarlarıyla ayrıntılı görünümü açar. Daha fazla
+  kayıt için bölümün sayfalama seçenekleri kullanılır.
+
+Toplamayı sırf uzun çıktısını görmek için yeniden çalıştırma. Özetteki
+`collections show`, `jobs show`, `surface run`, `news run-show` gibi okuma
+komutları saklanmış kaydı açar. `analyze` ise o anki yerel veriden tekrar
+hesaplar; eski toplama anının dondurulmuş analizi değildir. `--data-dir`
+seçtiğinde yeni özetlerin ayrıntı komutları aynı klasörü kullanır.
+
+`./xti --json collect example.com --summary` tam JSON kapsamını korur.
+Bayrak profil tanımına
+kaydedilmez, tarama/indirme sınırını değiştirmez ve platform protokolüne
+yeni parametre eklemez. Başarısız veya kısmi toplama çıkış kodu yine `3`.
 
 Yetkili olduğun kesin genel IP'de ayarlanabilir TCP servis kanıtı gerekiyorsa
 Nmap isteğe bağlı bir sistem aracıdır:

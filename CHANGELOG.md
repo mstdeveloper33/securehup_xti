@@ -1,6 +1,22 @@
 # Değişiklik Kaydı
 
-## Yayımlanmamış — kabul raporu düzeltmeleri
+## 0.151.0 — 17 Kasım 2026
+
+- Kaynak durumu ve kuruluş terminal/HTML raporu kısmi kanıtı, tam sonuç
+  yokluğunu, başarısız denemeyi ve önceki sonucun güncelliğini açık ayırır.
+- `collect`, `search` ve `organizations report` için `--summary` kısa
+  görünümü. Kaynak hataları, kapsam, sayfalama ve saklı ayrıntıya erişim
+  korunur; genel haber listesi hedef özeti içine dökülmez.
+- Kuruluş özeti bölüm başına ilk üç kaydı ve gösterilmeyen toplamı sunar.
+  Yeni ayrıntı komutları özel veri klasörünü ve seçili filtreleri korur.
+- Sadece gösterim değişir: aynı toplama işi, tam JSON, aynı hata/çıkış
+  davranışı. Şema 72, engine/platform v1 ve bağımlılıklar değişmedi.
+  [Günlük kullanım](docs/DAILY_USE.md#kısa-görünüm-ve-kayıt-ayrıntıları).
+- İlgili kaynak/toplama/arama/kuruluş ve engine/platform regresyonlarının
+  211 testi `umask 002` altında 227,090 saniyede geçti; hata veya atlama
+  yok. Tam paket ve canlı Linux kabulü ayrı kalır.
+
+## 0.150.0 kabul düzeltmeleri — 675ad79
 
 - CSAF VEX ürün kimliklerinin başındaki/sonundaki boşluklar korunur.
   Red Hat Log4Shell belgesinin geçerli ürün kimliğini reddeden ayrıştırma

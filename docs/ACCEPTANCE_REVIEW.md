@@ -39,8 +39,8 @@ Firma alanının mevcut daha sıkı erişim doğrulaması ayrı kalır.
 
 | Rapor maddesi | Değerlendirme | Sonraki kabul ölçütü |
 | --- | --- | --- |
-| Kısmi kanıtın “başarılı kayıt yok” ile karışması | Görünüm iyileştirmesi açık. `sources status` son deneme ve son başarıyı ayırıyor; kısmi kanıtın varlığı daha açık olmalı. | Tam/kısmi kanıt, eski başarı ve hiç kayıt yok ayrımı aynı veride terminal ve JSON'da sınanmalı; kayıtlar silinmemeli. |
-| Uzun collect/search/kuruluş raporu | Kısa görünüm ihtiyacı kabul edildi; yeni bayraklar henüz eklenmedi. Aramada mevcut `--kind` ve `--limit` kullanılabilir. | Varsayılan veya açık kısa görünüm hedefe odaklanmalı; kaynak hataları ve gizlenen öğe sayısı görünür kalmalı; tam kanıta ulaşılabilmeli. |
+| Kısmi kanıtın “başarılı kayıt yok” ile karışması | 0.151.0 kaynak tablosu ve kuruluş terminal/HTML görünümünde düzeltildi. Son deneme, tam sonuç ve güncellik birlikte açıklanır. | Kısmi kanıt, tamamlanmış boş sonuç, eski başarı ve hiç çalışma yok ayrımı doğrulanır. JSON'un ayrı durum/zaman alanları korunur. |
+| Uzun collect/search/kuruluş raporu | 0.151.0'da açık `--summary` eklendi; ayrıntılı varsayılan görünüm korunur. | Kaynak hataları/kapsam notları, sayfalama ve özette gösterilmeyen sayılar açık kalır; aynı veri alanında kayıt ayrıntısı açılır. |
 | Tavily yapılandırma durumu | Anahtar yokken çalışmanın durması beklenen davranış. İçerik görünümünde `not_checked`, `check_failed`, `no_content`, `content_found`, eski/belirsiz durumlar zaten var; ayrı anahtar hazırlık bilgisi yok. | Gizli anahtar okunup çıktılanmadan yapılandırma hazırlığı gösterilmeli; “kontrol yapılmadı” ve “kontrol başarılı, boş” ayrımı korunmalı. Canlı Tavily kabulü hâlâ bekliyor. |
 | Platform iş yanıtı biçimi | Mevcut v1 sözleşmesinde belgeli: submit/status/cancel için `data.job_id`; result için `data.job` ve `data.result`. | [Platform belgesindeki](PLATFORM_ENGINE.md) biçim korunur. Değişiklik gerekirse sürümlü geçiş yapılır; yalnız görünüm birliği için mevcut istemci kırılmaz. |
 | Schedule parametreleri | `--output` / `--at` README'de mevcut. Günlük kullanım rehberine doğrudan örnek eklendi. | [Günlük kullanım](DAILY_USE.md) örneği geçerli; `--output-dir` desteklenen bayrak olarak gösterilmez. |
@@ -242,4 +242,48 @@ kalıcı kayıt/tekrar/yeniden kontrol/yedekten dönüşü ve CVE bağını kaps
 ```sh
 umask 002
 ./scripts/python -m unittest tests.test_vendor_advisory tests.test_suse_vendor_advisory tests.test_vendor_package_match tests.test_vendor_package_evidence tests.test_vendor_package_evidence_check tests.test_vendor_package_evidence_migration -v
+```
+
+## 0.151.0 — Kısmi kanıt ve kısa görünüm kabulü
+
+Bu dilim yalnız gösterimi değiştirir. JSON'un kayıt/durum/kapsam alanları,
+veritabanı şeması, kaynak çağrıları ve profil tanımı korunur. Mevcut engine
+ve platform protokol sürümleri aynı kalır; motor sürümü 0.151.0 olur.
+
+- `sources status` tamamlanmış sıfır sonuç, henüz çalıştırılmamış kaynak,
+  son denemenin kısmi kanıtı, başarısız deneme ve korunan eski tam sonucu
+  ayrı gösterir. `freshness=never` artık bütün kanıtın yokluğu gibi
+  anlatılmaz. Sayılar kaynak satırının kapsamındadır.
+- Kuruluş terminal/HTML raporunda kısmi web kanıtı varken tam başarı
+  bulunmaması açık görünür; son kontrol kimliği ve hata korunur.
+- `collect --summary` aynı kaynağı aynı biçimde çalıştırır. Genel yayıncı
+  haberlerini dökmeden kaynak durumunu, varsa seçilmiş arama sonucunu,
+  başlangıç ölçümünü ve başarısız yenileme nedeniyle atlanan karşılaştırmayı
+  gösterir. Kısmi/başarısız toplama yine çıkış kodu 3 verir.
+- `search --summary` sayfadaki bütün sonuçları kısa sunar; kapsam/hata
+  notları ve sonraki sayfada filtreler korunur. Tam JSON kısaltılmaz.
+- `organizations report --summary` bölüm başına mevcut sayfanın ilk üç
+  kaydını, toplamı ve gösterilmeyen sayıyı verir. Tam sayfayı açma komutu
+  veri klasörü, hedef/öğe sayfalaması ve güncellik eşiğini korur.
+- Yeni ayrıntı komutları çalıştırılarak aynı veri alanındaki kaydı
+  açtıkları, kaynak çağırmadıkları ve mevcut veritabanı byte'larını
+  değiştirmedikleri doğrulanır. `analyze` güncel yerel veriden hesaplar;
+  tarihî analizin dondurulmuş kopyası gibi sunulmaz.
+
+Kontrollü RSS örneğinde aynı toplama sonucu ayrıntılı görünümde 124,
+kısa görünümde 30 standart çıktı satırı üretti. NCSC zaman aşımı ve bu
+nedenle atlanan haber araması her iki görünümde de kaldı. Bu yapay kaynak
+örneğidir; canlı NCSC erişim veya gerçek firma araştırması sonucu değildir.
+Tavily ve gelişmiş Nmap canlı kabulü bu teslimle tamamlanmış sayılmaz.
+
+Son yerel tur `umask 002` altında **211 testi 227,090 saniyede** tamamladı;
+hata veya atlama yok. Kaynaklar kontrollü örneklerdi. Bu ilgili regresyon
+kapsamıdır; bütün test paketi veya Linux canlı kaynak kabulü değildir.
+Kuruluş raporu testleri hızlı kontrol listesine de eklendi.
+
+Doğrulama komutu:
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_architecture tests.test_source_readiness tests.test_source_readiness_adapter tests.test_surface_discovery_status tests.test_surface_freshness tests.test_global_search tests.test_collection_cli tests.test_collection_news_cli tests.test_collection_watch_cli tests.test_collection_public_notice_cli tests.test_collection_profile_cli tests.test_collection_history_cli tests.test_organization_report tests.test_organization_content_report tests.test_organization_export tests.test_organization_workflow_cli tests.test_engine_contract tests.test_engine_records tests.test_platform_engine -v
 ```

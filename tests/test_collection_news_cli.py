@@ -18,6 +18,30 @@ NEWS_OPTIONS = tuple(value for source in SOURCES for value in ('--news-source', 
 
 
 class CollectionNewsCLITests(unittest.TestCase):
+    def test_summary_hides_publisher_article_dump_but_keeps_search_and_source_failures(self):
+        import shlex
+        watch = self.watch()
+        arguments = ('collect', 'example.com', '--only-news', *NEWS_OPTIONS, '--search-watch', watch, '--summary')
+        code, text, _ = self.invoke(*arguments, as_json=False)
+        self.assertEqual(code, 0, text)
+        self.assertIn('Marka haberleri', text)
+        self.assertNotIn('Example security bulletin', text)
+        self.assertIn('firma eşleşmesi', text)
+        self.assertIn('İlk ölçüm başlangıçtır', text)
+        before, calls = self.files(), tuple(self.calls)
+        for line in text.splitlines():
+            if line.lstrip().startswith('Ayrıntı: '):
+                command = shlex.split(line.split(': ', 1)[1])[1:]
+                self.assertEqual(command[:2], ['--data-dir', str(self.data)])
+                self.result(*command)
+        self.assertEqual(self.files(), before)
+        self.assertEqual(tuple(self.calls), calls)
+        self.errors['ncsc'] = SourceError('Publisher unavailable.')
+        code, text, _ = self.invoke(*arguments, as_json=False)
+        self.assertEqual(code, 3)
+        self.assertIn('Publisher unavailable.', text)
+        self.assertIn('eski katalogdan yeni bildirim üretilmedi', text)
+
     invoke = fixtures.CollectionWatchCLITests.invoke
     result = fixtures.CollectionWatchCLITests.result
     files = fixtures.CollectionWatchCLITests.files

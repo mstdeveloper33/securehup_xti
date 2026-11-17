@@ -28,6 +28,19 @@ def public_catalog(*records):
 
 
 class CollectionPublicNoticeCLITests(unittest.TestCase):
+    def test_summary_preserves_attribution_and_does_not_hide_source_failure(self):
+        arguments = ('collect', 'example.com', '--task', 'notices-hibp', '--summary')
+        code, text, _ = self.invoke(*arguments, as_json=False)
+        self.assertEqual(code, 0, text)
+        self.assert_attribution(text)
+        self.assertIn('İlk katalog başlangıçtır', text)
+        self.catalog.value = SourceError('HTTP 503 temporary failure')
+        code, text, _ = self.invoke(*arguments, as_json=False)
+        self.assertEqual(code, 3)
+        self.assert_attribution(text)
+        self.assertIn('HTTP 503 temporary failure', text)
+        self.assertIn('kaynak hatası boş sonuç değildir', text)
+
     invoke = fixtures.CollectionWatchCLITests.invoke
     result = fixtures.CollectionWatchCLITests.result
     files = fixtures.CollectionWatchCLITests.files

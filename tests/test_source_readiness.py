@@ -30,6 +30,26 @@ def evidence(**changes):
 
 
 class SourceReadinessTests(unittest.TestCase):
+    def test_terminal_distinguishes_partial_empty_failure_and_retained_stale_success(self):
+        service, _ = self.service([
+            evidence(identifier="empty", record_count=0),
+            evidence(identifier="partial", latest_status="partial", last_success_at=None,
+                     record_count=2, error="Bir sorgu zaman aşımına uğradı."),
+            evidence(identifier="partial-empty", latest_status="partial", last_success_at=None, record_count=0),
+            evidence(identifier="failed", latest_status="failed", last_success_at=None, record_count=0),
+            evidence(identifier="old", latest_status="failed", last_success_at="2026-11-10T12:00:00+00:00"),
+            evidence(identifier="never", latest_status="never", last_success_at=None, last_attempt_at=None),
+        ])
+        report = service.show()
+        for details in (False, True):
+            output = "\n".join(report_lines(report, details=details))
+            for text in ("Tamamlandı; sonuç sayısı 0", "Kısmi kanıt var", "bu denemede kayıt alınamadı",
+                         "Son deneme başarısız; tam başarılı çalışma yok", "korunan önceki sonuç eski",
+                         "Henüz çalışma kaydı yok", "Bir sorgu zaman aşımına uğradı."):
+                self.assertIn(text, output)
+        self.assertEqual(report.sources[1].freshness, "never")
+        self.assertEqual(report.sources[1].evidence.latest_status, "partial")
+
     def service(self, rows, storage="ready"):
         repo = Mock()
         repo.snapshot.return_value = SourceReadinessSnapshot(storage, tuple(rows))

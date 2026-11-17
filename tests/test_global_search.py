@@ -35,6 +35,34 @@ LEGACY_SEARCH_KINDS = ('domain', 'finding', 'social', 'ransomware', 'public-noti
 
 
 class GlobalSearchTests(unittest.TestCase):
+    def test_summary_keeps_paging_filters_scope_and_full_json_without_writes(self):
+        import shlex
+        self.entity('Example actor')
+        options = ('search', 'example', '--kind', 'cti', '--kind', 'domain', '--all', '--limit', '1')
+        before = self.files()
+        full = self.result(*options)
+        brief = self.result(*options, '--summary')
+        full.pop('checked_at')
+        brief.pop('checked_at')
+        self.assertEqual(brief, full)
+        code, output, error = self.invoke(*options, '--summary', as_json=False)
+        self.assertEqual((code, error), (0, ''))
+        commands = {line.split(': ', 1)[0]: shlex.split(line.split(': ', 1)[1])[1:]
+                    for line in output.splitlines()
+                    if line.startswith(('Sonraki sayfa: ', 'Bu sayfanın tam ayrıntısı: '))}
+        self.assertEqual(len(commands), 2)
+        next_page = self.result(*commands['Sonraki sayfa'])
+        self.assertEqual(next_page['offset'], 1)
+        self.assertNotEqual(next_page['results'][0]['record_id'], full['results'][0]['record_id'])
+        for command in commands.values():
+            self.assertEqual(command[:2], ['--data-dir', str(self.data)])
+            self.assertIn('--all', command)
+            self.assertEqual(command.count('--kind'), 2)
+        restored = self.result(*commands['Bu sayfanın tam ayrıntısı'])
+        restored.pop('checked_at')
+        self.assertEqual(restored, full)
+        self.assertEqual(self.files(), before)
+
     invoke = fixtures.CollectionWatchCLITests.invoke
     result = fixtures.CollectionWatchCLITests.result
     files = fixtures.CollectionWatchCLITests.files

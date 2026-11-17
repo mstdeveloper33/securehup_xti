@@ -15,6 +15,7 @@ from xti.interfaces.mail import check_lines as mail_lines
 from xti.interfaces.services import check_lines as service_lines
 from xti.interfaces.surface import check_lines as web_lines
 from xti.interfaces.organization_report import CONTENT_SCOPE_LABELS
+from xti.interfaces.evidence_status import coverage_status_text
 
 
 _SECTIONS = {"findings": "Domain ve marka bulguları", "surface_candidates": "Pasif alt alan adı adayları",
@@ -22,7 +23,7 @@ _SECTIONS = {"findings": "Domain ve marka bulguları", "surface_candidates": "Pa
              "public_notices": "Kamu olay kataloğu", "notifications": "Yerel bildirimler",
              "case_links": "Açık vaka bağlantıları", "public_notice_case_links": "Kamu olay vaka bağlantıları",
              "content": "Güncel kapsamın içerik adayları", "historical_content": "Tarihî kapsamın içerik adayları"}
-_FRESHNESS = {"never": "Başarılı kayıt yok", "current": "Güncel", "stale": "Eski",
+_FRESHNESS = {"never": "Tam başarılı çalışma yok", "current": "Güncel", "stale": "Eski",
               "clock_error": "Gelecek zamanlı kayıt"}
 _STATUS = {"complete": "Tamamlandı", "partial": "Kısmi", "failed": "Başarısız",
            "new": "Yeni", "suspicious": "Şüpheli", "uncertain": "Belirsiz", "dismissed": "Normal / kapatıldı",
@@ -193,7 +194,7 @@ class HtmlOrganizationReportRenderer:
             yield _meta((("Hedef", view.link.target.value), ("Açık bağlantı", view.link.id), ("Kaynak", view.target.source), *target.current_definition))
             yield '<h3>Kaynak durumu ve eksik kanıt</h3><div class="table-wrap"><table class="coverage"><thead><tr><th>Kaynak / aile</th><th>Güncellik</th><th>Son deneme</th><th>Son başarılı kayıt</th></tr></thead><tbody>'
             for coverage in target.coverage:
-                yield f'<tr><td>{_text(coverage.source)}<p class="fine">{_text(coverage.family)}</p></td><td>{_pill(coverage.freshness, freshness=True)}</td><td>{_attempt(coverage.latest_attempt)}</td><td>{_attempt(coverage.latest_success)}</td></tr>'
+                yield f'<tr><td>{_text(coverage.source)}<p class="fine">{_text(coverage.family)}</p></td><td>{_pill(coverage.freshness, freshness=True)}<p>{_text(coverage_status_text(coverage))}</p></td><td>{_attempt(coverage.latest_attempt)}</td><td>{_attempt(coverage.latest_success)}</td></tr>'
                 if coverage.notes:
                     yield '<tr><td colspan="4"><ul class="fine">' + ''.join(f'<li>{_linked(note)}</li>' for note in coverage.notes) + '</ul></td></tr>'
             yield '</tbody></table></div>'

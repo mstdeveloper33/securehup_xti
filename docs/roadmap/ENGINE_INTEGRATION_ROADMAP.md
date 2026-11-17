@@ -1,7 +1,7 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.150.0 / çekirdek şema 72, ayrı platform iş şeması 1.
+**Mevcut sürüm:** 0.151.0 / çekirdek şema 72, ayrı platform iş şeması 1.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -18,8 +18,8 @@ Bu seçenekler ileride ayrı ihtiyaç ve kabul koşullarıyla değerlendirilebil
 
 **Güncel geliştirme sırası:** Aşağıdaki §6.1–6.4'teki **MTR-00–08** motor
 genişleme planı geçerlidir. ENG/STB kayıtları önceki teslimlerin geçmişini
-korur. Yeni MTR işleri henüz uygulanmış değildir; bu plan güncellemesi
-0.150.0 kodunu, bağımlılıklarını veya şema 72'yi değiştirmez.
+korur. Yeni MTR yetenekleri henüz uygulanmış değildir; 0.151.0 mevcut
+kapsamın kullanım iyileştirmesidir. Çekirdek şema 72 değişmez.
 
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
@@ -322,8 +322,9 @@ eşlik eder. Takvim ve kapasite taahhüdü, ekip/dağıtım/yük belli olmadan v
 
 **Kabul raporu önceliği:** Kullanıcının 0.147.1 Linux raporu üzerine
 MTR-00 kapsamında CTI izleme ve yeni klasör izinleri düzeltildi; umask
-testi taşınabilir hale getirildi. Kalan kısmi kanıt gösterimi, kısa
-collect/search/rapor görünümü ve kaynak hazırlığı işleri
+testi taşınabilir hale getirildi. 0.151.0 kısmi kanıt gösterimini ve açık
+`collect/search/organizations report --summary` görünümünü tamamlar.
+Kalan kaynak hazırlığı ve canlı kabul işleri
 [kabul incelemesinde](../ACCEPTANCE_REVIEW.md) ölçütleriyle izlenir.
 Bu kayıt sonraki Nmap sürümlerinin canlı kabulünü tamamlamaz.
 

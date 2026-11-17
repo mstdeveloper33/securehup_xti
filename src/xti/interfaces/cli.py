@@ -806,6 +806,7 @@ def build_parser() -> Parser:
         help="Seçilen işleri ağ ve veri yazımı olmadan göster; toplama başlatmaz.",
     )
     add_collection_arguments(collect)
+    collect.add_argument("--summary", action="store_true", help="Kaynak durumunu ve hedef özetini kısa göster; toplama kapsamı ve JSON değişmez.")
     register_profiles_parser(commands)
     register_schedule_commands(commands)
     changes = commands.add_parser("changes", help="Son gün veya haftadaki kayıtlı değişiklikleri ve kaynak boşluklarını göster.")
@@ -3740,7 +3741,7 @@ def run(args: argparse.Namespace) -> int | None:
         if args.json:
             print(json.dumps({"ok": result.status == "complete", "data": asdict(result)}, ensure_ascii=True))
         else:
-            for line in collection_result_lines(result, data_dir=args.data_dir):
+            for line in collection_result_lines(result, data_dir=args.data_dir, summary=args.summary):
                 print(line)
         return 0 if result.status == "complete" else 3
     elif args.command == "analyze":

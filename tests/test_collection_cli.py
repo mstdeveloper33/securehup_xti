@@ -4,6 +4,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
 from io import StringIO
 import json
+import shlex
 from pathlib import Path
 import tempfile
 import unittest
@@ -23,6 +24,57 @@ from tests.test_discovery import FakeSource, batch, document
 
 
 class CollectionCLITests(unittest.TestCase):
+    def test_summary_ioc_navigation_reads_catalog_and_retains_failure(self):
+        self.feodo.side_effect = None
+        self.feodo.return_value = snapshot(raw("192.0.2.40"))
+        args = ("collect", "example.com", "--task", "ioc-feodo", "--summary")
+        code, text, _ = self.invoke(*args, as_json=False)
+        self.assertEqual(code, 0, text)
+        self.assertIn("katalog büyüklüğü domainin bulgu sayısı değildir", text)
+        before, calls = self.file_state(), self.feodo.call_count
+        line = next(line for line in text.splitlines() if line.startswith("  Ayrıntı: "))
+        command = shlex.split(line.split(": ", 1)[1])[1:]
+        self.data_result(*command)
+        self.assertEqual(self.file_state(), before)
+        self.assertEqual(self.feodo.call_count, calls)
+        self.feodo.side_effect = SourceError("Feed offline")
+        code, text, _ = self.invoke(*args, as_json=False)
+        self.assertEqual(code, 3)
+        self.assertIn("Feed offline", text)
+
+    def test_summary_preserves_failed_queries_and_read_only_navigation_in_selected_workspace(self):
+        self.crt.responses["%example%"] = SourceError("Kaynak timeout\x1b[31m")
+        self.crt.responses["example%"] = SourceError("Kaynak timeout\x1b[31m")
+        code, text, _ = self.invoke("collect", "example.com", "--summary", as_json=False)
+        self.assertEqual(code, 3)
+        self.assertIn("Kaynak timeout", text)
+        self.assertNotIn("\x1b", text)
+        self.assertIn("kaynak hatası boş sonuç değildir", text)
+        self.assertIn("example-support.net", text)
+        before = self.file_state()
+        calls = (tuple(self.crt.calls), tuple(self.urlscan.calls))
+        commands = [shlex.split(line.split(": ", 1)[1])[1:] for line in text.splitlines()
+                    if line.lstrip().startswith(("Ayrıntı: ", "Kayıtlı çalışma: ", "Güncel yerel analiz: "))]
+        self.assertGreaterEqual(len(commands), 5)
+        for command in commands:
+            self.assertEqual(command[:2], ["--data-dir", str(self.data)])
+            exit_code, _, error = self.invoke(*command)
+            self.assertEqual((exit_code, error), (0, ""))
+        self.assertEqual(self.file_state(), before)
+        self.assertEqual((tuple(self.crt.calls), tuple(self.urlscan.calls)), calls)
+
+    def test_summary_flag_does_not_change_profile_plan_or_json_result_scope(self):
+        self.data_result("profiles", "save", "Günlük", "example.com")
+        before = self.file_state()
+        expected = self.data_result("collect", "--profile", "Günlük", "--plan")
+        actual = self.data_result("collect", "--profile", "Günlük", "--plan", "--summary")
+        self.assertEqual(actual, expected)
+        self.assertEqual(self.file_state(), before)
+        result = self.data_result("collect", "--profile", "Günlük", "--summary")
+        self.assertEqual(len(result["steps"]), 3)
+        self.assertIn("queries", result["steps"][0]["attempt"])
+        self.assertIn("samples", result["analysis"]["findings"])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

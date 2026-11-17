@@ -69,6 +69,25 @@ def ransomlook_feed(records):
 
 
 class CollectionWatchCLITests(unittest.TestCase):
+    def test_summary_preserves_selected_watches_baselines_and_readonly_results(self):
+        import shlex
+        social, tc, rl = self.add_social(), self.add_tc(), self.add_rl()
+        self.maigret.responses.append({'GitHub': github()})
+        args = ('collect', 'example.com', '--username-watch', social.id,
+                '--ransomware-watch', tc.id, '--ransomlook-watch', rl.id, '--summary')
+        code, text, _ = self.invoke(*args, as_json=False)
+        self.assertEqual(code, 0, text)
+        for watch in (social, tc, rl):
+            self.assertIn(watch.display_name, text)
+        self.assertIn('İlk ölçüm başlangıçtır', text)
+        before = self.files()
+        calls = (self.threatcluster.calls, self.ransomlook.calls)
+        for line in text.splitlines():
+            if line.lstrip().startswith('Ayrıntı: '):
+                self.result(*shlex.split(line.split(': ', 1)[1])[1:])
+        self.assertEqual(self.files(), before)
+        self.assertEqual((self.threatcluster.calls, self.ransomlook.calls), calls)
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

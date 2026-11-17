@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.150.0 · protokol `xti-platform` v1 · çekirdek şema 72.**
+**Uygulama 0.151.0 · protokol `xti-platform` v1 · çekirdek şema 72.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi

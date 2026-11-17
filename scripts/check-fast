@@ -101,6 +101,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_collection_job_ownership.py \
     tests/test_cross_feature_workflow_cli.py \
     tests/test_organization_workflow_cli.py \
+    tests/test_organization_report.py \
     tests/test_collection_public_notice_cli.py \
     tests/test_collection_public_notice_receipts.py \
     tests/test_collection_public_notice_migration.py \

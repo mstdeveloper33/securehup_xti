@@ -455,6 +455,24 @@ Domain filtresi tarama/keşfe uygulanır. Son kayıt bütün varlıkların durum
 genellenmez; ATT&CK'de tutulmayan başarısız senkron geçmişi bilinmiyor kalır.
 Komut kaynak istemcilerini çalıştırmaz, depolama oluşturmaz veya değiştirmez.
 
+0.151.0'daki `evidence_status` gösterimi son deneme durumunu, tam başarılı
+kayıt varlığını ve güncelliği mevcut model alanlarından ayrı okur. Kısmi
+kayıt, başarılı boş sonuç veya eski başarı tek bir “veri yok” durumuna
+indirgenmez. Bu gösterim domain/kalıcılık durumlarını yeniden sınıflandırmaz;
+sonuç sayısı satırın kendi kaynak kapsamındadır. Kuruluşta aynı gösterim
+terminal ve kaçırılmış HTML metninde kullanılır.
+
+`--summary` yalnız arayüz seçeneğidir; `CollectionProfileDefinition`,
+kalıcı iş planı veya engine/platform parametresi değildir. Toplamada kaynak
+çağrıları ve çıkış kodu aynı kalır. `collection_summary` kaynak hatalarını
+ve kayıt okuma komutlarını tutar; genel haber/izleme öğelerini dökmez.
+Arama aynı sayfanın bütün sonuçlarını kısa sunar. Kuruluş raporu her bölümün
+ilk üç öğesini ve gösterilmeyen toplamı belirtir. Ayrıntı komutları
+`shlex.join` ile ayrı argümanlardan üretilir, terminal kontrol karakterleri
+kaçırılır ve seçili `--data-dir` korunur; shell çalıştırılmaz. JSON her iki
+görünümde aynı tam domain modelinden üretilir. Okuma seçenekleri veri
+yazmaz veya kaynak çağırmaz; toplama ayrıntısı için yeni toplama önerilmez.
+
 Aktif ürün yönü savunmacı OSINT/dijital risk izlemedir. Ürün, sürüm, paket ve CVE modülleri geçmiş veri ve şema uyumluluğu için kod tabanında korunur; `analyze` bileşimine ve yeni teslim sırasına dahil edilmez. Bu ayrım veri silmez ve eski komutların sonuçlarını yeni dış risk kanıtı gibi sunmaz.
 
 **En son, ihtiyaç halinde değerlendirilecek LLM sınırı — uygulanmadı:** Böyle bir destek eklenirse isteğe bağlı analiz servisi mevcut uygulama servislerinden kapsamı sınırlı kanıtları okuyacak; küçük bir model sözleşmesi üzerinden değiştirilebilir yerel/harici sağlayıcı adaptörünü çağıracaktır. Domain kuralları model kütüphanesine bağlı olmayacak. İlk sürümün kanıt, insan kararı veya dış eylem üzerinde yazma yetkisi olmayacak; taslak model çıktısı kanıttan ayrı, kaynak kimlikleri ve model/prompt sürümüyle gösterilecek. LLM hatası mevcut toplama/inceleme akışını durdurmayacak. Bu sınır aşağıdaki uygulanmış yapı diyagramına dahil değildir; ayrıntılar [LLM planındadır](roadmap/LLM_PLAN.md).

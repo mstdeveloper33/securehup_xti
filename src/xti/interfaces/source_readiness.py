@@ -2,15 +2,10 @@
 
 from xti.domain.source_readiness_report import SourceReadinessReport
 from xti.interfaces.text import safe_text
+from xti.interfaces.evidence_status import evidence_status_text
 
 
 _INSTALL = {"builtin": "Yerleşik", "ready": "Doğrulandı", "missing": "Kurulmamış", "invalid": "Kurulum doğrulanamadı"}
-_STATUS = {
-    "never": "Henüz çalışmadı", "complete": "Tamamlandı", "partial": "Kısmi",
-    "failed": "Hata", "running": "Sürüyor", "interrupted": "Yarım kaldı",
-    "unknown": "Son deneme bilinmiyor",
-}
-_AGE = {"never": "Başarılı kayıt yok", "current": "Güncel", "stale": "Eski", "clock_error": "Saat tutarsız"}
 
 
 def report_lines(report: SourceReadinessReport, *, details: bool = False) -> list[str]:
@@ -23,12 +18,16 @@ def report_lines(report: SourceReadinessReport, *, details: bool = False) -> lis
     if report.storage_state == "not_initialized":
         lines.append("Yerel veritabanı henüz hazırlanmadı. Başlangıç: ./setup")
     lines.append("")
-    lines.append(f"{'Kaynak / işlem':<31} {'Kurulum':<24} {'Son çalışma':<23} Son başarılı kayıt")
+    lines.append(f"{'Kaynak / işlem':<31} {'Kurulum':<24} Sonuç ve korunan kanıt")
     for row in report.sources:
         item = row.evidence
         lines.append(
             f"{safe_text(item.label):<31} {_INSTALL[item.installation]:<24} "
-            f"{_STATUS[item.latest_status]:<23} {_AGE[row.freshness]}"
+            + evidence_status_text(
+                item.latest_status, has_success=item.last_success_at is not None,
+                freshness=row.freshness, empty=item.record_count == 0,
+                partial_count=item.record_count,
+            )
         )
     if not details:
         lines.extend(["", "Sonraki adımlar:"])
@@ -55,7 +54,7 @@ def report_lines(report: SourceReadinessReport, *, details: bool = False) -> lis
             f"Son başarı: {safe_text(item.last_success_at or 'Kayıt yok')}"
         )
         if item.record_count is not None:
-            lines.append(f"    Son kayıttaki öğe: {item.record_count}")
+            lines.append(f"    Kaynak satırının kapsamındaki öğe: {item.record_count}")
         if item.error:
             lines.append(f"    Açıklama: {safe_text(item.error)}")
         if row.cooldown_active:

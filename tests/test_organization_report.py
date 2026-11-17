@@ -28,6 +28,52 @@ from tests.test_surface import result as web_result
 
 
 class OrganizationReportTests(unittest.TestCase):
+    def test_summary_preserves_complete_json_paging_navigation_and_hidden_counts(self):
+        import shlex
+        self.link()
+        self.crt.responses['%.example.com'] = batch(*(document(f'portal{index}.example.com', index)
+                                                     for index in range(1, 7)))
+        self.result('collect', 'example.com')
+        options = ('organizations', 'report', self.organization['id'], '--item-limit', '4',
+                   '--target-limit', '1', '--stale-after-hours', '48')
+        before = self.files()
+        full, brief = self.result(*options), self.result(*options, '--summary')
+        full.pop('observed_at')
+        brief.pop('observed_at')
+        self.assertEqual(brief, full)
+        code, output, error = self.invoke(*options, '--summary', as_json=False)
+        self.assertEqual((code, error), (0, ''))
+        self.assertIn('Bu özette yer almayan: 3 kayıt', output)
+        command_line = next(line for line in output.splitlines() if line.startswith('Bu sayfanın tam ayrıntısı: '))
+        command = shlex.split(command_line.split(': ', 1)[1])[1:]
+        self.assertEqual(command[:2], ['--data-dir', str(self.data)])
+        restored = self.result(*command)
+        restored.pop('observed_at')
+        self.assertEqual(restored, full)
+        self.assertEqual(self.files(), before)
+
+    def test_partial_surface_evidence_is_visible_without_a_complete_check(self):
+        self.link()
+        asset = SQLiteAssetRepository(self.database).list()[0]
+        surface = SQLiteSurfaceRepository(self.database)
+        surface.activate(asset.id, asset.value, 'Yetkili kontrol.', datetime.now(timezone.utc).isoformat())
+        partial = surface.append_check(asset.id, replace(web_result(tls='failed', http='not_checked', code=None),
+                                                       errors=('TLS response incomplete.',)))
+        before = self.files()
+        report = self.report()
+        web = next(item for item in report.targets[0].coverage if item.family == 'surface' and item.source == 'web')
+        self.assertEqual(web.latest_attempt.status, 'partial')
+        self.assertIsNone(web.latest_success)
+        for summary in (False, True):
+            output = '\n'.join(organization_report_lines(report, summary=summary, data_dir=self.data))
+            self.assertIn('surface/web | Kısmi kontrol kaydı var; kapsam eksik', output)
+            self.assertIn(partial.id, output)
+            self.assertIn('TLS response incomplete.', output)
+        output_file = self.data.parent.resolve() / 'partial-report.html'
+        self.result('organizations', 'export', self.organization['id'], '--output', str(output_file))
+        self.assertIn('Kısmi kontrol kaydı var; kapsam eksik', output_file.read_text())
+        self.assertEqual(self.files(), before)
+
     invoke = fixtures.CollectionWatchCLITests.invoke
     result = fixtures.CollectionWatchCLITests.result
     files = fixtures.CollectionWatchCLITests.files

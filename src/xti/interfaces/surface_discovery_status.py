@@ -42,6 +42,10 @@ def _age(seconds: int) -> str:
     return f"{seconds // 86400} gün önce"
 
 
+def summary_line(report: SurfaceDiscoveryStatusReport) -> str:
+    return f"{_SOURCE[report.source_status]} | {_RESULT[report.result_status]} | {_FRESHNESS[report.freshness]}"
+
+
 def report_lines(report: SurfaceDiscoveryStatusReport) -> list[str]:
     age = f" | {_age(report.age_seconds)}" if report.age_seconds is not None else ""
     lines = [

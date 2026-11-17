@@ -38,6 +38,10 @@ def _age(seconds: int) -> str:
     return f"{seconds // 86400} gün önce"
 
 
+def item_summary_line(item) -> str:
+    return f"{_CHECK[item.check_type]}: {_FRESHNESS[item.freshness]} | {_RESULT[item.result_status]}"
+
+
 def report_lines(report: SurfaceFreshnessReport) -> list[str]:
     lines = [
         f"Dış yüzey kanıt güncelliği: {safe_text(report.asset_value)}",
@@ -50,10 +54,7 @@ def report_lines(report: SurfaceFreshnessReport) -> list[str]:
     ]
     for item in report.items:
         age = f" | {_age(item.age_seconds)}" if item.age_seconds is not None else ""
-        lines.append(
-            f"  {_CHECK[item.check_type]}: {_FRESHNESS[item.freshness]} | "
-            f"{_RESULT[item.result_status]}{age}"
-        )
+        lines.append(f"  {item_summary_line(item)}{age}")
         if item.recorded_at is not None:
             lines.append(
                 f"    Son kanıt: {safe_text(item.recorded_at)} | "

@@ -122,7 +122,10 @@ def _ransomware_lines(step: CollectionStep) -> list[str]:
     return lines
 
 
-def result_lines(result: CollectionResult, *, data_dir=None) -> list[str]:
+def result_lines(result: CollectionResult, *, data_dir=None, summary=False) -> list[str]:
+    if summary:
+        from xti.interfaces.collection_summary import summary_lines
+        return summary_lines(result, data_dir=data_dir)
     lines = [
         f"Pasif toplama: {safe_text(result.plan.asset_value)}",
         f"Genel sonuç: {_STATUS[result.status]}",

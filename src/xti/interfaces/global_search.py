@@ -20,9 +20,10 @@ def register_global_search_parser(commands):
     parser.add_argument('--all', action='store_true', dest='include_inactive', help='Geri çekilmiş kayıtları ve eski izleme tanımlarının son bilinen sonuçlarını da göster; tüm sürüm arşivi değildir.')
     parser.add_argument('--offset', type=int, default=0)
     parser.add_argument('--limit', type=int, default=50)
+    parser.add_argument('--summary', action='store_true', help='Her sonucu kısa göster; kaynak kapsamını ve sayfalamayı korur. JSON değişmez.')
 
 
-def global_search_lines(report, *, data_dir=None):
+def global_search_lines(report, *, data_dir=None, summary=False):
     launcher = ('./xti', '--data-dir', str(data_dir)) if data_dir is not None else ('./xti',)
     lines = [f'Platform genelinde yerel arama: {safe_text(report.query)}',
              f'Toplam eşleşme: {report.total_match_count} | gösterilen: {len(report.results)} | başlangıç: {report.offset}',
@@ -40,6 +41,16 @@ def global_search_lines(report, *, data_dir=None):
         lines.append('Seçilen kayıtlarda eşleşme yok; kaynak kapsamını yukarıdan kontrol et.' if report.total_match_count == 0
                      else 'Bu sayfada kayıt yok; başlangıç değeri toplam eşleşme sayısının dışında.')
     for record in report.results:
+        if summary:
+            lines.append(f'{_LABELS[record.kind]} | {safe_text(record.display_value)} | '
+                         f'{safe_text(record.status)} | {safe_text(record.source)} | '
+                         f'{"yerel kayıt" if record.current else "tarihî / etkin değil"}')
+            if record.navigation:
+                nav = record.navigation[0]
+                lines.append('  Ayrıntı: ' + safe_text(shlex.join((*launcher, *nav.arguments))))
+            else:
+                lines.append('  Kimlik: ' + safe_text(record.record_id))
+            continue
         lines.extend(('', f'{_LABELS[record.kind]} | {safe_text(record.display_value)}',
             f'  Kimlik: {safe_text(record.record_id)} | tür: {safe_text(record.record_type)}',
             f'  Durum: {safe_text(record.status)} | {"güncel yerel kayıt" if record.current else "tarihî / etkin değil"}',
@@ -54,7 +65,13 @@ def global_search_lines(report, *, data_dir=None):
         args = [*launcher, 'search', report.query, '--offset', str(report.offset + len(report.results)), '--limit', str(report.limit)]
         for kind in report.kinds: args.extend(('--kind', kind))
         if report.include_inactive: args.append('--all')
+        if summary: args.append('--summary')
         lines.append('Sonraki sayfa: ' + safe_text(shlex.join(args)))
+    if summary:
+        args = [*launcher, 'search', report.query, '--offset', str(report.offset), '--limit', str(report.limit)]
+        for kind in report.kinds: args.extend(('--kind', kind))
+        if report.include_inactive: args.append('--all')
+        lines.append('Bu sayfanın tam ayrıntısı: ' + safe_text(shlex.join(args)))
     lines.extend(safe_text(note) for note in report.notes)
     return lines
 
@@ -62,4 +79,5 @@ def global_search_lines(report, *, data_dir=None):
 def execute_global_search_command(service, args):
     result = service.search(args.query, kinds=args.kinds, include_inactive=args.include_inactive,
                             offset=args.offset, limit=args.limit)
-    return asdict(result), global_search_lines(result, data_dir=getattr(args, 'data_dir', None))
+    return asdict(result), global_search_lines(result, data_dir=getattr(args, 'data_dir', None),
+                                             summary=getattr(args, 'summary', False))
