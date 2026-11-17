@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from xti.domain.assets import ValidationError
 from xti.domain.research import build_research, freshness, node_id, research_query
 from xti.ports.research import ResearchRepository
+from xti.domain.warninglists import catalog_data
 
 
 class ResearchService:
@@ -25,6 +26,7 @@ class ResearchService:
 def research_data(report) -> dict:
     """Explicit v1 fields shared by CLI, local engine and company platform."""
     query = report.query
+    warninglists = catalog_data(report.warninglists, checked_at=report.checked_at)
 
     def evidence(item):
         return {
@@ -53,6 +55,8 @@ def research_data(report) -> dict:
         "collected_edge_count": report.collected_edge_count,
         "collected_path_count": report.collected_path_count,
         "coverage_complete": not report.limitations, "limitations": list(report.limitations),
+        "warninglists": {"lists": warninglists,
+            "coverage_complete": all(row["latest_status"] == "complete" and row["freshness"] == "fresh" for row in warninglists)},
         "coverage": [{key: item[key] for key in (
             "kind", "scope", "examined_count", "window_limit", "complete", "order")}
             for item in report.coverage],
@@ -61,7 +65,10 @@ def research_data(report) -> dict:
                    "references": [{key: ref[key] for key in ("kind", "record_type", "namespace", "record_id")}
                                   for ref in item.references],
                    "evidence": [evidence(row) for row in item.evidence],
-                   "evidence_total_count": item.evidence_total_count}
+                   "evidence_total_count": item.evidence_total_count,
+                   "warninglist_matches": [{key: match[key] for key in (
+                       "list_id", "run_id", "snapshot_sha256", "matched_entries", "matching_type", "category")}
+                       for match in item.warninglist_matches]}
                   for item in report.nodes],
         "edges": [{"id": item.id, "source_id": node_id(item.source), "target_id": node_id(item.target),
                    "relationship_type": item.relationship_type, "kind": item.kind,
@@ -77,5 +84,6 @@ def research_data(report) -> dict:
             "Sayım yalnız toplanan alt grafı kapsar; kısmi sonuç bütün kayıtların tarandığı anlamına gelmez.",
             "Sonraki sayfada expected_snapshot kullanın; değişen kayıtlar snapshot_changed ile reddedilir. Bu tarihî kesit deposu değildir.",
             "İlk kapsam surface web kontrollerindeki DNS adresleridir; pasif aday, CNAME, sertifika ve diğer modüller mevcut ayrıntı komutlarında kalır.",
+            "Warninglist eşleşmeleri kaynak bağlamıdır; otomatik güvenli kararı, alarm kapatma veya aktör ilişkisi oluşturmaz.",
         ],
     }

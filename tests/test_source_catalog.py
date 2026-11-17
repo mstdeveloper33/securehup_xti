@@ -17,6 +17,7 @@ class SourceCatalogTests(unittest.TestCase):
                 "first-epss", "nist-nvd-cve", "osv-dev", "canonical-ubuntu-osv",
                 "redhat-csaf-vex", "suse-csaf-vex", "news:cisa", "news:ncsc", "news:cert-fr",
                 "mentions:tavily",
+                "warninglist:cloudflare", "warninglist:rfc1918", "warninglist:rfc3849", "warninglist:rfc6761",
             ],
         )
         self.assertEqual(len({item.identifier for item in items}), len(items))
@@ -27,6 +28,16 @@ class SourceCatalogTests(unittest.TestCase):
         contacts = [item.identifier for item in SourceCatalogService().list()
                     if item.contacts_monitored_target]
         self.assertEqual(contacts, ["explicit-https-head", "explicit-tcp-connect"])
+
+    def test_warninglists_are_reference_context_with_explicit_refresh_and_terms(self):
+        entries = [item for item in SourceCatalogService().list() if item.identifier.startswith('warninglist:')]
+        self.assertEqual(len(entries), 4)
+        for entry in entries:
+            self.assertEqual(entry.kind, 'reference_context')
+            self.assertFalse(entry.credential_required or entry.paid_dependency or entry.contacts_monitored_target)
+            self.assertIn('warninglists sync --list ' + entry.identifier.split(':')[1], entry.commands)
+            self.assertIn('CC0-1.0', ' '.join(entry.limits))
+            self.assertIn('gönderilmez', ' '.join(entry.limits))
 
     def test_every_entry_explains_scope_and_has_an_https_reference(self):
         for item in SourceCatalogService().list():

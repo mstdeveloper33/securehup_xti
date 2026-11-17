@@ -18,6 +18,7 @@ import unittest
 
 from xti.adapters.managed_nmap import ManagedNmapRuntime, NmapWorkerLock, build_command, parse_xml
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.domain.assets import ValidationError
 from xti.domain.nmap_execution import empty_result, validate_result
 from xti.domain.nmap_management import canonical_managed_plan_json, parse_managed_plan_json
@@ -350,7 +351,7 @@ class ManagedTests(unittest.TestCase):
             connection.execute("PRAGMA user_version=71")
             connection.commit()
         result = SQLiteAssetRepository(self.database).migrate()
-        self.assertEqual((result["from_version"], result["to_version"]), (71, 72))
+        self.assertEqual((result["from_version"], result["to_version"]), (71, SCHEMA_VERSION))
         self.assertTrue(Path(result["backup"]).is_file())
         self.assertEqual(canonical_managed_plan_json(self.service.management.show_plan("example.com", self.plan.plan.id).definition), before)
         self.assertEqual(self.service.list("example.com"), ())

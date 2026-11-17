@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.152.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 72.
+**Sürüm:** 0.153.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 73.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -9,6 +9,14 @@ Lisans ve veri kullanım koşulları uygun hazır bileşenlerden yararlanılır.
 Ortak istihbarat, ilişki araştırması ve kaynak kapsamı için sonraki işler
 [motor geliştirme planında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
+
+0.153.0, MISP'in dört açık kaynak listesini IP/domain araştırmasına ekler:
+Cloudflare ortak altyapısı, özel IPv4, örnek IPv6 ve özel kullanım domainleri.
+`./xti warninglists sync` internetten alır; `warninglists lookup` ve
+`research` kaynaklı eşleşmeleri gösterir. Anahtar/ücretli API gerekmez.
+Son iyi liste, hata geçmişi ve firma ayrımı korunur; eşleşme alarm kapatmaz.
+Mevcut veri alanı için yedekli `./xti migrate` gerekir.
+[Kullanım ve sınırlar](docs/WARNINGLISTS.md).
 
 0.152.0, `./xti research securehup.com --type domain` ile kayıtlı domain/IP,
 DNS ve IOC/CTI kanıtlarını en fazla iki adımlı yollarla birleştirir. Kaynak,

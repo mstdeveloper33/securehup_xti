@@ -10,6 +10,7 @@ from typing import Iterator
 from uuid import uuid4
 from xti.adapters.private_directories import create_private_directory
 from xti.adapters.nmap_jobs_schema import create as create_nmap_jobs_schema
+from xti.adapters.warninglist_schema import create as create_warninglist_schema
 
 from xti.domain.assets import Asset
 from xti.adapters.schema import (
@@ -181,6 +182,7 @@ class SQLiteAssetRepository:
                 create_surface_nmap_schema(connection)
                 create_nmap_management_schema(connection)
                 create_nmap_jobs_schema(connection)
+                create_warninglist_schema(connection)
                 create_surface_cname_schema(connection)
                 create_supplier_candidate_schema(connection)
                 create_case_schema(connection)
@@ -1065,6 +1067,8 @@ class SQLiteAssetRepository:
                     create_nmap_management_schema(connection)
                 if version < 72:
                     create_nmap_jobs_schema(connection)
+                if version < 73:
+                    create_warninglist_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

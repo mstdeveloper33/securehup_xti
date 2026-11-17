@@ -1,5 +1,24 @@
 # Değişiklik Kaydı
 
+## 0.153.0 — 17 Kasım 2026
+
+- Dört seçilmiş MISP warninglist: Cloudflare IP ağları, RFC1918 özel IPv4,
+  RFC3849 örnek IPv6 ve RFC6761 özel kullanım domainleri. İnternetten
+  `warninglists sync`; kaynaklı yerel `lookup/status/history/run-show`.
+- Commit'e bağlı indirme, kaynak koşulu değişiminde inceleme, içerik hash'i,
+  güncellik, son başarısız deneme ve korunan son iyi liste ayrı görünür.
+  Özgün içerik/yenileme geçmişi korunur; yeni bağımlılık veya anahtar yoktur.
+- `research.show` düğümlerine liste bağlamı; engine/platform v1'e
+  `warninglists.status`, `warninglists.lookup`, `warninglists.run.get`.
+  Firma ayrımı korunur; otomatik allowlist, alarm kapatma veya IOC yazımı yoktur.
+- Şema 73 iki tablo ekler. Açık yedekli migration ve mevcut yedek/restore
+  akışları kapsamı korur. [Kullanım](docs/WARNINGLISTS.md).
+- Gerçek kaynak kabulünde aynı commit'ten dört liste / 51 üye alındı;
+  yerel IP/domain eşleşmesi ve CLI/engine tutarlılığı doğrulandı.
+  Tam tur 2.732 test çalıştırdı; iki eski işlem envanteri beklentisi
+  düzeltilerek ilgili son 64 test hatasız geçti. Dört Linux kontrolü
+  macOS'ta atlandı. [Tam tur ve tekrarların ayrımı](docs/ACCEPTANCE_REVIEW.md#01530--misp-warninglists-kabulü).
+
 ## 0.152.0 — 17 Kasım 2026
 
 - `research VALUE --type domain|ip` ve engine/platform `research.show`:

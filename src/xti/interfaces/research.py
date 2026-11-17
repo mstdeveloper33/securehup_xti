@@ -62,6 +62,10 @@ def research_lines(data, *, data_dir=None):
     for node in data["nodes"]:
         lines.append("Kayıt: " + safe_text(node["label"]))
         show_evidence(node["evidence"])
+        for match in node["warninglist_matches"]:
+            lines.append("  Liste bağlamı: " + safe_text(match["list_id"]) + " | " +
+                         ", ".join(safe_text(entry) for entry in match["matched_entries"]))
+            lines.append("  Liste kanıtı: " + xti_command("warninglists", "run-show", match["run_id"], data_dir=data_dir))
         if node["evidence_total_count"] > len(node["evidence"]):
             lines.append(f"    Bu görünümde gösterilmeyen kanıt: {node['evidence_total_count'] - len(node['evidence'])}; ayrıntıyı açın.")
         for ref in node["references"]:
@@ -77,6 +81,8 @@ def research_lines(data, *, data_dir=None):
         args.extend(("--offset", str(data["next_offset"]), "--limit", str(data["limit"]),
                      "--expected-snapshot", data["snapshot_id"]))
         lines.append("Sonraki sayfa: " + xti_command(*args, data_dir=data_dir))
+    from xti.interfaces.warninglists import warninglist_lines
+    lines.extend(warninglist_lines(data["warninglists"], data_dir=data_dir))
     lines.extend("Not: " + note for note in data["notes"])
     return lines
 

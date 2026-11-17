@@ -1,14 +1,15 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.152.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 72.
+**Uygulama:** 0.153.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 73.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
-JSON biçiminde okuyabilmesini sağlar. Beş işlem vardır: arama, kayıt ayrıntısı,
-kaynak durumu, proje araç kataloğu ve `research.show` ilişkili kanıt araştırması.
+JSON biçiminde okuyabilmesini sağlar. Sekiz işlem vardır: arama, kayıt ayrıntısı,
+kaynak durumu, proje araç kataloğu, `research.show` ilişkili kanıt araştırması
+ve üç warninglist okuma işlemi.
 Mevcut terminal komutları ve `--json` çıktıları korunur. `news` ve `mention`
 kayıt aileleri mevcut arama/ayrıntı işlemleriyle okunur; araştırmanın ilk
 kapsamı DNS/IOC/CTI'dır. [Araştırma isteği, sonucu ve sınırları](RESEARCH.md).
-0.146.0 haber profilleri için çekirdek şemayı 69'a taşımıştır; mevcut
+0.153.0 warninglist geçmişi için çekirdek şemayı 73'e taşımıştır; mevcut
 kayıt alanlarının geçişi ayrı ve açık `./xti migrate` adımıdır.
 [Güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
@@ -88,7 +89,7 @@ veya tekrar önleme anahtarı değildir.
 |---|---|
 | `contract_version` | Tamsayı `1`; uygulama sürümünden ve veritabanı şemasından ayrıdır |
 | `request_id` | İstemcinin seçtiği eşleştirme kimliği |
-| `operation` | `search`, `record.get`, `sources.status`, `components.list` veya `research.show` |
+| `operation` | `search`, `record.get`, `sources.status`, `components.list`, `research.show`, `warninglists.status`, `warninglists.lookup`, `warninglists.run.get` |
 | `parameters` | İşleme özel seçenek nesnesi; seçenek yoksa `{}` |
 
 Cevabın ortak alanları:
@@ -289,6 +290,16 @@ kanıtlanmaz; bağımsız yerel okumalar için ortak kurulum kesiti garantisi yo
 0.140.0 bu işlemi v1'e ekler; önceki üç işlemin biçimi korunur.
 [Araç kataloğu rehberi](COMPONENTS.md) ayrıntılı kapsam ve kullanımını açıklar.
 
+## `warninglists.*`: kaynaklı domain/IP bağlamı
+
+`warninglists.status` liste durumunu, `warninglists.lookup` kesin domain/IP
+eşleşmesini, `warninglists.run.get` kaynak çalışması ile özgün üyelerini
+okur. İndirme ve sorgu ayrı işlemlerdir; engine internetten liste indirmez.
+`research.show` sonucunda aynı kesitin `warninglists` bilgisi ve
+`nodes[].warninglist_matches` alanı da bulunur. Alanlar v1'e eklenmiştir;
+mevcut düğüm/ilişki anlamları ve kararlar korunur.
+[Parametreler, sonuçlar, güncellik ve hata kodları](WARNINGLISTS.md#engine-ve-firma-platformu).
+
 ## Hatalar ve sınırlar
 
 | Hata kodu | Çıkış kodu | Anlamı |
@@ -314,7 +325,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.152.0",
+  "engine_version": "0.153.0",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",

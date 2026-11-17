@@ -2,11 +2,13 @@
 
 from typing import ContextManager, Protocol
 from xti.domain.research import Key, ResearchEdge, ResearchNode, ResearchQuery
+from xti.domain.warninglists import WarninglistState
 
 
 class ResearchReader(Protocol):
     limitations: set[str]
     coverage: list[dict]
+    warninglists: tuple[WarninglistState, ...]
 
     def node(self, key: Key) -> ResearchNode: ...
     def neighbors(self, key: Key) -> tuple[ResearchEdge, ...]: ...

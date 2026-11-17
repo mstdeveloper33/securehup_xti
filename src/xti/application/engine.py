@@ -7,6 +7,8 @@ from xti.domain.engine import EngineContractError, EngineRequest, reference_for_
 from xti.ports.engine import EngineRecordRepository
 from xti.application.research import ResearchService, research_data
 from xti.domain.research import ResearchSnapshotChanged
+from xti.application.warninglists import WarninglistService
+from xti.domain.warninglists import WarninglistRunNotFound
 
 
 def _search_data(report) -> dict:
@@ -68,12 +70,20 @@ def _sources_data(report) -> dict:
 class EngineReadService:
     def __init__(self, search: GlobalSearchService, records: EngineRecordRepository,
                  sources: SourceReadinessService, components: ComponentCatalogService | None = None,
-                 research: ResearchService | None = None):
+                 research: ResearchService | None = None, warninglists: WarninglistService | None = None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
         self.research = research
+        self.warninglists = warninglists
 
     def execute(self, request: EngineRequest) -> dict:
+        if self.warninglists is not None and request.operation in {'warninglists.status', 'warninglists.lookup', 'warninglists.run.get'}:
+            method = {'warninglists.status': self.warninglists.status,
+                      'warninglists.lookup': self.warninglists.lookup, 'warninglists.run.get': self.warninglists.show}[request.operation]
+            try:
+                return method(**request.parameters)
+            except WarninglistRunNotFound as error:
+                raise EngineContractError('not_found', str(error)) from error
         if request.operation == 'research.show' and self.research is not None:
             try:
                 return research_data(self.research.show(**request.parameters))

@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.152.0 · protokol `xti-platform` v1 · çekirdek şema 72.**
+**Uygulama 0.153.0 · protokol `xti-platform` v1 · çekirdek şema 73.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -41,6 +41,17 @@ Platform kuyruğunun ilk iş türü kayıtlı toplama profilidir; Tavily grup
 işi bu kuyruğa otomatik eklenmez. Firma API anahtarları, zamanlama ve
 uygulama yetkileri entegrasyon ekibinin açık kapsam seçimiyle yönetilmelidir;
 ortak kullanıcı anahtarını farklı müşteriler adına kendiliğinden kullanmayın.
+
+## Warninglist kaynaklarını hazırlama
+
+Mevcut firma alanı eski şemadaysa güvenilen işletici o alanda açık
+`./xti --data-dir "$PWD/.xti-platform/firma-a" migrate` çalıştırır.
+Kişisel alandaki geçiş diğer firmaların veritabanını değiştirmez.
+Ardından `./xti --data-dir "$PWD/.xti-platform/firma-a" warninglists sync`
+seçili firmanın listelerini internetten alır. Platformdaki okuma işlemleri
+bu alanı kullanır; başka firma/kişisel katalogdan tamamlamaz.
+Bu yenileme, kalıcı profil kuyruğuna otomatik eklenmez.
+[Kullanım, kaynak ve koşullar](WARNINGLISTS.md).
 
 ## Firma içeriklerini görme
 
@@ -84,7 +95,8 @@ doğrulanmadan oluşan hatalarda `scope=null` olabilir. Girdi 64 KiB, çıktı
 | İşlem | Girdi | Davranış |
 |---|---|---|
 | `search`, `record.get`, `sources.status`, `components.list` | [Mevcut okuma sözleşmesi](ENGINE_CONTRACT.md) seçenekleri | Seçilmiş firma alanında okuma; araç kurulumu ortak işletim bilgisidir |
-| `research.show` | `indicator_type`, `value`; isteğe bağlı adım/bütçe/sayfa/güncellik ve `expected_snapshot` | Aynı firmanın kayıtlı DNS/IOC/CTI kanıt yolları; [sözleşme ve sınırlar](RESEARCH.md) |
+| `research.show` | `indicator_type`, `value`; isteğe bağlı adım/bütçe/sayfa/güncellik ve `expected_snapshot` | Aynı firmanın kayıtlı DNS/IOC/CTI kanıt yolları ve warninglist bağlamı; [sözleşme ve sınırlar](RESEARCH.md) |
+| `warninglists.status`, `warninglists.lookup`, `warninglists.run.get` | [Warninglist okuma parametreleri](WARNINGLISTS.md#engine-ve-firma-platformu) | Seçili firmanın listeleri, kaynaklı eşleşmeleri ve tarihî kaynak çalışması; ağ isteği yok |
 | `organization.content` | `organization_id`; isteğe bağlı `scope_offset`, `scope_limit`, `offset`, `limit`, `stale_after_hours` | Kaynaklı firma/tedarikçi içerikleri, ayrı geçmiş ve kaynak durumları |
 | `profiles.list` | İsteğe bağlı `offset`, `limit` | Etkin profil adı, kimliği, sürümü ve seçilen domain; devam sayfası |
 | `jobs.submit` | `idempotency_key`, `profile_name`, `profile_revision`, `expected_workspace_id` | Kalıcı kabul; kaynak isteği veya arka plan süreç başlatmaz |

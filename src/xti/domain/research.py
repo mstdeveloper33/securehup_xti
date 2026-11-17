@@ -8,6 +8,7 @@ import re
 
 from xti.domain.assets import ValidationError
 from xti.domain.cti_context import context_query
+from xti.domain.warninglists import WarninglistState, catalog_data
 
 
 MAX_PATHS = 2000
@@ -92,6 +93,7 @@ class ResearchNode:
     references: tuple[dict, ...] = ()
     evidence: tuple[ResearchEvidence, ...] = ()
     evidence_total_count: int = 0
+    warninglist_matches: tuple[dict, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -121,6 +123,7 @@ class ResearchReport:
     has_more: bool
     limitations: tuple[str, ...]
     coverage: tuple[dict, ...]
+    warninglists: tuple[WarninglistState, ...]
 
 
 def build_research(reader, query: ResearchQuery, checked_at: str) -> ResearchReport:
@@ -183,6 +186,7 @@ def build_research(reader, query: ResearchQuery, checked_at: str) -> ResearchRep
         "research-v1", root, query.max_hops, query.node_limit, query.edge_limit,
         [asdict(nodes[key]) for key in sorted(nodes)],
         [asdict(edges[key]) for key in sorted(edges)], sorted(limitations), coverage,
+        catalog_data(reader.warninglists, checked_at=checked_at),
     )
     if query.expected_snapshot is not None and query.expected_snapshot != snapshot:
         raise ResearchSnapshotChanged("Araştırma kayıtları değişti; ilk sayfadan yeniden başlayın.")
@@ -199,7 +203,7 @@ def build_research(reader, query: ResearchQuery, checked_at: str) -> ResearchRep
         tuple(edges[key] for key in sorted(selected_edges)),
         tuple((tuple(node_id(key) for key in keys), links) for keys, links in shown),
         len(nodes), len(edges), len(paths), query.offset + len(shown) < len(paths),
-        tuple(sorted(limitations)), coverage,
+        tuple(sorted(limitations)), coverage, reader.warninglists,
     )
 
 

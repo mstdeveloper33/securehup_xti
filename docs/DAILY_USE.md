@@ -1,8 +1,8 @@
 # XTI günlük kullanım
 
-Bu belge 0.151.0 / çekirdek şema 72 kullanımını kapsar. Eski kayıt alanında
+Bu belge 0.153.0 / çekirdek şema 73 kullanımını kapsar. Eski kayıt alanında
 önce `./xti doctor` ile durumu kontrol et. Geçiş gerekiyorsa açık
-`./xti migrate` komutu önce geri dönüş yedeği alır; şema 72 için yeniden
+`./xti migrate` komutu önce geri dönüş yedeği alır; şema 73 için yeniden
 geçiş gerekmez. Çok firmalı kurulum ve kalıcı profil işleri
 [platform rehberindedir](PLATFORM_ENGINE.md).
 
@@ -48,6 +48,20 @@ mevcut toplama/kontrol işlemleriyle alınır. IP örneği de yalnız yerel
 aramadır. Eski veya geri çekilmiş kaynak iddiası etkin tehdit diye
 sunulmaz. Ortak IP sahiplik kanıtı değildir. Kısmi kapsam ve sonraki
 sayfa komutu görünür. [Ayrıntı ve platform isteği](RESEARCH.md).
+
+### IP/domain için ortak altyapı ve özel kullanım bağlamı
+
+```sh
+./xti warninglists sync
+./xti warninglists lookup 104.21.6.71 --type ip
+./xti warninglists lookup www.example.com --type domain
+./xti warninglists status
+```
+
+İlk komut dört MISP listesini internetten alır. Diğerleri bu listeleri
+yerel okur; hedefe bağlanmaz. Eşleşen ağ/domain ve kaynak ayrıntısı görünür.
+Bu bağlam `research` çıktısına da eklenir; mevcut bulguları kapatmaz.
+Eski liste ve indirme hatası ayrı gösterilir. [Ayrıntılar](WARNINGLISTS.md).
 
 ### Kısa görünüm ve kayıt ayrıntıları
 

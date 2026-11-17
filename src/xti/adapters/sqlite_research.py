@@ -10,11 +10,13 @@ from xti.adapters.sqlite_cti_context import _audit_assertion_history
 from xti.adapters.sqlite_cti_indicators import SQLiteCtiIndicatorRepository
 from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
+from xti.adapters.sqlite_warninglists import read_warninglists
 from xti.domain.assets import normalize_domain
 from xti.domain.cti_attack import ATTACK_SOURCE_NAME
 from xti.domain.cti_feeds import CTI_FEED_POLICIES, feed_indicator_state_sha256
 from xti.domain.cti_knowledge import normalize_knowledge_id
 from xti.domain.research import ResearchEdge, ResearchEvidence, ResearchNode, identity
+from xti.domain.warninglists import match_data
 
 
 MAX_DNS_CHECKS = 1000
@@ -65,6 +67,7 @@ class _Reader:
         self.nodes, self.indicator_ids, self.edges = {}, {}, {}
         self.checks, self.dns_scopes, self.dns_latest = {}, {}, {}
         self.audit_rows, self.dns_bytes, self.audit_attack = 0, 0, False
+        self.warninglists = read_warninglists(connection)
 
     def _claims(self, kind, identifier):
         # The kind is internal, never a request SQL fragment. Bound histories
@@ -211,7 +214,8 @@ class _Reader:
                 references.append(_reference("indicator", kind, "local-ioc", row[0]))
                 evidence.extend(claims)
                 evidence_total += details.total_assertion_count
-        result = ResearchNode(key, label, record_type, tuple(references), tuple(evidence), evidence_total)
+        result = ResearchNode(key, label, record_type, tuple(references), tuple(evidence), evidence_total,
+                              tuple(match_data(self.warninglists, kind, value)))
         self.nodes[key] = result
         return result
 

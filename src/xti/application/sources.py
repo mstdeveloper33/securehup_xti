@@ -2,6 +2,7 @@
 
 from xti.domain.sources import SourceCatalogEntry
 from xti.domain.news import NEWS_SOURCES, NEWS_NOTES
+from xti.domain.warninglists import POLICIES as WARNINGLIST_POLICIES, LICENSE, LICENSE_URL
 
 
 _CATALOG = (
@@ -614,5 +615,20 @@ class SourceCatalogService:
                 ),
                 reference_url='https://docs.tavily.com/documentation/api-reference/endpoint/search',
             ),
-        )
+        ) + tuple(SourceCatalogEntry(
+            identifier='warninglist:' + policy.id, label='MISP: ' + policy.label,
+            kind='reference_context', purpose=policy.label + ' için kaynaklı domain/IP bağlamı sunar.',
+            access='Herkese açık GitHub HTTPS kaynağı; API anahtarı veya ücretli abonelik gerekmez. Sağlayıcı erişim sınırları geçerlidir.',
+            credential_required=False, paid_dependency=False, contacts_monitored_target=False,
+            commands=('warninglists sync --list ' + policy.id, 'warninglists status',
+                      'warninglists lookup DOMAIN --type domain', 'warninglists lookup IP --type ip',
+                      'warninglists history ' + policy.id),
+            limits=(
+                'Yalnız seçilen dört liste desteklenir; eşleşme güvenli kararı, otomatik istisna veya alarm kapatma değildir.',
+                'Sorgulanan değer sağlayıcıya gönderilmez; yalnız sync internetten liste indirir.',
+                'Aynı commit, liste başına 1 MiB/10.000 üye; hata ve sürüm gerilemesinde eski geçerli liste korunur.',
+                'İncelenmiş veri lisansı: ' + LICENSE + '; kaynak/koşul belgesi değişirse yeni inceleme gerekir.',
+            ),
+            reference_url=LICENSE_URL,
+        ) for policy in WARNINGLIST_POLICIES.values())
 

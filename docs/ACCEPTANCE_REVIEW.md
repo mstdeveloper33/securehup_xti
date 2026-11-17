@@ -14,6 +14,91 @@ değerlendirir.
 Nmap teslimlerini kapsamaz. Yeni düzeltmeler veritabanı geçişi, bağımlılık
 veya platform sözleşme sürümü değişikliği gerektirmez.
 
+## 0.153.0 — MISP warninglists kabulü
+
+17 Kasım 2026. `16650117` sonrası çalışma ağacı, uygulama 0.153.0,
+çekirdek şema 73; macOS/Python 3.13.3, `umask 002`.
+
+Yeni warninglist testleri kontrollü kaynakla gerçek SQLite/CLI/engine/platform
+sınırlarını çalıştırır. İstenmeyen ağ/alt süreç başlatma reddedilir.
+Kapsam: CIDR/hostname sınırları, yanlış domain eşleşmesi, bozuk/eksik veri,
+HTTP boyut/süre/yönlendirme, değişen kaynak koşulları, başarısız yenilemede
+son iyi içeriği koruma, kaynak atfı ve tekilleştirme, geçmiş/sayfalama,
+firmalar arası ayrım, salt okuma ve araştırma sayfa kimliği, yedek/restore,
+şema 72→73 geçişi ve kesintide geri alma. Eski şemadan geçiş yardımcıları
+da 73'e güncellendi; diğer tablolardaki kanıtlar korunur.
+
+İlk geniş ilgili turda 197 test çalıştı: yeni dört kaynak ve şema 73 için
+iki eski envanter beklentisinin güncellenmesi gerekti. Düzeltme ve kaynak
+koşulu kontrolünden sonraki warninglists/kaynak/upgrade turu:
+**55 test / 11,880 saniye, hata yok, Linux `/proc` gerektiren iki atlama**.
+Günlükler `/tmp/xti-warninglists-regression.log` ve
+`/tmp/xti-warninglists-followup.log` dosyalarındadır; repoya eklenmez.
+
+Son kaynak kataloğu, CLI ayrıntısı ve v1 işlem envanteri düzenlemeleriyle
+warninglists/components/news/source-catalog/CLI/architecture kontrolü:
+**64 test / 27,807 saniye, hata ve atlama yok**. Yeni warninglist
+dosyasının 26 testi bu tura dahildir. Kaynak kataloğunda dört referans
+listesinin anahtarsız, zorunlu ücreti olmayan ve hedefe bağlanmayan
+niteliği de doğrulandı. Günlük:
+`/tmp/xti-warninglists-final-compatibility.log`.
+
+### Tam paket ve son tekrarların ayrımı
+
+`umask 002; ./scripts/check` turu **2.732 test / 1.231,703 saniye**
+çalıştırdı: 2.726 başarılı, iki test beklentisi hatası, dört atlama.
+İki hata `test_components` ve `test_news_integration` içinde, engine
+işlem listesinin yalnız dört eski işlemden oluşmasını bekleyen
+assertion'lardı; eklenen araştırma/warninglist işlemlerini reddediyordu.
+Bu beklentiler önceki işlemleri koruyup yeni işlemlere izin verecek
+şekilde düzeltildi. Yeni warninglist işlemlerinin manifestte bulunması
+ayrıca açıkça denetlenir. İlgili iki dosya yukarıdaki son **64 testin
+tamamı geçen** tekrarına dahildir. Son CLI gösterimi/kaynak kataloğu
+düzenlemeleri de o tekrarda ve gerçek CLI çıktısında doğrulandı.
+
+Tam paketin ham günlüğü `/tmp/xti-warninglists-full.log` dosyasındadır.
+Düzeltmelerden sonra bütün paket yeniden çalıştırılmadı; bu nedenle ham
+tam tur sonucu `FAILED (failures=2, skipped=4)` olarak korunur, tek bir
+tamamen yeşil tur diye sunulmaz. Güncel test envanterine eklenen kaynak
+kataloğu testi son ilgili turdadır. Açık kalan atlamalar: Linux `/proc`
+ile süreç sahipliği/timeout için iki test, `systemd-analyze` ile iki
+zamanlama dosyası testi. Bu ortamda Linux kabulü iddia edilmez.
+
+### Gerçek kaynak kabulü
+
+Gerçek `warninglists sync` ayrı
+`/tmp/xti-warninglists-live-20261117-01530` alanında çalıştırıldı.
+2026-11-17 10:38:01–10:38:04 UTC, dört listenin tamamı başarılı;
+upstream commit `40e2b570fda2e5443a2d6fa1d1db16c37ab0a956`.
+
+| Liste | Kaynak sürümü | Üye | Ham içerik SHA-256 |
+|---|---|---:|---|
+| Cloudflare | 20261014 | 22 | `5871c8b2bd48356dff7a6a601a1a10c9e170d649e4c8ed06a1edef32549cdcfa` |
+| RFC1918 | 20220705 | 3 | `ef1374626d6d98ddac70e6bcdc533e4f76eee744c46ba99e3e6eddbc14e169a3` |
+| RFC3849 | 20220705 | 1 | `54a82c687e3efa5ab64cd33dd719bcd8f01c0f41f6bce43a1f82dbf10612b7d0` |
+| RFC6761 | 20261022 | 25 | `d1a1d87ab67a2e08bd040bfa17270338effde7477e9e1b5cfb3ad3fa880f8b56` |
+
+Gerçek indirilen 51 üye üzerinde yapılan yerel okumalar:
+
+| Sorgu | Doğrulanan sonuç |
+|---|---|
+| `104.21.6.71` / IP | Cloudflare, `104.16.0.0/13` |
+| `10.1.2.3` / IP | RFC1918, `10.0.0.0/8` |
+| `2001:db8::1` / IP | RFC3849, özgün `2001:DB8::/32` |
+| `www.example.com` / domain | RFC6761, `example.com` |
+| `notexample.com` / domain | Eşleşme yok; alt metin yanlış eşleşmesi oluşmadı |
+
+CLI ve engine aynı kaynak/çalışma kimlikli eşleşmeyi verdi. Araştırma
+kökü için yalnız liste bağlamı bulundu: `not_recorded`, sıfır ilişki;
+liste üyeliği IOC veya aktör bağı üretmedi. Okumalardan önce/sonra veri
+alanındaki dosyaların hash'leri aynı kaldı. Hiçbir örnek IP/domain aktif
+olarak sorgulanmadı. Kullanıcının mevcut veri alanı taşınmadı/değiştirilmedi.
+
+Yerel kanıtlar: `/tmp/xti-warninglists-live-sync.json`,
+`/tmp/xti-warninglists-live-acceptance.json`. Bu geçici alanlar ve indirilmiş
+kaynak dosyaları Git'e alınmaz. Sonuç bu kaynak sürümünün kabulüdür;
+gelecekteki sağlayıcı erişimi, Linux dağıtımı veya üretim kapasitesi garantisi değildir.
+
 ## 0.152.0 — İlişkili kanıt araştırmasının yerel kabulü
 
 17 Kasım 2026. `f2bb818` sonrası çalışma ağacı, uygulama 0.152.0,

@@ -14,6 +14,7 @@ from xti.adapters.nmap_scan import (
     NmapProcessResult, NmapTcpConnectProbe, SubprocessNmapRuntime,
 )
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite_nmap_scans import SQLiteNmapScanRepository
 from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
 from xti.application.nmap_scan import NmapSurfaceScanService
@@ -335,7 +336,7 @@ class PersistenceTests(unittest.TestCase):
             connection.commit()
         migrated = self.storage.migrate()
         self.assertTrue(migrated["changed"])
-        self.assertEqual((migrated["from_version"], migrated["to_version"]), (69, 72))
+        self.assertEqual((migrated["from_version"], migrated["to_version"]), (69, SCHEMA_VERSION))
         self.assertTrue(Path(migrated["backup"]).is_file())
         self.assertEqual(self.storage.inspect()["surface_nmap_check_count"], 0)
         self.assertEqual(self.storage.list()[0].value, "example.com")

@@ -69,10 +69,12 @@ class SourceReadinessAdapterTests(unittest.TestCase):
     def test_missing_database_and_tools_are_reported_without_creating_paths(self):
         result = self.repository.snapshot()
         self.assertEqual(result.storage_state, "not_initialized")
-        self.assertEqual(len(result.sources), 16)
+        self.assertEqual(len(result.sources), 20)
         self.assertFalse(self.path.parent.exists())
         self.assertFalse((self.root / "project").exists())
         rows = self.rows()
+        self.assertEqual({key for key in rows if key.startswith("warninglist:")},
+                         {"warninglist:cloudflare", "warninglist:rfc1918", "warninglist:rfc3849", "warninglist:rfc6761"})
         for key in ("social:maigret", "social:sherlock", "surface:theharvester"):
             self.assertEqual(rows[key].installation, "missing")
         self.assertEqual(rows["cti:attack"].latest_status, "unknown")

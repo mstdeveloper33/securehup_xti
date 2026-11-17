@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**17 Kasım 2026 — 0.152.0, çekirdek şema 72 ana proje yapısı.**
+**17 Kasım 2026 — 0.153.0, çekirdek şema 73 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -17,6 +17,15 @@ decoder/hash ve CTI iddia geçmişi denetimlerini kullanır. Açık alanlı JSON
 serileştirmesi CLI ile engine/platform `research.show` tarafından paylaşılır.
 Kapsam sınırları ve içerik kimliği sayfa değişimini görünür yapar.
 [0156 karar kaydı](decisions/0156-related-evidence-research.md).
+
+0.153.0 `WarninglistService` ile ayrı kaynak/depo portları kullanır.
+MISP adaptörü sabit resmî adreslerden aynı commit'in seçili listelerini
+alır; domain katmanı veri biçimi ve CIDR/hostname eşleştirmesini uygular.
+Şema 73 özgün JSON içeriğini ve eklemeli yenileme geçmişini iki tabloda
+korur. Araştırma adaptörü aynı okuma transaction'ında bu listeleri alır;
+liste eşleşmesi yeni IOC/ilişki veya otomatik güven kararı oluşturmaz.
+Firma kapsamlı salt okuma ve işletici yenilemesi aynı servisi paylaşır.
+[0157 karar kaydı](decisions/0157-curated-warninglist-context.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı

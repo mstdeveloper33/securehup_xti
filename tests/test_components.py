@@ -282,8 +282,8 @@ class ComponentCatalogTests(unittest.TestCase):
             self.assertEqual((code, error), (0, ""))
             response = json.loads(output)
             self.assertEqual(response["contract_version"], 1)
-            self.assertEqual(set(response["data"]["operations"]),
-                             {"search", "record.get", "sources.status", "components.list"})
+            self.assertGreaterEqual(set(response["data"]["operations"]),
+                                    {"search", "record.get", "sources.status", "components.list"})
             inspect.assert_not_called()
         self.assertFalse(self.missing_data.exists())
 

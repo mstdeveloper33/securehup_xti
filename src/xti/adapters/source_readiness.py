@@ -19,6 +19,7 @@ from xti.adapters.sqlite_jobs import SQLiteJobRepository
 from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
 from xti.adapters.sqlite_news import read_news_catalog
 from xti.adapters.sqlite_mentions import read_mentions_catalog
+from xti.adapters.sqlite_warninglists import read_warninglists
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
@@ -33,6 +34,7 @@ from xti.domain.cti_attack import ATTACK_SOURCE_NAME
 from xti.domain.cti_feeds import CTI_FEED_POLICIES
 from xti.domain.public_notices import HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_URL
 from xti.domain.news import NEWS_SOURCES
+from xti.domain.warninglists import POLICIES as WARNINGLIST_POLICIES
 from xti.domain.source_readiness import SourceReadinessEvidence, SourceReadinessSnapshot
 from xti.ports.discovery import SourceError
 
@@ -232,6 +234,13 @@ class SQLiteSourceReadinessRepository:
                 'Arama sonucu adayı tehdit veya ihlal doğrulaması değildir.',
             ),
         ))
+        rows.extend(_row(
+            f'warninglist:{policy.id}', f'MISP: {policy.label}',
+            'Seçili çalışma alanının referans listesi; domain filtresinden bağımsız',
+            f'./xti warninglists sync --list {policy.id}',
+            notes=('Liste eşleşmesi güvenli kararı veya otomatik istisna değildir.',
+                   'Güncellik liste içeriğinin değişim tarihi değil, son geçerli indirme zamanıdır.'),
+        ) for policy in WARNINGLIST_POLICIES.values())
         for index, row in enumerate(rows):
             tool = row.identifier.split(":", 1)[1]
             if row.identifier in {"social:maigret", "social:sherlock", "surface:theharvester"}:
@@ -279,6 +288,10 @@ class SQLiteSourceReadinessRepository:
             self._news_rows(connection, rows)
             self._mention_row(connection, rows)
             self._attack_row(connection, rows)
+            for state in read_warninglists(connection):
+                key = f'warninglist:{state.list_id}'
+                row = self._record(rows[key], state.latest_run, state.successful_run)
+                rows[key] = replace(row, record_count=len(state.snapshot.entries) if state.snapshot else None)
             for item in connection.execute(
                 "SELECT provider, not_before, recorded_at, reason FROM provider_cooldowns"
             ):

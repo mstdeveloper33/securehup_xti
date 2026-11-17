@@ -1,8 +1,28 @@
 # XTI — Güncel Uygulama Durumu
 
-**17 Kasım 2026 · 0.152.0 · Çekirdek şema 72.**
+**17 Kasım 2026 · 0.153.0 · Çekirdek şema 73.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
+
+**0.153.0 MISP kaynak bağlamı:** Dört seçilmiş warninglist internetten
+tek commit'e bağlı olarak alınır. CLI `warninglists sync/status/lookup/history/run-show`,
+engine/platform `warninglists.status/lookup/run.get` ve `research.show`
+üzerinden kaynak, eşleşen üye, sürüm, güncellik ve hata görülebilir.
+Başarısız indirme son iyi listeyi korur; insan kararları/alarmlar değişmez.
+Şema 73 iki tablo ekler; eski alanlarda açık yedekli geçiş gerekir.
+Yeni bağımlılık veya API anahtarı yoktur. Firma listeleri ayrı kalır.
+[Kullanım ve kapsam](WARNINGLISTS.md).
+
+**0.153.0 kaynak kabulü:** Resmî depodan dört liste, aynı commit altında
+51 üye ile başarıyla alındı. Gerçek liste verileri üzerinde IPv4/IPv6,
+domain etiketi sınırı, CLI/engine tutarlılığı ve yazmasız okuma doğrulandı.
+Tam turda 2.732 test / 1.231,703 saniye çalıştı; iki eski sabit işlem
+envanteri beklentisi düzeltildi. Linux'a özgü dört test atlandı.
+Son ilgili uyum turunda 64 test 27,807 saniyede hatasız/atlamasız geçti;
+26 warninglist kabulü dahildir. Bu turda kaynak kataloğu, işlem envanteri,
+haber uyumu ve mimari sınır da kontrol edildi. Bütün paket düzeltmelerden
+sonra tekrar koşturulmadı; ham tam tur ile son ilgili tekrar ayrı kaydedildi.
+[Kanıt ve test kapsamı](ACCEPTANCE_REVIEW.md#01530--misp-warninglists-kabulü).
 
 **0.152.0 ilk ilişkili kanıt dilimi:** `research` CLI ve engine/platform
 `research.show`, seçili çalışma alanının domain/IP, web DNS ve IOC/CTI

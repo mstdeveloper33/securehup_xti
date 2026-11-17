@@ -196,7 +196,8 @@ class NewsIntegrationTests(unittest.TestCase):
     def test_engine_news_is_typed_source_bound_and_read_only(self):
         original = article()
         run = self.save(original).run
-        self.assertEqual(engine_manifest()['operations'], ['search', 'record.get', 'sources.status', 'components.list'])
+        self.assertGreaterEqual(set(engine_manifest()['operations']),
+                                {'search', 'record.get', 'sources.status', 'components.list'})
         hit = self.search.search('example', kinds=('news',)).results[0]
         reference = parse_record_reference(reference_for_result(hit).to_dict())
         before = self.path.read_bytes()

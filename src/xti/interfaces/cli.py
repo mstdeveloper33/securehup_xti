@@ -194,6 +194,8 @@ from xti.application.global_search import GlobalSearchService
 from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
 from xti.interfaces.global_search import register_global_search_parser, execute_global_search_command
 from xti.interfaces.research import register_research_parser, execute_research
+from xti.interfaces.warninglists import register_warninglist_parser, execute_warninglists
+from xti.domain.warninglists import WarninglistRunNotFound
 from xti.interfaces.global_saved_searches import (
     register_global_saved_search_parser, make_global_saved_search_service,
     execute_global_saved_search_command,
@@ -822,6 +824,7 @@ def build_parser() -> Parser:
     register_organizations_parser(commands)
     register_global_search_parser(commands)
     register_research_parser(commands)
+    register_warninglist_parser(commands)
     register_global_saved_search_parser(commands)
     register_news_parser(commands)
     register_mentions_parser(commands)
@@ -3640,6 +3643,11 @@ def run(args: argparse.Namespace) -> int | None:
             result = scheduling.prepare(args.profile, keep=args.keep)
             lines = schedule_preparation_lines(result)
         emit(asdict(result), lines, as_json=args.json)
+    elif args.command == "warninglists":
+        data, lines = execute_warninglists(settings.database, args)
+        ok = data.get("status") not in {"failed", "partial"}
+        emit(data, lines, as_json=args.json, ok=ok)
+        return 0 if ok else 3
     elif args.command == "research":
         data, lines = execute_research(settings.database, args)
         emit(data, lines, as_json=args.json)
@@ -6954,6 +6962,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = parser.parse_args(values)
         return run(args) or 0
+    except WarninglistRunNotFound as exc:
+        report_error("not_found", str(exc), as_json=as_json)
+        return 3
     except (ValidationError, UsageError) as exc:
         if isinstance(exc, UsageError):
             from xti.interfaces.platform_engine import platform_command_requested, report_platform_usage_error

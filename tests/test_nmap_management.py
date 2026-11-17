@@ -10,6 +10,7 @@ import tempfile
 import unittest
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite_nmap_management import SQLiteNmapManagementRepository
 from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
 from xti.application.surface import SurfaceService
@@ -182,7 +183,7 @@ class PersistenceTests(unittest.TestCase):
             connection.execute("PRAGMA user_version=70")
             connection.commit()
         result = self.storage.migrate()
-        self.assertEqual((result["from_version"], result["to_version"]), (70, 72))
+        self.assertEqual((result["from_version"], result["to_version"]), (70, SCHEMA_VERSION))
         self.assertTrue(Path(result["backup"]).is_file())
         self.assertEqual(self.repository.list_targets(self.asset.id), ())
 

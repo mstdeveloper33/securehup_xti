@@ -1,6 +1,6 @@
 # İlişkili kanıt araştırması
 
-17 Kasım 2026 · 0.152.0 · araştırma modeli 1 · engine/platform v1 · şema 72.
+17 Kasım 2026 · 0.153.0 · araştırma modeli 1 · engine/platform v1 · şema 73.
 
 Domain veya kesin IP için mevcut DNS, IOC ve doğrudan CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
@@ -43,6 +43,20 @@ gezebilir. Geçmiş gözlemler aynı anda gerçekleşmiş olay zinciri sayılmaz
 `not_recorded`: bu kapsamda kayıt yok. `no_relationships`: kayıt var,
 bağlantı yok. `related_records`: ilişki var. `partial`: bir araştırma sınırına
 ulaşıldı. Hiçbiri “güvenli” veya “internetin tamamı kontrol edildi” demek değildir.
+
+## Liste bağlamı
+
+0.153.0 ile `./xti warninglists sync` üzerinden alınan dört seçilmiş MISP
+listesinin eşleşmeleri araştırma düğümlerinde görünür. Liste, eşleşen üye,
+özgün çalışma kimliği ve kaynak durumu korunur. Örneğin bir IP'nin
+Cloudflare ağı içinde olması ortak altyapı bağlamıdır; sahiplik, zararlılık
+veya güvenlik kararı değildir. Mevcut IOC/CTI kayıtları ve alarmlar değişmez.
+
+Listeler aynı okuma kesitinden alınır. Araştırma yeni liste indirmez ve
+başka firmanın kataloğunu kullanmaz. Liste güncelliğinin varsayılan eşiği
+168 saattir; araştırmanın gözlem güncelliği parametresi bunu değiştirmez.
+Sadece liste eşleşen ama kayıtlı kanıtı olmayan kökün durumu yine
+`not_recorded` olabilir. [Liste durumu ve kullanımı](WARNINGLISTS.md).
 
 ## Sürümlü platform işlemi
 
@@ -87,7 +101,8 @@ Sonuç `data` alanları:
 | `model_version`, `status`, `checked_at` | Model ve okuma durumu/zamanı |
 | `snapshot_id`, `consistency` | Okunan alt grafın içerik kimliği; `single_read_snapshot` |
 | `root_id`, `query`, `stored_data_only` | Kök, kanonik seçim/sınırlar ve kayıtlı veri işareti |
-| `nodes` | Bu sayfanın düğümleri: kararlı kimlik, tür, değer, etiket, özgün referanslar ve kanıt |
+| `nodes` | Bu sayfanın düğümleri: kararlı kimlik, tür, değer, etiket, özgün referanslar, kanıt ve `warninglist_matches` |
+| `warninglists` | Liste kaynakları ve bu dört listenin güncellik/başarı kapsamı; araştırma kanıt bütçesinden ayrıdır |
 | `edges` | Bu sayfanın bağlantıları: kimlik, kaynak/hedef düğüm, ilişki türü ve özgün kanıt |
 | `paths` | Kökten başlayan `node_ids`, `edge_ids`, `hops`; en fazla iki adım, döngüsüz |
 | `collected_node_count`, `collected_edge_count`, `collected_path_count` | Bütçe içinde toplanan alt graf/yol sayıları; bütün veri tabanının toplamı değildir |
@@ -174,15 +189,17 @@ bir hata üretmez; saklı son kontrolün hatası görünür kalır.
 
 ## Kapsam envanteri ve sonraki dilim
 
-| Yetenek | Önceden | 0.152.0 |
+| Yetenek | Önceden | 0.153.0 |
 |---|---|---|
 | Genel kayıt araması/ayrıntı, kaynak/araç durumu | CLI + engine/platform | Korundu |
 | DNS/sertifika/CNAME/tedarikçi ilişki geçmişi | `surface relations` CLI | Korundu; araştırma ilk olarak web kontrolündeki DNS adreslerini kullanır |
 | Doğrudan CTI bağlamı | `cti context` CLI | Korundu; kaynak denetimi yeniden kullanılır |
 | Domain/IP → DNS/IOC → CTI kaynaklı yolları | Ortak görünüm yok | `research` CLI ve `research.show` engine/platform |
 | Otomatik varlık birleştirme, açıklamalı çıkarım | Plan | Sonraki MTR-01/02 dilimleri |
-| MISP warninglists ve yeni URL/hash zenginleştirme | Plan | Sonraki kaynak paketi; bu teslimde eklenmedi |
+| MISP warninglists | Plan | Dört seçilmiş liste; kaynaklı domain/IP bağlamı, [ayrıntı](WARNINGLISTS.md) |
+| Yeni URL/hash zenginleştirme | Plan | Sonraki kaynak paketi |
 
-Yeni tablo, veri dönüşümü, graph deposu, LLM veya zorunlu dış servis yok.
-Şema 72 ve yedek biçimi değişmez. İlk dilim bütün MTR-01/02 planının veya
-OpenCTI seviyesinin tamamlandığı anlamına gelmez.
+0.152.0'ın araştırması tablo eklemiyordu. 0.153.0 warninglist kaynak
+geçmişi için şema 73'e iki tablo ekler; açık yedekli geçiş gerekir.
+Graph deposu, LLM veya zorunlu ücretli servis yoktur. Bu teslim bütün
+MTR-01/02/03 planının veya OpenCTI seviyesinin tamamlandığı anlamına gelmez.
