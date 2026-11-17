@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.153.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 73.
+**Sürüm:** 0.154.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 74.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -9,6 +9,15 @@ Lisans ve veri kullanım koşulları uygun hazır bileşenlerden yararlanılır.
 Ortak istihbarat, ilişki araştırması ve kaynak kapsamı için sonraki işler
 [motor geliştirme planında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
+
+0.154.0, `enrich fetch/lookup/history/run-show` ile URL ve dosya kimliği
+araştırmasını ekler. CIRCL bilinen dosya bağlamını, urlscan mevcut public
+tarama kayıtlarını sağlar. Kaynak, tarih, son hata ve korunan yanıt görünür;
+URL/hash sonuçları `research` ve firma kapsamlı JSON üzerinden de okunur.
+Bu dilim anahtar/ücretli API gerektirmez; urlscan verisini ticari ürüne
+dahil etmek için sağlayıcı koşulları ayrıca netleştirilmelidir.
+Mevcut veri alanı için yedekli `./xti migrate` gerekir.
+[Kullanım, kaynak koşulları ve sınırlar](docs/INDICATOR_ENRICHMENT.md).
 
 0.153.0, MISP'in dört açık kaynak listesini IP/domain araştırmasına ekler:
 Cloudflare ortak altyapısı, özel IPv4, örnek IPv6 ve özel kullanım domainleri.

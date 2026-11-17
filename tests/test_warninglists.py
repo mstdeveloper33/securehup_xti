@@ -237,7 +237,8 @@ class WarninglistTests(unittest.TestCase):
             self.repository.read()
         self.assertEqual(before, self.files())
         result = self.storage.migrate()
-        self.assertEqual((result["from_version"], result["to_version"]), (72, 73))
+        from xti.adapters.schema import SCHEMA_VERSION
+        self.assertEqual((result["from_version"], result["to_version"]), (72, SCHEMA_VERSION))
         with closing(sqlite3.connect(result["backup"])) as connection:
             self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 72)
             self.assertIsNone(connection.execute("SELECT name FROM sqlite_schema WHERE name='warninglist_runs'").fetchone())

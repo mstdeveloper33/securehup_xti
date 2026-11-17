@@ -1,8 +1,32 @@
 # XTI — Güncel Uygulama Durumu
 
-**17 Kasım 2026 · 0.153.0 · Çekirdek şema 73.**
+**17 Kasım 2026 · 0.154.0 · Çekirdek şema 74.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
+
+**0.154.0 URL/hash kaynak bağlamı:** `enrich fetch/lookup/history/run-show`,
+CIRCL dosya kimlikleri ve urlscan geçmiş URL kayıtlarını ayrı kaynak
+makbuzlarıyla saklar. Son deneme/son geçerli yanıt ayrılır; hata eski kanıtı
+silmez. `research` URL, MD5, SHA-1 ve SHA-256 köklerini, dosya kimliği ve
+tarihî gezinme/IP bağlarını destekler. Engine/platform üç yeni salt okuma
+işlemiyle aynı firma alanından sonuç verir. Kaynak yenileme işletici CLI'sinde,
+otomatik platform yenileme işi henüz yoktur. Şema 74 iki tablo ekler;
+geçiş yedekli ve açıktır. Ek paket, anahtar veya ücretli kaynak gerektirmez.
+urlscan'in ticari ürüne veri sağlama koşulları ayrıca netleştirilmelidir.
+[Kullanım ve açık sınırlar](INDICATOR_ENRICHMENT.md).
+
+**0.154.0 canlı kaynak kabulü:** İzole `/tmp/xti-01540-live` alanında
+belgelenmiş OpenSSL SHA-256 değeri CIRCL kaydıyla, `https://example.com/`
+urlscan arşivinin ilk 20 kaydıyla döndü. URL sonuç sınırı araştırmada
+`partial` olarak görünür. Bilinmeyen MD5/SHA-1/SHA-256 için üç gerçek
+404 yanıtı ayrı `no_match` oldu. Bunlar kaynak sorgularıdır; hedef taraması
+veya zararlılık testi değildir. [Test kaydı](ACCEPTANCE_REVIEW.md).
+
+**0.154.0 yerel regresyon:** `umask 002` ile ilgili 125 test 37,136 saniyede
+tamamlandı: 123 başarılı, Linux'a özgü iki atlama, hata yok. Yeni bölümün
+29 testi bu turdadır. Bu kayıt tam test paketi sonucu değildir.
+Önceki GitHub hızlı kontrolünü kıran kaynak envanteri beklentisi de
+düzeltildi; geçmiş başarısız koşu [kabul kaydında](ACCEPTANCE_REVIEW.md) korunur.
 
 **0.153.0 MISP kaynak bağlamı:** Dört seçilmiş warninglist internetten
 tek commit'e bağlı olarak alınır. CLI `warninglists sync/status/lookup/history/run-show`,

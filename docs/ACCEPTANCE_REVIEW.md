@@ -1,5 +1,42 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.154.0 — URL/hash kaynak bağlamı kabulü
+
+17 Kasım 2026, Python 3.13.3/macOS, `umask 002`, çekirdek şema 74.
+İlgili son tur **125 test / 37,136 saniye**, 123 başarılı ve Linux'a özgü
+iki süreç kontrolü atlamasıyla tamamlandı; hata yok. Yeni kaynak bölümü
+29 test içerir. Ham yerel günlük `/tmp/xti-01540-targeted.log`; dosya
+makineye özgüdür ve repoya dahil edilmez. Bu sayılar tam paket kabulü değildir.
+
+Kapsam: URL/hash doğrulaması, kesin URL yol/sorgu/HTTP ayrımı, dış yanıt
+kimliği, kaynak statüsü, JSON/kayıt bozulması, hata sonrası eski iyi yanıt,
+sonraki boş yanıt, çalışma geçmişi, salt okuma, şirket ayrımı, schema73→74
+yedekli geçiş/kesinti, restore, araştırma kesiti ve yönlendirme/IP bağı.
+Önceki araştırma, warninglist, kaynak kataloğu/durumu, CLI, mimari ve Linux
+güncelleme kabulünün yerel yardımcı testleri de bu turdadır.
+
+Gerçek API kabulü ayrı `/tmp/xti-01540-live` alanında yapıldı:
+
+| Sorgu | Gerçek sonuç |
+|---|---|
+| CIRCL dokümanındaki OpenSSL SHA-256 | HTTP 200, dosya metadata kaydı ve iki diğer hash bağlantısı |
+| urlscan `https://example.com/` | HTTP 200, ilk 20 public arşiv kaydı; ek sonuç sınırı görünür |
+| Sıfırlardan oluşan MD5, SHA-1, SHA-256 | Üç HTTP 404, geçerli `no_match` yanıtı |
+
+Kaynak sorgularında hedef web sitesi açılmadı; dosya yüklenmedi/indirilmedi.
+URL arşivinin o andaki kayıtları değişebilir; bulgular güvenlik kararı değildir.
+CIRCL dosya tarihi bilinmediğinde gözlem tarihi uydurulmadı. Kaynak koşulları
+ve [kullanım sınırları](INDICATOR_ENRICHMENT.md) ayrı kayıtlıdır.
+
+**Önceki 0.153.0 GitHub kontrolü:** `58e388c` için Linux kurulum, marka
+kurulumu ve platform izolasyonu başarılı oldu. [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44085249292)
+1.436 testte tek envanter beklentisiyle başarısızdı: `test_multi_source_cli`
+dört yeni MISP kaynağını beklemiyordu. Gerçek günlük incelendi; beklenti
+bu teslimde MISP ve yeni URL/hash kaynaklarıyla güncellendi, ilgili CLI
+kabulü geçti. Önceki başarısız koşu sonradan başarılı olarak sunulmaz.
+
+## Önceki raporlar
+
 16 Kasım 2026. Kullanıcı kendi Linux VM denemesini paylaştı: sürüm
 0.147.1, çekirdek şema 69, bildirilen Python 3.14.7; gerçek domain ile
 kontrollü örnek kayıtların birlikte kullanıldığı izole veri alanı.

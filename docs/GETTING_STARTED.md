@@ -1,6 +1,6 @@
 # XTI hızlı başlangıç
 
-**Sürüm 0.153.0 · çekirdek şema 73.** Aşağıdaki numaralı adımlar kişisel
+**Sürüm 0.154.0 · çekirdek şema 74.** Aşağıdaki numaralı adımlar kişisel
 terminal kullanımını başlatır. Aynı motoru ayrı firma kayıt alanlarıyla
 çalıştırmak için [platform adımlarını](#çok-firmalı-platform-kullanımı) kullan.
 
@@ -39,7 +39,8 @@ kendiliğinden taşımaz. Eski sürüm uyarısı görürsen önce:
 ```
 
 Komut, değişiklikten önce doğrulanmış bir kurtarma yedeği alır.
-0.153.0'ın warninglist tabloları da bu açık geçişle eklenir. Liste
+0.154.0'ın URL/hash kaynak tabloları ve 0.153.0'ın warninglist tabloları
+bu açık geçişle eklenir. [URL/hash kullanımı](INDICATOR_ENRICHMENT.md). Liste
 indirmek için ayrıca `./xti warninglists sync` çalıştırılır; kurulum
 kendi başına kaynak toplamaz. [Liste kullanımı](WARNINGLISTS.md).
 

@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**17 Kasım 2026 — 0.153.0, çekirdek şema 73 ana proje yapısı.**
+**17 Kasım 2026 — 0.154.0, çekirdek şema 74 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -26,6 +26,14 @@ korur. Araştırma adaptörü aynı okuma transaction'ında bu listeleri alır;
 liste eşleşmesi yeni IOC/ilişki veya otomatik güven kararı oluşturmaz.
 Firma kapsamlı salt okuma ve işletici yenilemesi aynı servisi paylaşır.
 [0157 karar kaydı](decisions/0157-curated-warninglist-context.md).
+
+0.154.0 `indicator_enrichment` küçük kaynak/depo portlarıyla URL/hash
+bağlamını ekler. Önceden var olan phishing `enrichment` modülleri korunur.
+Sabit sağlayıcı uçlarına tek GET, boyut sınırı ve kalıcı bekleme uygulanır;
+IOC, alarm ve analist kararlarına yazılmaz. Şema 74 kaynak yanıtları ve
+sorgu makbuzlarını ayrı tutar. Araştırma bu kayıtları aynı read transaction
+içinde okur; kaynak bağlamı ile gözlem/alınma zamanları ayrıdır.
+[0158 kararı](decisions/0158-url-hash-source-context.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı

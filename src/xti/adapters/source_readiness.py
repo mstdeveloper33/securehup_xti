@@ -20,6 +20,8 @@ from xti.adapters.sqlite_public_notices import read_public_notice_snapshot
 from xti.adapters.sqlite_news import read_news_catalog
 from xti.adapters.sqlite_mentions import read_mentions_catalog
 from xti.adapters.sqlite_warninglists import read_warninglists
+from xti.adapters.sqlite_enrichment import read_enrichment, _run as enrichment_run, FIELDS as ENRICHMENT_FIELDS
+from xti.domain.indicator_enrichment import PROVIDERS as ENRICHMENT_PROVIDERS, enrichment_query
 from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepository
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
@@ -241,6 +243,11 @@ class SQLiteSourceReadinessRepository:
             notes=('Liste eşleşmesi güvenli kararı veya otomatik istisna değildir.',
                    'Güncellik liste içeriğinin değişim tarihi değil, son geçerli indirme zamanıdır.'),
         ) for policy in WARNINGLIST_POLICIES.values())
+        rows.extend(_row(
+            'enrichment:' + provider, policy['label'], 'Seçili alanın son URL/hash sorgusu; domain filtresinden bağımsız',
+            './xti enrich lookup VALUE --type ' + policy['types'][0],
+            notes=('Bu özet yalnız son sorgulanan değere aittir; bütün URL/hash kayıtlarını kapsamaz.',),
+        ) for provider, policy in ENRICHMENT_PROVIDERS.items())
         for index, row in enumerate(rows):
             tool = row.identifier.split(":", 1)[1]
             if row.identifier in {"social:maigret", "social:sherlock", "surface:theharvester"}:
@@ -292,11 +299,21 @@ class SQLiteSourceReadinessRepository:
                 key = f'warninglist:{state.list_id}'
                 row = self._record(rows[key], state.latest_run, state.successful_run)
                 rows[key] = replace(row, record_count=len(state.snapshot.entries) if state.snapshot else None)
+            for provider in ENRICHMENT_PROVIDERS:
+                record = connection.execute(f"SELECT {ENRICHMENT_FIELDS} FROM enrichment_runs WHERE provider=? ORDER BY rowid DESC LIMIT 1", (provider,)).fetchone()
+                if record:
+                    run = enrichment_run(record)
+                    state = read_enrichment(connection, enrichment_query(provider=provider, indicator_type=run.indicator_type, value=run.value))
+                    key = 'enrichment:' + provider
+                    row = self._record(rows[key], run, state.successful_run)
+                    rows[key] = replace(row, latest_status='failed' if run.status == 'failed' else 'complete',
+                        record_count=len(state.snapshot.records) if state.snapshot else None,
+                        notes=(*row.notes, 'Son sorgu: ' + run.value))
             for item in connection.execute(
                 "SELECT provider, not_before, recorded_at, reason FROM provider_cooldowns"
             ):
                 cooldown = SQLiteCooldownRepository._row(item)
-                for key in (f"scan:{cooldown.provider}", f"surface:{cooldown.provider}"):
+                for key in (f"scan:{cooldown.provider}", f"surface:{cooldown.provider}", f"enrichment:{cooldown.provider}"):
                     if key in rows:
                         rows[key] = replace(rows[key], cooldown_until=cooldown.not_before)
             connection.rollback()

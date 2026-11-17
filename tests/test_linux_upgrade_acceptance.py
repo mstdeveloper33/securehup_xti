@@ -247,7 +247,7 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
     def test_unsupported_migration_target_stops_before_running_cli(self):
         with patch.object(self.helper, "command") as command:
             with self.assertRaisesRegex(RuntimeError, "Unsupported migration target"):
-                self.helper.migrate_acceptance_data({}, {}, (64, {}), target_schema=74)
+                self.helper.migrate_acceptance_data({}, {}, (64, {}), target_schema=75)
         command.assert_not_called()
 
     def test_schema_rollback_does_not_accept_an_unrelated_old_code_failure(self):

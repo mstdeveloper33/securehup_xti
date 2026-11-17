@@ -1,8 +1,8 @@
 # İlişkili kanıt araştırması
 
-17 Kasım 2026 · 0.153.0 · araştırma modeli 1 · engine/platform v1 · şema 73.
+17 Kasım 2026 · 0.154.0 · araştırma modeli 1 · engine/platform v1 · şema 74.
 
-Domain veya kesin IP için mevcut DNS, IOC ve doğrudan CTI kayıtlarını tek
+Domain, kesin IP, URL veya dosya kimliği için mevcut DNS, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
 aktör. Her bağlantı özgün kanıt/iddia kimliğini ve tarihini taşır. Bu bir
 saldırı veya ihlal kararı değildir. Kaynak iddiaları yeni gözleme dönüşmez.
@@ -17,6 +17,7 @@ katılabilir; araştırma çalıştırmak ücretli sorgu başlatmaz.
 ```sh
 ./xti research securehup.com --type domain
 ./xti research 93.184.216.34 --type ip
+./xti research 'https://example.com/' --type url
 ./xti research securehup.com --type domain --max-hops 1 --limit 10
 ./xti --data-dir /path/to/data --json research securehup.com --type domain
 ```
@@ -43,6 +44,16 @@ gezebilir. Geçmiş gözlemler aynı anda gerçekleşmiş olay zinciri sayılmaz
 `not_recorded`: bu kapsamda kayıt yok. `no_relationships`: kayıt var,
 bağlantı yok. `related_records`: ilişki var. `partial`: bir araştırma sınırına
 ulaşıldı. Hiçbiri “güvenli” veya “internetin tamamı kontrol edildi” demek değildir.
+
+## URL/hash kaynak bağlamı
+
+0.154.0 URL, MD5, SHA-1, SHA-256 köklerini ekler. `enrich fetch` ile saklanan
+yanıtlar `nodes[].enrichment` içinde okunur. Kaynağın dosya kimliği, tarihî
+gezinme ve son sayfa IP iddiaları `source_context` bağlantılarıdır; IOC veya
+risk kararı oluşturmaz. Kanıtlardaki `time_basis` gerçek kaynak gözlemi
+ile yanıtın alınma zamanını ayırır. Son başarısız deneme eski başarılı
+yanıtı silmez. Bütün arşivde ters indeks araması bu dilimde yoktur.
+[Kullanım ve parametreler](INDICATOR_ENRICHMENT.md).
 
 ## Liste bağlamı
 
@@ -79,7 +90,7 @@ Sadece liste eşleşen ama kayıtlı kanıtı olmayan kökün durumu yine
 
 | Parametre | Kural |
 |---|---|
-| `indicator_type`, `value` | Zorunlu; `domain`, `ip`, `ipv4`, `ipv6`; kesin değer |
+| `indicator_type`, `value` | Zorunlu; `domain`, `ip`, `ipv4`, `ipv6`, `url`, `md5`, `sha1`, `sha256`; kesin değer |
 | `max_hops` | 1–2, varsayılan 2 |
 | `node_limit` | 2–100, varsayılan 100 |
 | `edge_limit` | 1–200, varsayılan 200 |

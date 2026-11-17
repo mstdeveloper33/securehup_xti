@@ -9,6 +9,7 @@ import re
 from xti.domain.assets import ValidationError
 from xti.domain.cti_context import context_query
 from xti.domain.warninglists import WarninglistState, catalog_data
+from xti.domain.indicator_enrichment import EnrichmentState
 
 
 MAX_PATHS = 2000
@@ -44,8 +45,8 @@ class ResearchQuery:
 def research_query(*, indicator_type, value, max_hops=2, node_limit=100,
                    edge_limit=200, offset=0, limit=50, stale_after_hours=24,
                    expected_snapshot=None) -> ResearchQuery:
-    if indicator_type not in ("domain", "ip", "ipv4", "ipv6"):
-        raise ValidationError("Araştırma kökü domain veya kesin IPv4/IPv6 adresi olmalı.")
+    if indicator_type not in ("domain", "ip", "ipv4", "ipv6", "url", "md5", "sha1", "sha256"):
+        raise ValidationError("Araştırma kökü domain, IP, URL veya dosya kimliği olmalı.")
     root = context_query(indicator_type=indicator_type, value=value)
     for name, number, low, high in (
         ("Adım", max_hops, 1, 2), ("Düğüm", node_limit, 2, 100),
@@ -82,6 +83,7 @@ class ResearchEvidence:
     state_sha256: str | None = None
     first_observed_at: str | None = None
     source_run_id: str | None = None
+    time_basis: str = "source_observation"
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,6 +96,7 @@ class ResearchNode:
     evidence: tuple[ResearchEvidence, ...] = ()
     evidence_total_count: int = 0
     warninglist_matches: tuple[dict, ...] = ()
+    enrichment: EnrichmentState | None = None
 
 
 @dataclass(frozen=True, slots=True)

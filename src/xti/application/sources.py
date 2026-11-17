@@ -3,6 +3,7 @@
 from xti.domain.sources import SourceCatalogEntry
 from xti.domain.news import NEWS_SOURCES, NEWS_NOTES
 from xti.domain.warninglists import POLICIES as WARNINGLIST_POLICIES, LICENSE, LICENSE_URL
+from xti.domain.indicator_enrichment import PROVIDERS as ENRICHMENT_PROVIDERS
 
 
 _CATALOG = (
@@ -72,6 +73,7 @@ _CATALOG = (
         limits=(
             "XTI yeni web taraması göndermez; yalnız mevcut arşivi arar.",
             "Bir sorguda en fazla 100 kayıt alınır; tarih ve kota sınırı sonuçta gösterilir.",
+            "Ticari ürüne veri dahil etmek için sağlayıcı anlaşması gerekir: https://urlscan.io/terms/",
         ),
         reference_url="https://docs.urlscan.io/pages/api-intro",
     ),
@@ -630,5 +632,16 @@ class SourceCatalogService:
                 'İncelenmiş veri lisansı: ' + LICENSE + '; kaynak/koşul belgesi değişirse yeni inceleme gerekir.',
             ),
             reference_url=LICENSE_URL,
-        ) for policy in WARNINGLIST_POLICIES.values())
+        ) for policy in WARNINGLIST_POLICIES.values()) + tuple(SourceCatalogEntry(
+            identifier='enrichment:' + identifier, label=policy['label'], kind='indicator_context',
+            purpose='Sorgulanan URL veya dosya kimliğine ait kaynak bağlamını saklar.',
+            access='Mevcut public endpoint; anahtar gerekmez, sağlayıcı kota ve koşulları geçerlidir.',
+            credential_required=False, paid_dependency=False, contacts_monitored_target=False,
+            commands=('enrich fetch VALUE --type ' + policy['types'][0], 'enrich lookup VALUE --type ' + policy['types'][0],
+                      'enrich history VALUE --type ' + policy['types'][0], 'enrich run-show RUN_ID'),
+            limits=('Sorgulanan URL/hash açık fetch komutunda sağlayıcıya gönderilir; hedef taranmaz, dosya yüklenmez.',
+                    'Tek istek, 2 MiB yanıt; URL için ilk 20 sonuç. Eşleşme güvenli/zararlı kararı değildir.',
+                    'Veri koşulu: ' + policy['license'] + '; ticari kullanım: ' + policy['commercial_use']),
+            reference_url=policy['terms'],
+        ) for identifier, policy in ENRICHMENT_PROVIDERS.items())
 

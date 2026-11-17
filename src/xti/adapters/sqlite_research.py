@@ -11,6 +11,8 @@ from xti.adapters.sqlite_cti_indicators import SQLiteCtiIndicatorRepository
 from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
 from xti.adapters.sqlite_warninglists import read_warninglists
+from xti.adapters.sqlite_enrichment import read_enrichment
+from xti.domain.indicator_enrichment import enrichment_query, request_url
 from xti.domain.assets import normalize_domain
 from xti.domain.cti_attack import ATTACK_SOURCE_NAME
 from xti.domain.cti_feeds import CTI_FEED_POLICIES, feed_indicator_state_sha256
@@ -68,6 +70,7 @@ class _Reader:
         self.checks, self.dns_scopes, self.dns_latest = {}, {}, {}
         self.audit_rows, self.dns_bytes, self.audit_attack = 0, 0, False
         self.warninglists = read_warninglists(connection)
+        self.enrichment_edges = {}
 
     def _claims(self, kind, identifier):
         # The kind is internal, never a request SQL fragment. Bound histories
@@ -214,8 +217,32 @@ class _Reader:
                 references.append(_reference("indicator", kind, "local-ioc", row[0]))
                 evidence.extend(claims)
                 evidence_total += details.total_assertion_count
+        enrichment = None
+        if kind in {"url", "md5", "sha1", "sha256"}:
+            enrichment = read_enrichment(self.connection, enrichment_query(indicator_type=kind, value=value))
+            latest, good, snapshot = enrichment.latest_run, enrichment.successful_run, enrichment.snapshot
+            if latest:
+                evidence.append(ResearchEvidence("enrichment_run", latest.id, latest.provider,
+                    request_url(enrichment.query), "source_context", latest.status, latest.finished_at,
+                    latest.finished_at, latest.error or "Kaynak sorgusu yanıtı; alınma tarihi kaynak gözlem tarihi değildir.",
+                    state_sha256=latest.snapshot_sha256, source_run_id=latest.id, time_basis="response_received_at"))
+                evidence_total += 1
+            if snapshot:
+                if snapshot.has_more:
+                    self.limitations.add("enrichment_result_window")
+                for record in snapshot.records:
+                    claim = ResearchEvidence("enrichment_run", good.id, good.provider, record["reference"],
+                        "source_context", "matched", record["observed_at"] or good.finished_at, good.finished_at,
+                        record["description"], state_sha256=good.snapshot_sha256, source_run_id=good.id,
+                        time_basis="source_observation" if record["observed_at"] else "response_received_at")
+                    for link in record["relationships"]:
+                        source = (link["source_type"], link["source_value"])
+                        target = (link["target_type"], link["target_value"])
+                        edge_id = "enrich:" + identity(good.id, record["id"], link)
+                        self.enrichment_edges[edge_id] = ResearchEdge(edge_id, source, target,
+                            link["relationship_type"], "source_context", (claim,), 1)
         result = ResearchNode(key, label, record_type, tuple(references), tuple(evidence), evidence_total,
-                              tuple(match_data(self.warninglists, kind, value)))
+                              tuple(match_data(self.warninglists, kind, value)), enrichment)
         self.nodes[key] = result
         return result
 
@@ -249,6 +276,7 @@ class _Reader:
     def neighbors(self, key):
         self.node(key)
         edges = list(self._dns_edges(key))
+        edges.extend(edge for edge in self.enrichment_edges.values() if key in (edge.source, edge.target))
         if key[0] == "entity":
             where, values = "source_entity_id=? OR target_entity_id=?", (key[1], key[1])
         elif key in self.indicator_ids:

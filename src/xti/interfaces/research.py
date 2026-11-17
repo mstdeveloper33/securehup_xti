@@ -10,9 +10,9 @@ def make_research_service(database):
 
 
 def register_research_parser(commands):
-    parser = commands.add_parser("research", help="Domain/IP için kayıtlı DNS, IOC ve CTI kanıt yollarını araştır.")
+    parser = commands.add_parser("research", help="Domain/IP/URL/dosya için kayıtlı kaynak kanıt yollarını araştır.")
     parser.add_argument("value")
-    parser.add_argument("--type", choices=("domain", "ip", "ipv4", "ipv6"), required=True, dest="indicator_type")
+    parser.add_argument("--type", choices=("domain", "ip", "ipv4", "ipv6", "url", "md5", "sha1", "sha256"), required=True, dest="indicator_type")
     for flag, default in (("max-hops", 2), ("node-limit", 100), ("edge-limit", 200),
                           ("offset", 0), ("limit", 50), ("stale-after-hours", 24)):
         parser.add_argument("--" + flag, type=int, default=default)
@@ -39,7 +39,7 @@ def research_lines(data, *, data_dir=None):
     def show_evidence(rows):
         for row in rows:
             lines.append(f"    {safe_text(row['source'])} | {states.get(row['status'], safe_text(row['status']))} | "
-                         f"{states[row['freshness']]} | Gözlem: {safe_text(row['observed_at'])} | Kayıt: {safe_text(row['recorded_at'])}")
+                         f"{states[row['freshness']]} | {'Yanıt alınma' if row['time_basis'] == 'response_received_at' else 'Gözlem'}: {safe_text(row['observed_at'])} | Kayıt: {safe_text(row['recorded_at'])}")
             lines.append(f"    Kanıt: {safe_text(row['record_id'])} | Kaynak: {safe_text(row['source_reference'])}")
             if row["first_observed_at"] != row["observed_at"]:
                 lines.append("    İlk gözlem: " + safe_text(row["first_observed_at"]))
@@ -62,6 +62,9 @@ def research_lines(data, *, data_dir=None):
     for node in data["nodes"]:
         lines.append("Kayıt: " + safe_text(node["label"]))
         show_evidence(node["evidence"])
+        if node.get("enrichment") and node["enrichment"]["latest_run"]:
+            from xti.interfaces.indicator_enrichment import enrichment_lines
+            lines.extend(enrichment_lines(node["enrichment"], data_dir=data_dir))
         for match in node["warninglist_matches"]:
             lines.append("  Liste bağlamı: " + safe_text(match["list_id"]) + " | " +
                          ", ".join(safe_text(entry) for entry in match["matched_entries"]))

@@ -238,7 +238,7 @@ class ResearchTests(unittest.TestCase):
                         {"edge_limit": 0}, {"expected_snapshot": "bad"}, {"stale_after_hours": 0}):
             with self.subTest(options=options), self.assertRaises(ValidationError):
                 self.graph(**options)
-        for kind, value in (("url", "https://example.com"), ("ip", "192.0.2.0/24"), ("domain", "*.example.com")):
+        for kind, value in (("url", "file:///private/test"), ("ip", "192.0.2.0/24"), ("domain", "*.example.com")):
             with self.subTest(kind=kind), self.assertRaises(ValidationError):
                 self.graph(value, kind)
         path = self.root / "absent" / "xti.db"

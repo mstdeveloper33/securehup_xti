@@ -10,7 +10,8 @@ from xti.domain.global_search import normalize_global_kinds, normalize_global_qu
 
 ENGINE_CONTRACT_VERSION = 1
 ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show',
-                     'warninglists.status', 'warninglists.lookup', 'warninglists.run.get')
+                     'warninglists.status', 'warninglists.lookup', 'warninglists.run.get',
+                     'enrichment.lookup', 'enrichment.history', 'enrichment.run.get')
 REQUEST_ID_PATTERN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', re.ASCII)
 # Deliberately versioned here: adding an internal record type does not silently
 # expose it on the external engine boundary.
@@ -127,6 +128,25 @@ def parse_engine_request(value: object) -> EngineRequest:
             normalized = {'query': normalize_global_query(parameters['query']),
                 'kinds': normalize_global_kinds(parameters.get('kinds')),
                 'include_inactive': inactive, **_page(parameters)}
+        elif operation in {'enrichment.lookup', 'enrichment.history'}:
+            from xti.domain.indicator_enrichment import enrichment_query
+            allowed = {'indicator_type', 'value', 'provider'}
+            allowed |= {'stale_after_hours'} if operation == 'enrichment.lookup' else {'offset', 'limit'}
+            parameters = _object(parameters, allowed=allowed, required={'indicator_type', 'value'}, code='invalid_parameters')
+            normalized = asdict(enrichment_query(**{key: parameters[key] for key in ('provider', 'indicator_type', 'value') if key in parameters}))
+            if operation == 'enrichment.lookup':
+                hours = parameters.get('stale_after_hours', 24)
+                if type(hours) is not int or not 1 <= hours <= 8760:
+                    raise EngineContractError('invalid_parameters', 'Güncellik eşiği 1–8760 saat olmalı.')
+                normalized['stale_after_hours'] = hours
+            else:
+                normalized.update(_page(parameters))
+                if normalized['limit'] > 100:
+                    raise EngineContractError('invalid_parameters', 'Kaynak geçmişi sayfası en çok 100 kayıt olmalı.')
+        elif operation == 'enrichment.run.get':
+            from xti.domain.cti_knowledge import normalize_knowledge_id
+            parameters = _object(parameters, allowed={'run_id'}, required={'run_id'}, code='invalid_parameters')
+            normalized = {'run_id': normalize_knowledge_id(parameters['run_id'])}
         elif operation in {'warninglists.status', 'warninglists.lookup'}:
             from xti.domain.warninglists import lookup_query
             allowed = {'stale_after_hours'}

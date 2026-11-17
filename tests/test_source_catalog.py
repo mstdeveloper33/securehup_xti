@@ -18,6 +18,7 @@ class SourceCatalogTests(unittest.TestCase):
                 "redhat-csaf-vex", "suse-csaf-vex", "news:cisa", "news:ncsc", "news:cert-fr",
                 "mentions:tavily",
                 "warninglist:cloudflare", "warninglist:rfc1918", "warninglist:rfc3849", "warninglist:rfc6761",
+                "enrichment:circl", "enrichment:urlscan",
             ],
         )
         self.assertEqual(len({item.identifier for item in items}), len(items))

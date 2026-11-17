@@ -1,15 +1,15 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.153.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 73.
+**Uygulama:** 0.154.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 74.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
-JSON biçiminde okuyabilmesini sağlar. Sekiz işlem vardır: arama, kayıt ayrıntısı,
+JSON biçiminde okuyabilmesini sağlar. On bir işlem vardır: arama, kayıt ayrıntısı,
 kaynak durumu, proje araç kataloğu, `research.show` ilişkili kanıt araştırması
-ve üç warninglist okuma işlemi.
+ve üçer warninglist/URL-hash bağlamı okuma işlemi.
 Mevcut terminal komutları ve `--json` çıktıları korunur. `news` ve `mention`
 kayıt aileleri mevcut arama/ayrıntı işlemleriyle okunur; araştırmanın ilk
 kapsamı DNS/IOC/CTI'dır. [Araştırma isteği, sonucu ve sınırları](RESEARCH.md).
-0.153.0 warninglist geçmişi için çekirdek şemayı 73'e taşımıştır; mevcut
+0.154.0 URL/hash kaynak geçmişi için çekirdek şemayı 74'e taşımıştır; mevcut
 kayıt alanlarının geçişi ayrı ve açık `./xti migrate` adımıdır.
 [Güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
@@ -89,7 +89,7 @@ veya tekrar önleme anahtarı değildir.
 |---|---|
 | `contract_version` | Tamsayı `1`; uygulama sürümünden ve veritabanı şemasından ayrıdır |
 | `request_id` | İstemcinin seçtiği eşleştirme kimliği |
-| `operation` | `search`, `record.get`, `sources.status`, `components.list`, `research.show`, `warninglists.status`, `warninglists.lookup`, `warninglists.run.get` |
+| `operation` | `search`, `record.get`, `sources.status`, `components.list`, `research.show`, `warninglists.status`, `warninglists.lookup`, `warninglists.run.get`, `enrichment.lookup`, `enrichment.history`, `enrichment.run.get` |
 | `parameters` | İşleme özel seçenek nesnesi; seçenek yoksa `{}` |
 
 Cevabın ortak alanları:
@@ -299,6 +299,15 @@ okur. İndirme ve sorgu ayrı işlemlerdir; engine internetten liste indirmez.
 `nodes[].warninglist_matches` alanı da bulunur. Alanlar v1'e eklenmiştir;
 mevcut düğüm/ilişki anlamları ve kararlar korunur.
 [Parametreler, sonuçlar, güncellik ve hata kodları](WARNINGLISTS.md#engine-ve-firma-platformu).
+
+## `enrichment.*`: URL/hash kaynak bağlamı
+
+`enrichment.lookup` son deneme/son geçerli yanıtı, `enrichment.history`
+sorgu geçmişini, `enrichment.run.get` özgün çalışmanın ayrıntılarını okur.
+Üçü de ağsız ve firma kapsamında çalışır. `research.show` URL/hash köklerini,
+`nodes[].enrichment` ve `evidence[].time_basis` alanlarını destekler.
+`enrichment.fetch` engine işlemi değildir; yenileme işletici CLI'sindedir.
+[Tam parametre/sonuç sözleşmesi](INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu).
 
 ## Hatalar ve sınırlar
 

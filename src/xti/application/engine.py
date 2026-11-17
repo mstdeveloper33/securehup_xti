@@ -9,6 +9,8 @@ from xti.application.research import ResearchService, research_data
 from xti.domain.research import ResearchSnapshotChanged
 from xti.application.warninglists import WarninglistService
 from xti.domain.warninglists import WarninglistRunNotFound
+from xti.application.indicator_enrichment import EnrichmentService
+from xti.domain.indicator_enrichment import EnrichmentRunNotFound
 
 
 def _search_data(report) -> dict:
@@ -70,13 +72,22 @@ def _sources_data(report) -> dict:
 class EngineReadService:
     def __init__(self, search: GlobalSearchService, records: EngineRecordRepository,
                  sources: SourceReadinessService, components: ComponentCatalogService | None = None,
-                 research: ResearchService | None = None, warninglists: WarninglistService | None = None):
+                 research: ResearchService | None = None, warninglists: WarninglistService | None = None,
+                 enrichment: EnrichmentService | None = None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
         self.research = research
         self.warninglists = warninglists
+        self.enrichment = enrichment
 
     def execute(self, request: EngineRequest) -> dict:
+        if self.enrichment is not None and request.operation in {'enrichment.lookup', 'enrichment.history', 'enrichment.run.get'}:
+            method = {'enrichment.lookup': self.enrichment.lookup, 'enrichment.history': self.enrichment.history,
+                      'enrichment.run.get': self.enrichment.show}[request.operation]
+            try:
+                return method(**request.parameters)
+            except EnrichmentRunNotFound as error:
+                raise EngineContractError('not_found', str(error)) from error
         if self.warninglists is not None and request.operation in {'warninglists.status', 'warninglists.lookup', 'warninglists.run.get'}:
             method = {'warninglists.status': self.warninglists.status,
                       'warninglists.lookup': self.warninglists.lookup, 'warninglists.run.get': self.warninglists.show}[request.operation]

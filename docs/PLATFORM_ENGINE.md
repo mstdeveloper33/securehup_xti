@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.153.0 · protokol `xti-platform` v1 · çekirdek şema 73.**
+**Uygulama 0.154.0 · protokol `xti-platform` v1 · çekirdek şema 74.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -97,6 +97,7 @@ doğrulanmadan oluşan hatalarda `scope=null` olabilir. Girdi 64 KiB, çıktı
 | `search`, `record.get`, `sources.status`, `components.list` | [Mevcut okuma sözleşmesi](ENGINE_CONTRACT.md) seçenekleri | Seçilmiş firma alanında okuma; araç kurulumu ortak işletim bilgisidir |
 | `research.show` | `indicator_type`, `value`; isteğe bağlı adım/bütçe/sayfa/güncellik ve `expected_snapshot` | Aynı firmanın kayıtlı DNS/IOC/CTI kanıt yolları ve warninglist bağlamı; [sözleşme ve sınırlar](RESEARCH.md) |
 | `warninglists.status`, `warninglists.lookup`, `warninglists.run.get` | [Warninglist okuma parametreleri](WARNINGLISTS.md#engine-ve-firma-platformu) | Seçili firmanın listeleri, kaynaklı eşleşmeleri ve tarihî kaynak çalışması; ağ isteği yok |
+| `enrichment.lookup`, `enrichment.history`, `enrichment.run.get` | [URL/hash okuma parametreleri](INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu) | Seçili firmanın CIRCL/urlscan yanıtları, kaynak ve sorgu geçmişi; ağ isteği yok |
 | `organization.content` | `organization_id`; isteğe bağlı `scope_offset`, `scope_limit`, `offset`, `limit`, `stale_after_hours` | Kaynaklı firma/tedarikçi içerikleri, ayrı geçmiş ve kaynak durumları |
 | `profiles.list` | İsteğe bağlı `offset`, `limit` | Etkin profil adı, kimliği, sürümü ve seçilen domain; devam sayfası |
 | `jobs.submit` | `idempotency_key`, `profile_name`, `profile_revision`, `expected_workspace_id` | Kalıcı kabul; kaynak isteği veya arka plan süreç başlatmaz |

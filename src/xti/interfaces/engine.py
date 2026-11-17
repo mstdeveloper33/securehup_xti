@@ -36,6 +36,7 @@ def make_engine_service(database: Path) -> EngineReadService:
     from xti.interfaces.components import make_component_service
     from xti.interfaces.research import make_research_service
     from xti.interfaces.warninglists import make_warninglist_service
+    from xti.interfaces.indicator_enrichment import make_enrichment_service
     return EngineReadService(
         GlobalSearchService(SQLiteGlobalSearchRepository(database)),
         SQLiteEngineRecordRepository(database),
@@ -43,6 +44,7 @@ def make_engine_service(database: Path) -> EngineReadService:
         make_component_service(),
         make_research_service(database),
         make_warninglist_service(database),
+        make_enrichment_service(database),
     )
 
 
@@ -124,9 +126,12 @@ def engine_manifest() -> dict:
         'max_json_depth': MAX_JSON_DEPTH, 'default_limit': 50, 'max_limit': 500,
         'max_offset': 1_000_000,
         'research': {'model_version': 1, 'max_hops': 2, 'max_nodes': 100,
+                     'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6', 'url', 'md5', 'sha1', 'sha256'],
                      'max_edges': 200, 'max_limit': 100, 'pagination_guard': 'expected_snapshot'},
         'warninglists': {'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6'],
                          'default_stale_after_hours': 168, 'refresh_via': 'operator_cli'},
+        'enrichment': {'indicator_types': ['url', 'md5', 'sha1', 'sha256'],
+                       'providers': ['circl', 'urlscan'], 'refresh_via': 'operator_cli', 'max_history_limit': 100},
         'record_types': [{'kind': kind, 'record_type': record_type, 'namespaces': list(namespaces)}
                          for (kind, record_type), namespaces in RECORD_NAMESPACES.items()],
         'request_id_semantics': 'correlation_only',

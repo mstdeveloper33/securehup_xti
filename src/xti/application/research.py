@@ -6,6 +6,7 @@ from xti.domain.assets import ValidationError
 from xti.domain.research import build_research, freshness, node_id, research_query
 from xti.ports.research import ResearchRepository
 from xti.domain.warninglists import catalog_data
+from xti.application.indicator_enrichment import state_data
 
 
 class ResearchService:
@@ -40,6 +41,7 @@ def research_data(report) -> dict:
             "valid_from": item.valid_from, "valid_until": item.valid_until,
             "state_sha256": item.state_sha256,
             "first_observed_at": item.first_observed_at, "source_run_id": item.source_run_id,
+            "time_basis": item.time_basis,
         }
 
     return {
@@ -66,6 +68,7 @@ def research_data(report) -> dict:
                                   for ref in item.references],
                    "evidence": [evidence(row) for row in item.evidence],
                    "evidence_total_count": item.evidence_total_count,
+                   "enrichment": state_data(item.enrichment, report.checked_at, query.stale_after_hours) if item.enrichment else None,
                    "warninglist_matches": [{key: match[key] for key in (
                        "list_id", "run_id", "snapshot_sha256", "matched_entries", "matching_type", "category")}
                        for match in item.warninglist_matches]}
@@ -77,7 +80,7 @@ def research_data(report) -> dict:
         "paths": [{"node_ids": list(nodes), "edge_ids": list(edges), "hops": len(edges)}
                   for nodes, edges in report.paths],
         "notes": [
-            "Yalnız seçili çalışma alanının kayıtlı DNS, IOC ve doğrudan CTI kanıtları okunur; kaynaklar yeniden sorgulanmaz.",
+            "Yalnız seçili çalışma alanının kayıtlı DNS, IOC, CTI ve URL/dosya kaynak yanıtları okunur; kaynaklar yeniden sorgulanmaz.",
             "Yollar iki yönde araştırılabilir; ilişkinin özgün yönü source_id/target_id alanlarında korunur.",
             "Ortak IP veya kaynak iddiası sahiplik, aynı saldırgan, kötü niyet veya doğrulanmış ihlal sonucu değildir.",
             "Eski DNS ve geri çekilmiş/geçersiz IOC/CTI iddiaları tarihî kanıt olarak görünür; geçerlilik ile güncellik ayrıdır.",
@@ -85,5 +88,6 @@ def research_data(report) -> dict:
             "Sonraki sayfada expected_snapshot kullanın; değişen kayıtlar snapshot_changed ile reddedilir. Bu tarihî kesit deposu değildir.",
             "İlk kapsam surface web kontrollerindeki DNS adresleridir; pasif aday, CNAME, sertifika ve diğer modüller mevcut ayrıntı komutlarında kalır.",
             "Warninglist eşleşmeleri kaynak bağlamıdır; otomatik güvenli kararı, alarm kapatma veya aktör ilişkisi oluşturmaz.",
+            "Kaynak araştırması yalnız sorgulanmış URL/hash için saklanan yanıtlardan genişler; ters yönde bütün arşivi taramaz. Yanıt alınma tarihi ile sağlayıcının gözlem tarihi ayrıdır.",
         ],
     }

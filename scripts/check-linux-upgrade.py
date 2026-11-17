@@ -290,7 +290,7 @@ def require_preserved_tables(before, after):
     for name, expected in before[1].items():
         actual = after[1].get(name)
         reviewed_upgrade = (
-            before[0] <= 68 and 69 <= after[0] <= 73
+            before[0] <= 68 and 69 <= after[0] <= 74
             and name in ("collection_session_steps", "collection_step_receipts")
             and _preserved_collection_upgrade(name, expected, actual)
         )
@@ -325,9 +325,9 @@ def _preserved_collection_upgrade(name, expected, actual):
     )
 
 
-def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=73):
+def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=74):
     """Exercise a reviewed explicit schema64 upgrade, retaining its original backup."""
-    COMMON.require(target_schema in (65, 66, 67, 68, 69, 70, 71, 72, 73), "Unsupported migration target.")
+    COMMON.require(target_schema in (65, 66, 67, 68, 69, 70, 71, 72, 73, 74), "Unsupported migration target.")
     data = Path(environment["XTI_DATA_DIR"])
     error = command(["./setup", "--core-only"], environment, expected=None)
     COMMON.require("migrate" in error, "Old data was not rejected with explicit migration guidance.")
@@ -524,7 +524,7 @@ def main(arguments=None):
             stage = "candidate schema compatibility"
             command(["git", "checkout", "--detach", checked_commit(target)], environment)
             target_schema = int(command(["./scripts/python", "-c", "from xti.adapters.schema import SCHEMA_VERSION; print(SCHEMA_VERSION)"], environment))
-            COMMON.require(target_schema in (64, 65, 66, 67, 68, 69, 70, 71, 72, 73), "Only reviewed schema64–73 candidates are supported by this acceptance.")
+            COMMON.require(target_schema in (64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74), "Only reviewed schema64–74 candidates are supported by this acceptance.")
             backup, current_files = None, before
             if target_schema > 64:
                 stage = f"explicit schema64 to schema{target_schema} migration"
