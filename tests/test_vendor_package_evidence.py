@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tests.test_vendor_advisory import COMPONENT_ID, CVE, payload
+from tests.test_vendor_advisory import COMPONENT_ID, CVE, payload, payload_with_product_ids
 from tests.test_vulnerability_exposures import NOW, nvd_snapshot
 from xti.adapters.redhat_csaf_vex import RedHatCsafVexSource, parse_redhat_vex_response
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
@@ -26,6 +26,8 @@ from xti.adapters.sqlite_vulnerability_exposure_queue import (
 from xti.application.packages import AssetPackageService
 from xti.application.products import AssetProductService
 from xti.application.vendor_package_evidence import VendorPackageEvidenceService
+from xti.application.vendor_package_evidence_check import VendorPackageEvidenceCheckService
+from xti.application.vendor_package_match import VendorPackageMatchService
 from xti.application.vulnerability_exposures import VulnerabilityExposureService
 from xti.application.vulnerability_exposure_queue import VulnerabilityExposureQueueService
 from xti.domain.assets import ValidationError
@@ -129,6 +131,57 @@ class VendorPackageEvidenceTests(unittest.TestCase):
             record.id, event_limit=10,
         )
         self.assertEqual(restored_details, details)
+
+    def test_opaque_product_ids_survive_selection_storage_recheck_and_restore(self):
+        vex_id, context_id = " selected VEX product ", "Red Hat Enterprise Linux 9 "
+        snapshot = parse_redhat_vex_response(payload_with_product_ids({
+            COMPONENT_ID: vex_id, "rhel-9": context_id,
+        }), CVE)
+        source = Source(snapshot)
+        service = self.service(source)
+        arguments = dict(selected_vex_product_id=vex_id, summary="Opaque source identity fixture.")
+        selected = service.add(self.exposure.id, self.package.id, **arguments)
+        record = selected.mutation.record
+        self.assertEqual((record.vex_product_id, record.context_product_id), (vex_id, context_id))
+        self.assertEqual(record.source_sha256, snapshot.content_sha256)
+        repeated = service.add(self.exposure.id, self.package.id, **arguments)
+        self.assertEqual(repeated.mutation.action, "unchanged")
+        details = service.show(record.id)
+        self.assertEqual(details.total_event_count, 1)
+        with self.assertRaisesRegex(ValidationError, "tekil"):
+            service.add(self.exposure.id, self.package.id,
+                        selected_vex_product_id=vex_id.strip(), summary="Wrong trimmed identity fixture.")
+        self.assertEqual(service.show(record.id), details)
+        check = VendorPackageEvidenceCheckService(
+            SQLiteVendorPackageEvidenceRepository(self.path), SQLiteAssetPackageRepository(self.path), source,
+            clock=lambda: NOW + timedelta(hours=2),
+        ).check(record.id)
+        self.assertEqual(check.state, "current")
+        backup = Path(self.temp.name) / "opaque-backup.db"
+        SQLiteAssetRepository(self.path).backup(backup)
+        restored = Path(self.temp.name) / "opaque-restored" / "xti.db"
+        SQLiteAssetRepository.restore(backup, restored)
+        self.assertEqual(SQLiteVendorPackageEvidenceRepository(restored).details(record.id, event_limit=10), details)
+
+    def test_evidence_fetches_exposure_cve_after_previewing_a_different_cve(self):
+        other_cve = "CVE-2014-0160"
+        other_snapshot = parse_redhat_vex_response(payload().replace(CVE.encode(), other_cve.encode()), other_cve)
+        snapshots, calls = {CVE: self.snapshot, other_cve: other_snapshot}, []
+
+        class RoutedSource:
+            def fetch(self, cve_id):
+                calls.append(cve_id)
+                return snapshots[cve_id]
+
+        source = RoutedSource()
+        preview = VendorPackageMatchService(SQLiteAssetPackageRepository(self.path), source).match(self.package.id, other_cve)
+        self.assertEqual(preview.match_state, "exact_vendor_statement")
+        selected = self.service(source).add(self.exposure.id, self.package.id,
+            selected_vex_product_id=preview.matches[0].vex_product_id, summary="Exposure determines the CVE.")
+        self.assertEqual(calls, [other_cve, CVE])
+        self.assertEqual(selected.mutation.record.cve_id, self.exposure.cve_id)
+        self.assertEqual(selected.mutation.record.source_url, self.snapshot.source_url)
+        self.assertEqual(selected.mutation.record.source_sha256, self.snapshot.content_sha256)
 
     def test_wrong_selection_cross_asset_and_no_exact_match_never_write(self):
         before = self.path.read_bytes()

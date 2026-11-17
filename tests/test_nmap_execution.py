@@ -395,8 +395,6 @@ class ManagedTests(unittest.TestCase):
 class PlatformNmapTests(unittest.TestCase):
     def setUp(self):
         from xti.adapters.company_workspaces import resolve_company_workspace
-        from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
-        from xti.application.surface import SurfaceService
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve() / "companies"
@@ -405,12 +403,18 @@ class PlatformNmapTests(unittest.TestCase):
         self.enterContext(patch("subprocess.Popen", side_effect=AssertionError("No process on request")))
         for company in ("alpha", "beta"):
             self.assertEqual(self.invoke(company, action="provision")[0], 0)
-            context = self.contexts[company] = resolve_company_workspace(self.root, company)
-            assets = SQLiteAssetRepository(context.database)
-            assets.add("example.com")
-            SurfaceService(assets, SQLiteSurfaceRepository(context.database)).approve("example.com", "Sentetik yetki")
-            service = make_nmap_service(context.database)
-            service.management.save_target("example.com", "network", "8.8.8.0/30", (), "Sentetik kapsam")
+            self.contexts[company] = resolve_company_workspace(self.root, company)
+            self.operator(company, "assets", "add", "example.com")
+            self.operator(company, "surface", "approve", "example.com", "--reason", "Sentetik yetki")
+            self.operator(company, "surface", "nmap", "targets", "save", "example.com", "network",
+                          "--network", "8.8.8.0/30", "--reason", "Sentetik kapsam; ağ yok")
+
+    def operator(self, company, *args):
+        out, err = StringIO(), StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(["--data-dir", str(self.contexts[company].data_dir), "--json", *args])
+        self.assertEqual((code, err.getvalue()), (0, ""), out.getvalue())
+        return json.loads(out.getvalue())["data"]
 
     def invoke(self, company, operation=None, parameters=None, *, action="request", extra=()):
         request = {"contract_version": 1, "request_id": "example:1", "operation": operation,
@@ -444,6 +448,50 @@ class PlatformNmapTests(unittest.TestCase):
         self.assertEqual((code, response["data"]["job"]["status"]), (0, "cancelled"))
         code, response = self.invoke("beta", "nmap.jobs.status", {"domain": "example.com", "job_id": jobs["beta"]})
         self.assertEqual((code, response["data"]["job"]["status"]), (0, "queued"))
+
+    def test_operator_setup_platform_worker_and_paged_results_without_direct_database_edits(self):
+        code, response = self.invoke("alpha", "nmap.targets.list", {"domain": "example.com"})
+        self.assertEqual(code, 0, response)
+        self.assertEqual(len(response["data"]["targets"]), 1)
+        code, response = self.invoke("alpha", "nmap.plans.create", {
+            "domain": "example.com", "target_name": "network", "profile": "custom", "ports": "80,443",
+            "expected_workspace_id": self.contexts["alpha"].workspace_id,
+        })
+        self.assertEqual(code, 0, response)
+        plan_id = response["data"]["plan"]["id"]
+        code, response = self.invoke("alpha", "nmap.plans.show", {"domain": "example.com", "plan_id": plan_id})
+        self.assertEqual(code, 0, response)
+        self.assertEqual(response["data"]["id"], plan_id)
+        parameters = {"domain": "example.com", "plan_id": plan_id, "key": "operator-setup",
+                      "expected_workspace_id": self.contexts["alpha"].workspace_id}
+        code, response = self.invoke("alpha", "nmap.jobs.submit", parameters)
+        self.assertEqual((code, response["data"]["job"]["status"]), (0, "queued"))
+        job_id = response["data"]["job"]["id"]
+        runner = FakeRunner()
+        with patch.object(ManagedNmapRuntime, "readiness", side_effect=runner.readiness), \
+                patch.object(ManagedNmapRuntime, "run", side_effect=runner.run):
+            code, response = self.invoke("alpha", action="nmap-worker", extra=("--domain", "example.com", "--job-id", job_id))
+            self.assertEqual((code, response["data"]["job"]["status"]), (0, "complete"), response)
+            self.assertEqual(len(runner.addresses), 4)
+            code, replay = self.invoke("alpha", "nmap.jobs.submit", parameters)
+            self.assertEqual((code, replay["data"]["job"]), (0, response["data"]["job"]))
+            code, repeated = self.invoke("alpha", action="nmap-worker", extra=("--domain", "example.com", "--job-id", job_id))
+            self.assertNotEqual(code, 0)
+            self.assertEqual(repeated["error"]["code"], "invalid_parameters")
+            self.assertEqual(len(runner.addresses), 4)
+        addresses = []
+        for offset, next_offset in ((0, 2), (2, None)):
+            code, response = self.invoke("alpha", "nmap.jobs.result", {
+                "domain": "example.com", "job_id": job_id, "offset": offset, "limit": 2,
+            })
+            self.assertEqual(code, 0, response)
+            page = response["data"]
+            self.assertEqual((page["total_results"], page["next_offset"]), (4, next_offset))
+            addresses.extend(item["address"] for item in page["results"])
+        self.assertEqual(addresses, runner.addresses)
+        code, response = self.invoke("beta", "nmap.jobs.result", {"domain": "example.com", "job_id": job_id})
+        self.assertNotEqual(code, 0)
+        self.assertIsNone(response["data"])
 
     def test_foreign_workspace_raw_command_and_unknown_script_rejected(self):
         plan_id = self.plan("alpha")

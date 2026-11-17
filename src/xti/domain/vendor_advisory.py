@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from xti.domain.assets import ValidationError
 from xti.domain.vulnerability import normalize_cve_id
 
 
@@ -9,6 +10,16 @@ REDHAT_VEX_SOURCE = "redhat_csaf_vex"
 REDHAT_VEX_BASE_URL = "https://security.access.redhat.com/data/csaf/v2/vex"
 SUSE_VEX_SOURCE = "suse_csaf_vex"
 SUSE_VEX_BASE_URL = "https://ftp.suse.com/pub/projects/security/csaf-vex"
+
+
+def normalize_vendor_product_id(value: str, *, field: str) -> str:
+    """Preserve opaque CSAF references exactly, within bounded printable ASCII."""
+    if (
+        not isinstance(value, str) or not 1 <= len(value) <= 2000
+        or any(ord(character) < 32 or ord(character) > 126 for character in value)
+    ):
+        raise ValidationError(f"{field} 1–2000 yazdırılabilir ASCII karakter olmalı.")
+    return value
 
 
 def redhat_vex_url(cve_id: str) -> str:

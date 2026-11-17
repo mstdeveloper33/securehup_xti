@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**16 Kasım 2026 · 0.150.0 · Çekirdek şema 72.**
+**17 Kasım 2026 · 0.150.0 · Çekirdek şema 72.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 
@@ -15,7 +15,7 @@ veritabanı, bağımlılıklar ve depo görünürlüğü değişmedi. Kullanıc�
 0.147.1 / şema 69 Linux deneme raporu alındı; rapor sonraki Nmap
 teslimlerinin kabulü değildir. [İnceleme ve kalan işler](ACCEPTANCE_REVIEW.md).
 
-**Çalışma ağacındaki kabul düzeltmeleri:** CTI izlemesinin ilgisiz büyük
+**888f403'e dahil edilen kabul düzeltmeleri:** CTI izlemesinin ilgisiz büyük
 IOC kataloğu nedeniyle durması yeniden üretildi ve giderildi. 10.001
 kontrollü IOC ile dar aktör izlemesi ekleme/çalıştırma/listeleme geçti.
 Zamanlı yedek testinin `umask 002` taşınabilirliği düzeltildi. Yeni veri,
@@ -24,7 +24,35 @@ izinler değiştirilmeden `storage readiness` içinde gösterilir. İlgili
 44 test `umask 002` altında geçti. Aynı ayarla son kodun tam turunda
 2.665 test / 1.145,005 saniye: 2.661 başarılı, macOS'ta Linux'a özgü
 dört atlama, hata yok. Ortam Python 3.13.3; kullanıcının Linux/Python
-3.14 tekrar kabulü ayrı kalır. Bu düzeltmeler şema geçişi gerektirmez.
+3.14 tekrar kabulü bu ilk yerel turda ayrı kalmıştı. Bu düzeltmeler şema
+geçişi gerektirmez.
+
+**İkinci Linux raporu ve sonraki yerel düzeltmeler:** Kullanıcı aynı
+`888f403` commit'inde, izole şema 72 alanlarında `umask 002` ile 2.665
+testin atlamasız geçtiğini bildirdi; CTI 10.001 IOC dar izleme senaryosu
+da geçti. Ham Linux günlükleri bu ortamda yoktur. Yeni yerel düzeltme
+ortak arama kapsam metnini ve tekrar sosyal izleme ekleme/geri çekme
+çıktısındaki `unchanged` hatasını giderir. Platform çıkış kodları ve
+mevcut kayıt bulunamama davranışı belgelendi. Hedefin işletici CLI'siyle
+hazırlanıp platform Nmap işi/sonucuna bağlanması kontrollü çalıştırıcıyla
+doğrulandı; canlı platform Nmap kabulü değildir. `umask 002` altında 39
+ilgili test 21,727 saniyede hatasız ve atlamasız geçti; bu çalışma ağacı
+için tam suite tekrar çalıştırılmadı. Şema/sözleşme değişmedi.
+[Ayrıntı ve açık sınırlar](ACCEPTANCE_REVIEW.md).
+
+**Nmap/kaynak raporu sonrası yerel düzeltme:** Red Hat Log4Shell belgesini
+reddeden gerçek ayrıştırma hatası doğrulandı: CSAF ürün kimliğinin sondaki
+boşluğu, kimliğin bir parçası olmasına rağmen geçersiz sayılıyordu. Kimlik
+artık kırpılmadan ayrıştırılır, seçilir ve kanıt kaydında saklanır. Benzer
+kimlikler birleştirilmez; PURL/CPE, kontrol karakteri ve boyut denetimleri
+korunur. Aynı gerçek belge düzeltmeden sonra canlı `vendor-preview` ile
+başarıyla okundu. `umask 002` altında 32 ilgili test 6,951 saniyede geçti;
+bu da tam suite tekrarı değildir. Şema, sürüm ve sözleşme değişmedi.
+Raporun `vendor-match` ve `vendor-evidence-add` çağrıları aynı CVE'yi
+kullandığını kanıtlamıyor; ekleme her zaman maruziyetin CVE'sini alır.
+Canlı gelişmiş Nmap ve canlı platform Nmap kabulü kesin yetkili IP/port
+verilmediği için açık; kontrollü yerel platform kabulünden ayrı tutulur.
+[Kaynak kanıtı ve rapor düzeltmeleri](ACCEPTANCE_REVIEW.md).
 
 **İlk ticari işletim tercihi:** Motor kendi sunucularımızda çalışacak,
 müşteriler platform üzerinden kullanacak. Müşteri sunucusuna kurulum

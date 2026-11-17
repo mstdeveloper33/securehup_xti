@@ -97,6 +97,17 @@ def payload():
     }, separators=(",", ":")).encode()
 
 
+def payload_with_product_ids(replacements):
+    """Keep opaque fixture IDs and their references in sync without trimming."""
+    def replace(value):
+        if isinstance(value, dict):
+            return {key: replace(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [replace(item) for item in value]
+        return replacements.get(value, value) if isinstance(value, str) else value
+    return json.dumps(replace(json.loads(payload())), separators=(",", ":")).encode()
+
+
 class Response:
     def __init__(self, body, *, status=200, headers=None):
         self.body = body
@@ -120,6 +131,47 @@ class Response:
 
 
 class VendorAdvisoryTests(unittest.TestCase):
+    def test_product_ids_preserve_spaces_across_relationships_statuses_and_remediations(self):
+        identifiers = {
+            COMPONENT_ID: " relationship product ",
+            "rhel-9": "Red Hat Enterprise Linux 9 ",
+            "openssl-0:3.2.2-1.el9.x86_64": " component product ",
+        }
+        result = parse_redhat_vex_response(payload_with_product_ids(identifiers), CVE)
+        fixed = result.advisory.product_statuses[0].products[0]
+        self.assertEqual(fixed.product_id, identifiers[COMPONENT_ID])
+        self.assertEqual(fixed.component_product_id, identifiers["openssl-0:3.2.2-1.el9.x86_64"])
+        self.assertEqual(fixed.context_product_id, identifiers["rhel-9"])
+        self.assertEqual(result.advisory.remediations[0].target_count, 1)
+
+    def test_similar_opaque_ids_do_not_merge_and_trimmed_references_do_not_resolve(self):
+        body = json.loads(payload())
+        body["product_tree"]["full_product_names"] = [
+            {"name": "First product", "product_id": "same"},
+            {"name": "Second product", "product_id": "same "},
+        ]
+        statuses = body["vulnerabilities"][0]["product_status"]
+        statuses["fixed"] = ["same"]
+        statuses["known_affected"] = ["same "]
+        result = parse_redhat_vex_response(json.dumps(body).encode(), CVE)
+        self.assertEqual(result.advisory.product_statuses[0].products[0].name, "First product")
+        self.assertEqual(result.advisory.product_statuses[1].products[0].name, "Second product")
+        body = json.loads(payload_with_product_ids({COMPONENT_ID: COMPONENT_ID + " "}))
+        body["vulnerabilities"][0]["product_status"]["fixed"] = [COMPONENT_ID]
+        with self.assertRaisesRegex(SourceError, "ürün ağacında bulunmuyor"):
+            parse_redhat_vex_response(json.dumps(body).encode(), CVE)
+
+    def test_opaque_ids_keep_control_character_and_size_limits_and_structured_tokens_stay_strict(self):
+        for value in ("", "x" * 2001, "product\n", "\x1bproduct", "product\x00", "product\x7f"):
+            with self.subTest(product_id=repr(value)), self.assertRaises(SourceError):
+                parse_redhat_vex_response(payload_with_product_ids({COMPONENT_ID: value}), CVE)
+        for index, field in ((0, "cpe"), (1, "purl")):
+            body = json.loads(payload())
+            helper = body["product_tree"]["branches"][0]["branches"][index]["product"]["product_identification_helper"]
+            helper[field] += " "
+            with self.subTest(field=field), self.assertRaises(SourceError):
+                parse_redhat_vex_response(json.dumps(body).encode(), CVE)
+
     def test_parser_keeps_vendor_status_products_and_remediation_separate(self):
         result = parse_redhat_vex_response(payload(), CVE.lower())
         advisory = result.advisory

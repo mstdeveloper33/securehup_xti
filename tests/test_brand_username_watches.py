@@ -336,6 +336,51 @@ class BrandUsernameWatchTests(unittest.TestCase):
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["data"]["run"]["status"], "failed")
 
+    def test_cli_repeated_add_preserves_definition_and_history_in_text_and_json(self):
+        source = FakeSource()
+        service = self.service(source)
+        watch = service.add("Örnek Marka", "samplebrand", platforms=("GitHub",)).watch
+        before = service.show(watch.id)
+        for as_json in (False, True):
+            with self.subTest(as_json=as_json), redirect_stdout(output := StringIO()):
+                code = main([
+                    "--data-dir", self.temp.name, *(["--json"] if as_json else []),
+                    "brand", "watch-add", "Örnek Marka", "samplebrand", "--site", "GitHub",
+                ])
+                self.assertEqual(code, 0)
+                if as_json:
+                    payload = json.loads(output.getvalue())
+                    self.assertTrue(payload["ok"])
+                    self.assertEqual(payload["data"]["action"], "unchanged")
+                    self.assertEqual(payload["data"]["watch"]["id"], watch.id)
+                else:
+                    self.assertIn("değişmedi", output.getvalue())
+                self.assertEqual(service.show(watch.id), before)
+
+    def test_cli_repeated_revoke_preserves_inactive_watch_and_history_in_text_and_json(self):
+        service = self.service(FakeSource())
+        watch = service.add("Örnek Marka", "samplebrand", platforms=("GitHub",)).watch
+        args = ["brand", "watch-revoke", watch.id, "--reason", "İzleme artık gerekli değil"]
+        with redirect_stdout(StringIO()):
+            self.assertEqual(main(["--data-dir", self.temp.name, *args]), 0)
+        before = service.show(watch.id)
+        self.assertFalse(before.watch.active)
+        self.assertEqual(before.total_event_count, 2)
+        for as_json in (False, True):
+            with self.subTest(as_json=as_json), redirect_stdout(output := StringIO()):
+                code = main([
+                    "--data-dir", self.temp.name, *(["--json"] if as_json else []), *args,
+                ])
+                self.assertEqual(code, 0)
+                if as_json:
+                    payload = json.loads(output.getvalue())
+                    self.assertTrue(payload["ok"])
+                    self.assertEqual(payload["data"]["action"], "unchanged")
+                    self.assertFalse(payload["data"]["watch"]["active"])
+                else:
+                    self.assertIn("değişmedi", output.getvalue())
+                self.assertEqual(service.show(watch.id), before)
+
     def test_cli_sherlock_watch_uses_stored_source(self):
         values = ["--data-dir", self.temp.name]
         with redirect_stdout(output := StringIO()):

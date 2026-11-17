@@ -999,6 +999,18 @@ Anlamlı CTI çalışma farkı bildirimi aynı kayıtlı-arama transaction'ını
 
 `VendorPackageMatchService`, etkin kesin paketi depo portundan okuyup bağlantıyı kapattıktan sonra açık seçilen CVE'yi `VendorAdvisorySource` üzerinden alır. CSAF adaptörü ürün yardımcılarındaki PURL/CPE değerlerini ve tam ürün ilişkilerini korur. Tam ikili bağ aynı NEVRA+PURL+CPE; kaynak paket bağı kaynak RPM adı+`arch=src` PURL+CPE ister. Farklı durumlara çıkan birden çok kesin bağ `conflicting_vendor_context` olarak kalır. Sonuç ağdan gelen Red Hat beyanıdır; veritabanı, maruziyet, kanıt veya öncelik yazılmaz. Ayrıntılar [kesin RPM/VEX eşleştirme kararındadır](decisions/0055-exact-redhat-vex-package-match.md).
 
+CSAF ürün kimlikleri biçimden anlam çıkarılmayan kesin başvurulardır.
+Domain katmanındaki `normalize_vendor_product_id` kimliği değiştirmeden,
+1–2000 yazdırılabilir ASCII karakter sınırında kabul eder; baştaki/sondaki
+boşluk korunur. Ayrıştırıcıdaki ürün/ilişki/durum/düzeltme başvuruları ile
+kalıcı kanıt seçimi ve depo okuma/yazma doğrulaması aynı kuralı kullanır.
+`id` ve `id ` farklıdır; kırpılmış başvuru eksikse reddedilir. Kontrol
+karakterleri ve uzunluk sınırı korunur; yapılandırılmış PURL/CPE alanları
+bu kuralla gevşetilmez. Bu sınırlı ASCII desteği CSAF'nin bütün Unicode
+kimliklerini destekleme iddiası değildir. `vendor-evidence-add` eşleşmeyi
+maruziyet kaydının CVE'siyle yeniden alır; önceki bağımsız `vendor-match`
+çağrısının CVE'sini veya kaynak sonucunu devralmaz. Şema 72 değişmez.
+
 `VendorPackageEvidenceService`, inceleme/paket/ürün kimliği/açıklamayı ağdan önce doğrular; inceleme ile kesin paketin aynı varlığa ait olmasını ister ve CVE'yi incelemeden alır. Güncel VEX yeniden getirilir; yalnız tekil ve çelişkisiz kesin eşleşmedeki açıkça seçilmiş tam ürün bağı yazılır. Depo transaction'ı paket etkinliğini ve `updated_at` değerini yeniden kontrol ederek ağ sırasındaki yerel değişikliği reddeder. Kaynak özeti, belge sürümü/zamanı, durum, bileşen PURL'si ve dağıtım CPE'si ana kayıtla aynı transaction'daki eklemeli olaya bağlanır; yeni kaynak özeti veya yeniden doğrulanmış paket anlık görüntüsü ayrı kimliktir. Kuyruk bu kaydı `exact_vendor_package` türü olarak sayar, fakat karar veya bandı değiştirmez. Şema 23→24 önce doğrulanmış yedek alır ve geçmiş salt-okunur sonuçlardan kanıt üretmez. Ayrıntılar [seçilmiş kesin VEX kanıtı kararındadır](decisions/0056-human-selected-exact-vex-evidence.md).
 
 `VendorPackageEvidenceCheckService`, kayıtlı kanıtı ve bağlı kesin paketi depolardan salt okunur alır. Etkisiz pakette dış kaynak çağrılmaz. Etkin pakette aynı `VendorPackageMatchService` güncel VEX'i yeniden değerlendirir; kaynak özeti, paket `updated_at` değeri, seçilen tam ürün kimliği, durum ve ilişki alanlarını eski kanıtla karşılaştırır. `current`, aynı beyanlı kaynak yenilemesi, paket anlık görüntüsü değişimi, beyan değişimi, kayıp ilişki ve çelişen bağlam ayrı kalır. Sonuç hiçbir tabloyu, kanıtı, kararı veya kuyruğu yazmaz; şema 24 değişmez. Ayrıntılar [kesin kanıt güncellik kararı](decisions/0057-read-only-exact-vex-evidence-check.md) içindedir.

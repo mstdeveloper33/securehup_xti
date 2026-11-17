@@ -166,12 +166,64 @@ Hatalar kararlı kod taşır: örneğin `scope_unavailable`, `scope_mismatch`,
 `busy`, `storage_error`. Hata cevabı SQL, dosya yolu, ham istisna veya sır
 dökmez. Desteklenmeyen ana sürüm/alan/işlem reddedilir.
 
+## Hata ve süreç çıkış kodları
+
+Platform işlemleri için mevcut v1 eşlemesi şöyledir. İstemci açıklama
+metnini ayrıştırmak yerine `error.code` ve `error.retryable` alanlarını
+kullanır. Aynı çıkış kodu birden fazla hata durumunu kapsayabilir.
+
+| Süreç çıkış kodu | Cevap | Anlamı |
+|---|---|---|
+| `0` | `status="complete"`, `error=null` | İstenen işlem tamamlandı. Dönen işin `partial`, `failed` veya başka bir durumda olması ayrıca incelenir. |
+| `2` | `invalid_request`, `invalid_parameters`, `unsupported_version`, `unsupported_operation` | İstek biçimi, işlem veya seçilen kapsam/seçenekler kabul edilmedi. |
+| `3` | `not_found` | Bu kodu kullanan kayıt/iş okuma işleminde seçili firma alanında kayıt bulunamadı. |
+| `130` | `interrupted` | Motorun yakalayabildiği kullanıcı kesintisi. Süreç zorla öldürülürse JSON cevap üretilemeyebilir. |
+| `1` | Diğer hata kodları | Örneğin `scope_unavailable`, `scope_mismatch`, `idempotency_conflict`, `profile_changed`, `invalid_job_state`, `capacity_exceeded`, `busy`, `storage_error`, `response_too_large`, `internal_error`. |
+
+Mevcut v1, bütün bulunamayan başvuruları tek bir hata kodunda toplamaz:
+
+| Durum | Hata kodu / çıkış |
+|---|---|
+| `record.get` için geçerli tür/kaynak referansında kayıt yok; `jobs.status`, `jobs.result`, `jobs.cancel` için biçimi doğru iş kimliği yok | `not_found` / `3` |
+| `organization.content` için biçimi doğru kuruluş kimliği seçili firmada yok | `invalid_parameters` / `2` |
+| Yeni `jobs.submit` isteğinde profil adı yok | `invalid_parameters` / `2` |
+| Var olan profil geri çekilmiş veya istenen sürüm güncel sürümle uyuşmuyor | `profile_changed` / `1` |
+| `nmap.*` işleminde seçili domain altındaki hedef, plan veya iş başvurusu yok | `invalid_parameters` / `2` |
+
+Başka firmada bulunan kimlik, seçili firmada bulunmayan kimlikten farklı
+bir cevapla açıklanmaz; diğer firmanın varlığı araştırılmaz. Biçimi bozuk
+kimlik ayrıca `invalid_parameters` olur. Önceden kabul edilmiş aynı işin
+tekrar anahtarı mevcut işi döndürebilir; bu, yeni profil kabulü değildir.
+Bu tablo mevcut davranışı belgeler; istemcileri etkileyecek hata kodu
+birleştirmesi bu düzeltmede yapılmadı. [Yerel engine tablosu](ENGINE_CONTRACT.md#hatalar-ve-sınırlar)
+ayrı `engine` girişinin sözleşmesidir.
+
 ## Nmap işleri ve arayüz seçenekleri
 
 0.150.0'ın `nmap.*` işlemleri aynı firma alanında, ayrı Nmap plan/iş
 kayıtlarıyla çalışır. `nmap.capabilities` boş parametrelerle tipli seçenek
 kataloğunu verir. Domain onayı ve IP/CIDR hedef envanteri güvenilen
 işletici tarafından önceden kaydedilir; `nmap.targets.list` bunları okur.
+
+Boş firma alanında hazırlık, mevcut terminal komutlarıyla yapılır:
+
+```sh
+./xti --data-dir "$PWD/.xti-platform/firma-a" assets add example.com
+./xti --data-dir "$PWD/.xti-platform/firma-a" surface approve example.com \
+  --reason "Bu domain kapsamındaki kontrollere yetkiliyim."
+./xti --data-dir "$PWD/.xti-platform/firma-a" surface nmap targets save example.com production \
+  --network YETKILI_GENEL_IP_VEYA_CIDR \
+  --reason "Bu kesin IP/CIDR kapsamında kontrol iznim var."
+./xti platform request --root "$PWD/.xti-platform" --company firma-a --describe
+```
+
+`example.com` ve `YETKILI_GENEL_IP_VEYA_CIDR` yerine gerçek, yetkili kapsamı
+yazın. Son cevabın `scope.workspace_id` alanı aşağıdaki `ALAN_UUID`
+değeridir. Hedef kaydı tarama başlatmaz. Bu hazırlık SQL veya veritabanı
+dosyasını elle değiştirmeyi gerektirmez; platform sözleşmesine hedef
+ekleme işlemi henüz açılmadığı için güvenilen işleticiye aittir.
+Dosya yolunu son kullanıcı girdisinden oluşturmayın. Domainin CDN/paylaşımlı
+IP'ye çözülmesi, o IP için tarama yetkisi oluşturmaz.
 
 Arayüzden bir plan oluşturma isteği:
 
@@ -205,6 +257,16 @@ altındadır. Diğer plan alanları `timeout_seconds`, `max_retries`,
 `scan_delay_ms`, `max_parallelism`, `max_hostgroup`, `max_targets`,
 `max_probe_budget`, `confirm_wide_scan`, `confirm_range_scan` olabilir.
 Ham komut, dosya yolu, script dosyası ve tanımsız alan reddedilir.
+
+Planın `data.plan.id` değeriyle aynı firma alanında iş kabulü yapılır:
+
+```json
+{"contract_version":1,"request_id":"nmap-submit-001","operation":"nmap.jobs.submit","parameters":{"domain":"example.com","plan_id":"PLAN_UUID","key":"kontrol-001","expected_workspace_id":"ALAN_UUID"}}
+```
+
+`PLAN_UUID` yerine alınan plan kimliğini yazın. Cevabın `data.job.id`
+değeri worker ve sonuç işlemlerinin `job_id` değeridir. `nmap.plans.show`
+planı doğrudan `data` içinde döndürür; bu okumanın kimlik alanı `data.id`'dir.
 
 | İşlem | Parametreler | Cevap |
 |---|---|---|

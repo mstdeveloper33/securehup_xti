@@ -562,7 +562,7 @@ class SQLiteGlobalSearchRepository:
                 selected = tuple(ordered[offset:offset + limit])
                 return GlobalSearchReport(query, kinds, include_inactive, checked_at, len(ordered), offset, limit,
                     offset + len(selected) < len(ordered), selected, tuple(reader.coverage), (
-                        'Yalnız bu kişisel çalışma alanının kayıtları tek okuma anında aranır; internet sorgusu veya kayıt değişikliği yapılmaz.',
+                        'Yalnız seçili çalışma alanının kayıtları tek okuma anında aranır; internet sorgusu veya kayıt değişikliği yapılmaz.',
                         'Taranan kayıt sayısı etkin olmayan denetlenmiş kimlikleri de kapsar; sonuç filtresi varsayılan güncel kayıtlardır.',
                         '--all tüm sürüm arşivi değildir: kaynak kimliğinin son bilinen kaydı ve sosyal tanım/platform başına son kayıt seçilir.',
                         'Arama eşleşmesi yeni güvenlik bulgusu, sahiplik veya doğrulanmış ihlal değildir; sonuç yokluğu güvenli demek değildir.',

@@ -1,6 +1,36 @@
 # Değişiklik Kaydı
 
-## Yayımlanmamış kabul düzeltmeleri — 0.150.0 çalışma ağacı
+## Yayımlanmamış — kabul raporu düzeltmeleri
+
+- CSAF VEX ürün kimliklerinin başındaki/sonundaki boşluklar korunur.
+  Red Hat Log4Shell belgesinin geçerli ürün kimliğini reddeden ayrıştırma
+  hatası giderildi. Ürün kimliği seçimi, kalıcı kanıt ve yeniden kontrol
+  aynı kesin değeri kullanır; PURL/CPE doğrulaması ve boyut sınırları korunur.
+- Gerçek Red Hat `CVE-2021-44228` belgesiyle hata yeniden üretildi;
+  düzeltme sonrası canlı `vendor-preview` başarılı JSON verdi. `umask 002`
+  altında 32 ilgili test 6,951 saniyede geçti; kimlik ayrımı, kalıcılık,
+  yedekten dönüş ve kanıtın maruziyet CVE'sine bağlılığı kapsandı.
+- Nmap/kaynak raporundaki farklı CVE karşılaştırması ve canlı kabul
+  sınırları belgelendi. Bu sonuçlar bütün Nmap seçeneklerinin canlı
+  kabulü veya tam test turu olarak sunulmaz.
+
+- `brand watch-add` ve `brand watch-revoke` tekrarlarında `unchanged`
+  eyleminin terminal/JSON çıktısını çökertmesi giderildi; mevcut tanım,
+  karar ve olay geçmişi değişmez. İki CLI regresyon testi eklendi.
+- Ortak arama notu kişisel veya firma alanı için “seçili çalışma alanı”
+  ifadesini kullanır; veri kapsamı ve JSON sözleşmesi değişmedi.
+- Platform süreç çıkış kodları ve bulunamayan kuruluş/profil/iş için
+  mevcut v1 davranışı açıkça belgelendi.
+- Platform Nmap ön hazırlığı ve plan → iş bağlantısı belgelendi. Kabul
+  testi hedefi yönetici CLI'siyle kurar; kontrollü çalıştırıcıyla platform
+  worker, sayfalı sonuç, tekrar güvenliği ve firma ayrımı doğrulanır.
+- Kullanıcının `888f403` Linux raporu, kalan canlı kabul ve şema 69 kişisel
+  alanın geçiş gereksinimi [kabul değerlendirmesine](docs/ACCEPTANCE_REVIEW.md)
+  kaydedildi. Şema 72, sürüm 0.150.0 ve v1 sözleşmesi korunur.
+- `umask 002` ile sosyal izleme, genel arama ve platform/Nmap kabulünün
+  39 testi 21,727 saniyede geçti; bu tur tam suite tekrarı değildir.
+
+## 0.150.0 kabul düzeltmeleri — 888f403
 
 - CTI izleme denetimi ilgisiz IOC/varlık kataloğunu 10.000 izleme sınırına
   saymaz; kaynaklı geçmiş ve kopuk bağlantı denetimi korunur.

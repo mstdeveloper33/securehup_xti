@@ -20,6 +20,7 @@ from xti.domain.vendor_advisory import (
     VendorProduct,
     VendorProductStatus,
     VendorRemediation,
+    normalize_vendor_product_id,
 )
 from xti.domain.vulnerability import normalize_cve_id
 from xti.ports.discovery import SourceError
@@ -111,6 +112,14 @@ def _identifier(value: object, field: str, maximum: int = 2000) -> str:
     return value
 
 
+def _product_identifier(value: object, field: str) -> str:
+    # CSAF product/group IDs are opaque references, not whitespace-normalized tokens.
+    try:
+        return normalize_vendor_product_id(value, field=field)
+    except ValidationError as error:
+        raise _source_error(f"kaydında geçersiz {field} kimliği var.") from error
+
+
 def _timestamp(value: object, field: str, *, optional: bool = False) -> str | None:
     if value is None and optional:
         return None
@@ -173,7 +182,7 @@ def _product_catalog(product_tree: object) -> dict[str, VendorProduct]:
         if isinstance(value, dict):
             if "product_id" in value or "name" in value:
                 if "product_id" in value and "name" in value:
-                    product_id = _identifier(value["product_id"], "ürün")
+                    product_id = _product_identifier(value["product_id"], "ürün")
                     name = _text(value["name"], "ürün adı", 2000)
                     purl, cpe = _product_helper(value.get("product_identification_helper"))
                     product = VendorProduct(
@@ -202,12 +211,12 @@ def _relationships(
     for item in value:
         item = _mapping(item, "ürün ilişkisi")
         category = _identifier(item.get("category"), "ürün ilişki türü", 100)
-        component_id = _identifier(item.get("product_reference"), "ilişki bileşeni")
-        context_id = _identifier(
+        component_id = _product_identifier(item.get("product_reference"), "ilişki bileşeni")
+        context_id = _product_identifier(
             item.get("relates_to_product_reference"), "ilişki ürün bağlamı",
         )
         full = _mapping(item.get("full_product_name"), "ilişki tam ürün adı")
-        full_id = _identifier(full.get("product_id"), "ilişki tam ürünü")
+        full_id = _product_identifier(full.get("product_id"), "ilişki tam ürünü")
         if component_id not in products or context_id not in products or full_id not in products:
             raise _source_error("ürün ilişkisi ürün ağacında olmayan kimlik taşıyor.")
         relation = (category, component_id, context_id)
@@ -236,7 +245,7 @@ def _product_statuses(
         products = []
         local: set[str] = set()
         for raw_id in raw_ids:
-            product_id = _identifier(raw_id, "durum ürün")
+            product_id = _product_identifier(raw_id, "durum ürün")
             if product_id in local or product_id in seen:
                 raise _source_error("kaydında çelişen veya yinelenen ürün durumu var.")
             if product_id not in catalog:
@@ -288,12 +297,12 @@ def _remediations(value: object, products: dict[str, VendorProduct]) -> tuple[Ve
             raise _source_error("düzeltmesinde geçersiz hedef listesi var.")
         if len(product_ids) + len(group_ids) > _MAX_STATUS_PRODUCTS:
             raise _source_error("düzeltme hedef sınırı aşıldı.")
-        normalized_products = {_identifier(value, "düzeltme ürünü") for value in product_ids}
+        normalized_products = {_product_identifier(value, "düzeltme ürünü") for value in product_ids}
         if len(normalized_products) != len(product_ids):
             raise _source_error("düzeltmesinde yinelenen ürün hedefi var.")
         if normalized_products.difference(products):
             raise _source_error("düzeltme ürünü ürün ağacında bulunmuyor.")
-        normalized_groups = {_identifier(value, "düzeltme grubu") for value in group_ids}
+        normalized_groups = {_product_identifier(value, "düzeltme grubu") for value in group_ids}
         if len(normalized_groups) != len(group_ids):
             raise _source_error("düzeltmesinde yinelenen grup hedefi var.")
         target_count = len(product_ids) + len(group_ids)

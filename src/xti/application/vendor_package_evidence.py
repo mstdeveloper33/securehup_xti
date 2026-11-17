@@ -5,13 +5,13 @@ from datetime import datetime, timezone
 
 from xti.application.vendor_package_match import VendorPackageMatchService
 from xti.domain.assets import ValidationError
+from xti.domain.vendor_advisory import normalize_vendor_product_id
 from xti.domain.vendor_package_evidence import (
     VendorPackageEvidence,
     VendorPackageEvidenceDetails,
     VendorPackageEvidenceMutation,
     VendorPackageEvidenceSelection,
     normalize_vendor_evidence_summary,
-    normalize_vendor_identifier,
     normalize_vendor_package_evidence_id,
 )
 from xti.domain.vulnerability_exposures import normalize_exposure_id
@@ -48,7 +48,7 @@ class VendorPackageEvidenceService:
     ) -> VendorPackageEvidenceSelection:
         exposure_id = normalize_exposure_id(exposure_id)
         package_id = normalize_package_id(package_id)
-        selected_vex_product_id = normalize_vendor_identifier(
+        selected_vex_product_id = normalize_vendor_product_id(
             selected_vex_product_id, field="Seçilen VEX ürün kimliği",
         )
         summary = normalize_vendor_evidence_summary(summary)

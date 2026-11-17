@@ -6,6 +6,9 @@ kontrollü örnek kayıtların birlikte kullanıldığı izole veri alanı.
 Rapor 50 komut ailesine dokunulduğunu ve 2.603 testte bir hata olduğunu
 bildiriyor. Ham test günlüğü ve veri alanı bu çalışma ortamında yoktur.
 Bu sayılar kullanıcı raporudur; burada yeniden ölçülmüş sonuç değildir.
+Sonraki bölümler **0.150.0 / `888f403` ikinci Linux raporunu**, ardından
+Nmap/kaynak raporunu ve bunlardan sonra yapılan yerel düzeltmeleri ayrı
+değerlendirir.
 
 İnceleme 0.150.0 / şema 72 çalışma ağacında yapıldı. Önceki rapor sonraki
 Nmap teslimlerini kapsamaz. Yeni düzeltmeler veritabanı geçişi, bağımlılık
@@ -77,4 +80,166 @@ umask 002
 
 Bu komut yerel testleri çalıştırır. Testler içinde `000`, `002`, `022` ve
 `077` maskeleri ayrı geçici klasörlerle doğrulanır. Kullanıcının VM'inde
-son kodla tekrar kabul ve gerçek Nmap çalışması ayrıca gereklidir.
+son kodla tekrar kabul ve gerçek Nmap çalışması bu ilk inceleme sırasında
+açıktı. Aşağıdaki ikinci rapor daha sonraki kullanıcı denemesidir.
+
+## 0.150.0 / 888f403 ikinci Linux raporu
+
+Kullanıcı 16 Kasım 2026'da tam SHA
+`888f4033209d5af71e7292d43c6faa0f2a2f07a2` için yeni rapor iletti.
+Rapor; Linux x86_64, Python 3.14.7, `umask 002`, yeni şema 72 alanlarında
+2.665 testin 1.366,371 saniyede hatasız ve atlamasız geçtiğini bildiriyor.
+400 yardım bölümü, 399 komut yolu, 357 uç komut, dört engine ve 20 platform
+işlemi güncel envanterle uyumludur. 97 senaryonun 84'ü başarılı, biri
+başarısız ve 12'si engelli olarak bildirilmiştir. Ham `commands.jsonl`,
+matrisler ve kanıt dosyaları kullanıcının Linux makinesindedir; bu ortamda
+yalnız rapor metni incelendi. Bu sayılar yeni yerel ölçüm değildir.
+
+### Bulgu kararları ve yerel düzeltmeler
+
+| Bulgu | Karar |
+|---|---|
+| O-1, platform search içindeki kişisel alan ifadesi | Ortak arama notu “seçili çalışma alanı” olarak düzeltildi; hem kişisel hem firma kapsamına uygundur. `scope.mode` ve veri ayrımı değişmedi. |
+| O-5, tekrar `brand watch-revoke` çökmesi | `unchanged` çıktısı eklendi. Aynı sorun aynı tanımla tekrar `watch-add` için de yeniden üretildi ve düzeltildi. Terminal/JSON yanıtları başarılıdır; tekrarlar karar/tanım geçmişine yeni olay eklemez. |
+| O-2/O-3, bulunamayan kuruluş/profil kodları | Mevcut v1 davranışı korundu ve işlem bazında belgelendi. Biçimi doğru bilinmeyen/yabancı kuruluş ve bilinmeyen profil `invalid_parameters/2`; bilinmeyen genel iş `not_found/3`; farklı profil sürümü `profile_changed/1` döndürür. Ayrı geçici firma alanlarıyla tekrar doğrulandı. |
+| O-4, platform çıkış kodları | [Platform belgesine](PLATFORM_ENGINE.md#hata-ve-süreç-çıkış-kodları) çıkış ve hata kodu tabloları eklendi. Engine belgesindeki mevcut tablo korunur. |
+| CTI 10.001 IOC sınırı | Yeni kullanıcı raporu hem regresyon testinin hem dar aktör izlemesinin geçtiğini bildiriyor; eski katalog sorunu bu commit için açık hata olarak taşınmaz. |
+| Platform Nmap başarı yolu için hedef bulunmaması | Boş alanda beklenen ön koşul eksikliğidir. Hedef/izin mevcut yönetici CLI'siyle aynı firma alanına eklenebilir; SQL düzenlemesi gerekmez. Hazırlık ve plan → iş örneği [belgelendi](PLATFORM_ENGINE.md#nmap-işleri-ve-arayüz-seçenekleri). |
+
+Nmap kabul testi artık iki firmayı ve hedeflerini ürünün CLI komutlarıyla
+hazırlar. Yeni test platformdan plan/kabul, açık worker, dört hedefin
+sayfalı kanıtı, aynı isteğin tekrarı, tamamlanmış işin yeniden
+çalıştırılmaması ve yabancı firma sonucu reddini doğrular. Yalnız Nmap
+çalıştırıcı yanıtı kontrollüdür; gerçek ağ ve yeni subprocess başlatma
+engellidir. Bu, canlı Nmap başarısı veya ayrı bir yeni platform işlemi
+teslimi değildir. Çekirdek şema 72 ve v1 sözleşme sürümü korunur.
+
+### Açık kabul sınırları
+
+- 400 yardım ekranı ve 97 senaryo, 357 uç komutun bütün başarılı/hatalı
+  yollarının kabulü değildir. O-1 ve O-5 iki bulgudur; senaryo özetindeki
+  tek FAIL ile bağlantıları ham matriste ayrıca gösterilmelidir.
+- Kullanıcı TCP-connect/partial Nmap sonucu bildiriyor; SYN, UDP, OS ve
+  seçili NSE canlı kabulü yapılmış sayılmaz. Cloudflare edge gözlemi
+  origin envanteri veya IP tarama yetkisinin kanıtı değildir. Yetkili
+  kontrollü hedefte gerçek platform worker kabulü ayrıca gerekir.
+- Tavily anahtarı kullanıcı tercihiyle sonraya bırakılmıştır. crt.sh
+  502 erişim sorunudur. Supplier/ransomware adayının bulunmaması başarı
+  yolunu sınamak için ayrı kontrollü veri gerektirir; ürün bugı değildir.
+- Vendor evidence/source hataları ve uygun olmayan exposure girdisi
+  için tam girdi, hata yanıtı ve senaryo kanıtı henüz bu ortamda yoktur.
+  Sağlayıcı kesintisi, geçersiz ürün kimliği ve ayrıştırıcı hatası tek
+  `source_error` başlığında doğrulanmış ürün hatası sayılmaz.
+- Kullanıcının asıl `.xti-data/xti.db` dosyası raporda şema 69, yeni test
+  alanları şema 72'dir. Kod güncellemesi eski alanı kendiliğinden taşımaz.
+  Kişisel alanda normal kullanıma geçmeden `./xti migrate` çalıştırılır;
+  komut geçiş öncesi yedek alır. Özel alan için `--data-dir` açık seçilir.
+
+Son yerel doğrulamada `umask 002` altında 39 ilgili test 21,727 saniyede
+geçti; hata veya atlama yok. Bu tur tam suite yerine aşağıdaki kapsamı
+çalıştırdı. Kullanıcının 2.665 testlik sonucu, bu yeni çalışma ağacının
+tam test sonucu olarak sunulmaz. Bilinmeyen/yabancı kuruluş, bilinmeyen
+profil, değişmiş profil sürümü ve bilinmeyen iş cevapları ayrıca geçici
+firma alanlarında doğrulandı.
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_brand_username_watches tests.test_global_search tests.test_platform_engine tests.test_nmap_execution.PlatformNmapTests -v
+```
+
+## Nmap/kaynak raporunun incelenmesi — 17 Kasım 2026
+
+Kullanıcının `XTI_NMAP_KAYNAK_RAPORU.md` içeriği yine temiz `888f403`
+checkout'unda çalıştırıldığını bildiriyor. Bu rapor yukarıdaki yeni yerel
+düzeltmelerin kabulü değildir. Linux veri alanı burada bulunmadığı için
+UUID'lerle verilen kayıtların içeriği doğrudan doğrulanamadı.
+
+### Gerçek Red Hat belgesiyle doğrulanan ayrıştırma hatası
+
+Raporda `CVE-2021-44228` belgesindeki
+`"Red Hat JBoss Enterprise Application Platform "` ürün kimliğinin
+sonundaki boşluk sağlayıcı hatası olarak sınıflandırılmış. Bu gerekçe
+doğru değil: [CSAF 2.0 şemasında](https://docs.oasis-open.org/csaf/csaf/v2.0/os/schemas/csaf_json_schema.json)
+ürün kimliği önceden tanımlı biçimi olmayan, en az bir karakterlik
+metindir. Boşluk tek başına kimliği geçersiz yapmaz. XTI'nin kimliği
+`strip()` sonucuyla karşılaştırıp reddetmesi uyumluluk hatasıydı.
+
+Resmî [Red Hat belgesi](https://security.access.redhat.com/data/csaf/v2/vex/2021/cve-2021-44228.json)
+bu ortamda indirildi: HTTP 200, 3.622.781 byte, belge sürümü `3`, SHA-256
+`fb1a0ea32097ac50dab59b3b441550c0e1fe8e92ced4a4c7581c248e711a4d06`.
+Aynı değiştirilmemiş byte'lar eski ayrıştırıcıda rapordaki hatayı verdi.
+Düzeltmeden sonra hem yerel ayrıştırma hem gerçek kaynak adaptörünü
+kullanan CLI önizlemesi başarılı oldu:
+
+```sh
+./xti --data-dir /tmp/xti-vex-live-review-20261117 --json vuln vendor-preview CVE-2021-44228 --provider redhat
+```
+
+JSON `ok: true`, aynı kaynak özeti ve `fixed: 122`, `known_affected: 4`,
+`known_not_affected: 2254`, 26 düzeltme kaydı gösterdi; stderr boştu.
+Bunlar üretici belgesindeki ürün bağlamlarıdır, SecureHup varlıklarına
+ait zafiyet sayıları değildir. Kaynak byte'ları/CLI çıktısı yalnız `/tmp`
+altında tutuldu; repo veya kullanıcı veritabanına eklenmedi.
+
+Kimlik başındaki/sonundaki boşluklar artık aynen korunur. Bu kural ürün
+ağacı, ilişki, durum ve düzeltme başvuruları ile kanıt seçimi, kalıcı
+okuma/yazma ve yeniden kontrolde tutarlıdır. `id` ve `id ` birleştirilmez.
+PURL/CPE doğrulamaları, kontrol karakteri yasağı ve uzunluk sınırı
+korunur. Şema 72 ve bağımlılıklar değişmedi; eski kayıtlar yeniden yazılmaz.
+
+### Rapordaki F-1 için eksik karşılaştırma
+
+`vendor-match` açıkça `CVE-2014-0160` ile çağrılmış. `vendor-evidence-add`
+ise CVE parametresi almaz; `58fa5887-64f7-4987-86ac-0e2d6dfadbf4`
+maruziyetinin CVE'sini kullanır. Raporda aynı maruziyet Log4Shell Ubuntu
+ve danışma kanıtı işlemlerinde de geçiyor. Bu nedenle iki çağrının aynı
+CVE/dokümanı kullandığı kanıtlanmış değil; farklı belge kullanılması
+olası açıklamadır. Maruziyet kaydının çıktısı olmadan bağımsız bir
+`vendor-evidence-add` hatası doğrulandı sayılamaz.
+
+Aynı Linux test alanında eksik bağı gösterecek salt okunur komut:
+
+```sh
+./xti --data-dir /tmp/xti-net-full --json vuln exposure-show 58fa5887-64f7-4987-86ac-0e2d6dfadbf4
+```
+
+Karşılaştırma ancak bu kaydın CVE'si, aynı etkin paket ve aynı belge
+özetiyle yapılmalı. Yerel regresyon testi iki CVE için ayrı kaynak
+sonuçları kullanır; önceki bağımsız eşleştirmeye rağmen kanıt ekleme
+işleminin maruziyet CVE'sini, URL'sini ve kaynak özetini koruduğunu doğrular.
+
+### Diğer sonuçların kapsamı
+
+- Kesin yetkili IP/TCP/UDP portları verilmediğinden gelişmiş Nmap ve canlı
+  platform Nmap başarı yolu açık kalır. Readiness/katalog ve boş alan
+  retleri gerçek taramanın kabulü değildir. Yukarıdaki kontrollü platform
+  testi hazırlık → plan → iş → worker → sayfalı sonucu kapsar; gerçek
+  Nmap çalıştırmasıyla karıştırılmaz. Cloudflare IP'si hedef seçilmedi.
+- crt.sh için gömülü kanıt XTI ve curl zaman aşımını gösteriyor. Sonraki
+  HTTP 200 denemesinin komut/zaman/çıktısı raporda yok. Geçici sağlayıcı
+  veya ağ gecikmesi olasıdır; yalnız sağlayıcı kök nedeni kesinleşmez.
+  Timeout'ın doğru gösterilmesi başarılı veri alımı anlamına gelmez.
+- `php8.3/not_listed` ve etkisiz ürün reddi bildirilen koşullarda beklenen
+  davranıştır. Ubuntu/advisory `action: unchanged` yanıtları tekrar
+  kullanımını gösterir; bu tur yeni kanıt oluşturulduğunu göstermez.
+- `/tmp/xti-net-full` için “read-only” ifadesi kullanılan
+  `*-evidence-add` komutlarıyla garanti edilemez. Sonuç `unchanged` olsa
+  bile bunlar yazabilen işlemlerdir. Yeni kabul bağımsız, yeterli disk
+  alanına sahip bir kopyada; önce/sonra durum karşılaştırmasıyla yapılmalı.
+- Tavily anahtarı, tedarikçi ve ransomware aday eksiklikleri bu dar
+  incelemeyle giderilmiş sayılmaz. Canlı hedef yetkisi veya anahtar
+  gerektiren bir işlem bu turda çalıştırılmadı.
+
+### Yerel doğrulama
+
+Önce iki yeni kimlik/kalıcılık testi eski kodda aynı kaynak hatasıyla
+kırıldı. Düzeltmeden sonra `umask 002` ile 32 ilgili test 6,951 saniyede
+geçti; hata veya atlama yok. Testler kimliklerin ayrılmasını, yanlış
+kırpılmış başvurunun reddini, kontrol karakteri ve PURL/CPE sınırlarını,
+kalıcı kayıt/tekrar/yeniden kontrol/yedekten dönüşü ve CVE bağını kapsar.
+Önceki 2.665 testlik Linux sonucu bu yerel yamanın tam test sonucu değildir.
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_vendor_advisory tests.test_suse_vendor_advisory tests.test_vendor_package_match tests.test_vendor_package_evidence tests.test_vendor_package_evidence_check tests.test_vendor_package_evidence_migration -v
+```

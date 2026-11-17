@@ -18,6 +18,7 @@ from xti.interfaces.text import safe_text
 
 _ACTIONS = {
     "added": "eklendi",
+    "unchanged": "değişmedi",
     "updated": "güncellendi",
     "reactivated": "yeniden etkinleştirildi",
     "revoked": "geri çekildi",

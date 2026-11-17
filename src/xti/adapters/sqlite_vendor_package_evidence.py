@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.domain.assets import ValidationError
 from xti.domain.packages import normalize_package_id
+from xti.domain.vendor_advisory import normalize_vendor_product_id
 from xti.domain.vendor_package_evidence import (
     VENDOR_PACKAGE_EVIDENCE_ACTIONS,
     VendorPackageEvidence,
@@ -73,12 +74,12 @@ class SQLiteVendorPackageEvidenceRepository:
                 current_release_at=_timestamp(row[8], "VEX güncel yayım zamanı"),
                 vendor_status=normalize_vendor_status(row[9]),
                 match_kind=normalize_match_kind(row[10]),
-                vex_product_id=normalize_vendor_identifier(row[11], field="VEX ürün kimliği"),
-                component_product_id=normalize_vendor_identifier(
+                vex_product_id=normalize_vendor_product_id(row[11], field="VEX ürün kimliği"),
+                component_product_id=normalize_vendor_product_id(
                     row[12], field="VEX bileşen kimliği",
                 ),
                 component_purl=normalize_vendor_identifier(row[13], field="VEX bileşen PURL"),
-                context_product_id=normalize_vendor_identifier(
+                context_product_id=normalize_vendor_product_id(
                     row[14], field="VEX bağlam ürün kimliği",
                 ),
                 context_cpe=normalize_redhat_distribution_cpe(row[15]),
@@ -137,16 +138,16 @@ class SQLiteVendorPackageEvidenceRepository:
                 ),
                 "vendor_status": normalize_vendor_status(values["vendor_status"]),
                 "match_kind": normalize_match_kind(values["match_kind"]),
-                "vex_product_id": normalize_vendor_identifier(
+                "vex_product_id": normalize_vendor_product_id(
                     values["vex_product_id"], field="VEX ürün kimliği",
                 ),
-                "component_product_id": normalize_vendor_identifier(
+                "component_product_id": normalize_vendor_product_id(
                     values["component_product_id"], field="VEX bileşen kimliği",
                 ),
                 "component_purl": normalize_vendor_identifier(
                     values["component_purl"], field="VEX bileşen PURL",
                 ),
-                "context_product_id": normalize_vendor_identifier(
+                "context_product_id": normalize_vendor_product_id(
                     values["context_product_id"], field="VEX bağlam ürün kimliği",
                 ),
                 "context_cpe": normalize_redhat_distribution_cpe(values["context_cpe"]),
