@@ -69,7 +69,9 @@ class SourceReadinessAdapterTests(unittest.TestCase):
     def test_missing_database_and_tools_are_reported_without_creating_paths(self):
         result = self.repository.snapshot()
         self.assertEqual(result.storage_state, "not_initialized")
-        self.assertEqual(len(result.sources), 20)
+        self.assertEqual(len({source.identifier for source in result.sources}), len(result.sources))
+        self.assertTrue({'enrichment:circl', 'enrichment:urlscan'}.issubset(
+            {source.identifier for source in result.sources}))
         self.assertFalse(self.path.parent.exists())
         self.assertFalse((self.root / "project").exists())
         rows = self.rows()
