@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.151.0 · protokol `xti-platform` v1 · çekirdek şema 72.**
+**Uygulama 0.152.0 · protokol `xti-platform` v1 · çekirdek şema 72.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -84,6 +84,7 @@ doğrulanmadan oluşan hatalarda `scope=null` olabilir. Girdi 64 KiB, çıktı
 | İşlem | Girdi | Davranış |
 |---|---|---|
 | `search`, `record.get`, `sources.status`, `components.list` | [Mevcut okuma sözleşmesi](ENGINE_CONTRACT.md) seçenekleri | Seçilmiş firma alanında okuma; araç kurulumu ortak işletim bilgisidir |
+| `research.show` | `indicator_type`, `value`; isteğe bağlı adım/bütçe/sayfa/güncellik ve `expected_snapshot` | Aynı firmanın kayıtlı DNS/IOC/CTI kanıt yolları; [sözleşme ve sınırlar](RESEARCH.md) |
 | `organization.content` | `organization_id`; isteğe bağlı `scope_offset`, `scope_limit`, `offset`, `limit`, `stale_after_hours` | Kaynaklı firma/tedarikçi içerikleri, ayrı geçmiş ve kaynak durumları |
 | `profiles.list` | İsteğe bağlı `offset`, `limit` | Etkin profil adı, kimliği, sürümü ve seçilen domain; devam sayfası |
 | `jobs.submit` | `idempotency_key`, `profile_name`, `profile_revision`, `expected_workspace_id` | Kalıcı kabul; kaynak isteği veya arka plan süreç başlatmaz |
@@ -178,7 +179,7 @@ kullanır. Aynı çıkış kodu birden fazla hata durumunu kapsayabilir.
 | `2` | `invalid_request`, `invalid_parameters`, `unsupported_version`, `unsupported_operation` | İstek biçimi, işlem veya seçilen kapsam/seçenekler kabul edilmedi. |
 | `3` | `not_found` | Bu kodu kullanan kayıt/iş okuma işleminde seçili firma alanında kayıt bulunamadı. |
 | `130` | `interrupted` | Motorun yakalayabildiği kullanıcı kesintisi. Süreç zorla öldürülürse JSON cevap üretilemeyebilir. |
-| `1` | Diğer hata kodları | Örneğin `scope_unavailable`, `scope_mismatch`, `idempotency_conflict`, `profile_changed`, `invalid_job_state`, `capacity_exceeded`, `busy`, `storage_error`, `response_too_large`, `internal_error`. |
+| `1` | Diğer hata kodları | Örneğin `scope_unavailable`, `scope_mismatch`, `idempotency_conflict`, `profile_changed`, `snapshot_changed`, `invalid_job_state`, `capacity_exceeded`, `busy`, `storage_error`, `response_too_large`, `internal_error`. |
 
 Mevcut v1, bütün bulunamayan başvuruları tek bir hata kodunda toplamaz:
 

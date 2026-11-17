@@ -1,6 +1,6 @@
 """Versioned read contract, independent of transport, storage and user identity."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import re
 from typing import Any
 
@@ -9,7 +9,7 @@ from xti.domain.global_search import normalize_global_kinds, normalize_global_qu
 
 
 ENGINE_CONTRACT_VERSION = 1
-ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list')
+ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show')
 REQUEST_ID_PATTERN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', re.ASCII)
 # Deliberately versioned here: adding an internal record type does not silently
 # expose it on the external engine boundary.
@@ -126,6 +126,13 @@ def parse_engine_request(value: object) -> EngineRequest:
             normalized = {'query': normalize_global_query(parameters['query']),
                 'kinds': normalize_global_kinds(parameters.get('kinds')),
                 'include_inactive': inactive, **_page(parameters)}
+        elif operation == 'research.show':
+            from xti.domain.research import research_query
+            parameters = _object(parameters, allowed={
+                'indicator_type', 'value', 'max_hops', 'node_limit', 'edge_limit',
+                'offset', 'limit', 'stale_after_hours', 'expected_snapshot'},
+                required={'indicator_type', 'value'}, code='invalid_parameters')
+            normalized = asdict(research_query(**parameters))
         elif operation == 'record.get':
             parameters = _object(parameters, allowed={'reference', 'offset', 'limit'},
                                  required={'reference'}, code='invalid_parameters')

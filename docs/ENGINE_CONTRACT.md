@@ -1,11 +1,13 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.151.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 72.
+**Uygulama:** 0.152.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 72.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
-JSON biçiminde okuyabilmesini sağlar. Dört işlem vardır: arama, kayıt ayrıntısı,
-kaynak durumu ve proje araç kataloğu. Mevcut terminal komutları ve `--json` çıktıları
-korunur. `news` ve `mention` kayıt aileleri bu dört işlemle okunur.
+JSON biçiminde okuyabilmesini sağlar. Beş işlem vardır: arama, kayıt ayrıntısı,
+kaynak durumu, proje araç kataloğu ve `research.show` ilişkili kanıt araştırması.
+Mevcut terminal komutları ve `--json` çıktıları korunur. `news` ve `mention`
+kayıt aileleri mevcut arama/ayrıntı işlemleriyle okunur; araştırmanın ilk
+kapsamı DNS/IOC/CTI'dır. [Araştırma isteği, sonucu ve sınırları](RESEARCH.md).
 0.146.0 haber profilleri için çekirdek şemayı 69'a taşımıştır; mevcut
 kayıt alanlarının geçişi ayrı ve açık `./xti migrate` adımıdır.
 [Güncelleme rehberi](GETTING_STARTED.md) uygulanır.
@@ -86,7 +88,7 @@ veya tekrar önleme anahtarı değildir.
 |---|---|
 | `contract_version` | Tamsayı `1`; uygulama sürümünden ve veritabanı şemasından ayrıdır |
 | `request_id` | İstemcinin seçtiği eşleştirme kimliği |
-| `operation` | `search`, `record.get`, `sources.status` veya `components.list` |
+| `operation` | `search`, `record.get`, `sources.status`, `components.list` veya `research.show` |
 | `parameters` | İşleme özel seçenek nesnesi; seçenek yoksa `{}` |
 
 Cevabın ortak alanları:
@@ -296,6 +298,7 @@ kanıtlanmaz; bağımsız yerel okumalar için ortak kurulum kesiti garantisi yo
 | `unsupported_operation` | 2 | Desteklenmeyen işlem adı |
 | `invalid_parameters` | 2 | Geçersiz veya bilinmeyen işlem seçeneği/referans |
 | `not_found` | 3 | İstenen tür/kaynak alanında kayıt bulunamadı |
+| `snapshot_changed` | 1 | `research.show` sayfasının kanıt/kapsam kesiti değişmiş; ilk sayfadan yeniden başlayın |
 | `storage_error` | 1 | Kayıt alanı/girdi okunamadı veya kanıt bütünlüğü doğrulanamadı |
 | `response_too_large` | 1 | Cevap boyutu sınırı aşıldı; daha küçük sayfa/kapsam gerekir |
 | `internal_error` | 1 | Beklenmeyen hata; iç istisna metni cevaba eklenmez |
@@ -311,7 +314,7 @@ arama isteğinin cevabı aşağıdaki biçimdedir. Bu hata yeni veri toplamaz:
 ```json
 {
   "contract_version": 1,
-  "engine_version": "0.151.0",
+  "engine_version": "0.152.0",
   "request_id": "arama-1",
   "operation": "search",
   "status": "error",

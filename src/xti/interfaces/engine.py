@@ -34,11 +34,13 @@ def make_engine_service(database: Path) -> EngineReadService:
     from xti.application.global_search import GlobalSearchService
     from xti.application.source_readiness import SourceReadinessService
     from xti.interfaces.components import make_component_service
+    from xti.interfaces.research import make_research_service
     return EngineReadService(
         GlobalSearchService(SQLiteGlobalSearchRepository(database)),
         SQLiteEngineRecordRepository(database),
         SourceReadinessService(SQLiteSourceReadinessRepository(database)),
         make_component_service(),
+        make_research_service(database),
     )
 
 
@@ -119,6 +121,8 @@ def engine_manifest() -> dict:
         'request_max_bytes': MAX_REQUEST_BYTES, 'response_max_bytes': MAX_RESPONSE_BYTES,
         'max_json_depth': MAX_JSON_DEPTH, 'default_limit': 50, 'max_limit': 500,
         'max_offset': 1_000_000,
+        'research': {'model_version': 1, 'max_hops': 2, 'max_nodes': 100,
+                     'max_edges': 200, 'max_limit': 100, 'pagination_guard': 'expected_snapshot'},
         'record_types': [{'kind': kind, 'record_type': record_type, 'namespaces': list(namespaces)}
                          for (kind, record_type), namespaces in RECORD_NAMESPACES.items()],
         'request_id_semantics': 'correlation_only',

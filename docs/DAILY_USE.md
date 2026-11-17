@@ -34,6 +34,21 @@ ortak katalogdaki kayıtlar firmanın bulgu sayısı değildir.
 Satırdaki sonraki komut, eksik kurulumu veya veri yenilemeyi başlatmak
 içindir. Durum ekranını açmak yeni arama başlatmaz.
 
+### Domain veya IP'nin ilişkili kanıtları
+
+```sh
+./xti research securehup.com --type domain
+./xti research 93.184.216.34 --type ip
+./xti research securehup.com --type domain --max-hops 2 --limit 10
+```
+
+Mevcut kayıtlar üzerinden domain → IP → CTI kaydı gibi yolları kaynak,
+tarih ve kanıt kimliğiyle gösterir. Yeni ağ isteği yapmaz; veri önceden
+mevcut toplama/kontrol işlemleriyle alınır. IP örneği de yalnız yerel
+aramadır. Eski veya geri çekilmiş kaynak iddiası etkin tehdit diye
+sunulmaz. Ortak IP sahiplik kanıtı değildir. Kısmi kapsam ve sonraki
+sayfa komutu görünür. [Ayrıntı ve platform isteği](RESEARCH.md).
+
 ### Kısa görünüm ve kayıt ayrıntıları
 
 ```sh

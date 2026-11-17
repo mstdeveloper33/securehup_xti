@@ -1,8 +1,27 @@
 # XTI — Güncel Uygulama Durumu
 
-**17 Kasım 2026 · 0.151.0 · Çekirdek şema 72.**
+**17 Kasım 2026 · 0.152.0 · Çekirdek şema 72.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
+
+**0.152.0 ilk ilişkili kanıt dilimi:** `research` CLI ve engine/platform
+`research.show`, seçili çalışma alanının domain/IP, web DNS ve IOC/CTI
+kanıtlarını en fazla iki adımlı, kaynaklı yollarla gösterir. Kanonik
+domain/IP düğümü özgün kayıt/iddia/olay/varsa kaynak çalışma kimliklerini
+korur. Eski DNS, son başarısız kontrol, geri çekilmiş IOC ve farklı kaynak
+iddiaları birlikte görünür. Ağ/ücretli API isteği, yeni tablo veya bağımlılık
+yoktur. Kısmi kapsam ve değişen sayfa kontrolü açıktır.
+[Kullanım, sözleşme ve sınırlar](RESEARCH.md).
+
+**0.152.0 yerel kabulü:** `umask 002` altında yeni araştırma, mimari,
+engine kayıt/sözleşme, platform/yalıtım, CTI bağlamı ve varlık ilişkilerinin
+110 testi 44,354 saniyede geçti; hata veya atlama yok. Bunların 23'ü yeni
+araştırma kabulüdür. İki firma/aynı IP, 10.001 ilgisiz IOC, eşzamanlı yazma,
+geri çekilmiş/eski kanıt, kapsam sınırları ve yedekten dönüş kapsandı.
+Bu, tam test paketi veya canlı Linux kabulü değildir. Bu bilgisayarın
+varsayılan eski veri alanı ayrıca okunmaya çalışıldı; mevcut şema kontrolü
+yedekli geçiş isteyerek okumayı durdurdu, alan taşınmadı.
+[Kabul kaydı](ACCEPTANCE_REVIEW.md#01520--ilişkili-kanıt-araştırmasının-yerel-kabulü).
 
 **0.151.0 kullanım iyileştirmesi:** Kaynak durumu ile kuruluşun terminal ve
 HTML raporu son denemenin kısmi kaydını, tam başarılı çalışma yokluğunu,
@@ -22,11 +41,13 @@ kapsamıdır, tam test paketi veya Linux canlı kaynak kabulü değildir.
 
 **Güncel ürün kararı — plan, yeni özellik teslimi değildir:** Motor kendi
 ticari platformumuz için kapalı kaynak geliştirilecek. Lisansı ve veri
-koşulları uygun hazır bileşenlerden yararlanılacak. Mevcut 0.150.0 üzerine
+koşulları uygun hazır bileşenlerden yararlanılacak. Mevcut motor üzerine
 ortak istihbarat modeli, ilişkili kanıt araştırması, kaynak genişletme,
 kalite/öncelik ve yönetilebilir akışlar [MTR-00–08 planına](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
-alındı. İlk yeni MTR paketi mevcut domain/IP, IOC ve CTI kanıtlarını kaynaklı
-araştırma yollarıyla platforma açacak. Bu MTR işleri henüz uygulanmadı;
+alındı. İlk MTR-01/02 dilimi 0.152.0'da kayıtlı DNS/IOC/CTI araştırmasıyla
+teslim edildi. Geniş ortak model, çıkarım/kimlik incelemesi ve yeni kaynaklar
+planda kalır; bütün MTR başlıkları tamamlandı sayılmaz. Başlangıç ücretsiz
+kaynaklardır; ileride seçilebilir ücretli sağlayıcılar değerlendirilebilir.
 0.151.0 mevcut kapsamın kullanım iyileştirmesidir. Kullanıcının
 0.147.1 / şema 69 Linux deneme raporu alındı; rapor sonraki Nmap
 teslimlerinin kabulü değildir. [İnceleme ve kalan işler](ACCEPTANCE_REVIEW.md).

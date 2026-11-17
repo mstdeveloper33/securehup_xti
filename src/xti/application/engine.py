@@ -5,6 +5,8 @@ from xti.application.components import ComponentCatalogService
 from xti.application.source_readiness import SourceReadinessService
 from xti.domain.engine import EngineContractError, EngineRequest, reference_for_result
 from xti.ports.engine import EngineRecordRepository
+from xti.application.research import ResearchService, research_data
+from xti.domain.research import ResearchSnapshotChanged
 
 
 def _search_data(report) -> dict:
@@ -65,11 +67,18 @@ def _sources_data(report) -> dict:
 
 class EngineReadService:
     def __init__(self, search: GlobalSearchService, records: EngineRecordRepository,
-                 sources: SourceReadinessService, components: ComponentCatalogService | None = None):
+                 sources: SourceReadinessService, components: ComponentCatalogService | None = None,
+                 research: ResearchService | None = None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
+        self.research = research
 
     def execute(self, request: EngineRequest) -> dict:
+        if request.operation == 'research.show' and self.research is not None:
+            try:
+                return research_data(self.research.show(**request.parameters))
+            except ResearchSnapshotChanged as error:
+                raise EngineContractError('snapshot_changed', str(error)) from error
         if request.operation == 'search':
             return _search_data(self.search.search(**request.parameters))
         if request.operation == 'record.get':

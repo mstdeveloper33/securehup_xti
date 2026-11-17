@@ -1,5 +1,21 @@
 # Değişiklik Kaydı
 
+## 0.152.0 — 17 Kasım 2026
+
+- `research VALUE --type domain|ip` ve engine/platform `research.show`:
+  kayıtlı DNS/IOC/CTI kanıtlarından en fazla iki adımlı araştırma yolları.
+  Kaynak, özgün kayıt/iddia/olay/çalışma kimliği, tarih, etkinlik ve
+  güncellik korunur. Ortak IP'den sahiplik veya saldırgan sonucu çıkarılmaz.
+- Tek okuma kesiti, firma alanı sınırı, açık düğüm/bağ/kaynak okuma
+  bütçeleri, yol sayfalaması ve değişen kanıt için `expected_snapshot`.
+  Eski veya geri çekilmiş kanıt saklı ayrıntıya bağlantısıyla görünür.
+- Yeni ağ isteği, zorunlu ücretli API, bağımlılık veya tablo yoktur.
+  Şema 72 ve yedek biçimi korunur; mevcut engine/platform v1'e yeni okuma
+  işlemi eklenir. [Kapsam ve kullanım](docs/RESEARCH.md).
+- `umask 002` altında 110 ilgili test 44,354 saniyede geçti; 23 yeni
+  araştırma kabulü dahil. Firma ayrımı, büyük IOC kataloğu, eşzamanlı
+  değişim ve yedekten dönüş doğrulandı; tam paket/canlı Linux kabulü değildir.
+
 ## 0.151.0 — 17 Kasım 2026
 
 - Kaynak durumu ve kuruluş terminal/HTML raporu kısmi kanıtı, tam sonuç

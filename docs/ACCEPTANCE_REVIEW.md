@@ -14,6 +14,60 @@ değerlendirir.
 Nmap teslimlerini kapsamaz. Yeni düzeltmeler veritabanı geçişi, bağımlılık
 veya platform sözleşme sürümü değişikliği gerektirmez.
 
+## 0.152.0 — İlişkili kanıt araştırmasının yerel kabulü
+
+17 Kasım 2026. `f2bb818` sonrası çalışma ağacı, uygulama 0.152.0,
+çekirdek şema 72; macOS/Python 3.13.3, `umask 002`. Yeni ağ kaynağı veya
+aktif hedef sorgulanmadı. Yeni testler ağ bağlantısını ve alt süreç
+başlatmayı hata veren mock'larla kapatır; gerçek SQLite kayıtları kullanır.
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_research tests.test_architecture \
+  tests.test_engine_contract tests.test_engine_records tests.test_platform_engine \
+  tests.test_platform_isolation tests.test_cti_context tests.test_asset_relations -v
+```
+
+Sonuç: **110 test / 44,354 saniye, hata ve atlama yok**. Ham yerel günlük:
+`/tmp/xti-research-acceptance-final.log` (repoya alınmaz). Yeni araştırma dosyasında
+23 kabul testi vardır. Ana senaryolar:
+
+- Domain → IP → CTI kaydı iki adım; özgün ilişki yönü ve kaynak/iddia/olay
+  kimlikleri; kanonik domain/IOC tek düğümde, özgün referanslar korunur.
+- İki firma aynı IP'yi kullanırken özel kanıtları birbirine görünmez.
+  Bilinmeyen veya kapalı firma kişisel alana yönelmez.
+- Ortak IP'den sahiplik/aktör ilişkisi üretilmez. Farklı aktör iddiaları,
+  eski DNS + son başarısız kontrol, geri çekilmiş ve süresi dolmuş kaynaklar
+  ayrı durumlarla görünür. Döngüler iki adımlı basit yolu uzatmaz.
+- Kararlı yol sayfası, kanıt değişince `snapshot_changed`, tek SQLite
+  okuma işlemine rağmen ayrı yazıcının eşzamanlı commit'iyle karışmayan kesit.
+- DNS/CTI penceresi, düğüm/bağ/yol, kaynak gösterimi ve byte sınırları
+  eksik kapsamı açık verir. Bozuk DNS hash'i veya çarpıtılmış CTI etkinliği
+  sağlıklı kanıt diye okunmaz. Kaynak geçmişi bütçesi aşılırsa sonuç yoktur.
+  Byte bütçesine sığmayan son DNS kontrolünün yerine eski olumlu kontrol
+  “son kontrol” diye gösterilmez; eski gözlem yalnız tarihî bağda kalır.
+- Yönetilen IOC beslemesinin gerçek makbuz kimliği korunur. Yerel geri
+  çekme kararı için besleme çalışması uydurulmaz.
+- 10.001 kontrollü ilgisiz CERT Polska IOC kaydı dar araştırmayı engellemez.
+- Terminalde verilen ayrıntı/devam komutları boşluk içeren seçili veri
+  alanında gerçekten çalıştırılır. CLI ve engine kayıt okumaları byte'ları
+  değiştirmez. `record.get` referansları açılır. Yedekten geri dönüş aynı
+  düğüm/kanıt/yol kimliklerini ve sonucu verir.
+
+İlk test geliştirme turunda yeni platform fixture'ının macOS geçici yolundaki
+symlink kökü reddedildi; test yolu `resolve()` ile düzeltildi, üretim koruması
+korundu. Büyük katalog fixture'ının eski yayın tarihi de gerçek kaynak
+güncellik kuralınca reddedildi; fixture test saatine getirildi. Son tur
+yukarıdaki 110 testin tamamını bu düzeltmelerle çalıştırdı.
+
+Gerçek varsayılan veri alanında `research securehup.com --type domain`
+ayrıca denendi. Alan önceki şemada olduğundan mevcut kontrol `storage_error`
+ve yedekli `./xti migrate` yönlendirmesi verdi. Kaynak veya veri geçişi
+çalıştırılmadı; bu deneme SecureHup için başarılı canlı araştırma sayılmaz.
+Yeni özellik şema değişimi gerektirmez, fakat mevcut motor gibi güncel
+şema 72 alanı ister. Tavily, gelişmiş canlı Nmap ve Linux güncel sürüm
+kabulünün önceki açık koşulları bu testlerle tamamlandı sayılmaz.
+
 ## Doğrulanan ve düzeltilenler
 
 | Bulgu | Yerel doğrulama | Sonuç |

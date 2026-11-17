@@ -193,6 +193,7 @@ from xti.interfaces.organizations import register_organizations_parser, execute_
 from xti.application.global_search import GlobalSearchService
 from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
 from xti.interfaces.global_search import register_global_search_parser, execute_global_search_command
+from xti.interfaces.research import register_research_parser, execute_research
 from xti.interfaces.global_saved_searches import (
     register_global_saved_search_parser, make_global_saved_search_service,
     execute_global_saved_search_command,
@@ -820,6 +821,7 @@ def build_parser() -> Parser:
     register_history_parser(commands)
     register_organizations_parser(commands)
     register_global_search_parser(commands)
+    register_research_parser(commands)
     register_global_saved_search_parser(commands)
     register_news_parser(commands)
     register_mentions_parser(commands)
@@ -3638,6 +3640,9 @@ def run(args: argparse.Namespace) -> int | None:
             result = scheduling.prepare(args.profile, keep=args.keep)
             lines = schedule_preparation_lines(result)
         emit(asdict(result), lines, as_json=args.json)
+    elif args.command == "research":
+        data, lines = execute_research(settings.database, args)
+        emit(data, lines, as_json=args.json)
     elif args.command == "search":
         data, lines = execute_global_search_command(
             GlobalSearchService(SQLiteGlobalSearchRepository(settings.database)), args,

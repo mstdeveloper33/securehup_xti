@@ -1,7 +1,7 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.151.0 / çekirdek şema 72, ayrı platform iş şeması 1.
+**Mevcut sürüm:** 0.152.0 / çekirdek şema 72, ayrı platform iş şeması 1.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -18,8 +18,9 @@ Bu seçenekler ileride ayrı ihtiyaç ve kabul koşullarıyla değerlendirilebil
 
 **Güncel geliştirme sırası:** Aşağıdaki §6.1–6.4'teki **MTR-00–08** motor
 genişleme planı geçerlidir. ENG/STB kayıtları önceki teslimlerin geçmişini
-korur. Yeni MTR yetenekleri henüz uygulanmış değildir; 0.151.0 mevcut
-kapsamın kullanım iyileştirmesidir. Çekirdek şema 72 değişmez.
+korur. İlk MTR-01/02 dilimi 0.152.0'ın kayıtlı DNS/IOC/CTI araştırmasıdır;
+diğer MTR işleri plan olarak kalır. 0.151.0 mevcut kapsamın kullanım
+iyileştirmesidir. Çekirdek şema 72 değişmez.
 
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
@@ -320,6 +321,15 @@ eşlik eder. Takvim ve kapasite taahhüdü, ekip/dağıtım/yük belli olmadan v
 
 ### 6.3 İlk geliştirme paketi: ilişkili kanıt araştırması
 
+**0.152.0 ilk dilim teslimi:** `research` ve firma kapsamlı `research.show`
+mevcut web DNS gözlemi, kesin IOC değeri ve doğrudan CTI iddiasından en fazla
+iki adımlı yolları tek okuma kesitinde sunar. Kaynak/kimlik/tarih korunur;
+sayfa değişimi ve bütçe nedeniyle eksik kapsam açıktır. Yeni bağımlılık,
+tablo veya ücretli API yoktur. [İşlem envanteri ve sınırlar](../RESEARCH.md).
+CNAME/sertifika/tedarikçi ilişki geçmişi mevcut CLI'da kalır; genel kimlik
+incelemesi, kural çıkarımı ve bütün kaynakların ortak modele taşınması bu
+ilk dilimin teslimi değildir. MTR-01/02 bütünüyle tamamlandı sayılmaz.
+
 **Kabul raporu önceliği:** Kullanıcının 0.147.1 Linux raporu üzerine
 MTR-00 kapsamında CTI izleme ve yeni klasör izinleri düzeltildi; umask
 testi taşınabilir hale getirildi. 0.151.0 kısmi kanıt gösterimini ve açık
@@ -329,7 +339,7 @@ Kalan kaynak hazırlığı ve canlı kabul işleri
 Bu kayıt sonraki Nmap sürümlerinin canlı kabulünü tamamlamaz.
 
 İlk yeni özellik, **kayıtlı bir domain veya kesin IP'den ilişkili kanıta
-ulaşma** olacaktır. Başlangıçta mevcut kaynakların kayıtları kullanılır;
+ulaşma** olarak uygulanmıştır. Başlangıçta mevcut kaynakların kayıtları kullanılır;
 bu görünümü okumak yeni internet sorgusu veya aktif tarama başlatmaz.
 Verinin alınması mevcut toplama işleriyle sürer.
 
@@ -391,6 +401,9 @@ veriden elde edilen yeni fayda, bağımlılık değişikliğinden ayrı sınanı
 - Kaynak erişimi ücretsiz olsa bile müşterilere sunma, saklama, raporda
   kullanma ve yeniden dağıtma koşulları kaynak kartında tutulur. İlk yeni
   paket zorunlu ücretli API istemez; ücretli kaynaklar seçilebilir kalır.
+  17 Kasım kullanıcı tercihi: şimdi ücretsiz ilerleme, ürün beklentiyi
+  karşılayınca ücretli kaynakları değerlendirme. Bu tercih bir sağlayıcıyı
+  etkinleştirme veya ücretli sorgu başlatma talimatı değildir.
 - Nmap, NPSL/OEM koşulları; theHarvester ise sabit sürümünün GPL koşulları
   nedeniyle ticari dağıtım bakımından ayrıca incelenecek mevcut
   bileşenlerdir. Mevcut kurulumların çalışması ticari ürün onayı değildir.

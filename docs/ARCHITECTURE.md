@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**16 Kasım 2026 — 0.150.0, çekirdek şema 72 ana proje yapısı.**
+**17 Kasım 2026 — 0.152.0, çekirdek şema 72 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -9,8 +9,14 @@ sürümlü sözleşmesi XTI'da; uygulama oturumu, roller ve React/.NET bağlant�
 platform ekibindedir. Uygun üçüncü taraf bileşenler küçük adaptörlerin
 arkasında kalır. [MTR motor genişleme planı](roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 gelecek işlerdir; mevcut mimarinin uygulandığı kapsam aşağıda belirtilir.
-İlk ilişki araştırması mevcut servisleri kullanacak; graph deposu veya
-PostgreSQL geçişi bu planla uygulanmış sayılmaz.
+0.152.0 ilk ilişki araştırmasını mevcut DNS/IOC/CTI kanıtlarından üretir;
+graph deposu veya PostgreSQL geçişi yapmaz. `ResearchService` küçük okuma
+portuna bağlıdır; genişlik öncelikli iki adımlı yol/bütçe kuralları domain
+katmanındadır. SQLite adaptörü bir read transaction içinde mevcut DNS
+decoder/hash ve CTI iddia geçmişi denetimlerini kullanır. Açık alanlı JSON
+serileştirmesi CLI ile engine/platform `research.show` tarafından paylaşılır.
+Kapsam sınırları ve içerik kimliği sayfa değişimini görünür yapar.
+[0156 karar kaydı](decisions/0156-related-evidence-research.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı
