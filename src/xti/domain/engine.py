@@ -9,7 +9,8 @@ from xti.domain.global_search import normalize_global_kinds, normalize_global_qu
 
 
 ENGINE_CONTRACT_VERSION = 1
-ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show',
+ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show', 'research.priorities',
+                     'research.history', 'research.review.get',
                      'warninglists.status', 'warninglists.lookup', 'warninglists.run.get',
                      'enrichment.lookup', 'enrichment.history', 'enrichment.run.get')
 REQUEST_ID_PATTERN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', re.ASCII)
@@ -166,7 +167,24 @@ def parse_engine_request(value: object) -> EngineRequest:
             from xti.domain.cti_knowledge import normalize_knowledge_id
             parameters = _object(parameters, allowed={'run_id', 'offset', 'limit'}, required={'run_id'}, code='invalid_parameters')
             normalized = {'run_id': normalize_knowledge_id(parameters['run_id']), **_page(parameters)}
-        elif operation == 'research.show':
+        elif operation == 'research.history':
+            from xti.domain.research_history import capture_scope, page_options
+            parameters = _object(parameters, allowed={'indicator_type', 'value', 'offset', 'limit', 'expected_snapshot'},
+                                 required={'indicator_type', 'value'}, code='invalid_parameters')
+            scope = capture_scope(indicator_type=parameters['indicator_type'], value=parameters['value'])
+            normalized = {'indicator_type': scope['indicator_type'], 'value': scope['value'],
+                **page_options(parameters.get('offset', 0), parameters.get('limit', 20), parameters.get('expected_snapshot'))}
+        elif operation == 'research.review.get':
+            from xti.domain.research_history import page_options
+            from xti.domain.cti_knowledge import normalize_knowledge_id
+            parameters = _object(parameters, allowed={'review_id', 'view', 'offset', 'limit'}, required={'review_id'}, code='invalid_parameters')
+            page = page_options(parameters.get('offset', 0), parameters.get('limit', 20))
+            view = parameters.get('view', 'changes')
+            if view not in ('changes', 'items'):
+                raise ValidationError('İnceleme görünümü geçersiz.')
+            normalized = {'review_id': normalize_knowledge_id(parameters['review_id']), 'view': view,
+                          'offset': page['offset'], 'limit': page['limit']}
+        elif operation in {'research.show', 'research.priorities'}:
             from xti.domain.research import research_query
             parameters = _object(parameters, allowed={
                 'indicator_type', 'value', 'max_hops', 'node_limit', 'edge_limit',

@@ -68,6 +68,8 @@ def platform_manifest():
         'idempotency': 'company_and_key_bound_to_profile_revision',
         'submission_fence': 'expected_workspace_id',
         'automatic_replay_after_interruption': False,
+        'research_history': {'record_operation': 'research.review.record', 'capture_network_access': False,
+                             'idempotency': 'company_key_and_normalized_scope', 'submission_fence': 'expected_workspace_id'},
         'request_max_bytes': 65536, 'response_max_bytes': 8 * 1024 * 1024,
         'notes': [
             'Firma seçimi JSON ile değiştirilemez; güvenilen başlatıcı yetkilendirilmiş firmayı seçer.',
@@ -95,6 +97,9 @@ def _data(value):
 
 
 def execute_platform_request(context, request):
+    if request.operation == 'research.review.record':
+        from xti.interfaces.research_history import execute_platform_record
+        return execute_platform_record(context, request.parameters)
     if request.operation.startswith('nmap.'):
         from xti.interfaces.nmap_platform import execute_platform_nmap
         return execute_platform_nmap(context, request)

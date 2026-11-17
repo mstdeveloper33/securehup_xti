@@ -21,6 +21,8 @@ sh -n \
 exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_architecture.py \
     tests/test_research.py \
+    tests/test_research_priority.py \
+    tests/test_research_history.py \
     tests/test_warninglists.py \
     tests/test_indicator_enrichment.py \
     tests/test_mail_dns_probe.py \

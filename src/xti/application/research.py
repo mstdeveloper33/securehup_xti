@@ -1,5 +1,6 @@
 """Related evidence investigation independent of storage, CLI and transport."""
 
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from xti.domain.assets import ValidationError
@@ -7,6 +8,7 @@ from xti.domain.research import build_research, freshness, node_id, research_que
 from xti.ports.research import ResearchRepository
 from xti.domain.warninglists import catalog_data
 from xti.application.indicator_enrichment import state_data
+from xti.domain.research_priority import POLICY_VERSION, RULES, evidence_id, prioritize_research
 
 
 class ResearchService:
@@ -14,14 +16,100 @@ class ResearchService:
         self.repository = repository
         self.clock = clock or (lambda: datetime.now(timezone.utc))
 
-    def show(self, **parameters):
-        query = research_query(**parameters)
+    def _now(self):
         now = self.clock()
         if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
             raise ValidationError("Araştırma zamanı saat dilimi içermeli.")
-        checked_at = now.astimezone(timezone.utc).isoformat()
+        return now.astimezone(timezone.utc).isoformat()
+
+    def show(self, **parameters):
+        query = research_query(**parameters)
+        checked_at = self._now()
         with self.repository.open(query, checked_at) as reader:
             return build_research(reader, query, checked_at)
+
+    def priorities(self, **parameters):
+        return self._priorities(parameters, paginate=True)
+
+    def full_priorities(self, **parameters):
+        """Internal capture input; public read results retain their page limits."""
+        return self._priorities(parameters, paginate=False)
+
+    def _priorities(self, parameters, *, paginate):
+        query = research_query(**parameters)
+        checked_at = self._now()
+        with self.repository.open(query, checked_at) as reader:
+            graph = build_research(reader, replace(query, expected_snapshot=None), checked_at, paginate=False)
+            return prioritize_research(replace(graph, query=query), paginate=paginate)
+
+
+def research_evidence_data(item, checked_at, stale_after_hours):
+    return {
+        "record_type": item.record_type, "record_id": item.record_id,
+        "source": item.source, "source_reference": item.source_reference,
+        "kind": item.kind, "status": item.status, "current": item.current,
+        "observed_at": item.observed_at, "recorded_at": item.recorded_at,
+        "freshness": freshness(item.observed_at, checked_at, stale_after_hours),
+        "description": item.description, "assertion_id": item.assertion_id,
+        "event_id": item.event_id, "confidence": item.confidence,
+        "valid_from": item.valid_from, "valid_until": item.valid_until,
+        "state_sha256": item.state_sha256,
+        "first_observed_at": item.first_observed_at, "source_run_id": item.source_run_id,
+        "time_basis": item.time_basis,
+    }
+
+
+def priority_data(review) -> dict:
+    report, query = review.research, review.research.query
+    warninglists = catalog_data(report.warninglists, checked_at=report.checked_at)
+    return {
+        "model_version": 1, "policy_version": POLICY_VERSION,
+        "checked_at": report.checked_at, "snapshot_id": review.snapshot_id,
+        "evidence_snapshot_id": report.snapshot_id, "consistency": "single_read_snapshot",
+        "stored_data_only": True, "scope": "bounded_research_neighborhood",
+        "status": report.status, "root_id": report.root_id,
+        "query": {"indicator_type": query.indicator_type, "value": query.value,
+            "max_hops": query.max_hops, "node_limit": query.node_limit,
+            "edge_limit": query.edge_limit, "stale_after_hours": query.stale_after_hours},
+        "offset": query.offset, "limit": query.limit, "has_more": review.has_more,
+        "next_offset": query.offset + len(review.items) if review.has_more else None,
+        "collected_item_count": review.total_items, "priority_counts": dict(review.priority_counts),
+        "coverage_complete": not report.limitations, "limitations": list(report.limitations),
+        "coverage": [{key: item[key] for key in (
+            "kind", "scope", "examined_count", "window_limit", "complete", "order")}
+            for item in report.coverage],
+        "warninglists": {"lists": warninglists,
+            "coverage_complete": all(row["latest_status"] == "complete" and row["freshness"] == "fresh" for row in warninglists)},
+        "items": [{
+            "id": item.id, "subject_kind": item.subject_kind, "label": item.label,
+            "record_type": item.record_type, "value": item.value,
+            "source_id": item.source_id, "target_id": item.target_id,
+            "references": [{key: ref[key] for key in ("kind", "record_type", "namespace", "record_id")}
+                           for ref in item.references],
+            "related_item_ids": list(item.related_item_ids), "priority": item.priority,
+            "evidence_basis": list(item.evidence_basis),
+            "reasons": [{"code": reason.code, "priority": RULES[reason.code][0],
+                         "message": RULES[reason.code][1], "evidence_ids": list(reason.evidence_ids)}
+                        for reason in item.reasons],
+            "evidence": [{"id": evidence_id(row),
+                          **research_evidence_data(row, report.checked_at, query.stale_after_hours)}
+                         for row in item.evidence],
+            "evidence_total_count": item.evidence_total_count,
+            "enrichment": state_data(item.enrichment, report.checked_at, query.stale_after_hours) if item.enrichment else None,
+            "warninglist_matches": [{key: match[key] for key in (
+                "list_id", "run_id", "snapshot_sha256", "matched_entries", "matching_type", "category")}
+                for match in item.warninglist_matches],
+        } for item in review.items],
+        "notes": [
+            "Öncelik analistin inceleme sırasıdır; risk skoru, ihlal veya güvenli kararı değildir.",
+            "Kaynak güveni, kanıt türü, güncellik ve etkinlik ayrı kalır; kaynak sayısı veya güven puanı sıralamayı oylamaz.",
+            "Kaynak durumları farklı olabilir; metinlerden anlamsal çelişki veya aynı aktör sonucu çıkarılmaz.",
+            "Sıra yalnız seçilen kökün sınırlı araştırmasını kapsar; bütün firma veya internet envanteri değildir.",
+            "Kaynaklar sorgulanmaz; alarm, vaka ve insan kararları değiştirilmez. Eksik kanıt sıfır risk değildir.",
+            "Yol sayfalarından önce bütün toplanan düğüm ve ilişkiler sıralanır; sayfa öğe sayfasıdır.",
+            "Sonraki sayfada bu cevabın snapshot_id değerini kullanın; kanıt veya güncellik değişirse ilk sayfaya dönün.",
+        ],
+    }
 
 
 def research_data(report) -> dict:
@@ -30,19 +118,7 @@ def research_data(report) -> dict:
     warninglists = catalog_data(report.warninglists, checked_at=report.checked_at)
 
     def evidence(item):
-        return {
-            "record_type": item.record_type, "record_id": item.record_id,
-            "source": item.source, "source_reference": item.source_reference,
-            "kind": item.kind, "status": item.status, "current": item.current,
-            "observed_at": item.observed_at, "recorded_at": item.recorded_at,
-            "freshness": freshness(item.observed_at, report.checked_at, query.stale_after_hours),
-            "description": item.description, "assertion_id": item.assertion_id,
-            "event_id": item.event_id, "confidence": item.confidence,
-            "valid_from": item.valid_from, "valid_until": item.valid_until,
-            "state_sha256": item.state_sha256,
-            "first_observed_at": item.first_observed_at, "source_run_id": item.source_run_id,
-            "time_basis": item.time_basis,
-        }
+        return research_evidence_data(item, report.checked_at, query.stale_after_hours)
 
     return {
         "model_version": 1, "status": report.status, "checked_at": report.checked_at,

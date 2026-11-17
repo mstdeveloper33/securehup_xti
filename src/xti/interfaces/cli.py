@@ -198,6 +198,8 @@ from xti.interfaces.warninglists import register_warninglist_parser, execute_war
 from xti.domain.warninglists import WarninglistRunNotFound
 from xti.interfaces.indicator_enrichment import register_enrichment_parser, execute_enrichment
 from xti.domain.indicator_enrichment import EnrichmentRunNotFound
+from xti.interfaces.research_history import register_history_parser as register_research_history_parser, execute_history
+from xti.domain.research_history import ResearchHistoryError
 from xti.interfaces.global_saved_searches import (
     register_global_saved_search_parser, make_global_saved_search_service,
     execute_global_saved_search_command,
@@ -826,6 +828,7 @@ def build_parser() -> Parser:
     register_organizations_parser(commands)
     register_global_search_parser(commands)
     register_research_parser(commands)
+    register_research_history_parser(commands)
     register_warninglist_parser(commands)
     register_enrichment_parser(commands)
     register_global_saved_search_parser(commands)
@@ -3656,6 +3659,9 @@ def run(args: argparse.Namespace) -> int | None:
         ok = data.get("status") not in {"failed", "partial"}
         emit(data, lines, as_json=args.json, ok=ok)
         return 0 if ok else 3
+    elif args.command == "research-history":
+        data, lines = execute_history(settings.database, args)
+        emit(data, lines, as_json=args.json)
     elif args.command == "research":
         data, lines = execute_research(settings.database, args)
         emit(data, lines, as_json=args.json)
@@ -6970,6 +6976,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         args = parser.parse_args(values)
         return run(args) or 0
+    except ResearchHistoryError as exc:
+        report_error(exc.code, str(exc), as_json=as_json)
+        return 3 if exc.code == "not_found" else 1
     except (WarninglistRunNotFound, EnrichmentRunNotFound) as exc:
         report_error("not_found", str(exc), as_json=as_json)
         return 3

@@ -12,6 +12,7 @@ from xti.domain.nmap_platform import NMAP_OPERATIONS, parse_nmap_parameters
 
 PLATFORM_CONTRACT_VERSION = 1
 PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
+    'research.review.record',
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
 ) + NMAP_OPERATIONS
@@ -48,6 +49,13 @@ def parse_platform_request(value):
     try:
         if operation in NMAP_OPERATIONS:
             normalized = parse_nmap_parameters(operation, parameters)
+        elif operation == 'research.review.record':
+            from xti.domain.research_history import capture_scope, history_key, SCOPE_FIELDS
+            _fields(parameters, {*SCOPE_FIELDS, 'idempotency_key', 'expected_workspace_id'},
+                    {'indicator_type', 'value', 'idempotency_key', 'expected_workspace_id'})
+            normalized = {**capture_scope(**{key: value for key, value in parameters.items() if key in SCOPE_FIELDS}),
+                'idempotency_key': history_key(parameters['idempotency_key']),
+                'expected_workspace_id': normalize_knowledge_id(parameters['expected_workspace_id'])}
         elif operation == 'organization.content':
             _fields(parameters, {'organization_id', 'scope_offset', 'scope_limit',
                     'offset', 'limit', 'stale_after_hours'}, {'organization_id'})

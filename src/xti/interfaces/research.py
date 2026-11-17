@@ -1,6 +1,6 @@
 """Terminal investigation and composition; no collector or network client."""
 
-from xti.application.research import ResearchService, research_data
+from xti.application.research import ResearchService, research_data, priority_data
 from xti.interfaces.text import safe_text, xti_command
 
 
@@ -17,6 +17,69 @@ def register_research_parser(commands):
                           ("offset", 0), ("limit", 50), ("stale-after-hours", 24)):
         parser.add_argument("--" + flag, type=int, default=default)
     parser.add_argument("--expected-snapshot", help="Önceki sayfanın snapshot_id değeri; kayıtlar değişirse durur.")
+    parser.add_argument("--priorities", action="store_true", help="Kayıt ve ilişkileri gerekçeli inceleme sırasıyla göster; --limit öğe sayısıdır.")
+
+
+def priority_lines(data, *, data_dir=None):
+    labels = {"review_first": "Önce incele", "verify": "Doğrula", "context": "Bağlam"}
+    lines = ["İnceleme önceliği: " + safe_text(data["query"]["value"]),
+             "Öncelik inceleme sırasıdır; risk veya tehdit kararı değildir.",
+             f"Bu sayfada {len(data['items'])} / {data['collected_item_count']} kayıt ve ilişki; "
+             "yalnız seçili araştırmanın kapsamı."]
+    if not data["priority_counts"]["review_first"] and not data["priority_counts"]["verify"]:
+        lines.append("Bu sınırlı araştırmada ek inceleme gerekçesi çıkmadı; listelenen öğeler kaynak bağlamıdır.")
+    limits = {
+        "node_limit": "Kayıt sayısı sınırına ulaşıldı.",
+        "edge_limit": "Bağlantı sayısı sınırına ulaşıldı.",
+        "path_limit": "İlişki yollarının sayısı sınırına ulaşıldı.",
+        "dns_history_window": "DNS geçmişinin yalnız en son kontrol penceresi okundu.",
+        "dns_read_budget": "DNS kanıtlarının bir bölümü okuma boyutu sınırına sığmadı.",
+        "dns_adjacency_limit": "Bazı kayıtların DNS bağlantıları gösterim sınırını aşıyor.",
+        "cti_adjacency_limit": "Bazı kayıtların CTI bağlantıları gösterim sınırını aşıyor.",
+        "source_evidence_limit": "Bazı kayıtların kaynak kanıtları bu görünüme sığmadı.",
+        "enrichment_result_window": "URL kaynağının sonuç penceresi sınırlı; bütün arşiv kapsanmıyor.",
+    }
+    for limitation in data["limitations"]:
+        lines.append("Kapsam eksik: " + limits.get(limitation, safe_text(limitation)))
+    incomplete_lists = [row["list_id"] for row in data["warninglists"]["lists"]
+                        if row["latest_status"] != "complete" or row["freshness"] != "fresh"]
+    if incomplete_lists:
+        lines.append("Eksik, eski veya başarısız liste bağlamı: " + ", ".join(incomplete_lists))
+    for number, item in enumerate(data["items"], data["offset"] + 1):
+        lines.append(f"{number}. {labels[item['priority']]} — {safe_text(item['label'])}")
+        for reason in item["reasons"]:
+            lines.append("   " + reason["message"])
+        # Full identities remain in JSON and in the original detail commands;
+        # source names here make a short list useful without only counters.
+        if item["evidence"]:
+            lines.append("   Kaynak: " + ", ".join(sorted({safe_text(row["source"]) for row in item["evidence"]})))
+        commands = set()
+        for ref in item["references"]:
+            args = (("ioc", "show", ref["record_id"]) if ref["kind"] == "indicator" else
+                    ("cti", "entity-show", ref["record_id"]) if ref["kind"] == "cti" else
+                    ("surface", "relations", item["value"], "--kind", "dns", "--history"))
+            commands.add(xti_command(*args, data_dir=data_dir))
+        if item["subject_kind"] == "relationship" and item["id"].startswith("cti:"):
+            commands.add(xti_command("cti", "relation-show", item["id"].removeprefix("cti:"), data_dir=data_dir))
+        for row in item["evidence"]:
+            if row["record_type"] == "enrichment_run":
+                commands.add(xti_command("enrich", "run-show", row["record_id"], data_dir=data_dir))
+        for match in item["warninglist_matches"]:
+            lines.append("   Liste: " + safe_text(match["list_id"]) + " | " +
+                         ", ".join(safe_text(entry) for entry in match["matched_entries"]))
+            commands.add(xti_command("warninglists", "run-show", match["run_id"], data_dir=data_dir))
+        for command in sorted(commands):
+            lines.append("   Ayrıntı: " + command)
+    query = data["query"]
+    args = ["research", query["value"], "--type", query["indicator_type"]]
+    for field in ("max_hops", "node_limit", "edge_limit", "stale_after_hours"):
+        args.extend(("--" + field.replace("_", "-"), str(query[field])))
+    lines.append("Kanıt yolları: " + xti_command(*args, data_dir=data_dir))
+    if data["has_more"]:
+        args.extend(("--priorities", "--offset", str(data["next_offset"]), "--limit", str(data["limit"]),
+                     "--expected-snapshot", data["snapshot_id"]))
+        lines.append("Sonraki sayfa: " + xti_command(*args, data_dir=data_dir))
+    return lines
 
 
 def research_lines(data, *, data_dir=None):
@@ -94,5 +157,9 @@ def execute_research(database, args):
     parameters = {key: getattr(args, key) for key in (
         "indicator_type", "value", "max_hops", "node_limit", "edge_limit", "offset",
         "limit", "stale_after_hours", "expected_snapshot")}
-    data = research_data(make_research_service(database).show(**parameters))
+    service = make_research_service(database)
+    if args.priorities:
+        data = priority_data(service.priorities(**parameters))
+        return data, priority_lines(data, data_dir=args.data_dir)
+    data = research_data(service.show(**parameters))
     return data, research_lines(data, data_dir=args.data_dir)

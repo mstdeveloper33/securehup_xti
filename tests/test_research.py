@@ -31,7 +31,7 @@ NOW = datetime(2026, 11, 17, 12, tzinfo=timezone.utc)
 IP = "93.184.216.34"
 
 
-class ResearchTests(unittest.TestCase):
+class ResearchFixture:
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
@@ -92,6 +92,8 @@ class ResearchTests(unittest.TestCase):
         return {"contract_version": 1, "request_id": "research-1", "operation": "research.show",
                 "parameters": {"indicator_type": "domain", "value": "example.com", **parameters}}
 
+
+class ResearchTests(ResearchFixture, unittest.TestCase):
     def test_domain_ip_actor_two_hops_source_identity_and_no_mutation(self):
         check = self.dns()
         ioc, actor = self.ioc(), self.entity()

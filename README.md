@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.154.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 74.
+**Sürüm:** 0.156.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 75.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -9,6 +9,25 @@ Lisans ve veri kullanım koşulları uygun hazır bileşenlerden yararlanılır.
 Ortak istihbarat, ilişki araştırması ve kaynak kapsamı için sonraki işler
 [motor geliştirme planında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md)
 kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
+
+Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
+[NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
+
+0.156.0, `./xti research-history record securehup.com --type domain` ile
+o anki incelemeyi saklar ve önceki aynı kapsamlı kayıtla karşılaştırır.
+Yeni kanıt, geri çekilen kaynak iddiası ve yalnız zamanla eskiyen bilgi
+ayrı gösterilir. `list/show` geçmişi okur; firma platformu aynı kayıt ve
+okuma işlemlerini sunar. Yeni API maliyeti, LLM veya internet çağrısı yoktur.
+Mevcut alanlarda önce yedekli `./xti migrate` gerekir.
+[Kullanım ve kapsam](docs/RESEARCH_HISTORY.md).
+
+0.155.0, `./xti research securehup.com --type domain --priorities` ile
+"önce hangi kaydı incelemeliyim, neden?" sorusuna gerekçeli bir liste verir.
+Etkin IOC iddiası, kaynak durum farkı, eski/eksik kanıt ve son başarısız
+kontrol ayrı görünür. Aynı çıktı firma kapsamında `research.priorities`
+işleminden alınır. Mevcut kayıtları okur; ücretli API, LLM, yeni bağımlılık
+veya 74'ten yeni bir şema geçişi gerektirmez.
+[Kullanım, kurallar ve kapsam](docs/RESEARCH_PRIORITIES.md).
 
 0.154.0, `enrich fetch/lookup/history/run-show` ile URL ve dosya kimliği
 araştırmasını ekler. CIRCL bilinen dosya bağlamını, urlscan mevcut public

@@ -1,8 +1,59 @@
 # XTI — Güncel Uygulama Durumu
 
-**17 Kasım 2026 · 0.154.0 · Çekirdek şema 74.**
+**17 Kasım 2026 · 0.156.0 · Çekirdek şema 75.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
+Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
+[NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.156.0 kayıtlı inceleme ve değişim:** `research-history record/list/show`,
+engine/platform `research.history`, `research.review.get` ve firma
+platformunda `research.review.record` eklendi. İlk kayıt başlangıçtır;
+sonraki aynı kapsamın yeni kanıtı, açık kaynak geri çekmesi, görünümden
+çıkışı ve yalnız zamanla değişen değerlendirmesi ayrılır. Eski inceleme
+özgün kanıtları/kural gerekçeleriyle okunur. Tekrar anahtarı ve güncel
+firma alanı denetimi çift yazmayı/yanlış alana yazmayı engeller. Ağ,
+ücretli API, LLM, otomatik alarm veya insan kararı değişikliği yoktur.
+Şema 75 bir tablo ekler; geçiş açık ve yedeklidir. Kayıt başına 8 MiB
+inceleme/4 MiB karşılaştırma, sayfa başına en fazla 100 öğe sınırı vardır.
+Otomatik geçmiş temizliği ve bütün firma için inceleme kuyruğu henüz yoktur.
+[Kullanım ve bütünlük sınırları](RESEARCH_HISTORY.md).
+
+**0.156.0 doğrulaması:** Son kodla 115 ilgili test geçti; inceleme geçmişinin
+32 testi dahildir. Ayrı yükseltme kabulünde 18 test: 16 başarılı, iki Linux
+atlaması. Son küçük bağlantı düzeltmesi öncesi tam koşuda 2.819 testin
+2.814'ü geçti; dört Linux atlaması ve bir alt süreç sonlandırma izin hatası
+vardı. Aynı kurulum testi sandbox dışında üç kez geçti; tam koşu tekte
+yeşil olarak sunulmaz. Saklanmış gerçek URL yanıtıyla 51 öğenin kaydı,
+tekrar güvenliği, değişmeyen ikinci inceleme ve CLI/engine eşitliği geçti;
+asıl veri değişmedi. [Kabul kaydı ve kesin kapsam](ACCEPTANCE_REVIEW.md).
+
+**0.155.0 gerekçeli inceleme önceliği:** `research --priorities` ve
+engine/platform `research.priorities`, seçilen kökün sınırlı araştırmasında
+düğüm ve ilişkileri `Önce incele / Doğrula / Bağlam` sırasıyla gösterir.
+Her öğede sürümlü kural gerekçesi ve özgün kanıt başvuruları vardır.
+Kaynak güveni, kanıt türü, güncellik ve etkinlik bir risk puanına çevrilmez.
+Eski kanıt, farklı kaynak durumları, son başarısız kontrol ve eksik kapsam
+korunur. Sıralama yol sayfalarından önce yapılır; öğe sayfalamasında kanıt
+ve zaman eşiği değişimi görünürdür. Firma alanı tek okuma kesitidir;
+arama ağ, alarm veya insan kararı değişikliği yapmaz. Şema 74 korunur.
+Bu ilk MTR-04 dilimi bütün firma için iş kuyruğu, anlamsal çelişki çözümü,
+kalıcı öncelik geçmişi veya bütün MTR-04 teslimi değildir.
+[Kullanım ve kurallar](RESEARCH_PRIORITIES.md).
+
+**0.155.0 yerel kabulü:** Yeni öncelik, araştırma ve mimarinin 50 testi
+24,285 saniyede; engine/platform ve kaynak uyumunun 181 testi 69,097 saniyede
+geçti. Hata/atlama yok; toplam 231 farklı ilgili test, bunların 26'sı yeni
+öncelik kabulü. Önceden saklanmış gerçek URL arşiv yanıtı terminal ve engine
+üzerinden aynı sırayla, veri değişmeden okundu. Bu yeni canlı kaynak kabulü
+veya 0.155.0'ın tam paket sonucu değildir. [Kabul kaydı](ACCEPTANCE_REVIEW.md).
+
+**Önceki teslimin tam test tekrarı tamamlandı:** 0.154.0 / `681a728`
+commit'inin sabit kopyasında `umask 002; ./scripts/check`: **2.762 test /
+1.420,951 saniye; 2.758 başarılı, macOS'ta dört Linux atlaması, hata yok**.
+Kod/test dosyaları çalışma boyunca değişmedi. N-010 kapandı; bu tur yeni
+0.155.0 özelliğinin tam paket sonucu olarak sunulmaz.
+[Commit ve ortam kanıtı](ACCEPTANCE_REVIEW.md#01540--sabit-commit-üzerinde-tam-test).
 
 **0.154.0 URL/hash kaynak bağlamı:** `enrich fetch/lookup/history/run-show`,
 CIRCL dosya kimlikleri ve urlscan geçmiş URL kayıtlarını ayrı kaynak

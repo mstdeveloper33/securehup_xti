@@ -1,6 +1,6 @@
 # İlişkili kanıt araştırması
 
-17 Kasım 2026 · 0.154.0 · araştırma modeli 1 · engine/platform v1 · şema 74.
+17 Kasım 2026 · 0.155.0 · araştırma modeli 1 · engine/platform v1 · şema 74.
 
 Domain, kesin IP, URL veya dosya kimliği için mevcut DNS, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
@@ -44,6 +44,11 @@ gezebilir. Geçmiş gözlemler aynı anda gerçekleşmiş olay zinciri sayılmaz
 `not_recorded`: bu kapsamda kayıt yok. `no_relationships`: kayıt var,
 bağlantı yok. `related_records`: ilişki var. `partial`: bir araştırma sınırına
 ulaşıldı. Hiçbiri “güvenli” veya “internetin tamamı kontrol edildi” demek değildir.
+
+Gerekçeli inceleme sırası için `research ... --priorities` veya
+`research.priorities` kullanılır. Bu ayrı görünüm bütün toplanan düğüm ve
+ilişkileri sıralar; yol sayfalamasıyla karıştırılmaz.
+[Örnekler, sıralama kuralları ve sözleşme](RESEARCH_PRIORITIES.md).
 
 ## URL/hash kaynak bağlamı
 

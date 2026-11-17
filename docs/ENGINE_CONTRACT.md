@@ -1,15 +1,16 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.154.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 74.
+**Uygulama:** 0.156.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
-JSON biçiminde okuyabilmesini sağlar. On bir işlem vardır: arama, kayıt ayrıntısı,
+JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,
 kaynak durumu, proje araç kataloğu, `research.show` ilişkili kanıt araştırması
-ve üçer warninglist/URL-hash bağlamı okuma işlemi.
+ve üçer warninglist/URL-hash bağlamı okuma işlemi, gerekçeli inceleme sırası,
+kayıtlı inceleme geçmişi ve ayrıntısı.
 Mevcut terminal komutları ve `--json` çıktıları korunur. `news` ve `mention`
 kayıt aileleri mevcut arama/ayrıntı işlemleriyle okunur; araştırmanın ilk
 kapsamı DNS/IOC/CTI'dır. [Araştırma isteği, sonucu ve sınırları](RESEARCH.md).
-0.154.0 URL/hash kaynak geçmişi için çekirdek şemayı 74'e taşımıştır; mevcut
+0.156.0 kayıtlı incelemeler için çekirdek şemayı 75'e taşımıştır; mevcut
 kayıt alanlarının geçişi ayrı ve açık `./xti migrate` adımıdır.
 [Güncelleme rehberi](GETTING_STARTED.md) uygulanır.
 
@@ -89,7 +90,7 @@ veya tekrar önleme anahtarı değildir.
 |---|---|
 | `contract_version` | Tamsayı `1`; uygulama sürümünden ve veritabanı şemasından ayrıdır |
 | `request_id` | İstemcinin seçtiği eşleştirme kimliği |
-| `operation` | `search`, `record.get`, `sources.status`, `components.list`, `research.show`, `warninglists.status`, `warninglists.lookup`, `warninglists.run.get`, `enrichment.lookup`, `enrichment.history`, `enrichment.run.get` |
+| `operation` | `search`, `record.get`, `sources.status`, `components.list`, `research.show`, `research.priorities`, `warninglists.status`, `warninglists.lookup`, `warninglists.run.get`, `enrichment.lookup`, `enrichment.history`, `enrichment.run.get` |
 | `parameters` | İşleme özel seçenek nesnesi; seçenek yoksa `{}` |
 
 Cevabın ortak alanları:
@@ -309,6 +310,25 @@ sorgu geçmişini, `enrichment.run.get` özgün çalışmanın ayrıntılarını
 `enrichment.fetch` engine işlemi değildir; yenileme işletici CLI'sindedir.
 [Tam parametre/sonuç sözleşmesi](INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu).
 
+## `research.priorities`: gerekçeli inceleme sırası
+
+0.155.0 bu salt okuma işlemini v1'e ekler. `research.show` parametrelerini
+kullanır; `offset/limit` burada yol değil öncelik öğesi sayfasıdır.
+Özgün kaynak iddiaları, etkinlik ve güven puanı korunur; otomatik risk
+kararı veya yazma yapılmaz. Sonraki sayfa için **bu işlemin** `snapshot_id`
+değeri kullanılır; kanıt, kural veya güncellik değişimi `snapshot_changed`
+üretir. `evidence_snapshot_id` ilişkili kanıt kesitini ayrıca belirtir.
+[Tam sözleşme, kural sürümü ve kapsam](RESEARCH_PRIORITIES.md).
+
+## `research.history` ve `research.review.get`: kayıtlı inceleme
+
+İlk işlem seçili kökün inceleme geçmişini sayfalar; ikinci işlem sabit
+inceleme kimliğiyle o günkü değerlendirmeyi veya önceki kayıtla farkını
+okur. Listeye yeni kayıt girmesi `expected_snapshot` denetimiyle görünür;
+inceleme ayrıntısının sayfaları yeni kayıt veya bugünkü saatle değişmez.
+`research.review.record` engine işlemi değildir; açık kayıt işletici CLI'si
+ve firma platformundadır. [Parametreler, sonuçlar ve bütünlük sınırları](RESEARCH_HISTORY.md#engine-ve-firma-platformu).
+
 ## Hatalar ve sınırlar
 
 | Hata kodu | Çıkış kodu | Anlamı |
@@ -318,7 +338,7 @@ sorgu geçmişini, `enrichment.run.get` özgün çalışmanın ayrıntılarını
 | `unsupported_operation` | 2 | Desteklenmeyen işlem adı |
 | `invalid_parameters` | 2 | Geçersiz veya bilinmeyen işlem seçeneği/referans |
 | `not_found` | 3 | İstenen tür/kaynak alanında kayıt bulunamadı |
-| `snapshot_changed` | 1 | `research.show` sayfasının kanıt/kapsam kesiti değişmiş; ilk sayfadan yeniden başlayın |
+| `snapshot_changed` | 1 | Araştırmanın kanıt/kapsam veya öncelik/güncellik kesiti değişmiş; ilgili işlemin ilk sayfasından yeniden başlayın |
 | `storage_error` | 1 | Kayıt alanı/girdi okunamadı veya kanıt bütünlüğü doğrulanamadı |
 | `response_too_large` | 1 | Cevap boyutu sınırı aşıldı; daha küçük sayfa/kapsam gerekir |
 | `internal_error` | 1 | Beklenmeyen hata; iç istisna metni cevaba eklenmez |

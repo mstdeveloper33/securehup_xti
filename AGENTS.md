@@ -1,6 +1,8 @@
 # XTI development rules
 
 - Read `docs/STATUS.md` for implemented scope and `docs/ARCHITECTURE.md` for boundaries.
+- Read `NOTES.md` for pending checks, source terms, costs and preserved user decisions before relevant work.
+- Update `NOTES.md` in the same change when these facts change. Keep stable note IDs, dates and evidence; move resolved notes to the closed section instead of deleting them. Never mark a pending check complete without its result.
 - The roadmap describes future work. Do not report a planned feature as implemented.
 - Keep domain rules independent of storage, terminal, HTTP and external services.
 - Application services depend on small ports; wire concrete adapters at the entry point.

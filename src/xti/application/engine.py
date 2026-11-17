@@ -5,12 +5,14 @@ from xti.application.components import ComponentCatalogService
 from xti.application.source_readiness import SourceReadinessService
 from xti.domain.engine import EngineContractError, EngineRequest, reference_for_result
 from xti.ports.engine import EngineRecordRepository
-from xti.application.research import ResearchService, research_data
+from xti.application.research import ResearchService, research_data, priority_data
 from xti.domain.research import ResearchSnapshotChanged
 from xti.application.warninglists import WarninglistService
 from xti.domain.warninglists import WarninglistRunNotFound
 from xti.application.indicator_enrichment import EnrichmentService
 from xti.domain.indicator_enrichment import EnrichmentRunNotFound
+from xti.application.research_history import ResearchHistoryService
+from xti.domain.research_history import ResearchHistoryError
 
 
 def _search_data(report) -> dict:
@@ -73,14 +75,21 @@ class EngineReadService:
     def __init__(self, search: GlobalSearchService, records: EngineRecordRepository,
                  sources: SourceReadinessService, components: ComponentCatalogService | None = None,
                  research: ResearchService | None = None, warninglists: WarninglistService | None = None,
-                 enrichment: EnrichmentService | None = None):
+                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
         self.research = research
         self.warninglists = warninglists
         self.enrichment = enrichment
+        self.history = history
 
     def execute(self, request: EngineRequest) -> dict:
+        if request.operation in {'research.history', 'research.review.get'} and self.history is not None:
+            try:
+                method = self.history.history if request.operation == 'research.history' else self.history.show
+                return method(**request.parameters)
+            except ResearchHistoryError as error:
+                raise EngineContractError(error.code, str(error)) from error
         if self.enrichment is not None and request.operation in {'enrichment.lookup', 'enrichment.history', 'enrichment.run.get'}:
             method = {'enrichment.lookup': self.enrichment.lookup, 'enrichment.history': self.enrichment.history,
                       'enrichment.run.get': self.enrichment.show}[request.operation]
@@ -95,8 +104,10 @@ class EngineReadService:
                 return method(**request.parameters)
             except WarninglistRunNotFound as error:
                 raise EngineContractError('not_found', str(error)) from error
-        if request.operation == 'research.show' and self.research is not None:
+        if request.operation in {'research.show', 'research.priorities'} and self.research is not None:
             try:
+                if request.operation == 'research.priorities':
+                    return priority_data(self.research.priorities(**request.parameters))
                 return research_data(self.research.show(**request.parameters))
             except ResearchSnapshotChanged as error:
                 raise EngineContractError('snapshot_changed', str(error)) from error

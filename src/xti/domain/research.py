@@ -129,7 +129,7 @@ class ResearchReport:
     warninglists: tuple[WarninglistState, ...]
 
 
-def build_research(reader, query: ResearchQuery, checked_at: str) -> ResearchReport:
+def build_research(reader, query: ResearchQuery, checked_at: str, *, paginate=True) -> ResearchReport:
     """One snapshot reader, breadth-first bounds, stable simple paths without cycles."""
     root = (query.indicator_type, query.value)
     nodes = {root: reader.node(root)}
@@ -193,8 +193,11 @@ def build_research(reader, query: ResearchQuery, checked_at: str) -> ResearchRep
     )
     if query.expected_snapshot is not None and query.expected_snapshot != snapshot:
         raise ResearchSnapshotChanged("Araştırma kayıtları değişti; ilk sayfadan yeniden başlayın.")
-    shown = paths[query.offset:query.offset + query.limit]
-    selected_nodes, selected_edges = {root}, set()
+    # Priority evaluation needs the whole bounded neighborhood before applying
+    # its own item pagination, never just the first page of research paths.
+    shown = paths[query.offset:query.offset + query.limit] if paginate else paths
+    selected_nodes = {root} if paginate else set(nodes)
+    selected_edges = set() if paginate else set(edges)
     for keys, links in shown:
         selected_nodes.update(keys)
         selected_edges.update(links)
@@ -205,7 +208,7 @@ def build_research(reader, query: ResearchQuery, checked_at: str) -> ResearchRep
         tuple(nodes[key] for key in sorted(selected_nodes)),
         tuple(edges[key] for key in sorted(selected_edges)),
         tuple((tuple(node_id(key) for key in keys), links) for keys, links in shown),
-        len(nodes), len(edges), len(paths), query.offset + len(shown) < len(paths),
+        len(nodes), len(edges), len(paths), paginate and query.offset + len(shown) < len(paths),
         tuple(sorted(limitations)), coverage, reader.warninglists,
     )
 

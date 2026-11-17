@@ -282,7 +282,8 @@ class IndicatorEnrichmentTests(unittest.TestCase):
             self.lookup()
         self.assertEqual(before, self.files())
         result = self.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (73, 74))
+        from xti.adapters.schema import SCHEMA_VERSION
+        self.assertEqual((result['from_version'], result['to_version']), (73, SCHEMA_VERSION))
         self.assertEqual(self.storage.list(), [asset])
         with closing(sqlite3.connect(result['backup'])) as db:
             self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 73)

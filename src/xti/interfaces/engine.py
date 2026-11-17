@@ -37,6 +37,7 @@ def make_engine_service(database: Path) -> EngineReadService:
     from xti.interfaces.research import make_research_service
     from xti.interfaces.warninglists import make_warninglist_service
     from xti.interfaces.indicator_enrichment import make_enrichment_service
+    from xti.interfaces.research_history import make_history_service
     return EngineReadService(
         GlobalSearchService(SQLiteGlobalSearchRepository(database)),
         SQLiteEngineRecordRepository(database),
@@ -45,6 +46,7 @@ def make_engine_service(database: Path) -> EngineReadService:
         make_research_service(database),
         make_warninglist_service(database),
         make_enrichment_service(database),
+        make_history_service(database),
     )
 
 
@@ -120,6 +122,7 @@ def _encode(response):
 
 
 def engine_manifest() -> dict:
+    from xti.domain.research_priority import POLICY_VERSION, PRIORITIES
     return {
         'operations': list(ENGINE_OPERATIONS), 'read_only': True, 'network_access': False,
         'request_max_bytes': MAX_REQUEST_BYTES, 'response_max_bytes': MAX_RESPONSE_BYTES,
@@ -127,7 +130,12 @@ def engine_manifest() -> dict:
         'max_offset': 1_000_000,
         'research': {'model_version': 1, 'max_hops': 2, 'max_nodes': 100,
                      'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6', 'url', 'md5', 'sha1', 'sha256'],
-                     'max_edges': 200, 'max_limit': 100, 'pagination_guard': 'expected_snapshot'},
+                     'max_edges': 200, 'max_limit': 100, 'pagination_guard': 'expected_snapshot',
+                     'priority_policy_version': POLICY_VERSION, 'priorities': list(PRIORITIES),
+                     'priority_pagination': 'items', 'priority_scope': 'bounded_research_neighborhood'},
+        'research_history': {'capture_via': 'operator_cli_or_company_platform', 'snapshot_max_bytes': 8388608,
+                             'max_limit': 100, 'list_pagination_guard': 'expected_snapshot',
+                             'immutable_record_views': ['changes', 'items']},
         'warninglists': {'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6'],
                          'default_stale_after_hours': 168, 'refresh_via': 'operator_cli'},
         'enrichment': {'indicator_types': ['url', 'md5', 'sha1', 'sha256'],

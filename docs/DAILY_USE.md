@@ -1,8 +1,8 @@
 # XTI günlük kullanım
 
-Bu belge 0.153.0 / çekirdek şema 73 kullanımını kapsar. Eski kayıt alanında
+Bu belge 0.156.0 / çekirdek şema 75 kullanımını kapsar. Eski kayıt alanında
 önce `./xti doctor` ile durumu kontrol et. Geçiş gerekiyorsa açık
-`./xti migrate` komutu önce geri dönüş yedeği alır; şema 73 için yeniden
+`./xti migrate` komutu önce geri dönüş yedeği alır; şema 75 için yeniden
 geçiş gerekmez. Çok firmalı kurulum ve kalıcı profil işleri
 [platform rehberindedir](PLATFORM_ENGINE.md).
 
@@ -48,6 +48,21 @@ mevcut toplama/kontrol işlemleriyle alınır. IP örneği de yalnız yerel
 aramadır. Eski veya geri çekilmiş kaynak iddiası etkin tehdit diye
 sunulmaz. Ortak IP sahiplik kanıtı değildir. Kısmi kapsam ve sonraki
 sayfa komutu görünür. [Ayrıntı ve platform isteği](RESEARCH.md).
+
+### İnceleme sırası ve önceki incelemeye göre değişim
+
+```sh
+./xti research securehup.com --type domain --priorities
+./xti research-history record securehup.com --type domain
+./xti research-history list securehup.com --type domain
+```
+
+İlk komut eldeki kanıta göre inceleme sırasını ve gerekçeleri gösterir.
+`record` o anki incelemeyi saklar; aynı kapsamda sonraki kayıtla farkı
+üretir. İlk kayıt yalnız başlangıçtır. `list` geçmişi okur ve her kaydın
+ayrıntısını açacağın hazır komutu verir. Yeni kanıt, açık geri çekme ve
+zamanla eskime ayrı görünür. Hiçbiri internetten yeni veri toplamaz.
+[Ayrıntı, tekrar güvenliği ve firma bağlantısı](RESEARCH_HISTORY.md).
 
 ### IP/domain için ortak altyapı ve özel kullanım bağlamı
 

@@ -12,6 +12,7 @@ from xti.adapters.private_directories import create_private_directory
 from xti.adapters.nmap_jobs_schema import create as create_nmap_jobs_schema
 from xti.adapters.warninglist_schema import create as create_warninglist_schema
 from xti.adapters.enrichment_schema import create as create_enrichment_schema
+from xti.adapters.research_history_schema import create as create_research_history_schema
 
 from xti.domain.assets import Asset
 from xti.adapters.schema import (
@@ -185,6 +186,7 @@ class SQLiteAssetRepository:
                 create_nmap_jobs_schema(connection)
                 create_warninglist_schema(connection)
                 create_enrichment_schema(connection)
+                create_research_history_schema(connection)
                 create_surface_cname_schema(connection)
                 create_supplier_candidate_schema(connection)
                 create_case_schema(connection)
@@ -1073,6 +1075,8 @@ class SQLiteAssetRepository:
                     create_warninglist_schema(connection)
                 if version < 74:
                     create_enrichment_schema(connection)
+                if version < 75:
+                    create_research_history_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

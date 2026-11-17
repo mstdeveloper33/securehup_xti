@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.154.0 · protokol `xti-platform` v1 · çekirdek şema 74.**
+**Uygulama 0.156.0 · protokol `xti-platform` v1 · çekirdek şema 75.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -53,6 +53,17 @@ bu alanı kullanır; başka firma/kişisel katalogdan tamamlamaz.
 Bu yenileme, kalıcı profil kuyruğuna otomatik eklenmez.
 [Kullanım, kaynak ve koşullar](WARNINGLISTS.md).
 
+## Kayıtlı incelemeler
+
+`research.history` ve `research.review.get` seçili firmanın inceleme
+geçmişini ve özgün değerlendirmesini okur. `research.review.record` yalnız
+bu alanın saklı kanıtlarından yeni inceleme kaydeder; internet sorgulamaz.
+Kayıt isteğinde `idempotency_key` ve güncel `expected_workspace_id`
+zorunludur. Aynı anahtar/kapsam ikinci kayıt oluşturmaz; yedekten dönmüş
+alanda önceki workspace kimliğiyle tekrar isteği bile reddedilir.
+Şema 75 geçişi her firma alanında açık ve yedeklidir.
+[Tam istek, sonuç, hata ve kullanım örnekleri](RESEARCH_HISTORY.md#engine-ve-firma-platformu).
+
 ## Firma içeriklerini görme
 
 ```sh
@@ -96,6 +107,10 @@ doğrulanmadan oluşan hatalarda `scope=null` olabilir. Girdi 64 KiB, çıktı
 |---|---|---|
 | `search`, `record.get`, `sources.status`, `components.list` | [Mevcut okuma sözleşmesi](ENGINE_CONTRACT.md) seçenekleri | Seçilmiş firma alanında okuma; araç kurulumu ortak işletim bilgisidir |
 | `research.show` | `indicator_type`, `value`; isteğe bağlı adım/bütçe/sayfa/güncellik ve `expected_snapshot` | Aynı firmanın kayıtlı DNS/IOC/CTI kanıt yolları ve warninglist bağlamı; [sözleşme ve sınırlar](RESEARCH.md) |
+| `research.priorities` | Aynı araştırma parametreleri; `offset/limit` öğe sayfasıdır | Aynı firmanın sınırlı araştırmasında gerekçeli inceleme sırası; [kurallar ve sözleşme](RESEARCH_PRIORITIES.md) |
+| `research.history` | `indicator_type`, `value`; isteğe bağlı `offset`, `limit`, `expected_snapshot` | Seçili kökün kayıtlı incelemeleri; metadata/önceki kayıt bağı denetimi |
+| `research.review.get` | `review_id`; isteğe bağlı `view`, `offset`, `limit` | Sabit tarihli öğeler veya önceki kayıtla fark; içerik/karşılaştırma denetimi |
+| `research.review.record` | `indicator_type`, `value`, `idempotency_key`, `expected_workspace_id`; isteğe bağlı araştırma kapsamı | Aynı firmada mevcut kanıtı saklar; internet isteği yapmaz; [kayıt sözleşmesi](RESEARCH_HISTORY.md) |
 | `warninglists.status`, `warninglists.lookup`, `warninglists.run.get` | [Warninglist okuma parametreleri](WARNINGLISTS.md#engine-ve-firma-platformu) | Seçili firmanın listeleri, kaynaklı eşleşmeleri ve tarihî kaynak çalışması; ağ isteği yok |
 | `enrichment.lookup`, `enrichment.history`, `enrichment.run.get` | [URL/hash okuma parametreleri](INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu) | Seçili firmanın CIRCL/urlscan yanıtları, kaynak ve sorgu geçmişi; ağ isteği yok |
 | `organization.content` | `organization_id`; isteğe bağlı `scope_offset`, `scope_limit`, `offset`, `limit`, `stale_after_hours` | Kaynaklı firma/tedarikçi içerikleri, ayrı geçmiş ve kaynak durumları |
@@ -105,7 +120,8 @@ doğrulanmadan oluşan hatalarda `scope=null` olabilir. Girdi 64 KiB, çıktı
 | `jobs.result` | `job_id` | Durum ve varsa değişmez kaynak makbuzları; kesintide sonuç özeti boş olabilir |
 | `jobs.cancel` | `job_id` | Yalnız bekleyen işi iptal eder; kayıt ve tekrar anahtarı korunur |
 
-Liste sınırı 1–500, kapsam sayfası 1–100, başlangıç 0–1.000.000, güncellik
+İnceleme geçmişi sayfaları 1–100 kayıtla sınırlıdır. Diğer genel liste
+sınırı 1–500, kapsam sayfası 1–100, başlangıç 0–1.000.000, güncellik
 eşiği 1–8.760 saattir. `profiles.list` sonucunda `profiles`, `offset`,
 `limit`, `has_more` ve `next_offset` bulunur. Profil satırları `id`, `name`,
 `revision`, `domain` ve `definition_sha256` taşır.

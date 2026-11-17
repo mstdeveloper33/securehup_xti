@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**17 Kasım 2026 — 0.154.0, çekirdek şema 74 ana proje yapısı.**
+**17 Kasım 2026 — 0.156.0, çekirdek şema 75 ana proje yapısı.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -34,6 +34,25 @@ IOC, alarm ve analist kararlarına yazılmaz. Şema 74 kaynak yanıtları ve
 sorgu makbuzlarını ayrı tutar. Araştırma bu kayıtları aynı read transaction
 içinde okur; kaynak bağlamı ile gözlem/alınma zamanları ayrıdır.
 [0158 kararı](decisions/0158-url-hash-source-context.md).
+
+0.155.0 inceleme sırası domain katmanındaki `research_priority` kurallarıyla
+hesaplanır. `ResearchService.priorities` mevcut okuma portundan bütün sınırlı
+araştırmayı tek transaction içinde alır; yol sayfasını değil düğüm/ilişki
+öğelerini sıralayıp sayfalar. Aynı açık alanlı serileştirme CLI ve firma
+işleminde kullanılır. Öncelik kesiti kanıt kesitini, kural sürümünü ve
+güncellik değerlendirmesini içerir; veri veya zaman sınıfı değişince önceki
+sayfa işareti reddedilir. Ağ çağrısı, yeni tablo ve karar yazımı yoktur.
+[0159 kararı](decisions/0159-explainable-research-priorities.md).
+
+0.156.0 `ResearchHistoryService` ve küçük saklama portuyla açık inceleme
+kaydını ekler. Araştırma tek okuma kesitinden alınır; ayrı kısa transaction
+önceki inceleme kimliğini karşılaştırıp atomik ekler. Tekrar anahtarı aynı
+kapsamın özgün kaydını döndürür; eşzamanlı inceleme sessizce başka başlangıca
+bağlanmaz. Saf domain karşılaştırması görünüm kaybını geri çekme saymaz,
+zaman etkisini kanıt değişiminden ayırır. Şema 75 özgün değerlendirmeyi ve
+farkı tek tabloda saklar. Platform yazımında güncel firma alanı kimliği,
+okumalarda firma kapsamı korunur. İçerik boyutu ve sayfa sınırları vardır;
+hash denetimi bağımsız imza değildir. [0160 kararı](decisions/0160-frozen-research-reviews.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı

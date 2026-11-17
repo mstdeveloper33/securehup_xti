@@ -1,5 +1,187 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.156.0 — Kayıtlı inceleme ve değişim kabulü
+
+17 Kasım 2026, macOS arm64/Python 3.13.3, çekirdek şema 75, başlangıç
+commit'i `681a728` üzerine 0.156.0 çalışma ağacı. Kullanıcı veri alanında
+geçiş yapılmadı. Yeni bölüm ağ/ücretli API/LLM gerektirmez.
+
+| Tur | Sonuç |
+|---|---|
+| Yeni inceleme geçmişi | 31 test / 10,448 saniye; hata/atlama yok |
+| Şema yükseltme/kurtarma kabulü | 18 test / 2,134 saniye; 16 başarılı, macOS'ta iki Linux atlaması |
+| Tam paket, `umask 002; ./scripts/check`, son bağlantı düzeltmesi öncesi sabit aday | 2.819 test / 1.248,276 saniye; 2.814 başarılı, dört Linux atlaması, bir süreç sonlandırma izin hatası |
+| Son bağlantı düzeltmesi: geçmiş/öncelik/araştırma/engine/platform/mimari | 115 test / 35,566 saniye; hata/atlama yok; geçmişin 32 testi dahil |
+| İzin hatası veren kurulum testinin sandbox dışında tekrarı | Üç tekrar / 7,255 saniye; üçü de başarılı |
+
+Yeni testler ilk başlangıç, 20 öğeden büyük incelemenin tamamını saklama,
+zamanla eskime/süre dolumu, açık kaynak geri çekmesi, kaynak hatası,
+kısmi kapsamda görünümden çıkma, normalize kapsam/yeni kural başlangıcı,
+arşiv makbuzu değişirken aynı ilişkiyi koruma, MISP listelerinin eskimesi,
+idempotent tekrar, eşzamanlı kayıt yarışı, yazma kesintisi, saat gerilemesi,
+liste kesiti/sabit ayrıntı sayfaları, bozuk/taşan içerik, backup/restore,
+74→75 geçişi/kesintisi, sahte eski şema, terminal güvenli gösterim,
+engine salt okuma ve firma izolasyonu/restore sonrası yazma sınırını kapsar.
+
+Tekrar komutları:
+
+```sh
+./scripts/python -m unittest tests.test_research_history -v
+./scripts/python -m unittest tests.test_linux_upgrade_acceptance -v
+./scripts/python -m unittest tests.test_research_history tests.test_research_priority tests.test_research tests.test_engine_contract tests.test_platform_engine tests.test_architecture -v
+umask 002
+./scripts/check
+```
+
+İlk geliştirme turunda yakalanan CLI parser isim çakışması düzeltildi.
+Yükseltme aracının şema üst sınırı ve eski kabul beklentileri 75'e
+taşındı; eski tablo/satır/kanıt korunması denetimi kaldırılmadı.
+Başarısız geliştirme turları başarılı nihai kabul gibi sayılmaz.
+
+**Tam paket sınırı:** Kod/test/betik hash'leri geniş koşu boyunca değişmedi.
+Tek hata, mevcut theHarvester kurulumunun kendi alt süreç grubunu kapatırken
+`os.killpg(..., SIGKILL)` çağrısında aldığı `PermissionError: [Errno 1]`
+idi. Kod güvenle durdu; izin reddini yok sayan bir değişiklik yapılmadı.
+Aynı test kısıtlı ortamda tek tekrarında 2,520 saniyede, ayrıca onaylı
+sandbox dışı üç tekrarında geçti. Bu, ortam etkisini destekler; ilk tam
+koşunun başarısızlığını sonradan başarılı saydırmaz. Güncel kod için tek
+koşuda temiz Linux/tam paket kaydı N-014'te açık tutulur.
+
+Tam koşu sonrasında yalnız yeni karşılaştırma kuralında bir uç durum
+düzeltildi: Önceden kanıtı olmayan IP'ye DNS bağı gelmesi `time_only`
+sayılmamalı. İlişkili bağların kararlı kimlikleri artık kanıt bağlamına
+dahildir; arşiv makbuzu yenilenmesi aynı bağı kopmuş saydırmaz. Özel
+regresyon testi eklendi. İlgili 115 test son kodla geçti; geniş koşu bu
+son iki dosyalık değişikliğin ardından yeniden başlatılmadı. Böylece
+tam paket sonucu ile son değişikliğin doğrulaması ayrı ve izlenebilir kalır.
+
+### Önceden alınmış gerçek kaynak yanıtıyla terminal kabulü
+
+`/tmp/xti-01540-live/xti.db` yalnız okunarak ayrı özel klasöre kopyalandı.
+Kopya açık `migrate` ile yedeklenip 74→75 geçirildi. Gerçek `./xti`
+başlatıcısıyla `https://example.com/` için ilk kayıt, ikinci kayıt,
+aynı anahtarla tekrar, geçmiş, öğe sayfası ve devam sayfası çalıştırıldı.
+Hepsi exit 0 ve boş stderr verdi. Engine `research.review.get` ile CLI
+JSON öğe sayfası eşitti. 51 öğe tamamıyla saklandı; üç öğelik sayfada
+`enrichment_result_window` ve kısmi kapsam görünür kaldı.
+İlk sonuç `baseline`, ikinci `unchanged`; tekrar aynı kaydı döndürdü.
+
+Asıl veritabanının önce/sonra SHA-256 değeri değişmedi:
+`f566a32702ab783a00637a3cc1f2b33aaf31ce058f42fe7b81f9f2ccf6396087`.
+İlk inceleme `4522441d-2104-44be-ac0f-11397242a945`, sonraki
+`de32c741-e3b0-4cb3-b836-dc6e096a4669`. Bu saklı gerçek kaynak verisiyle
+okuma/kayıt kabulüdür; yeni canlı kaynak sorgusu veya hedef güvenlik
+testi değildir. Tavily, gelişmiş canlı Nmap ve kaynak kullanım hakkı
+konularının açık kayıtlarını kapatmaz.
+
+Yerel artefaktlar (repoyla dağıtılmaz):
+
+- `/tmp/xti-01560-history-final.log`
+- `/tmp/xti-01560-upgrade-tests.log`
+- `/tmp/xti-01560-full-tests.log`
+- `/tmp/xti-01560-full-manifest.json`: tam paket öncesi kaynak/test/betik
+  hash'leri ve bitişte aynı kaldıklarının denetimi.
+- `/tmp/xti-01560-final-regression.log`: son kodun 115 ilgili testi.
+- `/tmp/xti-01560-harvester-recheck.log` ve
+  `/tmp/xti-01560-harvester-unsandboxed.log`: tek/üç ayrı tekrar.
+- `/tmp/xti-01560-final-validation.json`: son kod hash'leri, ilk koşudan
+  değişen iki dosya ve bütün doğrulama sonuçları. Son kodla önceki gerçek
+  kaynak incelemesi tekrar okundu; özgün JSON aynen korundu.
+- `/private/var/folders/jm/lvrm0h653sb692bmcp431j580000gn/T/xti-01560-saved-acceptance-0wvepfj4/`:
+  ayrı veri, geçiş yedeği, ham CLI çıktıları ve `result.json`.
+
+Son kod/test/betik manifestinin SHA-256 değeri:
+`5a6222b9a9e56219d70d63d4847fdc0975aedb080591c66b700d44c4aab90bff`.
+
+## 0.155.0 — Gerekçeli inceleme sırasının yerel kabulü
+
+17 Kasım 2026, macOS arm64/Python 3.13.3, `umask 002`, şema 74.
+Başlangıç commit'i `681a728`; 0.155.0 çalışma ağacı. Yeni ağ kaynağı,
+bağımlılık veya şema değişikliği yok. Doğrulama iki ilgili turda yapıldı:
+
+| Tur | Sonuç |
+|---|---|
+| Yeni öncelik + mevcut araştırma + mimari | 50 test / 24,285 saniye; hata ve atlama yok |
+| Engine/kayıt/platform/izolasyon/yedek, URL/hash, warninglist, bileşen, haber ve CI uyumu | 181 test / 69,097 saniye; hata ve atlama yok |
+
+İlk tur 26 yeni öncelik kabulünü içerir. İkinci turdan sonra yapılan
+küçük bağlam sıralama/gösterim düzenlemesi ilk turda yeniden doğrulandı.
+Son terminal kapsam açıklamasının Türkçeleştirilmesi ayrıca üç ilgili
+gösterim testinde 1,147 saniyede hatasız doğrulandı; bunlar aynı 26 testin
+tekrarıdır, farklı test toplamına eklenmez.
+Bu **231 farklı ilgili test**tir; 0.155.0'ın bütün test paketinin tekrar
+çalıştırıldığı iddiası değildir. Tam paket kaydı aşağıda ayrı commit için tutulur.
+
+Doğrulanan davranışlar: bütün sınırlı araştırmayı yol sayfasından önce
+sıralama, kararlı öğe sayfalaması, kaynak durum farklarının ayrı kalması,
+güven puanı/tekrar sayısıyla oy üretmeme, güncellik sınırı ve değişen
+kesitin reddi, gelecek zaman, eski DNS sonrası başarısızlık/yeni başarı,
+bilinen eşleşme yokluğu ve sonra kaynak kesintisi, MISP+IOC bağlamı,
+URL gözlem tarihi ile dosya yanıt tarihinin ayrımı, kesilen kanıtı gösterme,
+JSON/terminal tutarlılığı, kontrol karakterlerinin güvenli gösterimi,
+kayıp/bozuk veri ve cevap boyutu sınırı, iki firma, devre dışı/bilinmeyen
+firma, eşzamanlı kaynak geri çekme, salt okuma ve yedekten aynı sıra.
+Testlerde beklenmeyen ağ ve alt süreç çağrıları engellidir.
+
+Tekrar komutları:
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_research_priority tests.test_research tests.test_architecture -v
+./scripts/python -m unittest tests.test_engine_contract tests.test_engine_records tests.test_platform_engine tests.test_platform_isolation tests.test_platform_backup tests.test_indicator_enrichment tests.test_warninglists tests.test_components tests.test_component_pins tests.test_news_integration tests.test_ci_configuration -v
+```
+
+Yerel günlükler `/tmp/xti-01550-priority-tests.log` ve
+`/tmp/xti-01550-integration-tests.log`; repoyla dağıtılmaz. Öncelik testi
+`scripts/check-fast` listesine eklendi. Bu kayıt Linux veya yeni bir GitHub
+koşusunun sonucu değildir.
+
+### Önceden saklanmış gerçek kaynak yanıtıyla kullanım
+
+`/tmp/xti-01540-live` içindeki önceki gerçek urlscan yanıtı, gerçek `./xti`
+başlatıcısı üzerinden terminal/JSON/engine ile okundu. `https://example.com/`
+kökünde 51 düğüm+ilişki öğesi toplandı; `--limit 3` yalnız üç öğeyi gösterdi,
+devam sayfası ve `enrichment_result_window` kısmi kapsamı korundu. CLI ve
+engine aynı öncelik kesitini/öğe sırasını verdi; veri dosyalarının önce/sonra
+SHA-256 değerleri değişmedi. Bu arşiv kaydıyla okuma kabulüdür; yeni canlı
+API sorgusu veya `example.com` güvenlik bulgusu değildir. Kaynak koşulları
+ve Tavily/Nmap canlı kabulünün açık maddeleri devam eder.
+
+Son kayıtlı okuma artefaktları `/tmp/xti-01550-final-read-16p37cgl/`;
+CLI/engine kesiti
+`e7e839763d0cef39897a3e22d0a272ccb712d35811025c4e210fe2d0970aaba2`.
+Terminalin son sade kapsam açıklaması `/tmp/xti-01550-final-terminal.txt`
+ile ayrıca görüldü. Bu geçici dosyalar repo içeriği değildir.
+
+## 0.154.0 — Sabit commit üzerinde tam test
+
+17 Kasım 2026, **`681a728c0397bba0d48172d8b0d9a1b1aacf563c`**.
+N-010'u kapatmak için `git archive` ile ayrı bir çalışma kopyası alındı;
+bu kopyada test sırasında kod/test değiştirilmedi. Yeni 0.155.0 çalışması
+ana dizinde ilerledi ve bu tam turla karıştırılmadı.
+
+- Ortam: macOS arm64, Python 3.13.3, `umask 002`; uygulama 0.154.0/şema 74.
+- Komut: kopyanın kökünde `./scripts/check`.
+- Başlangıç/bitiş: **14:00:13–14:23:58 UTC**.
+- Unittest sonucu: **2.762 test / 1.420,951 saniye**, exit 0;
+  **2.758 başarılı, dört atlama, hata yok**.
+- Dört atlama: Linux `/proc` süreç sahipliği için iki test ve
+  `systemd-analyze` için iki test. Linux'a özgü kabul iddia edilmedi.
+- Öncesi/sonrası kaynak dosya SHA-256 değerleri aynı. Python'un yüklediği
+  `xti` yolu bu ayrı kopyanın `src/xti/__init__.py` dosyası, sürüm 0.154.0.
+
+Yerel kopya ve günlük:
+`/tmp/xti-01540-baseline-brfeg8r6/checkout`,
+`/tmp/xti-01540-baseline-brfeg8r6/full-check.log`,
+`/tmp/xti-01540-baseline-brfeg8r6/result.json`.
+Başlatıcı dahil ölçüm 1.425,575 saniyedir; üstteki süre unittest ölçümüdür.
+Geçici artefaktlar repoyla taşınmaz. Commit/sürüm/komut ve sonuç burada kalır.
+
+Bu tur iki eski kaynak envanteri beklentisi düzeltildikten sonraki tam
+paket kabulüdür. Önceki 2.761 testlik başarısız tur, eski kayıtta korunur.
+0.155.0 özelliğinin yukarıdaki ilgili testleriyle birleştirilip tek bir
+0.155.0 tam paket sonucu diye sunulmaz; Tavily/Nmap canlı kapsamı değişmez.
+
 ## 0.154.0 — URL/hash kaynak bağlamı kabulü
 
 17 Kasım 2026, Python 3.13.3/macOS, `umask 002`, çekirdek şema 74.
