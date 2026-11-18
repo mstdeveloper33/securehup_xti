@@ -7,6 +7,12 @@ Başlangıç sürümü `dbee4ab` / 0.163.0. Son teslim çekirdek 76, kuyruk 3,
 araştırma/frozen model 3, öncelik v7, kaynak işi v3 (eski 1/2 okunur).
 Kullanıcı `.xti-data` alanı değiştirilmedi. Kabul alanları geçicidir.
 
+**Son durum: Aşağıdaki kapsamla 1–7 tamamlandı.** Tam Linux paketi,
+hızlı kontrol, iki Python sürümünde firma kabulü, 30 dakikalık hacim
+koşusu, yedekten/eski sürüme dönüş ve canlı pasif kaynak akışı geçti.
+Canlı Tavily/yetkili Nmap doğrulamaları ve ticari kaynak izinleri kendi
+açık notlarında kalır. Geniş STIX/TAXII ve LLM ertelidir.
+
 ### İstenen yedi adımın karşılığı
 
 | Adım | Teslim edilen davranış | Tekrar üretilebilir kanıt |
@@ -17,11 +23,24 @@ Kullanıcı `.xti-data` alanı değiştirilmedi. Kabul alanları geçicidir.
 | 4. Kaynak ve metin kapsamı | RIPEstat IP/prefix/ASN bağlamı; saklı metinden özgün konumuyla gösterge adayları | [Kaynak testleri](../tests/test_extended_source_jobs.py), [metin sınırları](../tests/test_investigation.py); canlı pasif RIPEstat ve NCSC akışı |
 | 5. Firma inceleme listesi | Pencereli kökler, gerekçeli öncelik, bağımsız vakalar ve kaynak durumları; eksik kapsam açık | [İnceleme listesi testleri](../tests/test_investigation.py), [hacim/sayfalama kabulü](../scripts/check-engine-soak.py) |
 | 6. Yönetilen akışlar | RIPEstat, yayıncı ve metin adımları; bütçe, kalıcı sonuç, tekrar, iptal ve eski iş uyumu | [Altı adım/geç iptal/kuyruk geçişi testleri](../tests/test_extended_source_jobs.py); canlı firma plan → worker → sonuç zinciri |
-| 7. Kapasite ve işletim | Hacim, gerçek süreç tekrarı, kuyruk, arşiv, restore ve eski kodla geri dönüş | [Hacim kabulü](../scripts/check-engine-soak.py), [sürüm geri dönüşü](../scripts/check-engine-upgrade.py); yerel ve Linux firma kabulü geçti, uzun Linux/tam paket sonucu bekleniyor |
+| 7. Kapasite ve işletim | Hacim, gerçek süreç tekrarı, kuyruk, arşiv, restore ve eski kodla geri dönüş | [Hacim kabulü](../scripts/check-engine-soak.py), [sürüm geri dönüşü](../scripts/check-engine-upgrade.py); yerel/firma kabulü, 30 dakikalık Linux koşusu ve tam paket geçti |
 
 Vaka kapanışından sonra yeni kalıcı inceleme bir değişim kaydetti;
 `withdrawn_assertion_ids` boş kaldı ve önceki incelemenin saklı içeriği
 değişmedi. Kanıt: `/tmp/xti-01640-case-history-acceptance.json`.
+
+### Tam Linux paketinin nihai sonucu
+
+`91e5ca80489e98974ee617321846bdee87c67905` için
+[tam paket](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44311197271)
+Python 3.13'te **3.039 test / 2.067,829 saniye / OK** ile tamamlandı:
+**0 hata, 0 başarısız, 0 atlama**. `./scripts/check` bütün paketi baştan
+sona çalıştırdı. Günlük: `/tmp/xti-01640-linux-full-final.log`.
+
+Bu commit'te `432f530` üzerine yalnız CI süre bütçesi ve kabul belgeleri
+değişir; motor, testler, çalıştırma betikleri ve bağımlılıklar aynıdır.
+Dolayısıyla aşağıdaki `432f530` hacim/firma/canlı kaynak kanıtları aynı
+motor sürümüne aittir. İlk tam koşunun süre aşımı aşağıda korunur.
 
 ### Son kodun hızlı Linux kontrolü
 
@@ -56,8 +75,15 @@ paket başarısı sayılmaz. Günlük: `/tmp/xti-01640-linux-full-first.log`.
 
 Üç binin üzerindeki tam regresyon için yalnız CI iş süresi 60 dakikaya
 çıkarıldı; test listesi, assert'ler ve motorun komut/p95/RSS/disk/kurtarma
-eşikleri değişmedi. Runtime kodu aynı `432f530` sürümüdür. Tam paket yeni
-CI bütçesiyle baştan çalıştırılır; sonuç geldikten sonra burada kapatılır.
+eşikleri değişmedi. Runtime kodu aynı `432f530` sürümüdür. Yeni CI
+bütçesiyle baştan çalıştırılan tam paket yukarıdaki 3.039 testle geçti;
+ilk eksik koşu ayrıca başarılı sayılmadı.
+
+İptal sınırındaki `test_stabilization_data` modülünden son modüle kadar
+**531 test** yerelde ayrıca çalıştırıldı: **216,564 saniye / OK**, hata
+ve atlama yok. `/tmp/xti-01640-full-tail-local.log`. Bu demet saklama,
+geçiş, doğrulama ve geri dönüş son bölümünü kapsar; Linux tam paket sonucu
+yerine sayılmaz ve önceki kısmi koşunun sayısıyla toplanmaz.
 
 ### Son kodun Linux firma kabulü
 
@@ -128,8 +154,8 @@ ve 4 ortam atlamasıyla tamamlandı: iki eski katalog beklentisi ve eski Linux
 migration hedefi. Hepsi düzeltildi; kaynak kataloğu/CLI son demeti **21 test /
 12,329 saniye** ile geçti. İlk tam paket temiz kabul sayılmaz. `c2ccb05`
 için önce başlatılmış tam Linux ve uzun hacim işleri, son kuyruk düzeltmesi
-geldiği için iptal edildi; bunlar da tamamlanmış kabul sayılmaz. Son commit
-için yeni tam paket/uzun Linux sonuçları ayrıca eklenecek.
+geldiği için iptal edildi; bunlar da tamamlanmış kabul sayılmaz. Son kodun
+başarılı tam paket ve uzun Linux sonuçları bu bölümün başında kayıtlıdır.
 
 ### Önceki geliştirme diliminin ölçümleri
 
@@ -192,8 +218,8 @@ Başarısız denemeler başarılı kabul yerine sayılmaz.
 Tam paket ilk çalışmasında eski Linux upgrade harness'inin şema üst sınırı
 ve kaynak kataloğu testinin RIPEstat beklentisi güncellendi. Son ayrı demet
 **32 test / 14,752 saniye**, 2 Linux'a özel atlama ile geçti;
-`/tmp/xti-01640-compatibility.log`. Tam paket ve uzun Linux kabulü henüz
-sonuçlanmadı; sonuç/commit/bağlantı aşağıya eklenecek. Süreli kabul
+`/tmp/xti-01640-compatibility.log`. Bu ilk geliştirme diliminden sonraki
+başarılı tam paket ve uzun Linux kabulü yukarıda kayıtlıdır. Süreli kabul
 7/24 hizmet, sınırsız hacim veya OpenCTI eşdeğerliği değildir.
 
 ## 0.163.0 — Tedarikçi izleme ve inceleme bağlamı

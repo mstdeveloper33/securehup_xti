@@ -364,8 +364,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tam paket ilk Linux koşusu 30 dakika CI sınırında 2.509 test satırından
   sonra iptal oldu; test hatası görünmedi ama tam başarı sayılmaz. Yalnız
   CI tam paket iş bütçesi 60 dakika oldu; kabul eşikleri değişmedi. Yeni
-  tam sonuç [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) beklenir; sınırlı
-  kabul 7/24 SLA veya OpenCTI eşdeğerliği değildir.
+  tam Linux paketi `91e5ca8` üzerinde **3.039 test / 2.067,829 saniye** ile
+  geçti; hata/atlama yok. `432f530` ile motor/test kodu aynıdır.
+  [Kabul kaydı](docs/ACCEPTANCE_REVIEW.md) ilk eksik koşuyu ve nihai
+  [başarılı tam koşuyu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44311197271)
+  ayrı korur. Sınırlı kabul 7/24 SLA veya OpenCTI eşdeğerliği değildir.
 
 ## Korunacak kararlar
 
@@ -562,9 +565,10 @@ başarılı/boş, kısmi veya başarısız. Önceki complete yanıt korunur (N-0
 ve hesaplanan inceleme kartını ortak araştırma/öncelik/incelemeye bağlar.
 Anlam, hacim ve eski kayıt uyumu N-021'de korunur.
 
-**0.164.0 toplu paket:** Roadmap 1–6 uygulandı; 7'nin hacim, arşiv/yedek ve
-eski sürüme dönüş yerel kabulü geçti. Uzun Linux/tam paket kabulü yürütülüyor;
-sonuç gelmeden tamamlandı sayılmaz. [Kullanım](docs/INVESTIGATION.md).
+**0.164.0 toplu paket tamamlandı:** Roadmap 1–7'nin tanımlanan motor kapsamı,
+yerel ve 30 dakikalık Linux hacim/iptal/arşiv/yedek/eski sürüme dönüş kabulü,
+tam Linux paketi (3.039 test) ve canlı pasif kaynak akışı geçti.
+[Kullanım](docs/INVESTIGATION.md), [kanıt ve sınırlar](docs/ACCEPTANCE_REVIEW.md).
 Geniş STIX/TAXII ve LLM bu istek kapsamında açılmadı. Tavily, yetkili Nmap
 ve ticari kaynak kararları kendi notlarında bekler.
 Backendin oturum/abonelik/merkezi kota yönetimi bu sıraya dahil değildir.

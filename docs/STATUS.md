@@ -6,7 +6,8 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
 
-**0.164.0:** Roadmap 1–6 motor paketi uygulandı: mevcut vakalar/kararlar,
+**0.164.0:** Roadmap 1–7'nin tanımlanan motor ve ölçümlü kabul paketi tamamlandı:
+mevcut vakalar/kararlar,
 sosyal profiller ve saklı firma içerikleri ortak araştırmada; geri alınabilir
 kimlik eşleştirme günlüğü; saklı metinden kaynaklı gösterge adayları;
 RIPEstat IP/ağ/ASN bağlamı; pencereli firma inceleme listesi; genişletilmiş
@@ -17,15 +18,17 @@ Kuyruk 1/2 açık yedekli `source-jobs migrate` / `platform jobs-migrate`
 ile yükseltilir; altı adım ve geç iptal dahil 16 olay korunur.
 [Kullanım](INVESTIGATION.md), [mimari karar](decisions/0169-investigation-and-company-review.md).
 
-**0.164.0 kabul durumu:** Son kuyruk/ilgili entegrasyon demeti 102 test ile geçti.
-İki firmada 6.000 varlıklı yerel hacim/tekrar/iptal/temizlik arşivi/yedekten
-dönüş 38,355 saniyede; okuma p95 0,430 saniye, en yüksek RSS 66.060.288
-bayt. Gerçek 0.163.0 koduyla çekirdek 75 → 76 / kuyruk 2 → 3 yükseltme
-ve eski kodla boş alana geri dönüş geçti. NCSC → yerel metin adayları →
-RIPEstat → kayıtlı inceleme canlı firma işi tamamlandı. Linux firma kabulü
-Python 3.11 ve 3.13'te ilk koşuda geçti. Tam paket ve uzun
-Linux kabulü sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) tamamlandıkça
-işaretlenir; devam eden iş başarılı sayılmaz.
+**0.164.0 kabul durumu:** Tam Linux paketi **3.039 test / 2.067,829 saniye**,
+hata/atlama olmadan geçti. Hızlı kontrol **1.742 test**; firma izolasyonu ve
+gerçek kesinti/kurtarma Python 3.11/3.13'te başarılı. İki firmada toplam
+6.000 varlıkla **30 dakikalık Linux hacim kabulü**: 232 tur / 2.784 süreç,
+okuma p95 **0,745487 saniye**, RSS **49.979.392 bayt**, disk **18.104.785
+bayt**. Arşiv, birlikte yedekten dönüş ve gerçek eski kodla çekirdek
+75 → 76 / kuyruk 2 → 3 yükseltme/geri dönüş geçti. NCSC → yerel metin
+adayları → RIPEstat → kayıtlı inceleme canlı firma işi tamamlandı.
+İlk tam koşunun CI süre aşımı ve son başarı, kesin commit/koşu bağlantılarıyla
+[kabul kaydında](ACCEPTANCE_REVIEW.md) korunur. Bu sonuç ölçülen hacim ve
+süre içindir; geniş STIX/TAXII ve LLM bu pakete dahil değildir.
 
 **0.163.0:** İnsan onaylı tedarikçiye bağlı kaynak iddiaları, yerel izleme
 karşılaştırması ve hesaplanan inceleme kartı ortak araştırma, öncelik ve
