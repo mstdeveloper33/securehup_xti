@@ -15,6 +15,9 @@ from xti.adapters.sqlite_research_suppliers import StoredSupplierLinks
 from xti.adapters.sqlite_research_supplier_context import StoredSupplierContext
 from xti.adapters.sqlite_research_discovery import StoredDiscoveryLinks
 from xti.adapters.sqlite_research_discovery_status import StoredDiscoveryStatuses
+from xti.adapters.sqlite_research_cases import StoredCaseContext
+from xti.adapters.sqlite_research_investigation import StoredInvestigationContext
+from xti.adapters.sqlite_research_content import StoredContentContext
 from xti.domain.research_discovery_status import status_evidence
 from xti.adapters.sqlite_warninglists import read_warninglists
 from xti.adapters.sqlite_enrichment import read_enrichment
@@ -88,6 +91,9 @@ class _Reader:
             limitations=self.limitations, coverage=self.coverage)
         self.discovery_status = StoredDiscoveryStatuses(connection,
             limitations=self.limitations, coverage=self.coverage)
+        self.investigation_context = StoredInvestigationContext(connection, limitations=self.limitations, coverage=self.coverage)
+        self.case_context = StoredCaseContext(connection, limitations=self.limitations, coverage=self.coverage)
+        self.content_context = StoredContentContext(connection, limitations=self.limitations, coverage=self.coverage)
 
     def _claims(self, kind, identifier):
         # The kind is internal, never a request SQL fragment. Bound histories
@@ -210,6 +216,10 @@ class _Reader:
         if key in self.nodes:
             return self.nodes[key]
         kind, value = key
+        for context in (self.case_context, self.content_context, self.investigation_context):
+            if key in context.nodes:
+                self.nodes[key] = context.nodes[key]
+                return self.nodes[key]
         if key in self.supplier_context.nodes:
             result = self.supplier_context.nodes[key]
             self.nodes[key] = result
@@ -269,7 +279,7 @@ class _Reader:
                 evidence.extend(claims)
                 evidence_total += details.total_assertion_count
         enrichment = None
-        if kind in {"url", "md5", "sha1", "sha256"}:
+        if kind in {"url", "md5", "sha1", "sha256", "ipv4", "ipv6"}:
             enrichment = read_enrichment(self.connection, enrichment_query(indicator_type=kind, value=value))
             latest, good, snapshot = enrichment.latest_run, enrichment.successful_run, enrichment.snapshot
             if latest:
@@ -336,6 +346,9 @@ class _Reader:
         edges.extend(self.supplier_links.neighbors(key))
         edges.extend(self.supplier_context.neighbors(key))
         edges.extend(self.discovery_links.neighbors(key))
+        edges.extend(self.content_context.neighbors(key))
+        edges.extend(self.case_context.neighbors(key))
+        edges.extend(self.investigation_context.neighbors(key))
         edges.extend(edge for edge in self.enrichment_edges.values() if key in (edge.source, edge.target))
         if key[0] == "entity":
             where, values = "source_entity_id=? OR target_entity_id=?", (key[1], key[1])

@@ -1,5 +1,17 @@
 # Üçüncü Taraf Bildirimleri
 
+## RIPEstat / RIPE NCC RIS
+
+0.164.0 isteğe bağlı IP ağ bağlamını resmî `network-info` API'sinden alır.
+Sağlayıcı kodu kopyalanmaz; kaynak yanıtı, atıf ve çalışma zamanı saklanır.
+API erişimi ücretsiz ticari yeniden kullanım izni değildir. 18 Kasım 2026
+incelemesinde ticari kullanım için yazılı izin gereksinimi kaydedildi;
+ürünleşme öncesi N-022 tamamlanmalıdır.
+
+[Uç belgesi](https://stat.ripe.net/docs/data-api/api-endpoints/network-info),
+[hizmet şartları](https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/),
+[takip notu](NOTES.md#n-022--ripestat-ticari-kullanım-izni).
+
 ## theHarvester
 
 İsteğe bağlı pasif arşiv keşfi, theHarvester'ı resmî

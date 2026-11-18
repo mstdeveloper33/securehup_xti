@@ -62,9 +62,9 @@ def platform_manifest():
         'job_type': 'saved_collection_profile',
         'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
         'source_jobs': {'schema_version': 2, 'plan_operation': 'sources.plan',
-                        'execution_version': 2, 'readable_execution_versions': [1, 2],
+                        'execution_version': 3, 'readable_execution_versions': [1, 2, 3],
                         'usage_unit': 'http_open_attempt', 'shared_quota_owner': 'consuming_platform',
-                        'sources': ['circl', 'urlscan', 'misp'], 'review_opt_in': True,
+                        'sources': ['circl', 'urlscan', 'misp', 'ripestat', 'news:cisa', 'news:ncsc', 'news:cert-fr', 'reports'], 'review_opt_in': True,
                         'cancellation': 'between_steps', 'retry': 'explicit_new_job',
                         'uncertain_retry_requires_acknowledgement': True},
         'worker': 'explicit_one_job',
@@ -105,6 +105,18 @@ def execute_platform_request(context, request):
     if request.operation in SOURCE_JOB_OPERATIONS:
         from xti.interfaces.source_jobs import execute_platform_source_job
         return execute_platform_source_job(context, request)
+    if request.operation.startswith('investigation.'):
+        from xti.domain.investigation_contract import WRITE_OPERATIONS
+        from xti.interfaces.investigation import make_investigation_service
+        from xti.adapters.worker_lock import LocalExecutionLock
+        from contextlib import nullcontext
+        parameters = dict(request.parameters)
+        writing = request.operation in WRITE_OPERATIONS
+        if writing and parameters.pop('expected_workspace_id') != context.workspace_id:
+            raise EngineContractError('scope_mismatch', 'İstek güncel firma veri alanına ait değil.')
+        service = make_investigation_service(context.database)
+        with LocalExecutionLock(context.database).acquire() if writing else nullcontext():
+            return getattr(service, request.operation.rsplit('.', 1)[-1])(**parameters)
     if request.operation == 'research.review.record':
         from xti.interfaces.research_history import execute_platform_record
         return execute_platform_record(context, request.parameters)

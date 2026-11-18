@@ -244,7 +244,7 @@ class SQLiteSourceReadinessRepository:
                    'Güncellik liste içeriğinin değişim tarihi değil, son geçerli indirme zamanıdır.'),
         ) for policy in WARNINGLIST_POLICIES.values())
         rows.extend(_row(
-            'enrichment:' + provider, policy['label'], 'Seçili alanın son URL/hash sorgusu; domain filtresinden bağımsız',
+            'enrichment:' + provider, policy['label'], 'Seçili alanın son IP/URL/hash sorgusu; domain filtresinden bağımsız',
             './xti enrich lookup VALUE --type ' + policy['types'][0],
             notes=('Bu özet yalnız son sorgulanan değere aittir; bütün URL/hash kayıtlarını kapsamaz.',),
         ) for provider, policy in ENRICHMENT_PROVIDERS.items())

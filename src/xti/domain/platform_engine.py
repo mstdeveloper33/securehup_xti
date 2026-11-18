@@ -11,12 +11,14 @@ from xti.domain.nmap_platform import NMAP_OPERATIONS, parse_nmap_parameters
 from xti.domain.source_job_contract import SOURCE_JOB_OPERATIONS, parse_source_job_parameters
 
 
+from xti.domain.investigation_contract import WRITE_OPERATIONS as INVESTIGATION_WRITES, parse_parameters as parse_investigation_parameters
+
 PLATFORM_CONTRACT_VERSION = 1
 PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
     'research.review.record',
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
-) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS
+) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + INVESTIGATION_WRITES
 
 
 def _fields(value, allowed, required=()):
@@ -52,6 +54,8 @@ def parse_platform_request(value):
             normalized = parse_source_job_parameters(operation, parameters)
         elif operation in NMAP_OPERATIONS:
             normalized = parse_nmap_parameters(operation, parameters)
+        elif operation in INVESTIGATION_WRITES:
+            normalized = parse_investigation_parameters(operation, parameters)
         elif operation == 'research.review.record':
             from xti.domain.research_history import capture_scope, history_key, SCOPE_FIELDS
             _fields(parameters, {*SCOPE_FIELDS, 'idempotency_key', 'expected_workspace_id'},

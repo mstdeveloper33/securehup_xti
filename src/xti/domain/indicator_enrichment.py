@@ -15,6 +15,10 @@ from xti.domain.cti_indicators import normalize_indicator_value, normalize_cti_t
 MAX_BYTES = 2 * 1024 * 1024
 URL_RESULT_LIMIT = 20
 PROVIDERS = {
+    'ripestat': {'types': ('ipv4', 'ipv6'), 'label': 'RIPEstat / RIPE RIS ağ bağlamı',
+        'terms': 'https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/',
+        'license': 'Provider terms; retain RIPE NCC / RIPE RIS attribution',
+        'commercial_use': 'written_permission_required', 'api_key': 'not_required'},
     "circl": {"types": ("md5", "sha1", "sha256"), "label": "CIRCL hashlookup",
         "terms": "https://www.circl.lu/services/hashlookup/", "license": "CC-BY (version unspecified)",
         "commercial_use": "attribution_required", "api_key": "not_required"},
@@ -42,17 +46,19 @@ class EnrichmentQuery:
 
 
 def enrichment_query(*, indicator_type, value, provider=None):
-    if indicator_type not in ("url", "md5", "sha1", "sha256"):
-        raise ValidationError("Kaynak araştırması URL, MD5, SHA-1 veya SHA-256 olmalı.")
+    if indicator_type not in ("url", "md5", "sha1", "sha256", "ipv4", "ipv6"):
+        raise ValidationError("Kaynak araştırması IP, URL, MD5, SHA-1 veya SHA-256 olmalı.")
     value = normalize_indicator_value(indicator_type, value)
     if provider is None:
-        provider = "urlscan" if indicator_type == "url" else "circl"
+        provider = "ripestat" if indicator_type in ('ipv4', 'ipv6') else "urlscan" if indicator_type == "url" else "circl"
     if not isinstance(provider, str) or provider not in PROVIDERS or indicator_type not in PROVIDERS[provider]["types"]:
         raise ValidationError("Kaynak bu gösterge türünü desteklemiyor.")
     return EnrichmentQuery(provider, indicator_type, value)
 
 
 def request_url(query):
+    if query.provider == 'ripestat':
+        return 'https://stat.ripe.net/data/network-info/data.json?' + urlencode({'resource': query.value, 'preferred_version': '1.1'})
     if query.provider == "circl":
         return f"https://hashlookup.circl.lu/lookup/{query.indicator_type}/{query.value}"
     # The whole value is a quoted Elasticsearch keyword, not query syntax.
@@ -120,9 +126,45 @@ def parse_enrichment(query, http_status, content):
         digest = hashlib.sha256(content).hexdigest()
         if query.provider == "circl":
             return _circl(query, http_status, data, digest)
+        if query.provider == 'ripestat':
+            return _ripestat(query, http_status, data, digest)
         return _urlscan(query, http_status, data, digest)
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, RecursionError) as error:
         raise ValidationError("Kaynak yanıtı sorguyla veya beklenen veri biçimiyle uyuşmuyor.") from error
+
+
+def _ripestat(query, status, data, digest):
+    if status != 200 or data.get('status') != 'ok' or data.get('data_call_name') != 'network-info':
+        raise ValueError('Invalid RIPEstat response')
+    payload = data['data']
+    if not isinstance(payload, dict) or not isinstance(payload.get('asns'), list) or len(payload['asns']) > 100:
+        raise ValueError('Invalid ASN list')
+    parameters = data.get('query_params', {})
+    if not isinstance(parameters, dict) or ('resource' in parameters and parameters['resource'] != query.value):
+        raise ValueError('Wrong RIPEstat query scope')
+    if payload.get('resource') is not None and payload['resource'] != query.value:
+        raise ValueError('Wrong resource')
+    prefix, asns = payload.get('prefix'), []
+    for value in payload['asns']:
+        if type(value) not in (str, int) or not str(value).isascii() or not str(value).isdigit() or not 1 <= int(value) <= 4294967295:
+            raise ValueError('Invalid ASN')
+        asns.append(int(value))
+    if not prefix:
+        if asns:
+            raise ValueError('ASNs without prefix')
+        return EnrichmentSnapshot(digest, 'no_match', ())
+    network = ipaddress.ip_network(prefix, strict=True)
+    if ipaddress.ip_address(query.value) not in network:
+        raise ValueError('Prefix does not contain requested IP')
+    links = [{'source_type': query.indicator_type, 'source_value': query.value,
+              'target_type': 'network_prefix', 'target_value': str(network), 'relationship_type': 'reported_routing_prefix'}]
+    links += [{'source_type': 'network_prefix', 'source_value': str(network),
+               'target_type': 'asn', 'target_value': str(value), 'relationship_type': 'reported_origin_asn'}
+              for value in sorted(set(asns))]
+    return EnrichmentSnapshot(digest, 'matched', ({'id': query.value, 'reference': request_url(query),
+        'observed_at': None, 'description': 'RIPE NCC / RIPE RIS yönlendirme bağlamı; prefix/ASN ilişkisi sahiplik, fiziksel konum veya zararlılık kanıtı değildir.',
+        'attributes': {'prefix': str(network), 'asns': sorted(set(asns)), 'attribution': 'RIPE NCC / RIPE RIS'},
+        'relationships': links},))
 
 
 def _circl(query, status, data, digest):

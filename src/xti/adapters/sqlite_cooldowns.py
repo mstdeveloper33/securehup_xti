@@ -11,7 +11,7 @@ from xti.domain.assets import ValidationError
 from xti.domain.operations import SourceCooldown
 
 
-_PROVIDERS = frozenset({"crt.sh", "urlscan", "circl"})
+_PROVIDERS = frozenset({"crt.sh", "urlscan", "circl", "ripestat"})
 _REASONS = frozenset({"request_spacing", "retry_after", "rate_limit", "provider_wait"})
 _TIMESTAMP = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"

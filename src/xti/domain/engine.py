@@ -8,11 +8,13 @@ from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.global_search import normalize_global_kinds, normalize_global_query
 
 
+from xti.domain.investigation_contract import READ_OPERATIONS as INVESTIGATION_READS, parse_parameters as parse_investigation_parameters
+
 ENGINE_CONTRACT_VERSION = 1
 ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show', 'research.priorities',
-                     'research.history', 'research.review.get',
+                     'research.history', 'research.review.get', 'company.review',
                      'warninglists.status', 'warninglists.lookup', 'warninglists.run.get',
-                     'enrichment.lookup', 'enrichment.history', 'enrichment.run.get')
+                     'enrichment.lookup', 'enrichment.history', 'enrichment.run.get') + INVESTIGATION_READS
 REQUEST_ID_PATTERN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', re.ASCII)
 # Deliberately versioned here: adding an internal record type does not silently
 # expose it on the external engine boundary.
@@ -117,7 +119,12 @@ def parse_engine_request(value: object) -> EngineRequest:
         raise EngineContractError('unsupported_operation', 'Bu motor işlemi desteklenmiyor.')
     parameters = value['parameters']
     try:
-        if operation == 'search':
+        if operation in INVESTIGATION_READS:
+            normalized = parse_investigation_parameters(operation, parameters)
+        elif operation == 'company.review':
+            from xti.domain.company_review import review_parameters
+            normalized = review_parameters(**parameters)
+        elif operation == 'search':
             parameters = _object(parameters,
                 allowed={'query', 'kinds', 'include_inactive', 'offset', 'limit'},
                 required={'query'}, code='invalid_parameters')

@@ -229,7 +229,7 @@ class MultiSourceCLITests(unittest.TestCase):
                 "news:cisa", "news:ncsc", "news:cert-fr",
                 "mentions:tavily",
                 "warninglist:cloudflare", "warninglist:rfc1918", "warninglist:rfc3849", "warninglist:rfc6761",
-                "enrichment:circl", "enrichment:urlscan",
+                "enrichment:circl", "enrichment:urlscan", "enrichment:ripestat",
             },
         )
         self.assertFalse(catalog["crt.sh"]["contacts_monitored_target"])

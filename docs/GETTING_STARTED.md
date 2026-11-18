@@ -1,6 +1,6 @@
 # XTI hızlı başlangıç
 
-**Sürüm 0.157.0 · çekirdek şema 75.** Aşağıdaki numaralı adımlar kişisel
+**Sürüm 0.164.0 · çekirdek şema 76.** Aşağıdaki numaralı adımlar kişisel
 terminal kullanımını başlatır. Aynı motoru ayrı firma kayıt alanlarıyla
 çalıştırmak için [platform adımlarını](#çok-firmalı-platform-kullanımı) kullan.
 

@@ -6,7 +6,7 @@ from xti.adapters.sqlite import SQLiteAssetRepository
 from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
 from xti.application.source_jobs import SourceJobService
 from xti.domain.engine import EngineContractError
-from xti.domain.source_jobs import PLAN_FIELDS
+from xti.domain.source_jobs import PLAN_FIELDS, SOURCE_KEYS
 from xti.domain.warninglists import POLICIES
 from xti.interfaces.platform_jobs import jobs_database, make_job_service, initialize_jobs, migrate_jobs
 from xti.interfaces.text import safe_text, xti_command
@@ -28,7 +28,7 @@ def execute_platform_source_job(context, request):
 
 
 def register_source_jobs_parser(commands):
-    parser = commands.add_parser('source-jobs', help='URL/hash ve MISP kaynaklarını kuyrukla güncelle; ilerlemeyi izle.')
+    parser = commands.add_parser('source-jobs', help='IP/URL/hash, liste, haber ve rapor adımlarını kuyrukla yönet; ilerlemeyi izle.')
     actions = parser.add_subparsers(dest='source_job_action', required=True)
     for name, label in (('init', 'Mevcut yerel veri alanında iş kuyruğunu açıkça oluştur.'),
                         ('migrate', 'Mevcut kuyruğu yedekle ve şema 2’ye yükselt.'),
@@ -39,7 +39,7 @@ def register_source_jobs_parser(commands):
         action.add_argument('value')
         action.add_argument('--type', dest='indicator_type', required=True,
                             choices=('domain', 'ip', 'ipv4', 'ipv6', 'url', 'md5', 'sha1', 'sha256'))
-        action.add_argument('--source', dest='sources', action='append', required=True, choices=('circl', 'urlscan', 'misp'))
+        action.add_argument('--source', dest='sources', action='append', required=True, choices=SOURCE_KEYS)
         action.add_argument('--list', dest='warninglist_ids', action='append', choices=tuple(POLICIES), default=[])
         action.add_argument('--record-review', action='store_true')
         for flag, default in (('max-seconds', 180), ('max-requests', 7), ('max-hops', 2),
@@ -104,10 +104,10 @@ def source_job_lines(data, *, data_dir=None):
                 lines.append('    Önceki tamamlanmış adım kullanıldı; yeniden sorgulanmadı.')
             receipt = step['receipt']
             if receipt:
-                refs = [('warninglists', row['run_id']) for row in receipt['runs']] if step['key'] == 'misp' else [
+                refs = [('investigate', row['id']) for row in receipt['records']] if step['key'] == 'reports' else [('news', receipt['run_id'])] if step['key'].startswith('news:') else [('warninglists', row['run_id']) for row in receipt['runs']] if step['key'] == 'misp' else [
                     ('research-history', receipt['review_id']) if step['key'] == 'review' else ('enrich', receipt['run_id'])]
                 for family, identifier in refs:
-                    lines.append('    Kanıt: ' + xti_command(family, 'show' if family == 'research-history' else 'run-show', identifier, data_dir=data_dir))
+                    lines.append('    Kanıt: ' + xti_command(family, 'show' if family in {'research-history', 'investigate'} else 'run-show', identifier, data_dir=data_dir))
         return lines
     if 'plan' in data:
         plan = data['plan']

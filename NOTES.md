@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.163.0 / çekirdek 75 / iş kuyruğu 2**.
+Güncel çalışma: **0.164.0 / çekirdek 76 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -310,9 +310,56 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - **Kanıt:** 432 geniş + 86 son kontrol demetinde **435 farklı test**
   geçti (28 yeni senaryo). Yerel iki firma/süreç/kurtarma kabulü 29,331
   saniyede geçti; eşikler korunur. [Kabul kaydı](docs/ACCEPTANCE_REVIEW.md)
-  canlı kaynak veya Tavily/Nmap kabulü değildir; yeni GitHub sonucu ayrıdır.
+  canlı kaynak veya Tavily/Nmap kabulü değildir.
+- **GitHub sonucu:** 18 Kasım kontrolünde `dbee4ab` için dört iş de
+  başarılı tamamlandı: [hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44288340754),
+  [firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44288340939),
+  [Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44288340970),
+  [marka araçları kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44288341033).
+  Bu kanıt önceki sürüm içindir; 0.164.0 kabulü ayrıca kaydedilir.
 - **Dayanak:** [Kullanım](docs/RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı),
   [mimari karar](docs/decisions/0168-supplier-monitoring-research.md).
+
+### N-022 — RIPEstat ticari kullanım izni
+
+- **Durum:** Ticari ürün öncesi açık. **Güncellendi:** 18 Kasım 2026.
+- **Not:** 0.164.0 `network-info` ile IP → BGP ağ bloğu → origin ASN bağlamı
+  alır. Anahtarsız erişim ticari saklama/yeniden sunma izni değildir.
+  İncelenen şartlar ticari kullanım için RIPE NCC yazılı izni gerektirir;
+  yeniden paketleme/dağıtım koşulları ürün kullanımıyla birlikte netleşmeli.
+- **Kanıt:** [Resmî uç](https://stat.ripe.net/docs/data-api/api-endpoints/network-info),
+  [hizmet şartları](https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/).
+  18 Kasım canlı kişisel kabulünde `1.1.1.1` için `1.1.1.0/24`, ASN 13335
+  alındı; hedef taranmadı. İlk geliştirme denemeleri cooldown kaydı ve
+  isteğin yanıtta tekrar edilmesi varsayımını ortaya çıkardı; ikisi düzeltildi.
+- **Kapatma koşulu:** Kendi sunucularımızdaki ticari hizmette istenen kullanım
+  için yazılı izin/uygun anlaşma veya koşulları uygun başka sağlayıcı seçimi.
+  Kodun veya canlı testin bitmesi bu notu kapatmaz. Ücretli servis açılmadı.
+
+### N-023 — 0.164.0 karar, kapsam ve sürüm sınırları
+
+- **Durum:** Bilinen sınır / korunacak anlam. **Güncellendi:** 18 Kasım 2026.
+- **Kimlik:** İnsan eşleştirmesi fiziksel kayıt birleştirme değildir; aynı
+  türdeki özgün kayıtlar korunur. Kararlar geri alınabilir; eski sürüm veya
+  değiştirilmiş tekrar isteği reddedilir. Rapor adayı otomatik IOC olmaz.
+- **Metin:** Mevcut haber/firma başlığı ve saklı özeti incelenir; tam makale,
+  PDF veya internetteki bütün raporlar değildir. 64 KiB/200 aday sınırı ve
+  kaynak özetinin kısaltılma bilgisi korunur. İş adımı en yeni 20 haberi alır;
+  daha fazlası kısmi kapsamdır, açık tekil extract kullanılabilir.
+- **Liste:** Firma kökleri pencerelenir (varsayılan 25, en fazla 100).
+  Eksik pencere tüm firmanın kesin öncelik sırası gibi sunulmaz. Farklı
+  kaynak durumları ayrı görünür; otomatik anlamsal çelişki hükmü değildir.
+- **Saklama:** Karar günlüğü en fazla 10.000 olay/32 MiB; otomatik silme yok.
+  Araştırma okuyucuları ayrıca ön ölçümlü satır/byte bütçesi uygular.
+  Bütçe aşımı eksik kapsam veya açık ret verir, kanıtı sessizce kesmez.
+- **Uyum:** Çekirdek 76 açık yedekli migration; araştırma/frozen model 3,
+  öncelik v7. Yeni kaynak işi v3; eski v1/v2 okunur; kuyruk 2. Eski kodla
+  geri dönüş yükseltme öncesi birlikte yedeğin yeni alana restore edilmesidir.
+  Yükseltmeden sonraki veriler eski yedekte yoktur; yükseltilmiş alan korunur.
+- **Kabul:** Yerel hacim, saklama arşivi, yedekten dönüş ve gerçek eski kodla
+  sürüm geri dönüşü geçti. Uzun Linux/tam paket sonuçları
+  [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) ayrı izlenir; sınırlı kabul
+  7/24 SLA veya OpenCTI eşdeğerliği değildir.
 
 ## Korunacak kararlar
 
@@ -509,9 +556,11 @@ başarılı/boş, kısmi veya başarısız. Önceki complete yanıt korunur (N-0
 ve hesaplanan inceleme kartını ortak araştırma/öncelik/incelemeye bağlar.
 Anlam, hacim ve eski kayıt uyumu N-021'de korunur.
 
-**Sonraki öneri, henüz uygulanmadı:** Mevcut vaka ve analist kararlarını
-özgün kanıt bağlarıyla araştırmaya taşımak; kapatılan vaka ile kaynak
-iddiasının geri çekilmesini ayrı tutmak.
+**0.164.0 toplu paket:** Roadmap 1–6 uygulandı; 7'nin hacim, arşiv/yedek ve
+eski sürüme dönüş yerel kabulü geçti. Uzun Linux/tam paket kabulü yürütülüyor;
+sonuç gelmeden tamamlandı sayılmaz. [Kullanım](docs/INVESTIGATION.md).
+Geniş STIX/TAXII ve LLM bu istek kapsamında açılmadı. Tavily, yetkili Nmap
+ve ticari kaynak kararları kendi notlarında bekler.
 Backendin oturum/abonelik/merkezi kota yönetimi bu sıraya dahil değildir.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması

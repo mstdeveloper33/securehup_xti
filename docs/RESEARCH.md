@@ -1,6 +1,11 @@
 # İlişkili kanıt araştırması
 
-18 Kasım 2026 · 0.163.0 · araştırma modeli 3 · engine/platform zarfı v1 · çekirdek şema 75.
+18 Kasım 2026 · 0.164.0 · araştırma modeli 3 · engine/platform zarfı v1 · çekirdek şema 76.
+
+0.164.0 mevcut vaka/insan kararları, sosyal profil, saklı firma içeriği,
+kimlik eşleştirme ve rapor adayları ile RIPEstat IP/ağ/ASN kanıtını ekler.
+Yeni öncelik v7; eski incelemeler özgün kalır. Firma geneli pencere ve
+karar komutları [inceleme rehberinde](INVESTIGATION.md) açıklanır.
 
 Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, pasif aday, tedarikçi, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen

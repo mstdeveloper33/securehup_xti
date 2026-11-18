@@ -75,7 +75,7 @@ def replay_source_job(job, events):
                         if step['status'] != 'running' or event['reason'] is not None:
                             raise ValueError('Step finish')
                         receipt = validate_receipt(step['key'], event['receipt'], job.payload.plan)
-                        if ('usage' in receipt) != (job.payload.version == 2):
+                        if ('usage' in receipt) != (job.payload.version >= 2):
                             raise ValueError('Usage version binding')
                         step.update(status=receipt_status(step['key'], receipt), receipt=receipt, finished_at=at)
                     job = replace(job, steps=tuple(steps))

@@ -10,12 +10,17 @@ from xti.domain.research import (
 from xti.domain.surface_discovery_status import StoredDiscoveryStatus
 
 
-POLICY_VERSION = "research-priority-v6"
+POLICY_VERSION = "research-priority-v7"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
 # observations do not vote, add points, or change an analyst's decision.
 RULES = {
+    'open_case': ('verify', 'İlgili açık vaka var; karar gerekçesini ve özgün vaka kanıtını inceleyin.'),
+    'closed_case': ('context', 'İlgili vaka kapatılmış; bu karar kaynak iddiasını geri çekmez.'),
+    'social_impersonation_review': ('review_first', 'Bu profil kesiti insan tarafından olası taklit olarak işaretlenmiş; özgün incelemeyi doğrulayın.'),
+    'content_candidate': ('verify', 'Saklı firma aramasında içerik adayı var; kaynak metnini ve arama kapsamını inceleyin.'),
+    'investigation_pending': ('verify', 'Kimlik veya metin adayı insan incelemesi bekliyor; özgün kanıtı ve önceki kararları inceleyin.'),
     "supplier_priority_review": ("review_first", "İnsan tarafından önemli tanımlanan tedarikçide kaynak iddiası adayı var; kimliği ve iddiayı doğrulayın. Müşteri etkisi kanıtlanmış değildir."),
     "supplier_claim_review": ("verify", "Tedarikçiyle eşleşen kaynak iddiası var; özgün kaydı ve eşleşme dayanağını inceleyin."),
     "supplier_identity_ambiguous": ("verify", "Kaynak adı birden fazla etkin tedarikçiyle eşleşiyor; kuruluş kimliği belirsiz."),
@@ -136,6 +141,15 @@ def _reasons(rows, total, matches, related, checked_at, hours, discovery=()):
         reasons.append(ReviewReason(code, tuple(sorted({evidence_id(row) for row in evidence}))))
 
     now = datetime.fromisoformat(checked_at)
+    for code, selected in (
+        ('open_case', [row for row in rows if row.record_type == 'case_activity' and row.current and row.status in {'open', 'investigating', 'monitoring'}]),
+        ('closed_case', [row for row in rows if row.record_type == 'case_activity' and row.current and row.status in {'closed', 'resolved'}]),
+        ('social_impersonation_review', [row for row in rows if row.record_type == 'social_decision' and row.current and row.status == 'possible_impersonation']),
+        ('content_candidate', [row for row in rows if row.record_type == 'company_content']),
+        ('investigation_pending', [row for row in rows if row.record_type in {'identity_proposal', 'report_candidate'} and row.status in {'pending', 'uncertain'}]),
+    ):
+        if selected:
+            add(code, selected)
     future = [row for row in rows if any(datetime.fromisoformat(value) > now
               for value in (row.observed_at, row.recorded_at))]
     if future:
@@ -189,7 +203,7 @@ def _reasons(rows, total, matches, related, checked_at, hours, discovery=()):
     ):
         if selected:
             add(code, selected)
-    failed_source = [row for row in rows if row.record_type == "enrichment_run" and row.status == "failed"]
+    failed_source = [row for row in rows if row.record_type in {"enrichment_run", 'social_watch_run', 'company_search_run'} and row.status == "failed"]
     classifications = [row for row in rows if row.record_type == "surface_candidate" or
                        (row.record_type == "surface_candidate_decision" and row.current)]
     for status in ("pending", "rejected", "owned"):

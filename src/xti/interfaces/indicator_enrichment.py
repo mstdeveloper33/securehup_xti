@@ -19,8 +19,8 @@ def register_enrichment_parser(commands):
                             ("history", "Kaynak sorgulama geçmişini göster.")):
         sub = actions.add_parser(name, help=help_text)
         sub.add_argument("value")
-        sub.add_argument("--type", dest="indicator_type", choices=("url", "md5", "sha1", "sha256"), required=True)
-        sub.add_argument("--provider", choices=("circl", "urlscan"))
+        sub.add_argument("--type", dest="indicator_type", choices=("url", "md5", "sha1", "sha256", "ipv4", "ipv6"), required=True)
+        sub.add_argument("--provider", choices=("circl", "urlscan", "ripestat"))
         if name == "lookup":
             sub.add_argument("--stale-after-hours", type=int, default=24)
         if name == "history":

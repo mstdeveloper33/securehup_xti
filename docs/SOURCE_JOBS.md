@@ -1,8 +1,9 @@
 # Kaynak güncelleme işleri
 
-18 Kasım 2026 · 0.158.0 · çekirdek şema 75 · iş kuyruğu şeması 2.
+18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · iş kuyruğu şeması 2.
 
-URL/hash kaynaklarını ve seçilmiş MISP listelerini bir işe bağlayabilirsin.
+IP/URL/hash kaynaklarını, seçilmiş MISP listelerini, yayıncı akışlarını ve
+saklı rapor çıkarımını bir işe bağlayabilirsin.
 İş sıraya girer, açıkça çalıştırılır, her adımın sonucu saklanır. İstersen
 son adımda inceleme kaydı alınır ve aynı kapsamın önceki incelemesiyle
 karşılaştırılır. Yeni ücretli API, anahtar veya paket gerekmez.
@@ -41,9 +42,11 @@ Uyumsuz sağlayıcı ve bilinmeyen kaynak reddedilir.
 
 | Seçim | Davranış |
 |---|---|
-| Kaynak | En fazla iki; CIRCL/urlscan'den uygun olanı ve isteğe bağlı MISP |
+| Kaynak | En fazla beş: türle uyumlu CIRCL/urlscan/RIPEstat, MISP, `news:cisa`, `news:ncsc`, `news:cert-fr`, `reports` seçenekleri |
 | `--max-requests` | 1–7, varsayılan 7; planın en kötü istek sayısını karşılamalı |
 | MISP istek hesabı | Commit + gerekirse koşul belgesi + seçilen her liste için bir istek |
+| RIPEstat / yayıncı | IP başına bir GET / yayıncı başına bir GET; haber isteğine firma domaini eklenmez |
+| `reports` | Sıfır dış istek; en yeni 20 saklı haberden aday çıkarımı, varsa `has_more` ve kısmi kapsam |
 | `--max-seconds` | 1–600, varsayılan 180; adımlar arasında yeni işe başlama sınırı |
 | `--record-review` | Varsayılan kapalı; kaynakların ardından aynı kapsamın incelemesini saklar |
 | Araştırma | `--max-hops`, `--node-limit`, `--edge-limit`, `--stale-after-hours`; mevcut araştırma sınırları |
@@ -66,7 +69,7 @@ kaynak tamamlanıp diğeri başarısızsa iş `partial` olur. İnceleme kaydın�
 başarısı bütün kaynakları başarısız bir işi başarılıya çevirmez. Ayrıntılı
 hata özgün `enrich run-show` / `warninglists run-show` çıktısındadır.
 
-urlscan'e URL, CIRCL'e hash gönderilir; MISP'e araştırılan müşteri değeri
+urlscan'e URL, CIRCL'e hash, RIPEstat'a IP gönderilir; MISP'e araştırılan müşteri değeri
 gönderilmez. URL sorgusu yeni tarama başlatmaz. İnceleme kaydı insan
 kararını/alarmı değiştirmez. Kaynak atıfları ve ticari kullanım şartları
 [NOTES](../NOTES.md) içindedir; kuyruk eklenmesi yeni veri hakkı sağlamaz.
@@ -120,18 +123,23 @@ kimlikleriyle değerlendirilir; bu görünüm zincirin toplamı değildir.
 
 ### Sürüm uyumu
 
-Yeni kabul edilen `sources.refresh` işlerindeki yürütme/sonuç sürümü 2'dir;
-platform zarfı v1, çekirdek şema 75 ve kuyruk şeması 2 korunur. Yeni tablo,
-otomatik veri dönüşümü veya çekirdek geçişi gerekmez. Eski v1 işler eski
+Yeni kabul edilen `sources.refresh` işlerindeki yürütme/sonuç sürümü 3'tür;
+platform zarfı v1 ve kuyruk şeması 2 korunur. Rapor/kimlik günlüğü için
+çekirdek 76 geçişi `./xti migrate` ile açıkça yapılır. Eski v1/v2 işler eski
 biçimleriyle çalışır/okunur; saklı JSON/hash'ler yeniden yazılmaz. Aynı
 tekrar anahtarı eski işi döndürür. Eski başarısız işin açık retry'si yeni
-v2 iş olur. İstek niyeti aynı olduğundan kanonik istek sürümü 1 kalır;
+v3 iş olur. İstek niyeti aynı olduğundan kanonik istek sürümü 1 kalır;
 yürütme sürümü payload/result içinde ayrıca saklanır.
 
-0.157.0 yeni v2 işleri okuyamaz. Kod yükseltmeden önce birlikte firma
+0.163.0 ve önceki kod yeni v3 işleri okuyamaz. Kod yükseltmeden önce birlikte firma
 yedeği alınmalı; kod geri dönüşünde yükseltme öncesi yedek yeni alana
 dönülmelidir. Şemanın aynı olması eski kodun yeni kayıt biçimini
 desteklediği anlamına gelmez.
+
+Yeni makbuzlar `news_run` ile özgün yayıncı çalışma kimliğini,
+`report_extractions` ile aday kimliği ve özgün önerinin hash'ini tutar.
+Sonradan insan kararı verilmesi rapor kaynağı makbuzunu değiştirmez.
+Aynı içerikle yenilenen haber yeni rapor adayı oluşturmaz. [Komut örnekleri](INVESTIGATION.md#kaynak-işleri-ve-platform-sözleşmesi).
 
 ## İptal, kesinti ve tekrar
 

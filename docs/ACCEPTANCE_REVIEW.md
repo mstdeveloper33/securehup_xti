@@ -1,5 +1,71 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.164.0 — Roadmap 1–7 motor paketi
+
+18 Kasım 2026; `dbee4ab` üzerine çalışma ağacı. Çekirdek 76, kuyruk 2,
+araştırma/frozen model 3, öncelik v7, kaynak işi v3 (eski 1/2 okunur).
+Kullanıcı `.xti-data` alanı değiştirilmedi. Kabul alanları geçicidir.
+
+Yeni/ilgili entegrasyon demeti **68 test / 22,246 saniye** ile geçti:
+vaka kapanışı/kaldırılmış kanıt, kamu kaynakları ve ransomware vaka bağı,
+sosyal son hata/önceki kanıt, saklı firma içeriği, kimlik kararının geri
+alınması ve stale revision, tekrar anahtarı, farklı tür/alan reddi, bozuk
+günlük, rapor metin konumları, gerçek firma protokolü ve restore,
+RIPEstat parser/HTTP/cooldown bileşimi ve kaynak işi v1/v2 uyumu.
+Son ek öncelik/terminal kontrolleri ayrıca raporlanır; demetler toplanmaz.
+Günlük: `/tmp/xti-01640-integration-final.log`.
+
+Son kod değişikliklerinden sonra mimari, ortak araştırma/öncelik/geçmiş,
+firma yazmaları ve kaynak işi kullanımıyla birlikte **102 test / 29,285
+saniye**, hata/atlama olmadan geçti; `/tmp/xti-01640-final-code.log`.
+Gerçek iki firma/kesinti kabulü **30,550 saniye** ile geçti: 36 okuma p95
+**0,401374 saniye**, en yüksek okuma RSS **61.915.136 bayt**, disk
+**5.427.747 bayt**. Kaynak öncesi ve makbuz sonrası SIGTERM'de ikinci worker
+ve eşzamanlı recover reddedildi; diğer firma işini tamamladı. Eşikler
+değişmedi. `/tmp/xti-01640-platform-acceptance.json`.
+
+**Yerel hacim kabulü:** macOS 26.6.2 arm64, Python 3.13.3, SQLite 3.53.2,
+10 CPU. İki firmada 1.000/5.000 varlık, kayıtlı DNS/IOC/aktör ilişkileri,
+kimlik kararı, firma başına 10 vaka ve rapor metni. 30 saniyelik tekrar
+penceresi dahil toplam **38,431 saniye**, 7 tur / **84 gerçek süreç çağrısı**;
+okuma p95 **0,451580 saniye**, en yüksek RSS **65.945.600 bayt**, disk
+**14.679.415 bayt**. Sayfa kesiti, firma ayrımı, rapor tekrarının aynı adayı
+döndürmesi, worker/iptal, 100 eski bağlantısız gözlemin yedekli temizliği,
+karar günlüğünün değişmemesi ve boş alana birlikte restore geçti.
+Sabit eşikler: komut 30 saniye, okuma p95 10 saniye, RSS 512 MiB,
+disk 256 MiB. `/tmp/xti-01640-volume-final-2.json`.
+
+**Gerçek sürüm geri dönüşü:** Git'teki 0.163.0 `dbee4ab` kaynakları ayrı
+geçici alanda çalıştırıldı. Eski çekirdek 75 ve kuyruk v2 işi oluşturuldu;
+birlikte yedek alındı. Güncel kodla 76'ya explicit migration eski varlık
+kimliğini ve v2 işi korudu. Eski kod yükseltilmiş şemayı reddetti. Eski
+kodla eski birlikte yedek yeni alana açıldı; özgün kimlikler korundu,
+workspace yenilendi, bekleyen iş restore politikasıyla iptal kaldı.
+**1,568 saniye / PASS**, `/tmp/xti-01640-upgrade-2.json`.
+Bu geri dönüş yükseltmeden sonraki yazmaları eski şemaya taşımaz.
+
+**Canlı pasif kaynak:** RIPEstat `network-info` için `1.1.1.1` GET sonucu
+`matched`, prefix `1.1.1.0/24`, ASN 13335; araştırmada IP/prefix/ASN
+düğümleri üretildi. Çalışma `eb330c4e-63cb-40be-9462-f14034332748`,
+`/tmp/xti-01640-ripe-live-3.json`. Hedef IP taranmadı. Ticari izin N-022'de
+ayrı açık. Yeni Tavily veya yetkili hedef Nmap kabulü yapılmış sayılmaz.
+
+**Geliştirme sırasında düzeltilenler:** İlk canlı RIPEstat denemesi yeni
+provider'ın cooldown kaydının eksikliğini, ikinci deneme resmî yanıtta
+`query_params` tekrarının zorunlu olmadığını ortaya çıkardı. Her ikisi
+gerçek adapter testine eklendi. İlk hacim harness'inde cancel workspace
+parametresi, son genişletmede test modülü import yolu düzeltildi. Eski
+koda dönüş harness'i restore sonrası bekleyen işin iptal edilmesini yanlış
+olarak queued bekliyordu; test mevcut güvenli restore politikasıyla düzeltildi.
+Başarısız denemeler başarılı kabul yerine sayılmaz.
+
+Tam paket ilk çalışmasında eski Linux upgrade harness'inin şema üst sınırı
+ve kaynak kataloğu testinin RIPEstat beklentisi güncellendi. Son ayrı demet
+**32 test / 14,752 saniye**, 2 Linux'a özel atlama ile geçti;
+`/tmp/xti-01640-compatibility.log`. Tam paket ve uzun Linux kabulü henüz
+sonuçlanmadı; sonuç/commit/bağlantı aşağıya eklenecek. Süreli kabul
+7/24 hizmet, sınırsız hacim veya OpenCTI eşdeğerliği değildir.
+
 ## 0.163.0 — Tedarikçi izleme ve inceleme bağlamı
 
 18 Kasım 2026, macOS arm64/Python 3.13.3; `0c130bb` üzerine çalışma

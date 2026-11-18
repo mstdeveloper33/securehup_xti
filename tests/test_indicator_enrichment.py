@@ -401,6 +401,15 @@ class EnrichmentHttpTests(unittest.TestCase):
         self.assertEqual(timeout, 20)
         self.assertIsNone(_NoRedirect().redirect_request(None, None, 302, '', {}, 'http://127.0.0.1/'))
 
+    def test_ripestat_real_http_composition_uses_registered_cooldown_provider(self):
+        from tests.test_extended_source_jobs import ripe_body
+        self.response = Response(ripe_body())
+        query = enrichment_query(indicator_type='ipv4', value='1.1.1.1')
+        status, content = self.source.fetch(query)
+        self.assertEqual(parse_enrichment(query, status, content).status, 'matched')
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.calls[0][0].full_url, request_url(query))
+
     def test_rate_limit_is_persisted_and_next_call_sends_nothing(self):
         self.response = Response(b'{}', status=429, headers={'Retry-After': '120'})
         with self.assertRaises(SourceError):

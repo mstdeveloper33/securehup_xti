@@ -24,6 +24,10 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_research_surface.py \
     tests/test_research_suppliers.py \
     tests/test_research_supplier_context.py \
+    tests/test_research_case_content.py \
+    tests/test_investigation.py \
+    tests/test_investigation_platform.py \
+    tests/test_extended_source_jobs.py \
     tests/test_research_discovery.py \
     tests/test_research_discovery_status.py \
     tests/test_research_priority.py \

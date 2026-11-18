@@ -195,6 +195,8 @@ from xti.application.global_search import GlobalSearchService
 from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
 from xti.interfaces.global_search import register_global_search_parser, execute_global_search_command
 from xti.interfaces.research import register_research_parser, execute_research
+from xti.interfaces.investigation import register_investigation_parser, execute_investigation
+from xti.interfaces.company_review import register_company_review_parser, execute_company_review
 from xti.interfaces.warninglists import register_warninglist_parser, execute_warninglists
 from xti.domain.warninglists import WarninglistRunNotFound
 from xti.interfaces.indicator_enrichment import register_enrichment_parser, execute_enrichment
@@ -813,6 +815,8 @@ def build_parser() -> Parser:
     register_organizations_parser(commands)
     register_global_search_parser(commands)
     register_research_parser(commands)
+    register_investigation_parser(commands)
+    register_company_review_parser(commands)
     register_research_history_parser(commands)
     register_source_jobs_parser(commands)
     register_warninglist_parser(commands)
@@ -3652,6 +3656,12 @@ def run(args: argparse.Namespace) -> int | None:
         return 0 if ok else 3
     elif args.command == "research-history":
         data, lines = execute_history(settings.database, args)
+        emit(data, lines, as_json=args.json)
+    elif args.command == "review-queue":
+        data, lines = execute_company_review(settings.database, args)
+        emit(data, lines, as_json=args.json)
+    elif args.command == "investigate":
+        data, lines = execute_investigation(settings.database, args)
         emit(data, lines, as_json=args.json)
     elif args.command == "research":
         data, lines = execute_research(settings.database, args)

@@ -1,5 +1,15 @@
 # XTI Motorunun Mimarisi
 
+**18 Kasım 2026 — 0.164.0, çekirdek şema 76, iş kuyruğu şeması 2.**
+Küçük investigation/company-review portları, saf aday/karar/çıkarım kuralları
+ve mevcut araştırma transaction'ına bağlı depo okuyucuları eklendi. Şema 76
+eklemeli karar günlüğüdür; eski tablolar/kimlikler korunur. Platform yazmaları
+workspace kimliği, tekrar anahtarı ve ortak writer kilidiyle korunur.
+RIPEstat ve yayıncı/rapor adımları mevcut kaynak runner'ını kullanır;
+yeni iş sürümü 3 eski 1/2 okuyucusunu korur. Araştırma modeli 3 ve öncelik v7.
+[0169 kararı](decisions/0169-investigation-and-company-review.md),
+[kullanım ve sınırlı kapsam](INVESTIGATION.md).
+
 0.163.0 `StoredSupplierContext` aynı araştırma transaction'ında kaynak
 kataloglarını ve seçili tedarikçi izlemesini denetler. Eşleştirme/inceleme
 kuralları domain katmanına taşındı; bağımsız komutlarla ortak kullanılır.
@@ -9,7 +19,7 @@ Kaynak, tarihî izleme, yerel bildirim ve hesaplanan kart ayrı kanıtlardır.
 [0168 kararı](decisions/0168-supplier-monitoring-research.md).
 
 
-**18 Kasım 2026 — 0.163.0, çekirdek şema 75, iş kuyruğu şeması 2.**
+**Önceki 0.163.0:** çekirdek şema 75, iş kuyruğu şeması 2.
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 0.162.0 platform süreç başlangıcını ortak kök parser üzerinden hafif

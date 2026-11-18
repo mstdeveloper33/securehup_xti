@@ -1,10 +1,27 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.163.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.164.0 · Çekirdek şema 76 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.164.0:** Roadmap 1–6 motor paketi uygulandı: mevcut vakalar/kararlar,
+sosyal profiller ve saklı firma içerikleri ortak araştırmada; geri alınabilir
+kimlik eşleştirme günlüğü; saklı metinden kaynaklı gösterge adayları;
+RIPEstat IP/ağ/ASN bağlamı; pencereli firma inceleme listesi; genişletilmiş
+yönetilen kaynak işleri. Otomatik kimlik merge/IOC/atak atfı yoktur.
+Şema 76 açık yedekli geçiş gerektirir; araştırma modeli 3, öncelik v7,
+kaynak işi v3 (eski v1/v2 okunur), kuyruk 2 ve protokoller v1.
+[Kullanım](INVESTIGATION.md), [mimari karar](decisions/0169-investigation-and-company-review.md).
+
+**0.164.0 kabul durumu:** Yeni/ilgili entegrasyon demeti 68 test ile geçti.
+İki firmada 6.000 varlıklı yerel hacim/tekrar/iptal/temizlik arşivi/yedekten
+dönüş 38,431 saniyede; okuma p95 0,452 saniye, en yüksek RSS 65.945.600
+bayt. Gerçek 0.163.0 koduyla 75 → 76 yükseltme ve eski kodla boş alana
+geri dönüş geçti. RIPEstat canlı pasif GET başarılı. Tam paket ve uzun
+Linux kabulü sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) tamamlandıkça
+işaretlenir; devam eden iş başarılı sayılmaz.
 
 **0.163.0:** İnsan onaylı tedarikçiye bağlı kaynak iddiaları, yerel izleme
 karşılaştırması ve hesaplanan inceleme kartı ortak araştırma, öncelik ve

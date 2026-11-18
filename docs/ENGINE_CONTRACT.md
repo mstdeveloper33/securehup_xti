@@ -1,5 +1,12 @@
 # Engine okuma sözleşmesi v1
 
+0.164.0 `company.review`, `investigation.candidates`, `investigation.list`
+ve `investigation.show` salt okuma işlemlerini ekler. Yeni kanıt türleri
+mevcut model 3 alanlarıyla döner; öncelik v7. Yeni parametreler, kök/sonuç
+sayfalaması ve yazma ayrımı [inceleme rehberinde](INVESTIGATION.md) açıklanır.
+Karar yazmaları yalnız ayrı firma protokolündedir; kişisel CLI ayrıca
+`investigate` komutlarını sunar. `--describe` güncel alanları gösterir.
+
 0.163.0 `research.show` / `research.priorities` ve kayıtlı incelemelerde
 `supplier_event`, `supplier_watch`, `supplier_risk` düğüm/ilişki türleri
 mevcut model 3 alanlarıyla döner. Öncelik `research-priority-v6`;
@@ -9,7 +16,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama:** 0.163.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
+**Uygulama:** 0.164.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 76.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,

@@ -52,7 +52,18 @@ def make_source_runner(database):
         from xti.interfaces.research_history import make_history_service
         return make_history_service(database)
 
-    operations = ExistingSourceJobOperations(enrichment, warninglists, history)
+    def news(request_usage=None):
+        from xti.application.news import NewsService
+        from xti.adapters.sqlite_news import SQLiteNewsRepository
+        from xti.adapters.source_job_news import HeldSourceJobLock, source
+        return NewsService(SQLiteNewsRepository(database), source(request_usage), HeldSourceJobLock())
+
+    def investigations():
+        from xti.interfaces.investigation import make_investigation_service
+        return make_investigation_service(database)
+
+    operations = ExistingSourceJobOperations(enrichment, warninglists, history,
+                                            news=news, investigations=investigations)
     return CooperativeSourceJobRunner(operations, LocalExecutionLock(database))
 
 

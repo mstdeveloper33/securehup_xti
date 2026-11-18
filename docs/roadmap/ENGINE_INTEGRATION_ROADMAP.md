@@ -350,6 +350,58 @@ kurallarını veri okuma, yazma ve iş yürütmede uygulamaktan sorumludur.
 | **MTR-07 — Standart paylaşım, en son** | İstihbaratı diğer güvenlik sistemleriyle alışveriş yapma | Geniş STIX 2.1 nesne/ilişki aktarımı, içe alma, TAXII, değişiklik/geri çekme ve paylaşım kısıtları | İçe/dışa dönüşte kimlik, ilişki, kaynak ve kısıtlar korunur. Karşı sistemle kabul yapılır. Kaynak lisansı veya firma kapsamı izin vermeyen bilgi dışarı çıkmaz. |
 | **MTR-08 — LLM desteği, en son** | Kanıtlara dayanan özet, ilişki önerisi ve analist açıklaması | Yerel/API model adaptörü, kaynak referanslı sınırlı bağlam, maliyet/gizlilik ayarları, değerlendirme kümesi | Model yokken çekirdek çalışır. Öneri gerçek kayıt veya doğrulanmış tehdit sayılmaz. Model firma sınırını, kaynak yetkisini veya araç izinlerini değiştiremez. Kalite/maliyet ölçülmeden etkin varsayılan olmaz. |
 
+**0.163.0 sonrasındaki somut sıra — 18 Kasım 2026:** Kullanıcı 1–7'yi
+birlikte yetkilendirdi. 0.164.0'da 1–6'nın aşağıdaki motor kapsamı uygulandı.
+7 için yerel hacim/temizlik/yedek/sürüm geri dönüşü geçti; uzun Linux ve
+tam paket sonucu kabul kaydında tamamlanınca ayrıca işaretlenecek.
+[Uygulama rehberi](../INVESTIGATION.md), [kanıt](../ACCEPTANCE_REVIEW.md).
+
+1. **Vaka ve insan kararlarını ortak araştırmaya bağlama — entegrasyon.**
+   İlgili vaka, açık/kapalı durum, karar gerekçesi ve özgün kanıt bağını
+   gösterme; sonraki incelemede değişimi izleme. Vaka kapanması kaynak
+   iddiasının geri çekilmesi veya tehdidin çözüldüğü hükmü olmaz.
+2. **Kalan mevcut kayıtları ortak araştırmaya bağlama — entegrasyon.**
+   Öncelikle mevcut marka/sosyal profil ve firma hakkında saklanmış
+   içeriklerin uygun kanıt bağlarını ele alma. Ertelenmiş logo, mobil
+   uygulama veya geniş marka koruması özelliklerini kendiliğinden açmaz.
+3. **Kimlik ve ilişki incelemesi — yeni yetenek.** Alternatif kuruluş/
+   aktör adlarını ve olası ilişkileri gerekçeleriyle sunma; insan onaylı,
+   geri alınabilir eşleştirme. Benzer ad veya ortak IP otomatik eşitlik olmaz.
+4. **Kaynak kapsamı ve rapor ayrıştırma — genişletme.** Ölçülen bilgi
+   boşluklarına göre ek kaynaklar ve mevcut rapor metinlerinden kaynaklı
+   gösterge/ilişki adayları. Hazır bileşenler uygun adaptörlerle kullanılır;
+   erişim, maliyet ve ticari veri hakları kaynak seçilirken incelenir.
+5. **Firma geneli inceleme listesi ve kaynak çelişkileri — genişletme.**
+   Tek kökün ötesinde öncelikli kayıtları gerekçeleriyle bir araya getirme;
+   eski, geri çekilmiş ve birbiriyle uyuşmayan kaynak iddialarını ayırma.
+   Ekip ataması ve ürün kullanıcı yönetimi platform ekibinde kalır.
+6. **Yönetilebilir toplama akışlarını genişletme — genişletme.** Diğer
+   uygun kaynak ve kayıt işlemlerini mevcut plan/iş/bütçe/iptal/kurtarma
+   düzenine katma; daha genel akış kurucusunu somut ihtiyaçla ele alma.
+7. **Kapasite ve sürekli işletim kabulü — sağlamlaştırma.** Gerçekçi veri
+   hacmi ve uzun süreli Linux çalışması; disk, bellek, kuyruk, arşivleme,
+   yedekten dönüş ve sürüm geri dönüşü. Ölçümler bütün adımlara eşlik eder;
+   daha büyük depo veya paralel çalışma tasarımı ölçülen ihtiyaçla seçilir.
+8. **Geniş STIX/TAXII — en son.** Kimlik, kaynak, ilişki, geri çekme ve
+   firma/paylaşım sınırlarını koruyan standart veri alışverişi.
+9. **LLM desteği — en son.** Kaynak gösteren özet ve ilişki önerisi;
+   doğruluk, yanlış alarm, gizlilik ve maliyet değerlendirmesinden sonra
+   isteğe bağlı kullanım.
+
+**0.164.0 kapsam sınırı:** Kimlik onayı özgün kayıtları birleştirmez;
+geri alınabilir bağ oluşturur. Rapor çıkarımı saklı başlık/özet içindir,
+tam makale/PDF crawler'ı değildir. Firma sırası pencereli ve açık kapsamlıdır;
+kaynak durum farkı otomatik anlamsal çelişki sayılmaz. Yönetilen kaynaklar
+RIPEstat, üç yayıncı ve yerel rapor adımlarıyla genişledi; genel akış editörü
+bu paketin koşulu değildir. 7'nin kabulü belirli hacim ve süreyi ölçer,
+sınırsız kapasite veya 7/24 SLA ilan etmez. 8/9 bekler.
+
+Tavily anahtarıyla canlı kabul, açık izinli Nmap hedef/port kabulü,
+eksik kaynak hata kanıtları ve ticari kullanım kararları bu sıradan ayrı
+takip edilir. Girdi bekleyen madde diğer geliştirmeleri durdurmaz;
+ticari kullanıma geçişten önce ilgili koşul tamamlanır. Ayrıntılar
+[NOTES.md](../../NOTES.md) içindedir.
+
 Bu sıra bütün ayrıntıların bitmesini bekleyen büyük bir yeniden yazım
 değildir. İlk dar MTR-01/02 tesliminden sonra MTR-03 kaynak katkısı eklenir;
 kimlik incelemesi ve daha geniş model ölçülmüş ihtiyaçla genişler.
@@ -369,9 +421,12 @@ tablo veya ücretli API yoktur. [İşlem envanteri ve sınırlar](../RESEARCH.md
 `human_decision` olarak ayırır; kabul/ret/sağlayıcı değişimi, envanter ve
 özgün kanıtlar aynı firma içinde araştırılır. 0.161.0 kayıtlı pasif keşif
 adayları ve insan sahiplik kararlarını kaynak gözleminden ayrı ekler;
-kök → aday → DNS yolu iki adımda kalır. Kaynakların son çalışma sağlığını
-aday kanıtının yanına taşıma sonraki öneridir. Genel kimlik incelemesi, kural çıkarımı, tedarikçi
-risk kartları ve bütün kaynakların ortak modele taşınması henüz tamamlanmadı.
+kök → aday → DNS yolu iki adımda kalır. 0.162.0 pasif kaynakların son
+denemesini ve korunmuş önceki başarılı yanıtını ayrı bağlam olarak ekler.
+0.163.0 mevcut tedarikçi iddialarını, izleme karşılaştırmalarını ve
+hesaplanan inceleme kartını aynı araştırmaya bağlar. Sıradaki dilim vaka
+ve insan kararlarının kanıt bağlarıdır. Genel kimlik incelemesi, kural
+çıkarımı ve bütün kaynakların ortak modele taşınması henüz tamamlanmadı.
 MTR-01/02 bütünüyle tamamlandı sayılmaz.
 
 **Kabul raporu önceliği:** Kullanıcının 0.147.1 Linux raporu üzerine

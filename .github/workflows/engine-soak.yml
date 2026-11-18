@@ -1,0 +1,39 @@
+name: XTI engine volume and soak acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: "Offline soak duration in seconds (10–3600)"
+        required: true
+        default: "300"
+
+permissions:
+  contents: read
+
+jobs:
+  soak:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      SOAK_DURATION: ${{ inputs.duration }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Select Python
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Volume, repeated processes, queue cancellation, snapshot paging and restore
+        run: ./scripts/python scripts/check-engine-soak.py --duration "$SOAK_DURATION" --output "$RUNNER_TEMP/engine-soak.json"
+      - name: Upgrade from previous code and restore with previous code
+        run: ./scripts/python scripts/check-engine-upgrade.py --output "$RUNNER_TEMP/engine-upgrade.json"
+      - name: Preserve synthetic acceptance evidence
+        if: always()
+        run: |
+          cat "$RUNNER_TEMP/engine-soak.json"
+          test ! -f "$RUNNER_TEMP/engine-upgrade.json" || cat "$RUNNER_TEMP/engine-upgrade.json"

@@ -75,15 +75,24 @@ class EngineReadService:
     def __init__(self, search: GlobalSearchService | None = None, records: EngineRecordRepository | None = None,
                  sources: SourceReadinessService | None = None, components: ComponentCatalogService | None = None,
                  research: ResearchService | None = None, warninglists: WarninglistService | None = None,
-                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None):
+                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None, investigation=None, company_review=None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
         self.research = research
         self.warninglists = warninglists
         self.enrichment = enrichment
         self.history = history
+        self.investigation = investigation
+        self.company_review = company_review
 
     def execute(self, request: EngineRequest) -> dict:
+        if request.operation == 'company.review' and self.company_review is not None:
+            try:
+                return self.company_review.show(**request.parameters)
+            except ResearchSnapshotChanged as error:
+                raise EngineContractError('snapshot_changed', str(error)) from error
+        if request.operation.startswith('investigation.') and self.investigation is not None:
+            return getattr(self.investigation, request.operation.rsplit('.', 1)[-1])(**request.parameters)
         if request.operation in {'research.history', 'research.review.get'} and self.history is not None:
             try:
                 method = self.history.history if request.operation == 'research.history' else self.history.show

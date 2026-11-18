@@ -30,6 +30,18 @@ def _discovery_lines(states, value, data_dir):
 def _surface_detail_commands(rows, data_dir):
     commands = set()
     for row in rows:
+        if row['record_type'] in {'investigation_decision', 'identity_proposal', 'report_candidate'}:
+            commands.add(xti_command('investigate', 'show', row['record_id'], data_dir=data_dir))
+        if row['record_type'] in {'case_activity', 'case_evidence'}:
+            commands.add(xti_command('cases', 'show', row['source_reference'], data_dir=data_dir))
+        elif row['record_type'] in {'social_observation', 'social_watch_run'}:
+            commands.add(xti_command('brand', 'watch-run-show', row['source_run_id'], data_dir=data_dir))
+        elif row['record_type'] == 'social_decision':
+            commands.add(xti_command('brand', 'watch-review-show', row['record_id'], data_dir=data_dir))
+        elif row['record_type'] == 'organization_social_link':
+            commands.add(xti_command('organizations', 'show', row['source_reference'], data_dir=data_dir))
+        elif row['record_type'] in {'company_content', 'company_search_run'}:
+            commands.add(xti_command('mentions', 'run-show', row['source_run_id'], data_dir=data_dir))
         if row['record_type'] == 'surface_discovery_run':
             commands.add(xti_command('surface', 'run', row['record_id'], data_dir=data_dir))
         if row["record_type"] in {"surface_candidate", "surface_candidate_source", "surface_candidate_decision"}:

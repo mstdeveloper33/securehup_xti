@@ -60,6 +60,12 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
     if selected('research.history', 'research.review.get'):
         from xti.interfaces.research_history import make_history_service
         services['history'] = make_history_service(database)
+    if selected('investigation.list', 'investigation.show', 'investigation.candidates'):
+        from xti.interfaces.investigation import make_investigation_service
+        services['investigation'] = make_investigation_service(database)
+    if selected('company.review'):
+        from xti.interfaces.company_review import make_company_review_service
+        services['company_review'] = make_company_review_service(database)
     return EngineReadService(**services)
 
 
@@ -154,8 +160,8 @@ def engine_manifest() -> dict:
                              'immutable_record_views': ['changes', 'items']},
         'warninglists': {'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6'],
                          'default_stale_after_hours': 168, 'refresh_via': 'operator_cli'},
-        'enrichment': {'indicator_types': ['url', 'md5', 'sha1', 'sha256'],
-                       'providers': ['circl', 'urlscan'], 'refresh_via': 'operator_cli', 'max_history_limit': 100},
+        'enrichment': {'indicator_types': ['url', 'md5', 'sha1', 'sha256', 'ipv4', 'ipv6'],
+                       'providers': ['circl', 'urlscan', 'ripestat'], 'refresh_via': 'operator_cli_or_company_source_job', 'max_history_limit': 100},
         'record_types': [{'kind': kind, 'record_type': record_type, 'namespaces': list(namespaces)}
                          for (kind, record_type), namespaces in RECORD_NAMESPACES.items()],
         'request_id_semantics': 'correlation_only',

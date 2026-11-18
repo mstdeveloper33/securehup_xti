@@ -287,7 +287,7 @@ class ResearchHistoryTests(ResearchFixture, unittest.TestCase):
             self.record()
         self.assertEqual(before, self.files())
         migration = SQLiteAssetRepository(self.path).migrate()
-        self.assertEqual((migration["from_version"], migration["to_version"]), (74, 75))
+        self.assertEqual((migration["from_version"], migration["to_version"]), (74, 76))
         self.assertEqual(SQLiteAssetRepository(self.path).list(), [asset])
         with closing(sqlite3.connect(migration["backup"])) as connection:
             self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 74)

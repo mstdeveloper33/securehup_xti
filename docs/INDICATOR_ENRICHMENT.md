@@ -1,6 +1,13 @@
-# URL ve dosya kimliği araştırması
+# IP, URL ve dosya kimliği araştırması
 
-17 Kasım 2026 · 0.154.0 · çekirdek şema 74 · engine/platform v1.
+18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · engine/platform v1.
+
+RIPEstat için `./xti enrich fetch 1.1.1.1 --type ipv4 --provider ripestat`
+ve `./xti research 1.1.1.1 --type ip` kullanılır. IPv6 da desteklenir.
+İlk komut sabit RIPEstat API'sine tek GET gönderir, IP'ye bağlanmaz.
+Sonuç BGP ağ bloğu ve origin ASN bağlamıdır; sahiplik, konum, açık servis
+veya zararlılık doğrulamaz. Özgün yanıt ve zaman makbuzu diğer sağlayıcılarla
+aynı depoda tutulur; kaynak kesilince önceki başarılı yanıt korunur.
 
 Bir URL'nin geçmişte nasıl gözlendiğini veya bir dosya kimliğinin hangi
 bilinen dosya kaydında bulunduğunu gösterir. Dosyanın kendisi gerekmez;
@@ -39,6 +46,11 @@ yalnız saklı kayıtları okur; API veya anahtar gerektirmez.
 |---|---|---|---|
 | CIRCL hashlookup | Bilinen dosya adı/boyutu, veri kaynağı, diğer dosya kimlikleri, varsa sağlayıcı güveni | Anahtarsız public HTTP API; best effort | Veriler CC-BY; CIRCL hizmet sayfasına atıf gerekir. Sayfa lisans sürümü belirtmiyor. |
 | urlscan | Mevcut public tarama tarihi, başlangıç/son URL, son sayfanın IP'si, başlığı | Kimliksiz public aramada sağlayıcı kotası | Ticari ürüne veri dahil etmeden önce sağlayıcı anlaşması netleştirilmeli. |
+| RIPEstat / RIPE NCC RIS | IPv4/IPv6 adresini içeren BGP ağ bloğu ve origin ASN'ler | Anahtarsız `network-info` GET; sağlayıcı sınırları geçerli | Ticari kullanım için yazılı izin gereksinimi N-022'de takip edilir; ücretsiz erişim ticari izin sayılmaz. |
+
+RIPEstat [uç belgesi](https://stat.ripe.net/docs/data-api/api-endpoints/network-info)
+ve [hizmet şartları](https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/)
+18 Kasım 2026'da incelendi. Şirket ürünü için bu koşul ayrıca tamamlanmalıdır.
 
 Koşullar 17 Kasım 2026'da resmî [CIRCL hizmet sayfasından](https://www.circl.lu/services/hashlookup/),
 [urlscan şartlarından](https://urlscan.io/terms/) ve

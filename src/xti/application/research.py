@@ -159,7 +159,7 @@ def research_data(report) -> dict:
         "paths": [{"node_ids": list(nodes), "edge_ids": list(edges), "hops": len(edges)}
                   for nodes, edges in report.paths],
         "notes": [
-            "Yalnız seçili çalışma alanının kayıtlı DNS, CNAME, TLS, pasif aday, IOC, CTI, tedarikçi ve URL/dosya kanıtları okunur; kaynaklar yeniden sorgulanmaz.",
+            "Yalnız seçili çalışma alanının kayıtlı yüzey, IOC/CTI, tedarikçi, vaka, sosyal profil, firma içeriği, kimlik/rapor adayı ve IP/URL/dosya kanıtları okunur; kaynaklar yeniden sorgulanmaz.",
             "Yollar iki yönde araştırılabilir; ilişkinin özgün yönü source_id/target_id alanlarında korunur.",
             "Ortak IP, CNAME hedefi, aynı sertifika veya kaynak iddiası sahiplik, aynı saldırgan, kötü niyet veya doğrulanmış ihlal sonucu değildir.",
             "Eski DNS ve geri çekilmiş/geçersiz IOC/CTI iddiaları tarihî kanıt olarak görünür; geçerlilik ile güncellik ayrıdır.",
@@ -172,6 +172,6 @@ def research_data(report) -> dict:
             "Tedarikçi adayı candidate_context, insan kararı human_decision olarak ayrıdır. İnsan kararında current son ilgili kararı belirtir; accepted/withdrawn/rejected ve envanter etkinliği ayrıca okunmalıdır.",
             "Tedarikçi adayının current değeri son aday yenilemesinin durumudur; yeni DNS kontrolü değildir. Teknik kanıtın kaybolması insan onayını kendiliğinden kaldırmaz. Envantere girilmiş domain bağı sahiplik doğrulaması değildir.",
             "Warninglist eşleşmeleri kaynak bağlamıdır; otomatik güvenli kararı, alarm kapatma veya aktör ilişkisi oluşturmaz.",
-            "Kaynak araştırması yalnız sorgulanmış URL/hash için saklanan yanıtlardan genişler; ters yönde bütün arşivi taramaz. Yanıt alınma tarihi ile sağlayıcının gözlem tarihi ayrıdır.",
+            "Kaynak araştırması yalnız sorgulanmış IP/URL/hash için saklanan yanıtlardan genişler; ters yönde bütün arşivi taramaz. Yanıt alınma tarihi ile sağlayıcının gözlem tarihi ayrıdır.",
         ],
     }
