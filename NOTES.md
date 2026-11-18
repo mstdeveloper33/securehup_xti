@@ -185,6 +185,17 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   dosya yedeği tam firma yedeği sayılmaz.
 - **Dayanak:** [Yedek ve geri dönüş](docs/SOURCE_JOBS.md#yedek-ve-geri-dönüş).
 
+### N-016 — Linux Python 3.11 kabulünde toplam süre aşımı
+
+- **Durum:** Açık; işletim kabulü. **Güncellendi:** 18 Kasım 2026.
+- **Kanıt:** `94f1d9c` ilk koşu ve aynı kodlu tekrarında toplam 120 saniye
+  sınırında durdu. Python 3.13 kolu 90,547 saniyede; aynı senaryo yerelde
+  38,635 saniyede geçti. Bunlar ilk başarısızlığı silmez.
+- **Sonraki iş:** Kabul aracına eklenen tamamlanmış ölçümler/son komut
+  tanısıyla gecikmenin aşamasını belirlemek. 120 saniye, p95 ve bellek
+  eşikleri değiştirilmedi; henüz kesin kök neden iddia edilmiyor.
+- **Dayanak:** [İşletim kabulü](docs/ACCEPTANCE_REVIEW.md#işletim-kabulü).
+
 ## Korunacak kararlar
 
 17 Kasım 2026 itibarıyla mevcut kullanıcı tercihleri:

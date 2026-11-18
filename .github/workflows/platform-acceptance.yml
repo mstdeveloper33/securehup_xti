@@ -16,6 +16,7 @@ on:
       - "tests/test_company_workspaces.py"
       - "tests/test_company_content.py"
       - "tests/test_engine_job*.py"
+      - "tests/test_source_jobs*.py"
   pull_request:
     paths:
       - ".github/workflows/platform-acceptance.yml"
@@ -30,6 +31,7 @@ on:
       - "tests/test_company_workspaces.py"
       - "tests/test_company_content.py"
       - "tests/test_engine_job*.py"
+      - "tests/test_source_jobs*.py"
   workflow_dispatch:
 
 permissions:

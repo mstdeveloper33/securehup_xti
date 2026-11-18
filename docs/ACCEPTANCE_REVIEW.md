@@ -45,6 +45,47 @@ durdu; hiçbir sorgu yapılmadı. Gerçek `/private/var` yolu ile yukarıdaki
 izole koşu geçti. Ürün kapsam kontrolü gevşetilmedi. Hedef taraması,
 dosya yükleme/indirme, Tavily veya Nmap çalıştırması yapılmadı.
 
+Gerçek `./xti` alt süreçleriyle aynı yedek başka bir firma köküne geri
+yüklendi: **10 çağrı** beklenen sonuçları verdi. İki tamamlanmış işin
+özgün sonuçları, kaynak makbuzları ve incelemeleri aynen okundu. Yeni
+workspace kimliği üretildi; eski kimlikle gönderilen iki yazma isteği
+`scope_mismatch` / çıkış 1 aldı. Asıl alanın bütün dosya hash'leri aynı
+kaldı. Geçici `restore-evidence.json` SHA-256:
+`409064aae50ba381c0bb9d7617cd84e44d32a47bcbd368d08f62e3a155f90153`.
+
+### Yerel kuyruk ölçümü
+
+Ayrı geçici kuyruk, macOS arm64/Python 3.13.3; yalnız sırada kaynak
+işleri, ağ/worker yok. Tek ölçüm örnekleridir; p95 veya SLA değildir.
+
+| Bekleyen iş | Kuyruk byte | Tek durum okuma | İlk 20 işi listeleme | Bütün kuyruk doğrulama |
+|---|---:|---:|---:|---:|
+| 10 | 36.864 | 0,377 ms | 0,804 ms | 0,625 ms |
+| 100 | 135.168 | 0,328 ms | 1,485 ms | 3,779 ms |
+| 1.000 | 1.118.208 | 0,536 ms | 1,523 ms | 36,475 ms |
+
+Tamamlanmış iş geçmişi, büyük kanıtlar, HTTP gecikmesi, firmalar arası
+ortak kota ve eşzamanlı sunucu yükü bu ölçüme dahil değildir. Geçici
+artefakt `xti-01570-queue-measure-3cgmqkw0/result.json`.
+
+### İşletim kabulü
+
+`94f1d9c` üzerinde aynı ağsız iki firmalı alt süreç/kesinti kabulü yerelde
+**38,635 saniyede geçti**; 120 saniye toplam, 5 saniye okuma p95 ve
+512 MiB alt süreç bellek eşikleri değiştirilmedi. Gerçek SIGTERM,
+rakip worker/recovery, diğer firmanın çalışması ve özgün makbuzların
+korunması bu senaryonun parçalarıdır. Yerel artefakt
+`/tmp/xti-01570-platform-local-processes.json`.
+
+Linux kabulünün ilk Python 3.13 kolu 90,547 saniyede geçti; Python 3.11
+kolu 120,011 saniyede `TimeoutExpired` ile toplam sınırda durdu. Aynı
+commit ve aynı sınırlarla yalnız başarısız kol tekrar çalıştırıldı; ikinci
+koşu da toplam süre sınırında durdu. Kesin kök neden henüz kanıtlanmadı.
+Kabul aracı artık hatada tamamlanmış ölçümleri ve son komutu da saklar;
+bu tanı davranışı kontrollü `TimeoutExpired` ile sınandı. Kabul eşikleri
+değişmedi. [İlk koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204405387/attempts/1),
+[ikinci koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204405387/attempts/2).
+
 ### Önceki sürümün Linux doğrulaması
 
 0.156.0'ın `9266fbfa4b27406cc29c09cd3404b04e3ec59559` commit'i Ubuntu/Python

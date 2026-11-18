@@ -50,6 +50,7 @@ class Acceptance:
         self.base, self.root = base, base / "platform"
         self.deadline = time.monotonic() + LIMITS["total_seconds"]
         self.sequence, self.measurements = 0, []
+        self.last_command = None
         self.contexts, self.organizations, self.jobs = {}, {}, {}
 
     def command(self, company, action="request", *, extra=(), gate=None, marker=None, source_log=None):
@@ -68,6 +69,9 @@ class Acceptance:
         args, metrics = self.command(company, action, extra=extra, source_log=source_log)
         started = time.perf_counter()
         remaining = self.deadline - time.monotonic()
+        self.last_command = {"sequence": self.sequence, "company": company, "action": action,
+            "operation": payload.get("operation") if payload else None,
+            "remaining_seconds": remaining, "completed": False}
         require(remaining > 0, "Total acceptance duration threshold exceeded")
         process = subprocess.run(args, input=json.dumps(payload) if payload else "", text=True,
                                  capture_output=True, cwd=PROJECT,
@@ -87,6 +91,7 @@ class Acceptance:
         if measure:
             self.measurements.append({**sample, "process_wall_seconds": elapsed,
                                       "company": company, **measure})
+        self.last_command["completed"] = True
         return response["data"]
 
     def seed(self):
@@ -251,13 +256,15 @@ def main():
               "environment": {"os": platform.platform(), "machine": platform.machine(),
                   "python": sys.version, "sqlite": sqlite3.sqlite_version, "cpu_count": os.cpu_count()},
               "scope": "Two disposable companies; offline fixtures and real local processes; no live-source or 24/7 claim."}
-    code = 1
+    code, acceptance = 1, None
     try:
         with tempfile.TemporaryDirectory(prefix="xti-platform-acceptance-") as temporary:
             acceptance = Acceptance(Path(temporary).resolve())
             acceptance.seed()
             acceptance.capacity()
-            report["crash_cases"] = [acceptance.crash(gate) for gate in ("before-source", "after-receipt")]
+            report["crash_cases"] = []
+            for gate in ("before-source", "after-receipt"):
+                report["crash_cases"].append(acceptance.crash(gate))
             report["integrity"] = acceptance.integrity()
             report["measurements"] = acceptance.measurements
             values = sorted(item["process_wall_seconds"] for item in acceptance.measurements)
@@ -273,6 +280,11 @@ def main():
         # No exception message from a source or subprocess is copied to artifacts.
         report["failure_type"] = type(error).__name__
         report["failure"] = str(error) if isinstance(error, AssertionError) else "Acceptance execution failed; inspect the local fixture."
+        if acceptance is not None:
+            # Preserve completed synthetic measurements even when the total deadline
+            # expires; do not raise limits or publish subprocess/source error bodies.
+            report["measurements"] = acceptance.measurements
+            report["last_command"] = acceptance.last_command
     report["elapsed_seconds"] = time.perf_counter() - started
     descriptor = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
