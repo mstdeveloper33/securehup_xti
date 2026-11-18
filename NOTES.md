@@ -185,15 +185,20 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   dosya yedeği tam firma yedeği sayılmaz.
 - **Dayanak:** [Yedek ve geri dönüş](docs/SOURCE_JOBS.md#yedek-ve-geri-dönüş).
 
-### N-016 — Linux Python 3.11 kabulünde toplam süre aşımı
+### N-016 — Linux kabul süresindeki dalgalanma
 
-- **Durum:** Açık; işletim kabulü. **Güncellendi:** 18 Kasım 2026.
+- **Durum:** Bilinen sınır; son kabul geçti, süre dalgalanması izlenecek.
+  **Güncellendi:** 18 Kasım 2026.
 - **Kanıt:** `94f1d9c` ilk koşu ve aynı kodlu tekrarında toplam 120 saniye
   sınırında durdu. Python 3.13 kolu 90,547 saniyede; aynı senaryo yerelde
   38,635 saniyede geçti. Bunlar ilk başarısızlığı silmez.
-- **Sonraki iş:** Kabul aracına eklenen tamamlanmış ölçümler/son komut
-  tanısıyla gecikmenin aşamasını belirlemek. 120 saniye, p95 ve bellek
-  eşikleri değiştirilmedi; henüz kesin kök neden iddia edilmiyor.
+- **Güncel kanıt:** Aynı motor/test kodunun `cfcfbe3` tanı güncellemesiyle
+  Linux Python 3.11 kolu **80,290 saniye**, 3.13 kolu **96,601 saniye**
+  ile geçti. 120 saniye toplam, 5 saniye p95, 512 MiB bellek eşikleri
+  değiştirilmedi. [Başarılı koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44205985536).
+- **Sonraki iş:** Süre aşımı tekrarlanırsa artık saklanan tamamlanmış
+  ölçümler/son komutla aşamasını incelemek. İlk başarısızlıkların kesin
+  kök nedeni iddia edilmiyor; uygulama hatası düzeltildi diye sunulmaz.
 - **Dayanak:** [İşletim kabulü](docs/ACCEPTANCE_REVIEW.md#işletim-kabulü).
 
 ## Korunacak kararlar
@@ -227,6 +232,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   macOS'ta iki Linux atlaması; hata yok. İzole firma alanında canlı
   CIRCL/urlscan/MISP → sonuç → inceleme → idempotent tekrar → yedek geçti.
   Firma dışı kapsam ve restore sonrası eski kimlik reddedilir.
+  Aynı motor kodunun Linux tam paketi **2.858 test / 1.760,284 saniye**
+  ile hatasız ve atlamasız geçti; hızlı kontrol ve iki Python sürümünde
+  firma işletim kabulü de başarılıdır.
+  [Tam CI](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204469910).
 - **Sınır:** Ortak kota N-007'de açık; genel HTTP/.NET veya bütün motor
   işlemlerinin yazma API'si tamamlanmış sayılmaz.
 - **Dayanak:** [Kaynak işleri](docs/SOURCE_JOBS.md), [kabul kaydı](docs/ACCEPTANCE_REVIEW.md).
@@ -243,7 +252,8 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   [Linux tam kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44200653217).
 - **Ayrı CI durumu:** Aynı commit'in hızlı paketi 15 dakika iş sınırına
   takıldı; test hatası olarak sunulmaz. 0.157.0 sınırı 25 dakikaya çıkarır,
-  test çıkarmaz. Yeni CI sonucu ayrıca kaydedilir.
+  test çıkarmaz. Yeni sürümün hızlı kontrolü 1.561 test ile geçti;
+  tam paket ve firma kabulü [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) ayrıdır.
 - **Dayanak:** [Önceki yerel sonuçlar](docs/ACCEPTANCE_REVIEW.md#01560--kayıtlı-inceleme-ve-değişim-kabulü).
 
 ### N-010 — Son commit için tam test kabul kaydı
@@ -283,7 +293,7 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 **Uygulandı:** 0.157.0 URL/hash/MISP yenilemesini ortak firma kuyruğuna
 bağlar; açık kaynak seçimi, bütçe, ilerleme, iptal/kurtarma, tekrar ve
 isteğe bağlı son inceleme kaydı vardır. N-008'in test ve kapanma kaydı
-aşağıdadır. Genel akış kurucusu veya ortak sağlayıcı kotası tamamlanmış
+yukarıdadır. Genel akış kurucusu veya ortak sağlayıcı kotası tamamlanmış
 sayılmaz. Bekleyen Tavily/Nmap girdileri N-004/N-005'te korunur.
 
 **Sonraki öneri, henüz uygulanmadı:** Birden fazla firma birlikte iş

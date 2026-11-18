@@ -14,7 +14,7 @@
   tekrar, bütçe, yanlış firma/plan, bozuk olay, 32 tekrar sınırı,
   şema 1→2 yedek/rollback ve iki dosyalı restore doğrulandı.
 - Yerel günlük `/tmp/xti-01570-regression.log`; geçici artefakttır.
-  Son Linux tam paket sonucu henüz bu yerel kayıtla temsil edilmez.
+  Linux tam paket sonucu aşağıda ayrı commit/CI kaydıyla verilir.
 - Son saat gerilemesi/ebeveyn bağı denetimi ve CI süre ayarından sonra
   kaynak işleri, firma girişi, eski kuyruk ve CI'nin **70 testi / 19,274
   saniye** yeniden geçti; hata/atlama yok. Bu son tekrar önceki 272'ye
@@ -70,6 +70,22 @@ artefakt `xti-01570-queue-measure-3cgmqkw0/result.json`.
 
 ### İşletim kabulü
 
+`94f1d9c95493633cf587d2233e50f3aed917345c` üzerinde Ubuntu/Python 3.13
+tam çevrimdışı test paketi **2.858 test / 1.760,284 saniye; OK, atlama yok**
+ile tamamlandı. [Tam CI](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204469910).
+Yerel günlük `/tmp/xti-01570-linux-full.log`; geçici artefakttır.
+Sonraki `cfcfbe3` yalnız kabul betiğinin hata tanısını, ilgili workflow'u
+ve belgeleri değiştirir. `git diff 94f1d9c cfcfbe3 -- src tests
+pyproject.toml scripts/check scripts/check-fast` boştur; tam paket aynı
+motor ve test kodunu kapsar. Tanı betiğinin ayrı kabulü aşağıdadır.
+
+`94f1d9c` Linux/Python 3.11 hızlı paketi **1.561 test / 626,319 saniye**
+ile hatasız ve atlamasız geçti.
+[Hızlı CI](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204405515).
+Tanı güncellemesi `cfcfbe3` için
+[son hızlı CI](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44205985460)
+da başarılı tamamlandı.
+
 `94f1d9c` üzerinde aynı ağsız iki firmalı alt süreç/kesinti kabulü yerelde
 **38,635 saniyede geçti**; 120 saniye toplam, 5 saniye okuma p95 ve
 512 MiB alt süreç bellek eşikleri değiştirilmedi. Gerçek SIGTERM,
@@ -86,6 +102,19 @@ bu tanı davranışı kontrollü `TimeoutExpired` ile sınandı. Kabul eşikleri
 değişmedi. [İlk koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204405387/attempts/1),
 [ikinci koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204405387/attempts/2).
 
+Tanı güncellemesi `cfcfbe3` ile, motor kodu/testleri ve kabul eşikleri
+değişmeden **iki Linux kolu da geçti**:
+
+| Python | Toplam | 36 okuma için p95 | En yüksek alt süreç RSS |
+|---|---:|---:|---:|
+| 3.11 | 80,290 saniye | 1,189 saniye | 67.096.576 byte |
+| 3.13 | 96,601 saniye | 1,437 saniye | 66.527.232 byte |
+
+[Başarılı kabul](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44205985536).
+Tanı değişikliğinin 13 CI testi 8,801 saniyede geçti. Önceki süre aşımının
+kök nedeni bu başarıyla kanıtlanmış sayılmaz; N-016 süre dalgalanmasını
+takip eder. Bu koşu bütün dış sağlayıcılar veya 7/24 hizmet kabulü değildir.
+
 ### Önceki sürümün Linux doğrulaması
 
 0.156.0'ın `9266fbfa4b27406cc29c09cd3404b04e3ec59559` commit'i Ubuntu/Python
@@ -94,7 +123,7 @@ değişmedi. [İlk koşu](https://github.com/mstdeveloper33/securehup_xti/action
 N-014 kapandı. Hızlı iş aynı commit'te GitHub'ın açık 15 dakika sınırına
 takılarak iptal edildi; annotation `maximum execution time of 15m0s`.
 0.157.0 sınırı 25 dakikaya çıkarır ve 38 yeni testi hızlı pakete ekler;
-hiçbir test atılmaz. Yeni commit'in CI sonucu ayrıca kaydedilecek.
+hiçbir test atılmaz. Yeni sürümün başarılı hızlı/tam CI sonuçları yukarıdadır.
 
 ## 0.156.0 — Kayıtlı inceleme ve değişim kabulü
 

@@ -19,8 +19,13 @@ işleri değişmez. Genel akış kurucusu ve ortak sağlayıcı kotası henüz y
 test / 97,228 saniye: 270 başarılı, iki Linux atlaması; hata yok. Gerçek
 CIRCL, urlscan ve MISP sorguları ayrı firma alanında iş/kanıt/inceleme,
 aynı anahtarla tekrar ve birleşik yedek akışından geçti. URL sonuç sınırı
-korundu. Son kodun Linux tam paketi ayrıca kaydedilecek; bu yerel tur tam
-paket veya Tavily/Nmap canlı kabulü değildir. [Kanıt](ACCEPTANCE_REVIEW.md).
+korundu. Aynı motor kodunun Linux hızlı kontrolü ve iki Python sürümünde
+firma kabulü geçti; ilk 3.11 süre aşımı/tekrarı kabul belgesinde korunur.
+`94f1d9c` Linux/Python 3.13 tam paketi **2.858 test / 1.760,284 saniye**
+ile hatasız ve atlamasız geçti. Sonraki `cfcfbe3` yalnız kabul tanısını
+ve belgeleri değiştirir; motor/test kodu aynıdır. Bu sonuçlar Tavily/Nmap
+canlı kabulü değildir. [Kanıt](ACCEPTANCE_REVIEW.md),
+[tam CI](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44204469910).
 
 **0.156.0 Linux tam kabulü tamamlandı:** `9266fbf` üzerinde 2.820 test /
 1.134,595 saniye, tamamı başarılı; atlama yok. N-014 kapandı.
