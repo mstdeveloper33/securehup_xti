@@ -12,6 +12,7 @@ from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
 from xti.adapters.sqlite_research_surface import StoredSurfaceLinks
 from xti.adapters.sqlite_research_suppliers import StoredSupplierLinks
+from xti.adapters.sqlite_research_discovery import StoredDiscoveryLinks
 from xti.adapters.sqlite_warninglists import read_warninglists
 from xti.adapters.sqlite_enrichment import read_enrichment
 from xti.domain.indicator_enrichment import enrichment_query, request_url
@@ -77,6 +78,8 @@ class _Reader:
         self.surface_links = StoredSurfaceLinks(connection, web_checks=self._web_checks,
             limitations=self.limitations, coverage=self.coverage)
         self.supplier_links = StoredSupplierLinks(path, connection,
+            limitations=self.limitations, coverage=self.coverage)
+        self.discovery_links = StoredDiscoveryLinks(connection,
             limitations=self.limitations, coverage=self.coverage)
 
     def _claims(self, kind, identifier):
@@ -218,6 +221,7 @@ class _Reader:
             evidence_total += details.total_assertion_count
         else:
             if kind == "domain":
+                references.extend(self.discovery_links.references(key))
                 row = self.connection.execute("SELECT id FROM assets WHERE value=?", (value,)).fetchone()
                 if row:
                     normalize_knowledge_id(row[0])
@@ -313,6 +317,7 @@ class _Reader:
         edges.extend(self.surface_links.cname_edges(key))
         edges.extend(self.surface_links.certificate_edges(key))
         edges.extend(self.supplier_links.neighbors(key))
+        edges.extend(self.discovery_links.neighbors(key))
         edges.extend(edge for edge in self.enrichment_edges.values() if key in (edge.source, edge.target))
         if key[0] == "entity":
             where, values = "source_entity_id=? OR target_entity_id=?", (key[1], key[1])

@@ -141,7 +141,7 @@ def validate_snapshot(data):
                 if row["kind"] in {"human_decision", "candidate_context"}:
                     if (row.get("assertion_id") is not None or row.get("confidence") is not None or
                         re.fullmatch(r"[a-f0-9]{64}", row.get("state_sha256", "")) is None):
-                        raise ValueError("Supplier provenance")
+                        raise ValueError("Candidate or human provenance")
                 if row["kind"] == "human_decision" and (
                     row.get("time_basis") != "decision_recorded_at" or
                     row["observed_at"] != row["recorded_at"] or not row.get("event_id") or

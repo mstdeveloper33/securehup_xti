@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**18 Kasım 2026 — 0.160.0, çekirdek şema 75, iş kuyruğu şeması 2.**
+**18 Kasım 2026 — 0.161.0, çekirdek şema 75, iş kuyruğu şeması 2.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -89,6 +89,16 @@ boşluğu denetimi korunur. Satır/boyut sınırı önce ölçülür, doğrulana
 kayıt kısmi kapsamla atlanır. Araştırma modeli 2, politika v3; eski model 1
 incelemeleri okuyabilen çift sürümlü doğrulama vardır. Şemalar korunur.
 [0164 kararı](decisions/0164-human-supplier-research.md).
+
+0.161.0 `research_discovery` pasif aday/karar dönüşümlerini ve seçili
+geçmişin tutarlılık kurallarını içerir. `StoredDiscoveryLinks` aynı okuma
+transaction'ında kaydı ve tam kaynak/karar geçmişini sınırlı okur;
+boyut/satır ön denetimi decoder çağrısından öncedir. Kök → aday kaydı ile
+insan sınıflandırması ayrı paralel bağlardır. Mevcut domain düğümü ve
+`record.get` başvurusu kullanılır; kayıtlı DNS ikinci adımda kalır. Model 2
+ve şemalar değişmez, politika v4 olur. Kaynak payload'ı veya kesin çalışma
+başvurusu yoksa doğrulama/bağ uydurulmaz.
+[0165 kararı](decisions/0165-passive-candidate-research.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı

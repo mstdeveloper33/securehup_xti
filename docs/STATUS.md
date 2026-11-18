@@ -1,10 +1,34 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.160.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.161.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.161.0 pasif aday araştırması:** Kayıtlı alt alan adayları ve insan
+sahiplik sınıflandırması ortak araştırma, öncelik ve incelemeye eklendi.
+Arşiv kaynağı/gözlem zamanı, insan karar zamanı ve aktif kapsam ayrıdır.
+Kök → aday → kayıtlı IP iki adımda, adaydan köke ters yönde araştırılır.
+Aynı ad farklı kök/firma altında ayrı kanıtlarla kalır; ret/geçmiş kaybolmaz.
+Mevcut `record.get` ve aday ayrıntısı kullanılabilir. Yeni ağ, API, paket
+veya şema geçişi yoktur. Model 2/zarf v1 korunur; öncelik v4, ilk yeni
+inceleme politika başlangıcıdır. [Kullanım ve sınırlar](RESEARCH.md#pasif-alt-alan-adayları-ve-sahiplik-incelemesi).
+
+**0.161.0 yerel doğrulaması:** `umask 002` altında **350 test / 134,945
+saniye** geçti. Tüm metin alanlarını kapsayan boyut ön kontrolünün son
+değişiminden sonra yeni modülün **29 testi / 15,226 saniye** yeniden geçti.
+İki demette **351 farklı test**, hata/atlama yok; 29 yeni test dahildir.
+Araştırma/inceleme, mevcut keşif/envanter, firma ayrımı, yedek, engine/platform,
+kaynak işleri, mimari ve CI yapılandırması kapsandı. Bu yerel/kontrollü sonuç
+tam test paketi veya yeni Linux/canlı kaynak kabulü değildir.
+[Kabul kaydı](ACCEPTANCE_REVIEW.md).
+
+**0.160.0 GitHub sonucu:** `de80b54` için hızlı kontrol **1.635 test /
+685,685 saniye** ile başarılı; marka kurulumu, Linux kurulumu ve firma
+izolasyonu da ilk koşuda geçti. Firma kabulü Python 3.11'de **78,487**,
+3.13'te **95,733 saniye** sürdü. Bu önceki commit'in sonucudur.
+[CI kanıtı](ACCEPTANCE_REVIEW.md#01600-github-kabulünün-sonucu).
 
 **0.160.0 tedarikçi araştırması:** Kayıtlı teknik aday, insan kararı ve
 tedarikçi envanteri ortak `research`, öncelik ve inceleme geçmişine bağlandı.

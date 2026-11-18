@@ -1,7 +1,7 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.160.0 / çekirdek şema 75, ayrı platform iş şeması 2.
+**Mevcut sürüm:** 0.161.0 / çekirdek şema 75, ayrı platform iş şeması 2.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -51,8 +51,10 @@ gözlenmiş TLS sertifikası kanıtlarını aynı araştırma, öncelik ve incel
 bağlar. Yeni şema/ağ yoktur. İki adım, firma kapsamı, kaynak kimliği ve
 gözlem/iddia ayrımı korunur. 0.160.0 mevcut tedarikçi adayını, insan
 kararlarını ve envanterini araştırmaya bağlar; model 2/öncelik v3 ile eski
-incelemeleri özgün okur. Pasif keşif adayları, tedarikçi risk/izleme,
-genel çıkarım ve kimlik birleştirme henüz ortak araştırmada değildir.
+incelemeleri özgün okur. 0.161.0 kayıtlı pasif alt alan adayını ve sahiplik
+sınıflandırmasını ayrı bağlarla ekler; model 2 ve öncelik v4 olur.
+Tedarikçi risk/izleme, genel çıkarım ve kimlik birleştirme henüz ortak
+araştırmada değildir; pasif kaynak çalışma sağlığı ayrı görünümde kalır.
 [Kapsam ve uyum](../RESEARCH.md).
 
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
@@ -362,8 +364,10 @@ tablo veya ücretli API yoktur. [İşlem envanteri ve sınırlar](../RESEARCH.md
 0.159.0 devam dilimi CNAME ve gözlenmiş sertifikayı ortak araştırmaya taşır.
 0.160.0 tedarikçi adayını ve karar geçmişini `candidate_context` ve
 `human_decision` olarak ayırır; kabul/ret/sağlayıcı değişimi, envanter ve
-özgün kanıtlar aynı firma içinde araştırılır. Kayıtlı pasif keşif adayları
-sonraki aday kapsamdır. Genel kimlik incelemesi, kural çıkarımı, tedarikçi
+özgün kanıtlar aynı firma içinde araştırılır. 0.161.0 kayıtlı pasif keşif
+adayları ve insan sahiplik kararlarını kaynak gözleminden ayrı ekler;
+kök → aday → DNS yolu iki adımda kalır. Kaynakların son çalışma sağlığını
+aday kanıtının yanına taşıma sonraki öneridir. Genel kimlik incelemesi, kural çıkarımı, tedarikçi
 risk kartları ve bütün kaynakların ortak modele taşınması henüz tamamlanmadı.
 MTR-01/02 bütünüyle tamamlandı sayılmaz.
 

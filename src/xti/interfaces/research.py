@@ -7,6 +7,9 @@ from xti.interfaces.text import safe_text, xti_command
 def _surface_detail_commands(rows, data_dir):
     commands = set()
     for row in rows:
+        if row["record_type"] in {"surface_candidate", "surface_candidate_source", "surface_candidate_decision"}:
+            identifier = row["source_reference"] if row["record_type"] == "surface_candidate_decision" else row["record_id"]
+            commands.add(xti_command("surface", "candidate", "show", identifier, data_dir=data_dir))
         kind = ("cname" if row["record_type"] in {"surface_cname_check", "surface_cname_observation"} else
                 "certificate" if row["record_type"] in {"surface_tls_check", "surface_certificate"} else None)
         if kind:
@@ -22,6 +25,8 @@ def _surface_detail_commands(rows, data_dir):
 
 
 def _record_detail_command(ref, value, data_dir):
+    if ref["record_type"] == "surface_candidate":
+        return xti_command("surface", "candidate", "show", ref["record_id"], data_dir=data_dir)
     args = (("ioc", "show", ref["record_id"]) if ref["kind"] == "indicator" else
             ("cti", "entity-show", ref["record_id"]) if ref["kind"] == "cti" else
             ("suppliers", "show", ref["record_id"]) if ref["kind"] == "supplier" else
@@ -66,6 +71,8 @@ def priority_lines(data, *, data_dir=None):
         "certificate_adjacency_limit": "Bazı sertifikaların domain bağlantıları gösterim sınırını aşıyor.",
         "supplier_adjacency_limit": "Bazı tedarikçi veya aday bağlantıları gösterim sınırını aşıyor.",
         "supplier_read_budget": "Bazı tedarikçi geçmişleri bu isteğin doğrulama sınırına sığmadı; doğrulanmayan kayıt gösterilmedi.",
+        "discovery_candidate_limit": "Bazı pasif alt alan adayları bu görünümün kayıt sınırına sığmadı.",
+        "discovery_read_budget": "Bazı pasif adayların kaynak/karar geçmişi okuma sınırını aştı; doğrulanmayan kayıt gösterilmedi.",
         "cti_adjacency_limit": "Bazı kayıtların CTI bağlantıları gösterim sınırını aşıyor.",
         "source_evidence_limit": "Bazı kayıtların kaynak kanıtları bu görünüme sığmadı.",
         "enrichment_result_window": "URL kaynağının sonuç penceresi sınırlı; bütün arşiv kapsanmıyor.",
@@ -120,13 +127,16 @@ def research_lines(data, *, data_dir=None):
               "present": "CNAME gözlenmiş", "absent": "CNAME yok", "nxdomain": "DNS'te ad yok",
               "accepted": "insan onayı", "rejected": "reddedilmiş aday", "uncertain": "belirsiz aday",
               "pending": "inceleme bekleyen aday", "derived": "kayıtlı kanıttan aday",
-              "withdrawn": "insan kararıyla kaldırılmış bağlantı"}
+              "withdrawn": "insan kararıyla kaldırılmış bağlantı", "owned": "insan tarafından bana ait sınıflandırılmış",
+              "recorded": "arşivde kayıtlı ad"}
     relations = {"cname_alias": "CNAME yönlendirmesi", "cname_target_address": "CNAME son hedefi → IP",
                  "certificate_presented": "Domain → gözlenmiş TLS sertifikası",
                  "supplier_candidate": "Domain → teknik tedarikçi adayı",
                  "supplier_candidate_domain": "Aday → olası hizmet domaini",
                  "human_supplier_link": "İnsan kararıyla tedarikçi bağlantısı (geçmiş dahil)",
-                 "supplier_registered_domain": "Tedarikçi → envantere girilmiş domain"}
+                 "supplier_registered_domain": "Tedarikçi → envantere girilmiş domain",
+                 "passive_subdomain": "Kök domain → pasif alt alan adayı",
+                 "subdomain_classification": "Alt alan sahiplik incelemesi (insan kararı; geçmiş dahil)"}
     lines = [f"İlişkili kanıt araştırması: {safe_text(data['query']['value'])}",
              labels[data["status"]],
              f"Toplanan: {data['collected_node_count']} düğüm, {data['collected_edge_count']} bağlantı, "
@@ -140,7 +150,8 @@ def research_lines(data, *, data_dir=None):
 
     def show_evidence(rows):
         for row in rows:
-            when = {"response_received_at": "Yanıt alınma", "decision_recorded_at": "Karar"}.get(row["time_basis"], "Gözlem")
+            when = {"response_received_at": "Yanıt alınma", "decision_recorded_at": "Karar",
+                    "stored_seen_range": "Arşivde son görülme"}.get(row["time_basis"], "Gözlem")
             status = states.get(row['status'], safe_text(row['status']))
             if row["kind"] == "human_decision":
                 status = ("envanter etkin" if row["status"] == "active" else

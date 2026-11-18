@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.160.0 / çekirdek 75 / iş kuyruğu 2**.
+Güncel çalışma: **0.161.0 / çekirdek 75 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -126,15 +126,16 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-009 — Araştırmanın kapsam sınırları
 
-- **Durum:** Bilinen sınır; CNAME/TLS ve tedarikçi kararları uygulandı.
+- **Durum:** Bilinen sınır; CNAME/TLS, tedarikçi ve pasif aday kararları uygulandı.
   **Güncellendi:** 18 Kasım 2026.
 - **Not:** Araştırma en fazla iki ilişki adımıyla çalışıyor. URL kaynağı
   ilk 20 arşiv sonucunu alıyor; bütün arşivde ters yönde arama yok.
   0.159.0 kayıtlı CNAME adımları/son hedef IP'sini ve gerçekten sunulan
   sertifikaları ortak araştırma/öncelik/incelemeye taşır. 0.160.0 kayıtlı
   tedarikçi adayını, insan kararlarını ve envanteri ayrı kanıt türleriyle
-  ekler. Pasif alt alan adayları, tedarikçi risk kartları ve izleme uyarıları
-  henüz taşınmadı. SAN/wildcard adı gözlenmiş host sayılmaz.
+  ekler. 0.161.0 kayıtlı pasif alt alan adaylarını ve sahiplik sınıflandırmasını
+  ekler. Tedarikçi risk kartları/izleme uyarıları ve pasif keşif çalışmasının
+  son sağlık durumu henüz taşınmadı. SAN/wildcard adı gözlenmiş host sayılmaz.
   Ters bağlantılar sınırlı kayıt penceresinden gelir; eksik kapsam görünürdür.
 - **Kanıt:** 24 yeni test dahil 266 ilgili yerel test geçti; firma ayrımı,
   özgün kanıt, eşzamanlı okuma, sınırlar ve yedek korundu. Ek 68 CI/kaynak
@@ -143,6 +144,9 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - **0.160.0 kanıtı:** 32 yeni test dahil **337 farklı ilgili test** geçti.
   Ayrı iki firmalı gerçek süreç kabulü **40,395 saniyede** tamamlandı;
   bu yerel/kontrollü sonuç Linux veya canlı kaynak kabulü değildir.
+- **0.161.0 kanıtı:** 29 yeni test dahil **351 farklı ilgili yerel test**
+  geçti; kaynak/karar ayrımı, iki adım, firma ayrımı, yedek, sınırlar ve eski
+  inceleme uyumu kontrol edildi. Bu yeni bir kaynak taraması değildir.
 - **Sonraki iş:** Kapsam genişletirken eski kanıt kimliklerini korumak;
   bütün internetin tarandığı veya ilişkilerin sahiplik/zararlılık kanıtı
   olduğu izlenimini vermemek. Ayrıntılar ilgili modüllerde korunuyor.
@@ -224,6 +228,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   saniyede**, yalnız başarısız 3.11 işinin aynı commit/sınırlarla tekrarı
   **79,735 saniyede** geçti; tekrar p95 **1,186 saniye**.
   [Koşu ve tekrar](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259846928).
+- **0.160.0 kanıtı:** `de80b54` firma kabulünün iki Python kolu ilk koşuda
+  geçti: 3.11 **78,487 saniye** / p95 **1,174 saniye**; 3.13 **95,733
+  saniye** / p95 **1,435 saniye**. Eşikler aynı; eski süre aşımlarının kök
+  nedenini bu başarılı koşu kapatmaz.
+  [Koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427220).
 - **Sonraki iş:** Tekrarlanan toplam süre aşımında komut başlatma ve
   yürütme sürelerini ayrı ölçmek. Mevcut kanıt toplam bütçenin tükendiğini
   gösterir; bunun altyapı veya uygulamadaki kesin kök nedenini göstermez.
@@ -265,6 +274,25 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   kanıt reddi, tarihçe değişimi, firma ayrımı ve yedek kabul testleri geçti.
 - **Dayanak:** [Kullanım ve uyum](docs/RESEARCH.md#tedarikçi-adayları-ve-insan-kararları),
   [mimari karar](docs/decisions/0164-human-supplier-research.md).
+
+### N-019 — Pasif aday araştırmasının kanıt ve kapsam sınırları
+
+- **Durum:** Bilinen sınır. **Güncellendi:** 18 Kasım 2026.
+- **Not:** 0.161.0 kayıtlı aday ve insan sınıflandırmasını ortak araştırmada
+  gösterir. Adayın `owned` olması aktif kontrol onayı veya teknik sahiplik
+  doğrulaması değildir. Araştırma aday üretmez, aktif kapsam yazmaz.
+- **Kanıt sınırı:** Özgün kaynak kimliği, URL, ham ad ve SHA-256 korunur.
+  Bu tablolarda ham sağlayıcı payload'ı bulunmadığından içerikten hash
+  yeniden hesaplanmış sayılmaz. Kaynak satırıyla keşif çalışması arasında
+  kesin ilişki yoksa yalnız aynı zamana bakılarak `source_run_id` üretilmez.
+  Yeni boş/başarısız çalışma eski adayın zamanını yenilemez ve adayı silmez.
+- **Uyum:** Model 2/zarf v1/şema 75 korunur; politika v4'ün ilk incelemesi
+  yeni başlangıçtır. Eski model/politika sonuçları yeniden yorumlanmaz.
+- **Sonraki öneri:** Mevcut keşif kaynak durumunu araştırmada ayrı bir
+  bağlam olarak göstermek; son başarısız deneme ile eski aday kanıtını
+  karıştırmamak. Güncel sağlık şimdilik `surface discovery-status` içindedir.
+- **Dayanak:** [Kapsam](docs/RESEARCH.md#pasif-alt-alan-adayları-ve-sahiplik-incelemesi),
+  [mimari karar](docs/decisions/0165-passive-candidate-research.md).
 
 ## Korunacak kararlar
 
@@ -377,11 +405,14 @@ eski v1 kayıtları değiştirilmez.
 geçmişini ve envanteri ortak araştırma/öncelik/incelemeye ekler. Yeni
 sağlayıcı, API veya migration yoktur. Model 2 uyumu N-018'de korunur.
 
-**Sonraki öneri, henüz uygulanmadı:** Kayıtlı pasif alt alan keşif adaylarını
-ve sahiplik inceleme kararlarını aynı araştırmaya bağlamak; aday, insan
-kararı ve doğrudan ağ gözlemini ayrı tutmak. Ayrıca N-016'daki toplam kabul
-süresini komut bazında izlemek. Backendin oturum/abonelik/merkezi kota
-yönetimi bu sıraya dahil değildir.
+**Uygulandı:** 0.161.0 kayıtlı pasif alt alan adayını ve insan sahiplik
+kararlarını ortak araştırma/öncelik/incelemeye ekler. Aktif kapsam değişmez;
+yeniden keşif kararı sıfırlamaz. Kanıt ve çalışma sınırları N-019'da korunur.
+
+**Sonraki öneri, henüz uygulanmadı:** Pasif keşif kaynaklarının son çalışma
+durumunu ortak araştırmada aday kanıtından ayrı göstermek: başarılı/boş,
+kısmi veya başarısız deneme. Ayrıca N-016'daki toplam kabul süresi izlenir.
+Backendin oturum/abonelik/merkezi kota yönetimi bu sıraya dahil değildir.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması
 özelliğin tamamlandığı anlamına gelmez.

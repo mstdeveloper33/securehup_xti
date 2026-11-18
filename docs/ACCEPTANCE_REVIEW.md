@@ -1,5 +1,64 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.161.0 — Pasif alt alan adayı ve sahiplik sınıflandırması
+
+18 Kasım 2026, macOS arm64/Python 3.13.3; `de80b54` üzerine çalışma ağacı.
+Çekirdek 75, kuyruk 2, araştırma/değerlendirme modeli 2 ve dış zarf v1
+değişmedi. Öncelik politikası `research-priority-v4`; ilk v4 incelemesi
+politika başlangıcıdır, önceki değerlendirme yeniden hesaplanmaz.
+
+| Doğrulama | Sonuç |
+|---|---|
+| `umask 002`; araştırma/öncelik/geçmiş, tedarikçi, pasif keşif/geçmiş/envanter, varlık ilişkileri, engine/platform, firma ayrımı/yedek, kaynak işleri, mimari ve CI yapılandırması | **350 test / 134,945 saniye; OK, atlama yok** |
+| Son metin alanı boyut ön kontrolü ve ek regresyondan sonra yeni modül | **29 test / 15,226 saniye; OK, atlama yok** |
+
+İki demette **351 farklı test**; tekrarlar toplanmaz. 29 yeni test hızlı
+CI listesine eklendi. İlk 26 test / 14,435 saniye geliştirme koşusu da geçti;
+bu sayı yeniden toplamda sayılmaz. Kabul gerçek SQLite ve mevcut
+CLI/engine/platform sözleşmesiyle kontrollü fixture kullanır. Araştırma
+testlerinde ağ/dış süreç açma assertion ile engellendi.
+
+Doğrulanan davranışlar:
+
+- Pasif kaynak, insan sınıflandırması ve aktif kontrol kapsamının ayrılığı;
+  otomatik ilk keşfin insan kararı olmaması, `owned` ile kapsam açılmaması.
+- Onay → ret → yeniden açma ve aynı durumda gerekçe güncellemesi;
+  özgün olay kimlikleri, yalnız son kararın güncel sayılması.
+- Aynı arşiv kaydının tekrarı, yeni eski gözlemin ithali, eksik kaynak
+  tarihi ve iki sağlayıcının kanıtı; eski gözlem saatinin yenilenmemesi.
+- Boş/başarısız sonraki keşifte adayın ve insan kararının korunması;
+  bu görünümün son kaynak çalışması sağlığı diye sunulmaması.
+- Kök → aday → kayıtlı DNS IP'si, ters yönün özgün yönü koruması,
+  kayıtsız ad son ekinden ilişki çıkarılmaması; iki kökün aynı adayının
+  farklı kararlarının ve iki firmanın kayıtlarının ayrılığı.
+- Aktif kapsamı bulunan adayın reddinin bağımsız kapsamı değiştirmemesi.
+- Satır/bayt/olay ön bütçeleri, bütün metin alanlarının decoder öncesi
+  ölçülmesi, ilgisiz büyük kaydın yüklenmemesi, açık kısmi kapsam.
+- Elli kanıt sınırında toplamın ve son kararın korunması; eski arşivin
+  geç ithalinin yeni gözlemi gösterim dışında bırakmaması.
+- Bozuk kök/domain, kayıp ilk keşif/kaynak, yanlış projeksiyon/geçiş,
+  geçersiz hash biçimi ve eksik kök kaydının reddi.
+- Saat gerilemesinde olay ekleme sırası, eşzamanlı yazmada tek okuma
+  kesiti ve sayfa işaretinin karar değiştiğinde reddedilmesi.
+- Gerçek aday `record.get` başvurusu, çalışan ayrıntı komutları, salt
+  okumada dosyaların değişmemesi; yeni kararın inceleme farkına yansıması,
+  IOC geri çekmesi üretilmemesi; eski v3 kaydı ve yedeğin korunması.
+
+Günlükler `/tmp/xti-01610-regression.log`,
+`/tmp/xti-01610-final-tests.log`; ham test verisi repoya alınmaz. Bu kabul
+tam test paketi, yeni Linux CI, canlı kaynak, Tavily/Nmap veya büyük veri
+kapasite kabulü değildir. Kaynak SHA-256 özgün kayıtla korunur; saklanmayan
+sağlayıcı payload'ının doğrulandığı iddia edilmez. N-019 kapsamı belgeler.
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_research tests.test_research_surface tests.test_research_suppliers tests.test_research_discovery tests.test_research_priority tests.test_research_history tests.test_surface_discovery tests.test_surface_discovery_history tests.test_surface_inventory tests.test_periodic_surface_history tests.test_asset_relations tests.test_supplier_candidates tests.test_engine_contract tests.test_engine_records tests.test_platform_engine tests.test_platform_isolation tests.test_platform_backup tests.test_source_jobs tests.test_source_jobs_usage tests.test_source_jobs_platform tests.test_architecture tests.test_ci_configuration
+./scripts/python -m unittest tests.test_research_discovery
+```
+
+İlk komutun 350 sayısı son tek ek regresyondan öncedir; güncel dosya
+aynı komutta 351 test seçer. Eşikler test geçmesi için gevşetilmedi.
+
 ## 0.160.0 — Tedarikçi adayı ve insan kararı araştırması
 
 18 Kasım 2026, macOS arm64/Python 3.13.3; `1601e75` üzerine çalışma ağacı.
@@ -67,6 +126,25 @@ umask 002
 İlk komutun 336 sayısı son kimlik testi eklenmeden öncedir; aynı komut
 güncel dosyayla 337 test seçer. Rapor dosyası zaten varsa kabul çalıştırıcısı
 üstüne yazmaz; yeniden denemede yeni bir çıktı yolu seçilmelidir.
+
+### 0.160.0 GitHub kabulünün sonucu
+
+18 Kasım 2026'da `de80b54315ebb08d225676bd273dd0aeadaa7c1a` için dört
+çalışma ilk koşuda başarılı tamamlandı:
+
+- [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427247):
+  Linux/Python 3.11, **1.635 test / 685,685 saniye; OK, atlama yok**.
+- [Marka araçları kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427221).
+- [Linux kurulum kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427297).
+- [Firma izolasyonu/kurtarma kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427220):
+  3.11.18 **78,487 saniye**, p95 **1,174 saniye**; 3.13.18 **95,733 saniye**,
+  p95 **1,435 saniye**. İkisinde 36 okuma ve SQLite bütünlüğü başarılı.
+  Eşikler değişmedi; N-016'daki eski başarısız koşuların kanıtı korunur.
+
+Geçici günlükler `/tmp/xti-01600-quick-ci.log` ve
+`/tmp/xti-01600-platform-ci.log`. Önceki tur sonunda hâlâ çalışan hızlı
+kontrolün nihai sonucu bu turda okundu. Bu 0.160.0 commit'inin kabulüdür;
+yeni 0.161.0 veya tam test paketi sonucu değildir.
 
 ## 0.159.0 — Kayıtlı CNAME ve TLS ilişki araştırması
 

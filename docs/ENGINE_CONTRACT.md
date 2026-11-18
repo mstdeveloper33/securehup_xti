@@ -1,6 +1,6 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.160.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
+**Uygulama:** 0.161.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,
@@ -311,6 +311,14 @@ sorgu geçmişini, `enrichment.run.get` özgün çalışmanın ayrıntılarını
 [Tam parametre/sonuç sözleşmesi](INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu).
 
 ## `research.priorities`: gerekçeli inceleme sırası
+
+0.161.0 `passive_subdomain/candidate_context` ve
+`subdomain_classification/human_decision` bağlarını ekler. Domain düğümü
+mevcut pasif aday `record.get` başvurusunu taşıyabilir. Aday özeti zamanı
+`stored_seen_range`; özgün kaynak zamanı varsa `source_observation`, yoksa
+`response_received_at`; insan kararı `decision_recorded_at` olarak kalır.
+Model 2/zarf v1 değişmez; politika v4'tür. `owned` aktif izin veya teknik
+sahiplik doğrulaması değildir. [Alanlar ve sınırlar](RESEARCH.md#pasif-alt-alan-adayları-ve-sahiplik-incelemesi).
 
 0.160.0 `research.show` ve `research.priorities` sonuçlarının
 `data.model_version` değeri **2** olur; istek/dış zarf v1 kalır. Yeni

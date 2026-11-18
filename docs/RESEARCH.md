@@ -1,8 +1,8 @@
 # İlişkili kanıt araştırması
 
-18 Kasım 2026 · 0.160.0 · araştırma modeli 2 · engine/platform zarfı v1 · çekirdek şema 75.
+18 Kasım 2026 · 0.161.0 · araştırma modeli 2 · engine/platform zarfı v1 · çekirdek şema 75.
 
-Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, tedarikçi, IOC ve CTI kayıtlarını tek
+Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, pasif aday, tedarikçi, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
 aktör. Her bağlantı özgün kanıt/iddia kimliğini ve tarihini taşır. Bu bir
 saldırı veya ihlal kararı değildir. Kaynak iddiaları yeni gözleme dönüşmez.
@@ -22,7 +22,8 @@ katılabilir; araştırma çalıştırmak ücretli sorgu başlatmaz.
 ./xti --data-dir /path/to/data --json research securehup.com --type domain
 ```
 
-Domain tam değerle eşleşir; alt alan adlarını otomatik kapsamına almaz.
+Domain kökü tam değerle eşleşir; kayıtlı pasif aday bağlantıları üzerinden
+alt alanlara genişler. Ad son ekinden kayıtsız alt alan ilişkisi türetilmez.
 IP örneği yalnız saklı kayıt aramasıdır, hedefe paket göndermez. Root domain
 kaydı ve aynı domainin IOC kaydı tek araştırma düğümünde özgün kimlikleriyle
 bulunur. CTI varlıklarının kimlikleri korunur; benzer adlar birleştirilmez.
@@ -159,13 +160,69 @@ kanıtı için sahte `record.get` başvurusu üretilmez. Güncel risk kartı vey
 tedarikçi izleme uyarıları henüz ortak araştırmanın parçası değildir;
 ilgili mevcut modüllerde kalır.
 
-**Sürüm uyumu:** Araştırma ve yeni dondurulmuş değerlendirme
-`model_version=2`; öncelik `research-priority-v3`. Engine/platform istek ve
+**Sürüm uyumu:** Bu teslim araştırma/değerlendirmeyi `model_version=2`,
+önceliği `research-priority-v3` yaptı. 0.161.0 modeli korur, politikayı v4'e
+yükseltir; aşağıda açıklanır. Engine/platform istek ve
 dış zarfı v1, veritabanı şeması 75 kalır. Eski değerlendirme modeli 1 özgün
 okunur; yeni model/kuralın ilk kaydı karşılaştırma başlangıcıdır. Model 1
 bilen istemci model 2'yi aynı kabul etmemeli. Eski motor yeni model 2
 incelemeyi okuyamaz; geri dönüşte yükseltme öncesi uygun yedek kullanılır.
 İlk sayfa yeniden alınmalıdır; kesit kimliği model sürümünü de içerir.
+
+## Pasif alt alan adayları ve sahiplik incelemesi
+
+0.161.0 daha önce `surface discover` ile saklanmış adayları aynı araştırmaya
+ekler. Örneğin kayıt varsa `example.com → api.example.com → gözlenmiş IP`
+iki adımda görülebilir. İlk bağ pasif arşivden, ikinci bağ ayrıca yapılmış
+DNS kontrolünden gelir; iki kanıtın türü ve tarihi ayrı kalır.
+
+| İlişki | Kanıt türü | Anlamı |
+|---|---|---|
+| `passive_subdomain` | `candidate_context` | Kök altında kaydedilmiş aday ve özgün kaynakları |
+| `subdomain_classification` | `human_decision` | Kullanıcının `owned`, `rejected`, yeniden `pending` kararları |
+
+İlk otomatik keşif insan kararı değildir; böyle bir bağ ancak kaydedilmiş
+insan kararı varsa görünür. `owned` teknik sahiplik doğrulaması veya aktif
+tarama izni değildir. Yeniden keşif insan kararını sıfırlamaz. Ret geçmişi
+silmez; ayrıca verilmiş aktif kontrol onayını da kendiliğinden kaldırmaz.
+Karar veren kişiye ait kimlik mevcut kayıtta yoksa uydurulmaz.
+
+```sh
+./xti surface candidates securehup.com --status all
+./xti research securehup.com --type domain
+./xti research securehup.com --type domain --priorities
+./xti research-history record securehup.com --type domain
+```
+
+Bu komutlar kayıtlı veriyi kullanır. Aday yoksa mevcut `surface discover`
+ile açıkça kaynak toplamak gerekir; `research` bunu kendiliğinden yapmaz.
+Bir adayın tam domainini araştırmak kayıtlı kök bağlantısını ters yönde de
+bulur. Aynı ad iki kayıtlı kökün adayıysa iki aday kimliği ve kararları
+ayrı korunur. Joker ad veya yalnız benzer ad yeni host/ilişki üretmez.
+
+| `record_type` | Özgün kimlik ve tarih |
+|---|---|
+| `surface_candidate` | `record_id` aday; `stored_seen_range` kayıtlı kaynakların görülme aralığıdır; `current=null` |
+| `surface_candidate_source` | `record_id` aday; `event_id` kaynak satırı; `source_reference` özgün URL; `state_sha256` kayıtlı kaynak özeti |
+| `surface_candidate_decision` | `record_id/event_id` karar olayı; `source_reference` aday; `decision_recorded_at` kararın kayıt zamanı |
+
+Kaynak gözlem zamanı yoksa alınma/kayıt zamanı `response_received_at`
+olarak belirtilir. Yeni karar veya aynı kaynak kaydının tekrarı eski gözlem
+zamanını yenilemez. Kararda `current=true` son ilgili karardır; son durum
+`rejected` veya `pending` olabilir. Önceki `owned` güncel onay diye sunulmaz.
+
+Domain düğümünün aday başvurusu mevcut `record.get` ile açılabilir:
+`kind=domain`, `record_type=surface_candidate`, `namespace=passive-discovery`.
+Terminal ayrıca `surface candidate show KIMLIK` komutunu verir. Kaynak
+SHA-256 özgün kayıtla korunur; ham sağlayıcı payload'ı saklanmadığı için
+içerikten tekrar doğrulandığı iddia edilmez. Kesin ilişki tablosu bulunmayan
+keşif çalışma kimliği zaman eşleştirmesiyle tahmin edilmez.
+
+Yeni boş/başarısız keşif çalışması eski adayı silmez. Bu araştırma aday
+geçmişini gösterir; son keşif çalışmasının erişim/kapsam sağlığı mevcut
+`surface discovery-status` görünümünde ayrıca incelenir. Araştırma modeli 2,
+istek/zarf v1, şema 75 kalır. Politika v4'ün ilk incelemesi yeni başlangıçtır;
+önceki v3/model 2 ve daha eski kayıtlar yeniden yazılmaz.
 
 ## URL/hash kaynak bağlamı
 
@@ -326,12 +383,20 @@ Sabit okuma sınırları:
   bozuk kanıt ise `storage_error` olur. Aday düğümünde en fazla 52 kanıt,
   son durum/son karar/en az bir teknik kanıt önce; diğer bağlarda en fazla
   50 kanıt bulunur. Toplam geçmiş sayıları korunur.
+- Pasif alt alanlarda düğüm başına 200 aday seçilir; her biri en fazla iki
+  ilişki verir ve genel 200 bağ sınırı ayrıca uygulanır. İstekte 10.000
+  kaynak/olay/durum satırı ve 16 MiB ön kontrol; aday başına 1.000 karar
+  olayı sınırı vardır. Sığmayan adayın geçmişi bütünüyle atlanır; doğrulanmış
+  aday sayısı ve kısmi kapsam açık gösterilir. Bağ başına 50 kanıt: aday
+  özeti önce, kaynakta gözlem/alınma zamanı en yeni önce, kararda son eklenen
+  olay önce. Olay sırası saat gerilemesiyle değiştirilmez.
 
 Makine sınır kodları: `node_limit`, `edge_limit`, `path_limit`,
 `dns_history_window`, `dns_read_budget`, `dns_adjacency_limit`,
 `cname_history_window`, `cname_read_budget`, `cname_adjacency_limit`,
 `certificate_adjacency_limit`, `cti_adjacency_limit`, `source_evidence_limit`,
-`enrichment_result_window`, `supplier_adjacency_limit`, `supplier_read_budget`.
+`enrichment_result_window`, `supplier_adjacency_limit`, `supplier_read_budget`,
+`discovery_candidate_limit`, `discovery_read_budget`.
 `coverage_complete` yalnız
 bu kapsamın sınırsız kalıp kalmadığını söyler; tazelik, internet kapsamı,
 eldeki kaynakların yeterliliği veya güvenlik garantisi değildir.
@@ -345,18 +410,19 @@ bir hata üretmez; saklı son kontrolün hatası görünür kalır.
 
 ## Kapsam envanteri ve sonraki dilim
 
-| Yetenek | Önceden | 0.160.0 |
+| Yetenek | Önceden | 0.161.0 |
 |---|---|---|
 | Genel kayıt araması/ayrıntı, kaynak/araç durumu | CLI + engine/platform | Korundu |
 | DNS/sertifika/CNAME ilişki geçmişi | `surface relations` CLI | Korundu; kayıtlı kanıt ortak araştırma/öncelik/incelemede de kullanılır |
 | Tedarikçi adayları ve ilişki kararları | Ayrı aday/tedarikçi ve `surface relations` CLI | Ortak araştırma/öncelik/inceleme; teknik aday ile insan kararı ayrı |
+| Pasif alt alan adayları ve sahiplik sınıflandırması | Keşif/envanter/aday CLI | Ortak araştırma/öncelik/inceleme; arşiv, karar ve aktif kapsam ayrı |
 | Doğrudan CTI bağlamı | `cti context` CLI | Korundu; kaynak denetimi yeniden kullanılır |
 | Domain/IP → DNS/IOC → CTI kaynaklı yolları | Ortak görünüm yok | `research` CLI ve `research.show` engine/platform |
 | Otomatik varlık birleştirme, açıklamalı çıkarım | Plan | Sonraki MTR-01/02 dilimleri |
 | MISP warninglists | Plan | Dört seçilmiş liste; kaynaklı domain/IP bağlamı, [ayrıntı](WARNINGLISTS.md) |
 | URL/hash zenginleştirme | Plan | CIRCL ve kayıtlı urlscan yanıtları; sınırlı kaynak bağlamı |
 
-Güncel çekirdek şema 75'tir; 0.160.0 yeni migration gerektirmez.
+Güncel çekirdek şema 75'tir; 0.161.0 yeni migration gerektirmez.
 0.152.0'ın araştırması tablo eklemiyordu. 0.153.0 warninglist kaynak
 geçmişi şema 73, 0.154.0 URL/hash şema 74, 0.156.0 inceleme şema 75
 oldu; daha eski alanlardan geçiş açık ve yedeklidir.

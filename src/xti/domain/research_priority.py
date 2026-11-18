@@ -9,7 +9,7 @@ from xti.domain.research import (
 )
 
 
-POLICY_VERSION = "research-priority-v3"
+POLICY_VERSION = "research-priority-v4"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
@@ -27,6 +27,7 @@ RULES = {
     "supplier_review_pending": ("verify", "Tedarikçi adayı inceleme bekliyor veya belirsiz; kaynak bağı insan onayı değildir."),
     "supplier_dependency_historical": ("verify", "Aday son yenilemede tarihî işaretlenmiş; bu teknik durum insan onayının geri çekildiği anlamına gelmez."),
     "supplier_inventory_inactive": ("verify", "Tedarikçi envanter kaydı pasif; tarihî onay ve kaynak kanıtı korunuyor."),
+    "surface_candidate_pending": ("verify", "Pasif alt alan adayı inceleme bekliyor; arşiv kaydı sahiplik veya aktif kontrol onayı değildir."),
     "source_lookup_failed": ("verify", "Son URL/dosya kaynak sorgusu başarısız; varsa önceki geçerli yanıt korunuyor."),
     "evidence_truncated": ("verify", "Bu kaydın kanıtlarının tamamı okuma sınırına sığmadı; özgün kayıt ayrıntısını inceleyin."),
     "stale_active_indicator": ("verify", "Etkin IOC iddiasının son gözlemi güncellik eşiğini aşıyor; iddianın güncel dayanağını kontrol edin."),
@@ -35,6 +36,8 @@ RULES = {
     "source_no_match": ("context", "Son geçerli kaynak yanıtında eşleşme yok; bu yalnız o sorgunun sonucudur."),
     "inactive_claims_only": ("context", "Bu kaydın gösterilen kaynak iddiaları etkin değil; tarihî kanıtı güncel tehdit olarak yorumlamayın."),
     "supplier_link_withdrawn": ("context", "Bu tedarikçi bağlantısı sonraki insan kararıyla kaldırılmış veya değiştirilmiş; eski kabul güncel onay değildir."),
+    "surface_candidate_rejected": ("context", "Alt alan adayı insan kararıyla reddedilmiş; tarihî kaynak kanıtı korunur."),
+    "surface_candidate_owned": ("context", "Alt alan adı insan tarafından kendine ait sınıflandırılmış; aktif kontrol kapsamı ve teknik doğrulama ayrıdır."),
     "listed_context": ("context", "Kaynak listesiyle eşleşme var; altyapı bağlamı sağlar, güvenli veya zararlı hükmü vermez."),
     "recorded_context": ("context", "Kayıtlı gözlem veya kaynak bağlamı var; bu kurallar ek inceleme önceliği üretmedi."),
     "relationship_context_only": ("context", "Bu düğüm ilişkili kanıtta geçiyor; düğüme ait ayrı bir iddia kaydı yok."),
@@ -153,6 +156,12 @@ def _reasons(rows, total, matches, related, checked_at, hours):
         if selected:
             add(code, selected)
     failed_source = [row for row in rows if row.record_type == "enrichment_run" and row.status == "failed"]
+    classifications = [row for row in rows if row.record_type == "surface_candidate" or
+                       (row.record_type == "surface_candidate_decision" and row.current)]
+    for status in ("pending", "rejected", "owned"):
+        selected = [row for row in classifications if row.status == status]
+        if selected:
+            add("surface_candidate_" + status, selected)
     if failed_source:
         add("source_lookup_failed", failed_source)
     if total > len(rows):

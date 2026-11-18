@@ -1,6 +1,6 @@
 # Kayıtlı incelemeler ve önceki incelemeye göre değişim
 
-18 Kasım 2026 · 0.160.0 · çekirdek şema 75 · değerlendirme modeli 2 (eski model 1 okunur).
+18 Kasım 2026 · 0.161.0 · çekirdek şema 75 · değerlendirme modeli 2 (eski model 1 okunur).
 
 Bir domain, IP, URL veya dosya kimliğini incelerken o günkü kanıtları ve
 inceleme sırasını saklayabilirsiniz. Sonraki kayıt, aynı kapsamın önceki
@@ -12,6 +12,13 @@ veri getirmeye devam eder; incelemeyi kaydetmek yeni tarama, ücretli API
 veya LLM çağrısı yapmaz. Alarm ve analist kararlarını değiştirmez.
 
 ## Terminalden kullanım
+
+0.161.0 kayıtlı pasif alt alan kanıtını ve sahiplik sınıflandırmasını da
+saklar. Model 2 korunur, politika v4 olur; önceki v3/model 2 kayıtları özgün
+okunur ve ilk v4 kaydı `policy_baseline` olur. Karar değişimi kaynak kanıtı
+değişiminden ayrı tür taşır; IOC iddiası geri çekilmesi üretilmez. Aday
+yeniden keşfedildi diye eski kaynak tarihi yenilenmez. Güncel kurallar
+eski incelemelere uygulanmaz.
 
 0.160.0 tedarikçi adayları ve insan kararlarını ayrı kanıt türleriyle
 saklar. Yeni değerlendirme modeli 2 ve politika v3'tür. Önceki model 1

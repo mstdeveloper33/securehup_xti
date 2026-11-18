@@ -156,7 +156,7 @@ def research_data(report) -> dict:
         "paths": [{"node_ids": list(nodes), "edge_ids": list(edges), "hops": len(edges)}
                   for nodes, edges in report.paths],
         "notes": [
-            "Yalnız seçili çalışma alanının kayıtlı DNS, CNAME, TLS, IOC, CTI, tedarikçi ve URL/dosya kanıtları okunur; kaynaklar yeniden sorgulanmaz.",
+            "Yalnız seçili çalışma alanının kayıtlı DNS, CNAME, TLS, pasif aday, IOC, CTI, tedarikçi ve URL/dosya kanıtları okunur; kaynaklar yeniden sorgulanmaz.",
             "Yollar iki yönde araştırılabilir; ilişkinin özgün yönü source_id/target_id alanlarında korunur.",
             "Ortak IP, CNAME hedefi, aynı sertifika veya kaynak iddiası sahiplik, aynı saldırgan, kötü niyet veya doğrulanmış ihlal sonucu değildir.",
             "Eski DNS ve geri çekilmiş/geçersiz IOC/CTI iddiaları tarihî kanıt olarak görünür; geçerlilik ile güncellik ayrıdır.",
@@ -164,9 +164,10 @@ def research_data(report) -> dict:
             "Sonraki sayfada expected_snapshot kullanın; değişen kayıtlar snapshot_changed ile reddedilir. Bu tarihî kesit deposu değildir.",
             "Sertifika bağlantısı yalnız kayıtlı web kontrolünde gerçekten sunulmuş sertifikadır; SAN/wildcard adları gözlenmiş domain sayılmaz. certificate düğümü dosya hash IOC'sinden ayrıdır.",
             "CNAME zincirinin her adımı ve yalnız son hedefin IP'si ayrıdır. Tarihî bağlantılar korunur; son başarısız kontrol ve sertifikanın geçerlilik tarihleri bugünkü durumu doğrulamaz.",
-            "Ters CNAME ve sertifika bağlantıları sınırlı kayıt penceresinden gelir. Pasif alt alan adı adayları henüz bu araştırmada birleşmez.",
+            "Ters CNAME, sertifika ve pasif aday bağlantıları sınırlı kayıt kapsamından gelir; bütün arşiv taranmış sayılmaz.",
+            "Pasif alt alan adayının arşiv kanıtı ve insan sahiplik sınıflandırması ayrıdır; owned aktif tarama yetkisi veya teknik sahiplik doğrulaması değildir. Keşif çalışmasının hata/boş sonucu eski adayı silmez; bu görünüm yeni sorgu değildir.",
             "Tedarikçi adayı candidate_context, insan kararı human_decision olarak ayrıdır. İnsan kararında current son ilgili kararı belirtir; accepted/withdrawn/rejected ve envanter etkinliği ayrıca okunmalıdır.",
-            "Adayın current değeri son aday yenilemesinin durumudur; yeni DNS kontrolü değildir. Teknik kanıtın kaybolması insan onayını kendiliğinden kaldırmaz. Envantere girilmiş domain bağı sahiplik doğrulaması değildir.",
+            "Tedarikçi adayının current değeri son aday yenilemesinin durumudur; yeni DNS kontrolü değildir. Teknik kanıtın kaybolması insan onayını kendiliğinden kaldırmaz. Envantere girilmiş domain bağı sahiplik doğrulaması değildir.",
             "Warninglist eşleşmeleri kaynak bağlamıdır; otomatik güvenli kararı, alarm kapatma veya aktör ilişkisi oluşturmaz.",
             "Kaynak araştırması yalnız sorgulanmış URL/hash için saklanan yanıtlardan genişler; ters yönde bütün arşivi taramaz. Yanıt alınma tarihi ile sağlayıcının gözlem tarihi ayrıdır.",
         ],
