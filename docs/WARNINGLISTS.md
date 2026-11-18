@@ -132,8 +132,9 @@ Güncelleme güvenilen işletici tarafından seçili alanda yapılır:
 ```
 
 İkinci komuta yukarıdaki JSON stdin üzerinden verilir. Firma listesi yoksa
-kişisel veya başka firma kataloğuna dönülmez. Platform kuyruğuna otomatik
-yenileme işi eklenmemiştir. Her firma alanı açıkça yenilenir.
+kişisel veya başka firma kataloğuna dönülmez. 0.157.0 [kaynak işleri](SOURCE_JOBS.md)
+seçili listeleri aynı firma kuyruğunda açıkça yeniler; okuma otomatik
+yenileme başlatmaz. Her firma alanı ayrı kalır.
 
 Başarılı okuma çıkışı 0'dır; eksik/eski kaynak normal veri durumu olarak
 görünür. Kısmi/başarısız `sync`: `ok=false`, çıkış 3. Geçersiz seçenek:

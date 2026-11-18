@@ -1,6 +1,6 @@
 # XTI günlük kullanım
 
-Bu belge 0.156.0 / çekirdek şema 75 kullanımını kapsar. Eski kayıt alanında
+Bu belge 0.157.0 / çekirdek şema 75 kullanımını kapsar. Eski kayıt alanında
 önce `./xti doctor` ile durumu kontrol et. Geçiş gerekiyorsa açık
 `./xti migrate` komutu önce geri dönüş yedeği alır; şema 75 için yeniden
 geçiş gerekmez. Çok firmalı kurulum ve kalıcı profil işleri

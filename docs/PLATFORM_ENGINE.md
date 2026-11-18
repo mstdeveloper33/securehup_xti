@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.156.0 · protokol `xti-platform` v1 · çekirdek şema 75.**
+**Uygulama 0.157.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -22,7 +22,9 @@ Kök üst klasörü mevcut olmalı. Firma kimliği küçük ASCII harf/rakam,
 tire ve alt çizgi kullanan sabit kimliktir; görünen kuruluş adı değildir.
 Kök, kayıt listesi ve firma dizinleri özel izinlerle oluşturulur. Var olan
 kişisel klasör otomatik benimsenmez. Eski veriler taşınmaz veya silinmez.
-Çekirdek veritabanının yanında sürüm 1 `engine-jobs.sqlite3` iş kuyruğu vardır.
+Çekirdek veritabanının yanında sürüm 2 `engine-jobs.sqlite3` iş kuyruğu vardır.
+Eski sürüm 1 profil kuyruğu okunabilir; yeni kaynak işi için açık yedekli
+`platform jobs-migrate --root ... --company ...` geçişi gerekir.
 Kurulum yarıda kalırsa eksik alan erişim için reddedilir; üzerine otomatik
 kurulum yapılmaz. İşletici alanı inceleyip kapatabilir ve yeni alan kurabilir.
 
@@ -50,7 +52,10 @@ Kişisel alandaki geçiş diğer firmaların veritabanını değiştirmez.
 Ardından `./xti --data-dir "$PWD/.xti-platform/firma-a" warninglists sync`
 seçili firmanın listelerini internetten alır. Platformdaki okuma işlemleri
 bu alanı kullanır; başka firma/kişisel katalogdan tamamlamaz.
-Bu yenileme, kalıcı profil kuyruğuna otomatik eklenmez.
+0.157.0 ayrıca `sources.plan` ve `sources.jobs.submit/list/status/result/cancel/retry`
+ile açık kaynak yenileme işleri sunar. Mevcut `platform worker` bunları
+da çalıştırır; isteğe bağlı inceleme kaydı son adım olabilir. Kabul ağ
+kullanmaz, firma yedeği kanıtlarla işi birlikte korur. [Sözleşme ve örnekler](SOURCE_JOBS.md).
 [Kullanım, kaynak ve koşullar](WARNINGLISTS.md).
 
 ## Kayıtlı incelemeler

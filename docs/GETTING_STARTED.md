@@ -1,6 +1,6 @@
 # XTI hızlı başlangıç
 
-**Sürüm 0.156.0 · çekirdek şema 75.** Aşağıdaki numaralı adımlar kişisel
+**Sürüm 0.157.0 · çekirdek şema 75.** Aşağıdaki numaralı adımlar kişisel
 terminal kullanımını başlatır. Aynı motoru ayrı firma kayıt alanlarıyla
 çalıştırmak için [platform adımlarını](#çok-firmalı-platform-kullanımı) kullan.
 
@@ -44,6 +44,11 @@ Komut, değişiklikten önce doğrulanmış bir kurtarma yedeği alır.
 [İnceleme geçmişi](RESEARCH_HISTORY.md), [URL/hash kullanımı](INDICATOR_ENRICHMENT.md). Liste
 indirmek için ayrıca `./xti warninglists sync` çalıştırılır; kurulum
 kendi başına kaynak toplamaz. [Liste kullanımı](WARNINGLISTS.md).
+
+Kaynakları kuyruktan çalıştırmak istersen ilk kez `./xti source-jobs init`
+ile yerel kuyruğu oluştur. Eski kuyrukta `./xti source-jobs migrate`
+yedek alarak sürüm 2'ye geçirir. Yeni firma alanı kuyruğu hazır kurar;
+mevcut firma için `platform jobs-migrate` kullanılır. [Adım adım kaynak işleri](SOURCE_JOBS.md).
 
 ## 2. İlk domainini izle
 

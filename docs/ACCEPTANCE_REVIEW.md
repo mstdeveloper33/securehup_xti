@@ -1,5 +1,60 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.157.0 — Ortak kuyrukta kaynak yenilemesi
+
+18 Kasım 2026, macOS arm64/Python 3.13.3; `9266fbf` üzerine çalışma ağacı.
+Çekirdek şema 75 değişmedi; iş kuyruğu şema 2 açık/yedekli geçiştir.
+
+- `umask 002` altında kaynak işleri/platform, eski kuyruk/profil,
+  firma izolasyonu/yedek, URL/hash/MISP, inceleme geçmişi, engine,
+  yükseltme, CLI, CI ve mimari: **272 test / 97,228 saniye; 270 başarılı,
+  macOS'ta iki Linux atlaması, hata yok**. 38 yeni kaynak işi testi dahil.
+- Gerçek SQLite/CLI/JSON üzerinde iptal yarışları, geçerli makbuzu yeniden
+  kullanma, başarısız kaynağın eski veriyi koruması, kesinti sonrası açık
+  tekrar, bütçe, yanlış firma/plan, bozuk olay, 32 tekrar sınırı,
+  şema 1→2 yedek/rollback ve iki dosyalı restore doğrulandı.
+- Yerel günlük `/tmp/xti-01570-regression.log`; geçici artefakttır.
+  Son Linux tam paket sonucu henüz bu yerel kayıtla temsil edilmez.
+- Son saat gerilemesi/ebeveyn bağı denetimi ve CI süre ayarından sonra
+  kaynak işleri, firma girişi, eski kuyruk ve CI'nin **70 testi / 19,274
+  saniye** yeniden geçti; hata/atlama yok. Bu son tekrar önceki 272'ye
+  ek farklı test sayısı olarak toplanmaz.
+
+### Gerçek kaynaklarla platform kabulü
+
+İzole `xti-01570-live-rq0x9_v8` geçici firma alanında 17 platform çağrısı
+exit 0 ve boş stderr ile tamamlandı. İki kaynak işi de `complete` oldu.
+
+| Kaynak | Gözlem |
+|---|---|
+| MISP `rfc6761` | Resmî kaynak listesi alındı; makbuz ayrı okunabildi |
+| urlscan `https://example.com/` | `matched`, ilk yanıt sayfası; `has_more=true` korundu |
+| CIRCL önceki kabulün OpenSSL SHA-256 değeri | `matched`, kayıtlı kaynak makbuzu okunabildi |
+| İsteğe bağlı inceleme | İki ayrı kök için `baseline`; URL kapsam sınırı görünür |
+| Aynı anahtar/plan | Tamamlanmış aynı iş döndü, ikinci kaynak sorgusu yapılmadı |
+| Firma yedeği | Kaynak kanıtları ve kuyruk birlikte yedeklendi |
+
+URL işi `b6c65620-18d4-4678-8f85-302308ed816b`, hash işi
+`99741db7-0a8f-4c7d-b8ce-c22bd04ffd0c`. URL incelemesi
+`9d7bb073-0990-4cb8-9633-c7dc959884ac`; hash incelemesi
+`b74eb8e0-581f-43ad-858c-393003ccab9a`.
+Ham istek/yanıt/zaman/çıkış kaydı geçici `evidence.json` içinde; dosya SHA-256:
+`e495c1dfd8da9cb5255c9ce07549eedbafbacc4157128ab89fe9b7a3c35edf46`.
+İlk deneme macOS `/var` yol takma adı nedeniyle `scope_unavailable` ile
+durdu; hiçbir sorgu yapılmadı. Gerçek `/private/var` yolu ile yukarıdaki
+izole koşu geçti. Ürün kapsam kontrolü gevşetilmedi. Hedef taraması,
+dosya yükleme/indirme, Tavily veya Nmap çalıştırması yapılmadı.
+
+### Önceki sürümün Linux doğrulaması
+
+0.156.0'ın `9266fbfa4b27406cc29c09cd3404b04e3ec59559` commit'i Ubuntu/Python
+3.13 tam paketinde **2.820 test / 1.134,595 saniye; OK, atlama yok**.
+[Tam CI](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44200653217).
+N-014 kapandı. Hızlı iş aynı commit'te GitHub'ın açık 15 dakika sınırına
+takılarak iptal edildi; annotation `maximum execution time of 15m0s`.
+0.157.0 sınırı 25 dakikaya çıkarır ve 38 yeni testi hızlı pakete ekler;
+hiçbir test atılmaz. Yeni commit'in CI sonucu ayrıca kaydedilecek.
+
 ## 0.156.0 — Kayıtlı inceleme ve değişim kabulü
 
 17 Kasım 2026, macOS arm64/Python 3.13.3, çekirdek şema 75, başlangıç

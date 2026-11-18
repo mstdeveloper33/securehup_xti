@@ -6,17 +6,20 @@ from datetime import datetime, timezone
 from xti.domain.assets import ValidationError
 from xti.domain.collection_history import history_uuid
 from xti.domain.engine_jobs import (
-    EngineJob, EngineJobError, digest, request_key, request_json, result_json,
+    EngineJob, EngineJobError, digest, request_key, request_json, result_json, job_result_status,
 )
-from xti.ports.engine_jobs import EngineJobRepository, EngineJobRunner
+from xti.domain.source_jobs import SourceJobPayload
+from xti.ports.engine_jobs import EngineJobRepository, EngineJobRunner, SourceJobRunner
 from xti.ports.jobs import ExecutionLock
 
 
 class EngineJobService:
     def __init__(self, repository: EngineJobRepository, runner: EngineJobRunner | None,
-                 lock: ExecutionLock, *, clock: Callable[[], datetime] | None = None):
+                 lock: ExecutionLock, *, clock: Callable[[], datetime] | None = None,
+                 source_runner: SourceJobRunner | None = None):
         self.repository, self.runner, self.lock = repository, runner, lock
         self.clock = clock or (lambda: datetime.now(timezone.utc))
+        self.source_runner = source_runner
 
     def _now(self) -> str:
         value = self.clock()
@@ -49,18 +52,29 @@ class EngineJobService:
     def work_one(self, job_id: str | None = None) -> EngineJob | None:
         if job_id is not None:
             history_uuid(job_id)
-        if self.runner is None:
+        if self.runner is None and self.source_runner is None:
             raise EngineJobError('execution_unavailable', 'Motor işi çalıştırıcısı yapılandırılmamış.')
         with self.lock.acquire():
             claim = self.repository.claim(job_id, recorded_at=self._now())
             if claim is None:
                 return None
             try:
-                result = self.runner.run(claim.job.payload, session_started=lambda session_id:
-                    self.repository.link_session(claim, session_id, recorded_at=self._now()))
+                if isinstance(claim.job.payload, SourceJobPayload):
+                    if self.source_runner is None:
+                        raise EngineJobError('execution_unavailable', 'Kaynak işi çalıştırıcısı yapılandırılmamış.')
+                    result = self.source_runner.run(claim.job,
+                        started=lambda: self.repository.link_session(claim, claim.job.id, recorded_at=self._now()),
+                        current=lambda: self.repository.get(claim.job.id),
+                        progress=lambda key, **kwargs: self.repository.source_step(claim, key,
+                            recorded_at=self._now(), **kwargs))
+                else:
+                    if self.runner is None:
+                        raise EngineJobError('execution_unavailable', 'Profil çalıştırıcısı yapılandırılmamış.')
+                    result = self.runner.run(claim.job.payload, session_started=lambda session_id:
+                        self.repository.link_session(claim, session_id, recorded_at=self._now()))
                 result_json(result)
                 return self.repository.finish(
-                    claim, status=result['collection_status'], result=result,
+                    claim, status=job_result_status(result), result=result,
                     error_code=None, recorded_at=self._now(),
                 )
             except BaseException:

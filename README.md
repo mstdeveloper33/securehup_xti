@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.156.0 · **Tarih:** 17 Kasım 2026 · **Çekirdek şema:** 75.
+**Sürüm:** 0.157.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 75 · **İş kuyruğu:** 2.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -12,6 +12,15 @@ kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
 
 Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
 [NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
+
+0.157.0, CIRCL/urlscan ve seçilmiş MISP listelerini aynı kalıcı iş kuyruğuna
+bağlar. `source-jobs plan/submit/worker/status/result/cancel/retry` ile
+kaynak seçimini, ilerlemeyi ve sonucu görebilirsin. İsteğe bağlı
+`--record-review` güncelleme ardından incelemeyi kaydeder. Firma JSON girişi
+aynı akışı sunar. Kesilen istek otomatik tekrarlanmaz; tamamlanmış kaynak
+adımları açık yeniden denemede korunur. Yeni kişisel kuyruk için
+`source-jobs init`, eski kuyruk için yedekli `source-jobs migrate` kullanılır.
+Yeni ücretli API veya paket yoktur. [Kullanım ve sınırlar](docs/SOURCE_JOBS.md).
 
 0.156.0, `./xti research-history record securehup.com --type domain` ile
 o anki incelemeyi saklar ve önceki aynı kapsamlı kayıtla karşılaştırır.

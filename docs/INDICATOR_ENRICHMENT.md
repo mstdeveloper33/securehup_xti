@@ -126,6 +126,7 @@ seçilemez; diğer firmanın çalışma kimliği `not_found` döndürür.
 `provider` URL için `urlscan`, hash için `circl`; uyumsuz seçim reddedilir.
 Engine okumasının `status=complete` olması canlı kaynağın başarılı olduğu
 anlamına gelmez; `data.status` ve kaynak çalışması ayrıca incelenir.
-Kaynak yenilemesi yalnız işletici CLI'sindedir. Ücretli kaynak, otomatik
-platform yenileme işi, sınırsız API ve geniş malware/verdict motoru bu
-dilimin teslimi değildir.
+0.157.0 [kaynak işleri](SOURCE_JOBS.md) ayrıca firma platformundan açık
+kabul, worker, ilerleme, iptal ve tekrar sunar. Doğrudan `enrich fetch`
+korunur; okuma işlemi canlı sorgu başlatmaz. Ücretli kaynak, sınırsız API
+ve geniş malware/verdict motoru bu dilimin teslimi değildir.

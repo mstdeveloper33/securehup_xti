@@ -1,10 +1,31 @@
 # XTI — Güncel Uygulama Durumu
 
-**17 Kasım 2026 · 0.156.0 · Çekirdek şema 75.**
+**18 Kasım 2026 · 0.157.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.157.0 yönetilebilir kaynak işleri:** CIRCL/urlscan ve seçili MISP listeleri
+ortak motor kuyruğunda planlanır, açık worker ile yenilenir. Terminal ve
+firma platformunda ilerleme, iptal, kesinti/kurtarma, açık tekrar vardır.
+Tamamlanmış kaynak adımları tekrar sorgulanmaz; istenirse son inceleme
+kaydı önceki aynı kapsamla karşılaştırılır. Kaynak hatası eski veriyi
+silmez. Çekirdek 75 korunur; kuyruk şema 2 açık yedekli geçiştir. Eski profil
+işleri değişmez. Genel akış kurucusu ve ortak sağlayıcı kotası henüz yoktur.
+[Kullanım ve sınırlar](SOURCE_JOBS.md).
+
+**0.157.0 kabulü:** 38 yeni kaynak işi/CLI/platform testi dahil, 272 ilgili
+test / 97,228 saniye: 270 başarılı, iki Linux atlaması; hata yok. Gerçek
+CIRCL, urlscan ve MISP sorguları ayrı firma alanında iş/kanıt/inceleme,
+aynı anahtarla tekrar ve birleşik yedek akışından geçti. URL sonuç sınırı
+korundu. Son kodun Linux tam paketi ayrıca kaydedilecek; bu yerel tur tam
+paket veya Tavily/Nmap canlı kabulü değildir. [Kanıt](ACCEPTANCE_REVIEW.md).
+
+**0.156.0 Linux tam kabulü tamamlandı:** `9266fbf` üzerinde 2.820 test /
+1.134,595 saniye, tamamı başarılı; atlama yok. N-014 kapandı.
+[CI sonucu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44200653217).
+Eski yerel izin hatası aşağıdaki tarihî kayıtta korunur.
 
 **0.156.0 kayıtlı inceleme ve değişim:** `research-history record/list/show`,
 engine/platform `research.history`, `research.review.get` ve firma

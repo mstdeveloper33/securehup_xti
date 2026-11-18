@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**17 Kasım 2026 — 0.156.0, çekirdek şema 75 ana proje yapısı.**
+**18 Kasım 2026 — 0.157.0, çekirdek şema 75, iş kuyruğu şeması 2.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -53,6 +53,15 @@ zaman etkisini kanıt değişiminden ayırır. Şema 75 özgün değerlendirmeyi
 farkı tek tabloda saklar. Platform yazımında güncel firma alanı kimliği,
 okumalarda firma kapsamı korunur. İçerik boyutu ve sayfa sınırları vardır;
 hash denetimi bağımsız imza değildir. [0160 kararı](decisions/0160-frozen-research-reviews.md).
+
+0.157.0 `sources.refresh` sürümlü planını mevcut `EngineJobService` kuyruğuna
+ekler. `SourceJobService` kabul/tekrar kurallarını; küçük operasyon portuna
+bağlı `CooperativeSourceJobRunner` adımlar arası süre/iptali yönetir.
+Adaptör mevcut URL/hash, MISP ve inceleme servislerini kullanır. Sidecar
+şema 2 açık yedekli geçiştir; profil payload/sonuç/olayları değişmez.
+Kuyruk → çekirdek kilit sırası platform yedeğiyle aynıdır. Dış çağrı öncesi
+başlangıç, sonrası özgün makbuz kaydedilir; iki commit arası kesinti
+otomatik tekrar izni değildir. [0161 kararı](decisions/0161-source-jobs-in-common-queue.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı

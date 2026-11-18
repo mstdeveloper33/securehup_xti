@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from xti.domain.source_jobs import SourceJobPayload
 
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.collection_history import (
@@ -123,6 +127,9 @@ class EngineJobPayload:
 
 def result_json(value: dict) -> str:
     """Validate the intentionally small source-receipt result, never arbitrary collector objects."""
+    if isinstance(value, dict) and value.get('operation') == 'sources.refresh':
+        from xti.domain.source_jobs import source_result_json
+        return source_result_json(value)
     try:
         if not isinstance(value, dict) or set(value) != {
             'collection_session_id', 'collection_status', 'asset_value', 'analysis_status',
@@ -202,7 +209,7 @@ class EngineJob:
     request_key: str
     request_sha256: str
     payload_sha256: str
-    payload: EngineJobPayload
+    payload: 'EngineJobPayload | SourceJobPayload'
     status: str
     created_at: str
     started_at: str | None = None
@@ -210,8 +217,20 @@ class EngineJob:
     collection_session_id: str | None = None
     result: dict | None = None
     error_code: str | None = None
+    steps: tuple[dict, ...] = ()
+    cancel_requested: bool = False
 
     def to_dict(self) -> dict:
+        from xti.domain.source_jobs import SourceJobPayload, plan_data
+        if isinstance(self.payload, SourceJobPayload):
+            return {'job_id': self.id, 'operation': 'sources.refresh', 'idempotency_key': self.request_key,
+                'request_sha256': self.request_sha256, 'payload_sha256': self.payload_sha256,
+                'plan': plan_data(self.payload.plan), 'retry_of': self.payload.retry_of,
+                'status': self.status, 'created_at': self.created_at, 'started_at': self.started_at,
+                'finished_at': self.finished_at, 'execution_id': self.collection_session_id,
+                'steps': list(self.steps), 'cancel_requested': self.cancel_requested,
+                'completed_steps': sum(step['status'] in {'complete', 'partial', 'failed', 'skipped'} for step in self.steps),
+                'total_steps': len(self.steps), 'result_available': self.result is not None, 'error_code': self.error_code}
         return {
             'job_id': self.id, 'idempotency_key': self.request_key,
             'request_sha256': self.request_sha256, 'payload_sha256': self.payload_sha256,
@@ -229,3 +248,23 @@ class EngineJob:
 class EngineJobClaim:
     job: EngineJob
     token: str
+
+
+def parse_job_payload(value):
+    try:
+        if not isinstance(value, str) or len(value) > MAX_ENGINE_JOB_PAYLOAD_BYTES:
+            raise ValidationError('Motor işi boyut sınırını aşıyor.')
+        if json.loads(value).get('operation') == 'sources.refresh':
+            from xti.domain.source_jobs import SourceJobPayload
+            return SourceJobPayload.from_json(value)
+        return EngineJobPayload.from_json(value)
+    except (ValueError, TypeError, AttributeError, RecursionError) as error:
+        raise ValidationError('Motor işi tanımı doğrulanamadı.') from error
+
+
+def payload_request(payload):
+    return request_json(payload.profile_name, payload.profile_revision) if isinstance(payload, EngineJobPayload) else payload.request_json()
+
+
+def job_result_status(result):
+    return result['status'] if result.get('operation') == 'sources.refresh' else result['collection_status']

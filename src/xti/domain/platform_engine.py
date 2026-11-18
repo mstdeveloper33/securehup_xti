@@ -8,6 +8,7 @@ from xti.domain.cti_knowledge import normalize_knowledge_id
 from xti.domain.collection_profiles import normalize_profile_name
 from xti.domain.assets import ValidationError
 from xti.domain.nmap_platform import NMAP_OPERATIONS, parse_nmap_parameters
+from xti.domain.source_job_contract import SOURCE_JOB_OPERATIONS, parse_source_job_parameters
 
 
 PLATFORM_CONTRACT_VERSION = 1
@@ -15,7 +16,7 @@ PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
     'research.review.record',
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
-) + NMAP_OPERATIONS
+) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS
 
 
 def _fields(value, allowed, required=()):
@@ -47,7 +48,9 @@ def parse_platform_request(value):
         return parse_engine_request(value)
     parameters = value['parameters']
     try:
-        if operation in NMAP_OPERATIONS:
+        if operation in SOURCE_JOB_OPERATIONS:
+            normalized = parse_source_job_parameters(operation, parameters)
+        elif operation in NMAP_OPERATIONS:
             normalized = parse_nmap_parameters(operation, parameters)
         elif operation == 'research.review.record':
             from xti.domain.research_history import capture_scope, history_key, SCOPE_FIELDS

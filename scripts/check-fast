@@ -36,6 +36,8 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_company_content.py \
     tests/test_engine_jobs_storage.py \
     tests/test_engine_job_service.py \
+    tests/test_source_jobs.py \
+    tests/test_source_jobs_platform.py \
     tests/test_engine_job_collection.py \
     tests/test_platform_engine.py \
     tests/test_platform_isolation.py \

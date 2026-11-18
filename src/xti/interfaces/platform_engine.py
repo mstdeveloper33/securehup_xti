@@ -33,6 +33,7 @@ def register_platform_parser(commands):
         ('request', 'Seçilen firma kapsamında tek JSON isteği işle.'),
         ('worker', 'Seçilen firmanın kuyruğundan en fazla bir işi çalıştır.'),
         ('recover', 'Kesilmiş platform işlerini açıkça işaretle; yeniden çalıştırma.'),
+        ('jobs-migrate', 'İş kuyruğunu yedek alarak açıkça yükselt; çekirdek veriyi değiştirme.'),
         ('disable', 'Yeni firma erişimini kapat; kayıtları koru.'),
         ('backup', 'Firma kanıtları ve iş kayıtlarını birlikte yeni yedeğe al.'),
         ('restore', 'Firma yedeğini aynı firma kimliğiyle yeni kayıt alanına aç.'),
@@ -63,7 +64,11 @@ def platform_manifest():
         'authentication_owner': 'consuming_platform',
         'request_network_access': False,
         'job_type': 'saved_collection_profile',
-        'additional_job_types': ['managed_nmap_plan'],
+        'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
+        'source_jobs': {'schema_version': 2, 'plan_operation': 'sources.plan',
+                        'sources': ['circl', 'urlscan', 'misp'], 'review_opt_in': True,
+                        'cancellation': 'between_steps', 'retry': 'explicit_new_job',
+                        'uncertain_retry_requires_acknowledgement': True},
         'worker': 'explicit_one_job',
         'idempotency': 'company_and_key_bound_to_profile_revision',
         'submission_fence': 'expected_workspace_id',
@@ -97,6 +102,10 @@ def _data(value):
 
 
 def execute_platform_request(context, request):
+    from xti.domain.source_job_contract import SOURCE_JOB_OPERATIONS
+    if request.operation in SOURCE_JOB_OPERATIONS:
+        from xti.interfaces.source_jobs import execute_platform_source_job
+        return execute_platform_source_job(context, request)
     if request.operation == 'research.review.record':
         from xti.interfaces.research_history import execute_platform_record
         return execute_platform_record(context, request.parameters)
@@ -205,6 +214,9 @@ def run_platform(args, *, stream=None, output=None):
                 data = _data(make_platform_jobs(context).work_one(job_id=args.job_id))
             elif action == 'recover':
                 data = _data(make_platform_jobs(context).recover())
+            elif action == 'jobs-migrate':
+                from xti.interfaces.platform_jobs import migrate_jobs
+                data = migrate_jobs(context)
             elif action in {'nmap-worker', 'nmap-recover'}:
                 from xti.interfaces.nmap_execution import make_nmap_service
                 service = make_nmap_service(context.database)
@@ -225,9 +237,12 @@ def run_platform(args, *, stream=None, output=None):
             problem = EngineContractError(error.code, {
                 'not_found': 'Bu firma kapsamında iş bulunamadı.',
                 'idempotency_conflict': 'Tekrar anahtarı bu firma içinde başka bir işe bağlı.',
-                'invalid_job_state': 'İşin kayıtlı durumu bu işlemi desteklemiyor; yalnız başlamamış işler iptal edilebilir.',
+                'invalid_job_state': 'İşin kayıtlı durumu bu işlemi desteklemiyor.',
                 'profile_changed': 'Kayıtlı profil veya izleme kapsamı değişti; güncel seçimle yeni iş planlayın.',
                 'capacity_exceeded': 'İş geçmişi kapasite sınırına ulaştı; tekrar anahtarları silinmedi.',
+                'migration_required': 'Kaynak işleri için platform jobs-migrate ile iş kuyruğunu şema 2’ye yükseltin.',
+                'plan_changed': 'Kaynak planı özeti uyuşmuyor; sources.plan ile güncel planı alın.',
+                'uncertain_outcome': 'Kesilen isteğin sonucu belirsiz; yeniden gönderme allow_uncertain seçimi gerektirir.',
             }.get(error.code, 'İş isteği mevcut kayıtlı durumla uyuşmuyor.'))
         elif isinstance(error, CompanyWorkspaceError):
             problem = EngineContractError('scope_unavailable', 'Firma kapsamı doğrulanamadı; başka veri alanına geçilmedi.')

@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
-Son güncelleme: **17 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.156.0 / şema 75**.
+Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
+Güncel çalışma: **0.157.0 / çekirdek 75 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -117,18 +117,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - **Dayanak:** [Mevcut sınırlar](docs/INDICATOR_ENRICHMENT.md#sonuçların-anlamı),
   [MTR-05/06](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md#62-iş-paketleri-ve-tamamlanma-ölçütleri).
 
-### N-008 — Yeni kaynakları platformdan yenileme
-
-- **Durum:** Bilinen sınır / sonraki geliştirme. **Güncellendi:** 17 Kasım 2026.
-- **Not:** MISP listeleri ve URL/hash yanıtları platformdan okunabiliyor;
-  yenilemeleri şu anda işletici terminal komutlarıyla yapılıyor. JSON okuma
-  işlemi canlı internet sorgusu başlatmıyor.
-- **Sonraki iş:** Platformdan yenileme istendiğinde firma kapsamında iş
-  kabulü, kota, ilerleme, iptal/kurtarma ve sonuç bağlantısını eklemek.
-  Genel HTTP API veya .NET istemcisinin işiyle karıştırmamak.
-- **Dayanak:** [Warninglist kapsamı](docs/WARNINGLISTS.md),
-  [URL/hash sözleşmesi](docs/INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu).
-
 ### N-009 — Araştırmanın kapsam sınırları
 
 - **Durum:** Bilinen sınır. **Güncellendi:** 17 Kasım 2026.
@@ -157,10 +145,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 ### N-012 — Kapalı kaynak hedefi ve depo erişimi
 
 - **Durum:** Açık; ürünün erişim/dağıtım kararı için.
-  **Güncellendi:** 17 Kasım 2026.
+  **Güncellendi:** 18 Kasım 2026.
 - **Not:** Ürün hedefi kendi platformumuzun kapalı kaynak motoru.
-  GitHub görünürlüğü, erişim yetkileri ve önceki yayın durumu bu hedeften
-  ayrı olarak doğrulanmalı. Bu not depo görünürlüğünü değiştirmez.
+  GitHub API kontrolünde `mstdeveloper33/securehup_xti` için
+  `isPrivate=false` döndü: repo şu anda herkese açık. Görünürlük bu
+  çalışmada değiştirilmedi; önceki yayın/dağıtım hakları ayrıca incelenecek.
 - **Sonraki iş:** Ticari teslimden önce erişim/dağıtım kararını, mevcut
   durumu ve varsa yapılacak değişikliği somut olarak kaydetmek.
 - **Dayanak:** [Korunacak ürün kararları](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md#64-ticari-kullanım-dağıtım-ve-korunacak-kararlar).
@@ -184,20 +173,17 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   [mimari karar](docs/decisions/0160-frozen-research-reviews.md),
   [yerel kabul](docs/ACCEPTANCE_REVIEW.md).
 
-### N-014 — 0.156.0 için tek koşuda temiz tam paket kaydı
+### N-015 — Kişisel iş kuyruğunun yedek kapsamı
 
-- **Durum:** Açık; ortam/CI doğrulaması. **Güncellendi:** 17 Kasım 2026.
-- **Kanıt:** macOS/Python 3.13.3 kısıtlı ortamda 2.819 test: 2.814
-  başarılı, dört Linux atlaması, tek `killpg(SIGKILL)` izin reddi.
-  Mevcut theHarvester kurulum testi ayrı tekrarında ve sandbox dışında
-  üç tekrarda geçti. İzin reddini görmezden gelen kod eklenmedi.
-- **Son kod:** Bağlantı eklenmesini zaman etkisi sayan uç durum düzeltildi;
-  geçmiş/araştırma/engine/platform/mimarinin 115 testi geçti. Tam koşu bu
-  son küçük düzeltmeden önceki sabit aday içindir; iki sonuç karıştırılmaz.
-- **Sonraki iş:** Yayın/CI sırasında son commit'in uygun Linux ortamında
-  tam paketini çalıştırıp tek koşunun commit/ortam/sonuç bilgisini kaydetmek.
-  Tekrarda izin hatası görülürse alt süreç sahipliği/ortam sınırını incelemek.
-- **Dayanak:** [Tam sonuç ve tekrarlar](docs/ACCEPTANCE_REVIEW.md#01560--kayıtlı-inceleme-ve-değişim-kabulü).
+- **Durum:** Bilinen sınır. **Güncellendi:** 18 Kasım 2026.
+- **Not:** `source-jobs init` kişisel alana ayrı iş dosyası ekler. Eski
+  kişisel `backup` yalnız çekirdeği kapsar; kuyrukla birleşik yedek değildir.
+  Firma `platform backup/restore` iki dosyayı birlikte korur; yeni kaynak
+  işleriyle kontrollü test ve canlı kaynak yedeği geçti.
+- **Sonraki iş:** Kişisel kuyruk işletim ihtiyacı oluşursa birleşik yedeği
+  aynı kurallarla ele almak. Şimdiki işletim yolu firma yedeğidir; tek
+  dosya yedeği tam firma yedeği sayılmaz.
+- **Dayanak:** [Yedek ve geri dönüş](docs/SOURCE_JOBS.md#yedek-ve-geri-dönüş).
 
 ## Korunacak kararlar
 
@@ -218,6 +204,36 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   ve pasif kaynak toplama sınırları korunacak.
 
 ## Kapanan notlar ve kanıtları
+
+### N-008 — Yeni kaynakları platformdan yenileme
+
+- **Durum:** Kapandı; seçilmiş URL/hash/MISP kaynakları kapsamında.
+  **Güncellendi:** 18 Kasım 2026.
+- **Önceki durum:** Platform bu kaynakları yalnız okuyabiliyordu.
+- **Kapanma kanıtı:** 0.157.0 ortak kuyrukta plan/kabul, bütçe, ilerleme,
+  iptal/kurtarma ve açık tekrar ekler; isteğe bağlı inceleme kaydı vardır.
+  38 yeni iş/CLI/platform testi geçti. 272 ilgili test: 270 başarılı,
+  macOS'ta iki Linux atlaması; hata yok. İzole firma alanında canlı
+  CIRCL/urlscan/MISP → sonuç → inceleme → idempotent tekrar → yedek geçti.
+  Firma dışı kapsam ve restore sonrası eski kimlik reddedilir.
+- **Sınır:** Ortak kota N-007'de açık; genel HTTP/.NET veya bütün motor
+  işlemlerinin yazma API'si tamamlanmış sayılmaz.
+- **Dayanak:** [Kaynak işleri](docs/SOURCE_JOBS.md), [kabul kaydı](docs/ACCEPTANCE_REVIEW.md).
+
+### N-014 — 0.156.0 için tek koşuda temiz tam paket kaydı
+
+- **Durum:** Kapandı. **Güncellendi:** 18 Kasım 2026.
+- **Önceki kanıt:** macOS adayında 2.819 test; 2.814 başarılı, dört Linux
+  atlaması ve tek `killpg(SIGKILL)` izin reddi. Ayrı tekrarlar ve son küçük
+  düzeltmenin 115 testi önceki kabul belgesinde korunur.
+- **Kapanma kanıtı:** Son 0.156.0 commit'i
+  `9266fbfa4b27406cc29c09cd3404b04e3ec59559` üzerinde Ubuntu/Python 3.13
+  tam paket: **2.820 test / 1.134,595 saniye; tamamı başarılı**, atlama yok.
+  [Linux tam kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44200653217).
+- **Ayrı CI durumu:** Aynı commit'in hızlı paketi 15 dakika iş sınırına
+  takıldı; test hatası olarak sunulmaz. 0.157.0 sınırı 25 dakikaya çıkarır,
+  test çıkarmaz. Yeni CI sonucu ayrıca kaydedilir.
+- **Dayanak:** [Önceki yerel sonuçlar](docs/ACCEPTANCE_REVIEW.md#01560--kayıtlı-inceleme-ve-değişim-kabulü).
 
 ### N-010 — Son commit için tam test kabul kaydı
 
@@ -253,18 +269,16 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Sıradaki çalışma
 
-**Uygulandı:** 0.156.0 aynı araştırmanın inceleme geçmişini, yeni kanıtı,
-açık geri çekmeyi ve yalnız zamanla değişen önceliği kaydetmeyi ekledi.
-Son kodun 115 ilgili testi geçti; yeni bölümün 32 testi dahildir. Tam
-paketin izin hatası ve ayrı tekrarlar N-014/kabul belgesinde tutulur.
-Bu sonuç yeni canlı Tavily/Nmap kabulü değildir.
-Öncesindeki sabit 0.154.0 commit'inin tam test tekrarıyla N-010 kapandı.
+**Uygulandı:** 0.157.0 URL/hash/MISP yenilemesini ortak firma kuyruğuna
+bağlar; açık kaynak seçimi, bütçe, ilerleme, iptal/kurtarma, tekrar ve
+isteğe bağlı son inceleme kaydı vardır. N-008'in test ve kapanma kaydı
+aşağıdadır. Genel akış kurucusu veya ortak sağlayıcı kotası tamamlanmış
+sayılmaz. Bekleyen Tavily/Nmap girdileri N-004/N-005'te korunur.
 
-**Sonraki öneri, henüz uygulanmadı:** Mevcut kaynak yenilemelerini firma
-kapsamında yönetilebilir işlere bağlamak: açık kaynak seçimi, ilerleme,
-iptal/kurtarma ve tekrar güvenliği. Sonuçtan inceleme kaydı alma açık bir
-adım olmalı. Ücretli API veya LLM bu adımın ön koşulu değil; ücretli
-kaynak ancak ileride açık seçim ve bütçeyle eklenebilir.
+**Sonraki öneri, henüz uygulanmadı:** Birden fazla firma birlikte iş
+gönderdiğinde ortak sağlayıcı kotasını ve firma bütçesini ölçerek kurmak
+(N-007); kuyruk/disk/süre ölçümlerini gerçek işletim denemesiyle kaydetmek.
+Ücretli API/LLM bunun ön koşulu değildir.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması
 özelliğin tamamlandığı anlamına gelmez.

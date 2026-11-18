@@ -17,13 +17,15 @@ from xti.domain.collection_history import history_uuid
 from xti.domain.engine_jobs import (
     EngineJob, EngineJobClaim, EngineJobError, EngineJobPayload,
     ENGINE_JOB_TERMINAL, canonical_json, digest, job_time, parse_result_json, request_key,
-    request_json, result_json,
+    payload_request, parse_job_payload, result_json,
 )
+from xti.domain.source_jobs import SourceJobPayload, result_for
+from xti.domain.source_job_events import replay_source_job
 from xti.ports.jobs import WorkerBusyError
 
 
 ENGINE_JOB_DATABASE_NAME = 'engine-jobs.sqlite3'
-ENGINE_JOB_SCHEMA_VERSION = 1
+ENGINE_JOB_SCHEMA_VERSION = 2
 MAX_ENGINE_JOBS = 10_000
 _APPLICATION_ID = 0x58544A31
 _JOBS_DDL = """CREATE TABLE engine_jobs (
@@ -31,12 +33,15 @@ _JOBS_DDL = """CREATE TABLE engine_jobs (
     request_json TEXT NOT NULL, request_sha256 TEXT NOT NULL,
     payload_json TEXT NOT NULL, payload_sha256 TEXT NOT NULL, created_at TEXT NOT NULL
 )"""
-_EVENTS_DDL = """CREATE TABLE engine_job_events (
+_EVENTS_DDL_V1 = """CREATE TABLE engine_job_events (
     job_id TEXT NOT NULL REFERENCES engine_jobs(id), ordinal INTEGER NOT NULL CHECK(ordinal BETWEEN 1 AND 3),
     kind TEXT NOT NULL CHECK(kind IN ('claimed','session','finished','cancelled')),
     event_json TEXT NOT NULL, event_sha256 TEXT NOT NULL,
     PRIMARY KEY(job_id, ordinal)
 )"""
+_EVENTS_DDL = _EVENTS_DDL_V1.replace('BETWEEN 1 AND 3', 'BETWEEN 1 AND 12').replace(
+    "'claimed','session','finished','cancelled'",
+    "'claimed','session','finished','cancelled','step_started','step_finished','cancel_requested'")
 _JOB_COLUMNS = 'id, request_key, request_json, request_sha256, payload_json, payload_sha256, created_at'
 _EVENT_FIELDS = {'kind', 'recorded_at', 'token', 'session_id', 'status', 'result_json',
                  'result_sha256', 'error_code', 'previous_sha256'}
@@ -56,15 +61,16 @@ class SQLiteEngineJobRepository:
 
     @staticmethod
     def _schema(connection):
+        version = connection.execute('PRAGMA user_version').fetchone()[0]
         if (connection.execute('PRAGMA application_id').fetchone() != (_APPLICATION_ID,)
-                or connection.execute('PRAGMA user_version').fetchone() != (ENGINE_JOB_SCHEMA_VERSION,)
+                or version not in {1, ENGINE_JOB_SCHEMA_VERSION}
                 or connection.execute('PRAGMA journal_mode').fetchone() != ('delete',)):
             raise StorageError('Motor işi şeması desteklenmiyor; otomatik geçiş yapılmadı.')
         objects = set(connection.execute(
             "SELECT name, type, sql FROM sqlite_master WHERE sql IS NOT NULL"
         ).fetchall())
         if objects != {('engine_jobs', 'table', _JOBS_DDL),
-                       ('engine_job_events', 'table', _EVENTS_DDL)}:
+                       ('engine_job_events', 'table', _EVENTS_DDL if version == 2 else _EVENTS_DDL_V1)}:
             raise StorageError('Motor işi şeması beklenen yapıyla uyuşmuyor.')
         if (connection.execute('PRAGMA quick_check').fetchall() != [('ok',)]
                 or connection.execute('PRAGMA foreign_key_check').fetchall()):
@@ -140,13 +146,15 @@ class SQLiteEngineJobRepository:
             if temporary is not None:
                 temporary.unlink(missing_ok=True)
 
-    def _read(self, connection, job_id: str) -> tuple[EngineJob, str | None, str | None]:
+    def _read(self, connection, job_id: str, ancestry=()) -> tuple[EngineJob, str | None, str | None]:
+        if job_id in ancestry or len(ancestry) > 32:
+            raise StorageError('Motor işi tekrar zinciri doğrulanamadı veya 32 tekrar sınırını aşıyor.')
         row = connection.execute(f'SELECT {_JOB_COLUMNS} FROM engine_jobs WHERE id=?', (job_id,)).fetchone()
         if row is None:
             raise EngineJobError('not_found', 'Motor işi bulunamadı.')
         try:
-            payload = EngineJobPayload.from_json(row[4])
-            if (request_json(payload.profile_name, payload.profile_revision) != row[2]
+            payload = parse_job_payload(row[4])
+            if (payload_request(payload) != row[2]
                     or digest(row[2]) != row[3] or digest(row[4]) != row[5]):
                 raise ValueError('immutable request mismatch')
             job = EngineJob(history_uuid(row[0]), request_key(row[1]), row[3], row[5], payload,
@@ -154,11 +162,31 @@ class SQLiteEngineJobRepository:
             token, previous_hash, previous_time = None, None, job.created_at
             events = connection.execute(
                 'SELECT ordinal, kind, event_json, event_sha256 FROM engine_job_events '
-                'WHERE job_id=? ORDER BY ordinal LIMIT 4', (job_id,),
+                'WHERE job_id=? ORDER BY ordinal LIMIT 13', (job_id,),
             ).fetchall()
+            if isinstance(payload, SourceJobPayload):
+                if connection.execute('PRAGMA user_version').fetchone()[0] != 2:
+                    raise ValueError('Source job schema')
+                if payload.retry_of:
+                    try:
+                        parent = self._read(connection, payload.retry_of, (*ancestry, job_id))[0]
+                    except EngineJobError as error:
+                        raise ValueError('Retry parent missing') from error
+                    if (not isinstance(parent.payload, SourceJobPayload) or parent.status not in ENGINE_JOB_TERMINAL - {'complete'}
+                            or parent.payload.plan != payload.plan
+                            or datetime.fromisoformat(job.created_at) < datetime.fromisoformat(parent.finished_at)
+                            or (parent.status == 'interrupted' and not payload.allow_uncertain)):
+                        raise ValueError('Retry parent binding')
+                    reusable = tuple({'key': step['key'], 'receipt': step['receipt']} for step in parent.steps
+                                     if step['key'] != 'review' and step['status'] == 'complete')
+                    if payload.reused != reusable:
+                        raise ValueError('Retry receipt binding')
+                return replay_source_job(job, events)
             if len(events) > 3:
                 raise ValueError('event capacity')
             for expected, (ordinal, kind, encoded, event_hash) in enumerate(events, 1):
+                if kind not in {'claimed', 'session', 'finished', 'cancelled'}:
+                    raise ValueError('Profile event kind')
                 if (ordinal != expected or not isinstance(encoded, str) or len(encoded) > 1_100_000
                         or digest(encoded) != event_hash):
                     raise ValueError('event digest')
@@ -217,20 +245,23 @@ class SQLiteEngineJobRepository:
                     job = replace(job, status=status, finished_at=at, result=parsed_result, error_code=error)
                 previous_hash, previous_time = event_hash, at
             return job, token, previous_hash
-        except (ValidationError, ValueError, TypeError, RecursionError, KeyError) as error:
+        except (ValidationError, ValueError, TypeError, RecursionError, KeyError, AttributeError) as error:
             raise StorageError('Motor işi geçmişi veya sonuç bağı doğrulanamadı; işlem durduruldu.') from error
 
     def _append(self, connection, job: EngineJob, *, kind: str, at: str, token=None,
-                session_id=None, status: str, result=None, error_code=None):
+                session_id=None, status: str, result=None, error_code=None, step_key=None, receipt=None, reason=None):
         _, _, previous_hash = self._read(connection, job.id)
         ordinal = connection.execute('SELECT COUNT(*) FROM engine_job_events WHERE job_id=?', (job.id,)).fetchone()[0] + 1
         encoded_result = result_json(result) if result is not None else None
-        event = canonical_json({
+        fields = {
             'kind': kind, 'recorded_at': job_time(at), 'token': token, 'session_id': session_id,
             'status': status, 'result_json': encoded_result,
             'result_sha256': digest(encoded_result) if encoded_result is not None else None,
             'error_code': error_code, 'previous_sha256': previous_hash,
-        })
+        }
+        if isinstance(job.payload, SourceJobPayload):
+            fields.update(step_key=step_key, receipt=receipt, reason=reason)
+        event = canonical_json(fields)
         connection.execute('INSERT INTO engine_job_events VALUES (?, ?, ?, ?, ?)',
                            (job.id, ordinal, kind, event, digest(event)))
         return self._read(connection, job.id)[0]
@@ -256,14 +287,16 @@ class SQLiteEngineJobRepository:
             row = connection.execute('SELECT id FROM engine_jobs WHERE request_key=?', (key,)).fetchone()
             return self._read(connection, row[0])[0] if row else None
 
-    def create(self, key: str, request: str, payload: EngineJobPayload, *, recorded_at: str) -> EngineJob:
+    def create(self, key: str, request: str, payload: EngineJobPayload | SourceJobPayload, *, recorded_at: str) -> EngineJob:
         request_key(key)
         encoded = payload.to_json()
-        if request != request_json(payload.profile_name, payload.profile_revision):
+        if request != payload_request(payload):
             raise ValidationError('Motor işi isteği profil seçimiyle uyuşmuyor.')
         job_time(recorded_at)
         with self._connection() as connection:
             connection.execute('BEGIN IMMEDIATE')
+            if isinstance(payload, SourceJobPayload) and connection.execute('PRAGMA user_version').fetchone()[0] != 2:
+                raise EngineJobError('migration_required', 'Kaynak işleri için iş kuyruğunu açıkça şema 2’ye yükseltin.')
             row = connection.execute('SELECT id FROM engine_jobs WHERE request_key=?', (key,)).fetchone()
             if row:
                 previous = self._read(connection, row[0])[0]
@@ -347,6 +380,12 @@ class SQLiteEngineJobRepository:
         with self._connection() as connection:
             connection.execute('BEGIN IMMEDIATE')
             job = self._owned(connection, claim)
+            if isinstance(job.payload, SourceJobPayload) and result is not None:
+                # Cancellation can arrive after the runner reads its final progress.
+                current = result_for(job)
+                if any(result.get(key) != current[key] for key in ('operation', 'version', 'job_id', 'plan_sha256', 'steps')):
+                    raise EngineJobError('invalid_job_state', 'Kaynak işi sonucu kalıcı ilerlemeyle uyuşmuyor.')
+                result, status = current, current['status']
             job = self._append(connection, job, kind='finished', at=recorded_at, token=claim.token,
                                session_id=job.collection_session_id, status=status,
                                result=result, error_code=error_code)
@@ -357,8 +396,16 @@ class SQLiteEngineJobRepository:
         history_uuid(job_id)
         with self._connection() as connection:
             connection.execute('BEGIN IMMEDIATE')
-            job = self._read(connection, job_id)[0]
+            job, token, _ = self._read(connection, job_id)
             if job.status == 'cancelled':
+                return job
+            if job.status == 'running' and isinstance(job.payload, SourceJobPayload):
+                if job.cancel_requested:
+                    return job
+                job = self._append(connection, job, kind='cancel_requested', at=recorded_at,
+                                   token=token, session_id=job.collection_session_id,
+                                   status='running', error_code='cancelled_by_caller')
+                connection.commit()
                 return job
             if job.status != 'queued':
                 raise EngineJobError('invalid_job_state', 'Yalnız henüz başlamamış motor işi iptal edilebilir.')
@@ -366,6 +413,65 @@ class SQLiteEngineJobRepository:
                                status='cancelled', error_code='cancelled_by_caller')
             connection.commit()
             return job
+
+    def source_step(self, claim, key, *, action, recorded_at, receipt=None, reason=None):
+        if action not in {'start', 'finish', 'skip'}:
+            raise ValidationError('Kaynak adımı eylemi desteklenmiyor.')
+        with self._connection() as connection:
+            connection.execute('BEGIN IMMEDIATE')
+            job = self._owned(connection, claim)
+            if not isinstance(job.payload, SourceJobPayload):
+                raise EngineJobError('invalid_job_state', 'Bu iş kaynak güncellemesi değil.')
+            if action == 'start' and job.cancel_requested:
+                return job
+            if (action == 'finish' and (receipt is None or reason is not None)
+                    or action == 'skip' and (receipt is not None or reason is None)
+                    or action == 'start' and (receipt is not None or reason is not None)):
+                raise ValidationError('Kaynak adımı kanıtı eylemle uyuşmuyor.')
+            job = self._append(connection, job, kind='step_started' if action == 'start' else 'step_finished',
+                               at=recorded_at, token=claim.token, session_id=job.collection_session_id,
+                               status='running', step_key=key, receipt=receipt, reason=reason)
+            connection.commit()
+            return job
+
+    def list_sources(self, *, limit=20, offset=0):
+        if type(limit) is not int or not 1 <= limit <= 100 or type(offset) is not int or not 0 <= offset <= MAX_ENGINE_JOBS:
+            raise ValidationError('İş listesi sınırları geçersiz.')
+        with self._connection(readonly=True) as connection:
+            connection.execute('BEGIN')
+            results = []
+            # Bounded queue; validate each visited record instead of trusting a JSON SQL selector.
+            for (job_id,) in connection.execute('SELECT id FROM engine_jobs ORDER BY rowid DESC'):
+                job = self._read(connection, job_id)[0]
+                if isinstance(job.payload, SourceJobPayload):
+                    results.append(job)
+                    if len(results) >= offset + limit + 1:
+                        break
+            return tuple(results[offset:offset + limit]), len(results) > offset + limit
+
+    def migrate(self):
+        """Explicit, backed-up migration. Caller holds the common queue worker lock."""
+        with self._connection() as connection:
+            connection.execute('BEGIN IMMEDIATE')
+            version = connection.execute('PRAGMA user_version').fetchone()[0]
+            if version == ENGINE_JOB_SCHEMA_VERSION:
+                return {'from_version': version, 'to_version': version, 'backup': None, 'changed': False}
+            if self._running(connection):
+                raise WorkerBusyError('Çalışan veya kurtarma bekleyen iş varken kuyruk yükseltilemez.')
+            for (job_id,) in connection.execute('SELECT id FROM engine_jobs'):
+                self._read(connection, job_id)
+            backup = self.path.with_name(f'{self.path.name}.v1-{uuid4()}.backup')
+            self.backup(backup)
+            rows = connection.execute('SELECT * FROM engine_job_events').fetchall()
+            connection.execute('DROP TABLE engine_job_events')
+            connection.execute(_EVENTS_DDL)
+            connection.executemany('INSERT INTO engine_job_events VALUES (?, ?, ?, ?, ?)', rows)
+            connection.execute(f'PRAGMA user_version={ENGINE_JOB_SCHEMA_VERSION}')
+            self._schema(connection)
+            for (job_id,) in connection.execute('SELECT id FROM engine_jobs'):
+                self._read(connection, job_id)
+            connection.commit()
+            return {'from_version': version, 'to_version': ENGINE_JOB_SCHEMA_VERSION, 'backup': str(backup), 'changed': True}
 
     def recover_interrupted(self, *, recorded_at: str) -> tuple[EngineJob, ...]:
         with self._connection() as connection:

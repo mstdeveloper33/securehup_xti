@@ -1,7 +1,7 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.156.0 / çekirdek şema 75, ayrı platform iş şeması 1.
+**Mevcut sürüm:** 0.157.0 / çekirdek şema 75, ayrı platform iş şeması 2.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -21,8 +21,8 @@ genişleme planı geçerlidir. ENG/STB kayıtları önceki teslimlerin geçmişi
 korur. İlk MTR-01/02 dilimi 0.152.0'ın kayıtlı DNS/IOC/CTI araştırmasıdır.
 0.153.0 ilk MTR-03 dilimini dört seçilmiş MISP warninglist ile uygular.
 0.154.0 URL/hash kökleri, CIRCL dosya bağlamı, mevcut urlscan arşivi ve
-firma kapsamlı kaynak geçmişini ekler. Kaynak yenileme işletici CLI'sindedir;
-platform yenileme işi, yeni ücretli kaynaklar ve diğer MTR işleri plandadır.
+firma kapsamlı kaynak geçmişini ekler. 0.157.0 bu kaynakları platform
+işlerine de bağlar; yeni ücretli kaynaklar ve diğer MTR işleri plandadır.
 Şema 74'e açık yedekli geçiş gerekir. [Liste kapsamı](../WARNINGLISTS.md),
 [URL/hash kapsamı ve ticari kullanım sınırı](../INDICATOR_ENRICHMENT.md).
 
@@ -35,8 +35,15 @@ bu dilimde kalıcı geçmiş veya firma geneli kuyruk eklenmedi.
 0.156.0 aynı kapsamın inceleme geçmişini CLI/firma kayıt işlemiyle ekler.
 Özgün değerlendirme ve kanıt saklanır; ilk kayıt başlangıçtır, zaman etkisi
 ve kanıt değişimi ayrılır. Şema 75'e açık yedekli geçiş gerekir. Firma
-geneli analist kuyruğu, otomatik kaynak akışı ve bildirim henüz eklenmedi.
+geneli analist kuyruğu ve bildirim bu dilimde eklenmedi.
 [Kayıt ve karşılaştırma kapsamı](../RESEARCH_HISTORY.md).
+
+0.157.0 ilk MTR-05 kaynak akışını uygular: CIRCL/urlscan + seçilmiş MISP,
+açık plan/iş kabulü, adım ilerlemesi, süre/istek bütçesi, iptal, belirsiz
+kesinti ve açık tekrar. İsteğe bağlı son inceleme önceki kayıtla karşılaştırılır.
+Çekirdek 75 korunur, ortak kuyruk açık yedekli geçişle şema 2 olur. Genel
+akış kurucusu, ortak sağlayıcı kotası ve dağıtık worker henüz yoktur.
+[Kaynak işi kapsamı](../SOURCE_JOBS.md).
 
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
@@ -323,7 +330,7 @@ kurallarını veri okuma, yazma ve iş yürütmede uygulamaktan sorumludur.
 | **MTR-02 — İlişki araştırması ve kimlik incelemesi** | “Bu IP hangi kayıtlarla ilişkili ve bu bağlantı nereden geliyor?” sorusunu yanıtlama | Önce kayıtlı doğrudan ilişkiler ve sınırlı iki adımlı yollar; ardından açıklamalı kural çıkarımı; alternatif ad adayları ve insan onaylı, geri alınabilir kimlik birleştirme | Her bağlantıda özgün kanıt, tarih ve ilişki türü bulunur. Kaynak iddiası, gözlem, insan kararı ve kural çıkarımı ayrılır. Ortak IP veya benzer ad otomatik aktör/olay eşitliği yaratmaz. Kaynak geri çekilince çıkarım yeniden değerlendirilir; eski kanıt korunur. |
 | **MTR-03 — Kaynak ve zenginleştirme kapsamı** | Domain/IP/URL/hash araştırmasında daha fazla kaynaklı bağlam görme | MISP warninglist 0.153.0 ve CIRCL/urlscan URL/hash bağlamı 0.154.0'da uygulandı. Sırada ihtiyaçla ek sağlayıcılar, rapor metni ayrıştırma ve ortak kaynak sözleşmesinin genişlemesi var. | Her kaynak için erişim, maliyet, ticari saklama/paylaşma, pin, zaman/sorgu sınırı, hata ve tekrar davranışı kaydedilir. Eski veri kesintide korunur. Kaynak bağlamı otomatik “temiz” kararı değildir. Paket lisansı ile veri hakkı ayrı doğrulanır. |
 | **MTR-04 — Kalite, öncelik ve değişim** | Hangi kaydın yeni, eski, çelişkili veya öncelikli olduğunu gerekçeleriyle görme | 0.155.0 sürümlü inceleme sırası; 0.156.0 açık kayıtla aynı kapsamın kalıcı inceleme/fark geçmişi, zaman etkisi ve kanıt değişimi ayrımı. Kalan: daha geniş IOC yaşam döngüsü, firma geneli analist kuyruğu ve anlamsal çelişki incelemesi. | Öncelik değişiminin gerekçesi ve kural sürümü tekrar üretilebilir. Kaynak yokluğu sıfır risk olmaz. Zamanla eskiyen kayıt silinmez. İnsan kararı otomatik ezilmez; aynı kanıt yeni alarm üretmez. |
-| **MTR-05 — Yönetilebilir motor akışları** | Seçtiği kaynaklarla toplama → ilişkilendirme → değerlendirme → sonuç akışını çalıştırma | Sürümlü, izinli işlem adımlarından akış; bağımlılık, bütçe, iş ilerlemesi, iptal/kurtarma; kalan terminal işlemlerini ürün ihtiyacı sırasıyla platform sözleşmesine açma | Akış adımları ve kaynak maliyeti başlamadan görülebilir. Aynı istek tekrar iş yaratmaz. Belirsiz dış istek otomatik tekrar edilmez. Ücretli kaynak açık seçim gerektirir. Adımlar genel komut/kod çalıştıramaz. |
+| **MTR-05 — Yönetilebilir motor akışları** | Seçtiği kaynaklarla toplama → ilişkilendirme → değerlendirme → sonuç akışını çalıştırma | 0.157.0 seçili URL/hash/MISP → isteğe bağlı inceleme akışı, bütçe, ilerleme, iptal/kurtarma/tekrar uygulandı. Kalan: ihtiyaçla diğer kaynak/yazma işlemleri ve genel akış kurucusu. | Akış adımları ve kaynak maliyeti başlamadan görülebilir. Aynı istek tekrar iş yaratmaz. Belirsiz dış istek otomatik tekrar edilmez. Ücretli kaynak açık seçim gerektirir. Adımlar genel komut/kod çalıştıramaz. |
 | **MTR-06 — Üretim ve kapasite** | Ölçülmüş yük altında sürekli çalışan, kurtarılabilir hizmet | Süre/iş hacmi/hata/disk/bellek ölçümü, kuyruk beklemesi, uzun süreli Linux kabulü, sürüm geri dönüşü ve kurtarma denemesi; ölçüm gerektirirse depo/arama/çoklu worker tasarımı | Test makinesi ve yük profiliyle sonuç yayımlanır. İki firmanın yük/kapsam ayrımı, veri kaybı ve tekrar davranışı sınanır. Kapasite sınırı veri sessizce kesilerek gizlenmez. Ölçülmemiş SLA veya OpenCTI eşdeğerliği ilan edilmez. |
 | **MTR-07 — Standart paylaşım, en son** | İstihbaratı diğer güvenlik sistemleriyle alışveriş yapma | Geniş STIX 2.1 nesne/ilişki aktarımı, içe alma, TAXII, değişiklik/geri çekme ve paylaşım kısıtları | İçe/dışa dönüşte kimlik, ilişki, kaynak ve kısıtlar korunur. Karşı sistemle kabul yapılır. Kaynak lisansı veya firma kapsamı izin vermeyen bilgi dışarı çıkmaz. |
 | **MTR-08 — LLM desteği, en son** | Kanıtlara dayanan özet, ilişki önerisi ve analist açıklaması | Yerel/API model adaptörü, kaynak referanslı sınırlı bağlam, maliyet/gizlilik ayarları, değerlendirme kümesi | Model yokken çekirdek çalışır. Öneri gerçek kayıt veya doğrulanmış tehdit sayılmaz. Model firma sınırını, kaynak yetkisini veya araç izinlerini değiştiremez. Kalite/maliyet ölçülmeden etkin varsayılan olmaz. |
