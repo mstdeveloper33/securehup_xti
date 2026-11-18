@@ -142,10 +142,12 @@ class SourceJobPlatformTests(unittest.TestCase):
                 parse_engine_request({'contract_version': 1, 'request_id': 'read-only', 'operation': operation, 'parameters': {}})
 
     def test_platform_backup_restores_source_receipts_and_fences_old_submissions(self):
+        from tests.test_source_jobs_usage import Opener
         _, submitted = self.submit(record_review=True)
-        with self.fetch():
+        with patch('xti.adapters.enrichment_sources.build_opener', return_value=Opener()):
             code, completed = self.invoke('worker')
         self.assertEqual(code, 0, completed)
+        self.assertEqual(completed['data']['execution']['requests']['attempts'], 1)
         _, queued = self.submit('queued')
         output = self.base / 'backup'
         backup_platform_workspace(self.context, output)
@@ -154,6 +156,7 @@ class SourceJobPlatformTests(unittest.TestCase):
         code, result = self.invoke(operation='sources.jobs.result', parameters={'job_id': submitted['data']['job_id']}, root=restored_root)
         self.assertEqual(code, 0, result)
         self.assertEqual(result['data']['job']['steps'], completed['data']['steps'])
+        self.assertEqual(result['data']['job']['execution'], completed['data']['execution'])
         for step in completed['data']['steps']:
             operation, parameters = ('enrichment.run.get', {'run_id': step['receipt']['run_id']}) if step['key'] == 'circl' else (
                 'research.review.get', {'review_id': step['receipt']['review_id']})
@@ -161,12 +164,31 @@ class SourceJobPlatformTests(unittest.TestCase):
         code, result = self.invoke(operation='sources.jobs.status', parameters={'job_id': queued['data']['job_id']}, root=restored_root)
         self.assertEqual(result['data']['status'], 'cancelled')
         self.assertEqual(result['data']['error_code'], 'restored_uncertain')
+        self.assertEqual(result['data']['execution']['requests']['attempts'], 0)
+        self.assertIn('restored_uncertain', result['data']['execution']['stop_reasons'])
         plan = self.plan()
         code, result = self.invoke(operation='sources.jobs.submit', parameters={**plan['plan'],
             'idempotency_key': 'restored', 'plan_sha256': plan['plan_sha256'],
             'expected_workspace_id': self.context.workspace_id}, root=restored_root)
         self.assertEqual(result['error']['code'], 'scope_mismatch')
         self.assertNotEqual(restored.workspace_id, self.context.workspace_id)
+
+    def test_platform_measured_usage_is_identical_in_status_result_and_list_and_company_bound(self):
+        from tests.test_source_jobs_usage import Opener
+        _, submitted = self.submit()
+        job_id = submitted['data']['job_id']
+        with patch('xti.adapters.enrichment_sources.build_opener', return_value=Opener()):
+            code, completed = self.invoke('worker')
+        self.assertEqual(code, 0, completed)
+        expected = completed['data']['execution']
+        self.assertEqual(expected['requests']['attempts'], 1)
+        self.assertEqual(self.invoke(operation='sources.jobs.status', parameters={'job_id': job_id})[1]['data']['execution'], expected)
+        self.assertEqual(self.invoke(operation='sources.jobs.result', parameters={'job_id': job_id})[1]['data']['job']['execution'], expected)
+        self.assertEqual(self.invoke(operation='sources.jobs.list')[1]['data']['jobs'][0]['execution'], expected)
+        self.invoke('provision', company='beta')
+        code, rejected = self.invoke(operation='sources.jobs.status', parameters={'job_id': job_id}, company='beta')
+        self.assertEqual(code, 3)
+        self.assertEqual(rejected['error']['code'], 'not_found')
 
     def test_core_lock_contention_records_interruption_without_network(self):
         _, submitted = self.submit()

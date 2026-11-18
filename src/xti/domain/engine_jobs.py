@@ -223,9 +223,11 @@ class EngineJob:
     def to_dict(self) -> dict:
         from xti.domain.source_jobs import SourceJobPayload, plan_data
         if isinstance(self.payload, SourceJobPayload):
+            from xti.domain.source_job_usage import execution_usage
             return {'job_id': self.id, 'operation': 'sources.refresh', 'idempotency_key': self.request_key,
                 'request_sha256': self.request_sha256, 'payload_sha256': self.payload_sha256,
-                'plan': plan_data(self.payload.plan), 'retry_of': self.payload.retry_of,
+                'plan': plan_data(self.payload.plan, version=self.payload.version), 'retry_of': self.payload.retry_of,
+                'execution': execution_usage(self),
                 'status': self.status, 'created_at': self.created_at, 'started_at': self.started_at,
                 'finished_at': self.finished_at, 'execution_id': self.collection_session_id,
                 'steps': list(self.steps), 'cancel_requested': self.cancel_requested,

@@ -100,7 +100,8 @@ class CooperativeSourceJobRunner:
                     continue
                 # Durable start precedes all external activity. Exceptions leave an
                 # uncertain step, never an implicitly retried request.
-                receipt = self.operations.execute(key, job.payload.plan, job.id)
+                receipt = self.operations.execute(key, job.payload.plan, job.id,
+                                                  **({'measure': True} if job.payload.version == 2 else {}))
                 validate_receipt(key, receipt, job.payload.plan)
                 self.operations.verify(key, receipt, job.payload.plan)
                 progress(key, action='finish', receipt=receipt)

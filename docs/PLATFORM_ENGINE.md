@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.157.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
+**Uygulama 0.158.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -56,6 +56,11 @@ bu alanı kullanır; başka firma/kişisel katalogdan tamamlamaz.
 ile açık kaynak yenileme işleri sunar. Mevcut `platform worker` bunları
 da çalıştırır; isteğe bağlı inceleme kaydı son adım olabilir. Kabul ağ
 kullanmaz, firma yedeği kanıtlarla işi birlikte korur. [Sözleşme ve örnekler](SOURCE_JOBS.md).
+0.158.0 aynı iş yanıtlarına `execution` kullanım raporunu ekler. Yeni
+payload/result v2, eski v1 işleri de okur; platform zarfı v1 kalır. Backend
+firma paketi ve ortak kota politikasını yönetir; motor iş sınırı ve kayıtlı
+kullanımı bildirir. Kesilen adımda `requests.attempts=null` sıfır tüketim
+anlamına gelmez. [Alanlar ve belirsizlik](SOURCE_JOBS.md#işin-kullanım-raporu).
 [Kullanım, kaynak ve koşullar](WARNINGLISTS.md).
 
 ## Kayıtlı incelemeler

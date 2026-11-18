@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.157.0 / çekirdek 75 / iş kuyruğu 2**.
+Güncel çalışma: **0.158.0 / çekirdek 75 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -108,12 +108,19 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-007 — Birden fazla firma için ortak sağlayıcı kotası
 
-- **Durum:** Açık; ölçekli işletimden önce. **Güncellendi:** 17 Kasım 2026.
+- **Durum:** Backend entegrasyonuna bırakıldı; ölçekli işletimden önce.
+  **Güncellendi:** 18 Kasım 2026.
 - **Not:** Yeni URL/hash isteklerinin aralık ve bekleme kaydı seçili veri
   alanında uygulanıyor. Farklı firma alanları/sunucular için ortak çıkış
   kotası henüz bu mekanizma tarafından yönetilmiyor.
-- **Sonraki iş:** Çoklu çalıştırıcıya geçerken firma bütçeleri ile ortak
-  sağlayıcı kotasını birlikte uygulamak ve eşzamanlılıkta doğrulamak.
+- **Karar:** Firma paketi, abonelik, kullanım hakkı ve ortak sağlayıcı
+  kotasının tek merkezde yönetimi backendin sorumluluğudur. Motor verilen
+  iş sınırını uygular ve gerçek ölçümü/belirsizliği bildirir; aynı ticari
+  sayaç iki tarafta ayrı tutulmaz. Kullanıcı bu ayrımı 18 Kasım'da onayladı.
+- **Sonraki iş:** Entegrasyonda backendin kota ayırma, belirsiz tüketimi
+  koruma ve tekrar işlerini değerlendirme sözleşmesini belirlemek.
+  0.158.0 iş başına kullanım raporu bu bağlantının motor tarafıdır;
+  dağıtık kota/abonelik sistemi tamamlandı anlamına gelmez.
 - **Dayanak:** [Mevcut sınırlar](docs/INDICATOR_ENRICHMENT.md#sonuçların-anlamı),
   [MTR-05/06](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md#62-iş-paketleri-ve-tamamlanma-ölçütleri).
 
@@ -201,9 +208,26 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   kök nedeni iddia edilmiyor; uygulama hatası düzeltildi diye sunulmaz.
 - **Dayanak:** [İşletim kabulü](docs/ACCEPTANCE_REVIEW.md#işletim-kabulü).
 
+### N-017 — Kaynak işi kullanım ölçümünün sınırları
+
+- **Durum:** Bilinen sınır. **Güncellendi:** 18 Kasım 2026.
+- **Not:** 0.158.0 yeni kaynak işlerinde HTTP açma denemelerini saklar;
+  sağlayıcı faturalama birimi veya uzaktaki kesin teslim sayısı değildir.
+  Ölçüm adımın sonunda yazılır. Kesintide kaydı olmayan adımın tüketimi
+  `null`/üst sınırdır; sıfır sayılıp bütçe geri verilmez. Eski v1 işler
+  ölçülmemiş, tekrar kullanılan kanıt bu yeni işte sıfır denemedir.
+- **Uyum:** Şema aynı kalır; eski kod yeni v2 işi okuyamaz. Kod geri
+  dönüşünde yükseltme öncesi birleşik firma yedeği kullanılmalı.
+- **Kanıt:** 225 ilgili test, son 57 test ve gerçek CIRCL/urlscan/MISP
+  kullanım kaydı geçti; kapsam [kabul belgesinde](docs/ACCEPTANCE_REVIEW.md).
+- **Korunacak koşul:** Backend entegrasyonu belirsiz tüketimi ve iş
+  kimliklerini korumalı; kota/faturalama kararı ölçüm kapsamını aşmamalı.
+- **Dayanak:** [Kullanım raporu](docs/SOURCE_JOBS.md#işin-kullanım-raporu),
+  [sürüm kararı](docs/decisions/0162-source-job-request-usage.md).
+
 ## Korunacak kararlar
 
-17 Kasım 2026 itibarıyla mevcut kullanıcı tercihleri:
+18 Kasım 2026 itibarıyla mevcut kullanıcı tercihleri:
 
 - Şimdilik ücretsiz kaynaklarla ilerliyoruz. İleride ücretli kaynak
   değerlendirmek mümkün; kendiliğinden ücretli servis açılmayacak.
@@ -213,6 +237,9 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   PostgreSQL yerleşimi tüketici ekibinde; motor firma sınırını ve veri/iş
   sözleşmelerini korumaktan sorumlu. Motor için farklı depo adaptörü
   gerektiğinde sözleşme ve geçiş ayrıca tanımlanacak.
+- Firma paketi/abonelik/kullanım hakkı backendde; motor iş sınırları,
+  kaynak beklemeleri ve kullanım raporundan sorumludur. Ortak sağlayıcı
+  kotası tek merkezden backend entegrasyonunda yönetilecek (N-007).
 - LLM ve geniş STIX/TAXII en son. Mevcut sınırlı STIX çıktısı korunuyor.
 - Geniş marka koruması, e-posta/SMS ve diğer ertelenmiş işler sırf yeni
   kaynak eklendi diye yeniden kapsam içine alınmayacak.
@@ -296,10 +323,13 @@ isteğe bağlı son inceleme kaydı vardır. N-008'in test ve kapanma kaydı
 yukarıdadır. Genel akış kurucusu veya ortak sağlayıcı kotası tamamlanmış
 sayılmaz. Bekleyen Tavily/Nmap girdileri N-004/N-005'te korunur.
 
-**Sonraki öneri, henüz uygulanmadı:** Birden fazla firma birlikte iş
-gönderdiğinde ortak sağlayıcı kotasını ve firma bütçesini ölçerek kurmak
-(N-007); kuyruk/disk/süre ölçümlerini gerçek işletim denemesiyle kaydetmek.
-Ücretli API/LLM bunun ön koşulu değildir.
+**Motor/backend ayrımı güncellendi:** N-007'deki merkezi kota ve abonelik
+işi backend entegrasyonunda kalır. 0.158.0 motorun verilen iş sınırını
+uygulamasını ve ölçülmüş/belirsiz tüketimini bildirmesini tamamlar.
+
+**Sonraki öneri, henüz uygulanmadı:** N-009 kapsamındaki mevcut CNAME ve
+sertifika kanıtlarını ortak ilişki araştırmasına taşımak; eski kanıt
+kimliklerini ve firma kapsamını korumak. Yeni ücretli API/LLM gerekmez.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması
 özelliğin tamamlandığı anlamına gelmez.

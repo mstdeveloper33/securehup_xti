@@ -78,6 +78,22 @@ def source_job_lines(data, *, data_dir=None):
                   'failed': 'başarısız', 'cancelled': 'iptal edildi', 'interrupted': 'kesildi; sonuç belirsiz',
                   'pending': 'bekliyor', 'skipped': 'çalıştırılmadı'}
         lines = ['İş: ' + safe_text(data['job_id']) + ' | ' + states[data['status']]]
+        execution = data.get('execution')
+        if execution:
+            requests = execution['requests']
+            if requests['measurement_complete']:
+                lines.append(f"HTTP denemesi: {requests['attempts']} | İşin istek sınırı: {execution['limits']['max_requests']}")
+            else:
+                lines.append(f"HTTP denemesi: kesin toplam bilinmiyor; kayıtlı {requests['recorded']['attempts']}, "
+                             f"ölçülemeyen adımlarda en fazla {requests['possible_unrecorded_attempts_maximum']} ek deneme olabilir.")
+            reasons = {'completed': 'Seçilen işlemler tamamlandı.', 'cancelled': 'İptal istendi.',
+                'execution_uncertain': 'İş kesildi; son adımın dış sonucu belirsiz.',
+                'restored_uncertain': 'Yedekten dönüşte eski iş yeniden çalıştırılmadı.',
+                'time_budget_exhausted': 'Yeni adıma başlamadan süre bütçesi doldu.',
+                'request_budget_exhausted': 'İstek bütçesi doldu; ek istek gönderilmedi.',
+                'provider_rate_limit': 'Kaynak HTTP 429 ile bekleme istedi.',
+                'source_error': 'Kaynak adımlarından en az biri tamamlanamadı.'}
+            lines.extend('  ' + reasons[reason] for reason in execution['stop_reasons'])
         if data.get('cancel_requested') and data['status'] == 'running':
             lines.append('İptal istendi; devam eden isteğin dönüşü bekleniyor.')
         for step in data.get('steps', []):

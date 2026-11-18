@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**18 Kasım 2026 — 0.157.0, çekirdek şema 75, iş kuyruğu şeması 2.**
+**18 Kasım 2026 — 0.158.0, çekirdek şema 75, iş kuyruğu şeması 2.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -62,6 +62,15 @@ Adaptör mevcut URL/hash, MISP ve inceleme servislerini kullanır. Sidecar
 Kuyruk → çekirdek kilit sırası platform yedeğiyle aynıdır. Dış çağrı öncesi
 başlangıç, sonrası özgün makbuz kaydedilir; iki commit arası kesinti
 otomatik tekrar izni değildir. [0161 kararı](decisions/0161-source-jobs-in-common-queue.md).
+
+0.158.0 kaynak işi yürütme/sonuç v2, HTTP açma denemelerini
+`MeteredSourceOpener` ve domain `RequestUsageMeter` ile ölçer ve adım
+tavanını uygular. Küçük kullanım kaydı adımın özgün makbuzuyla aynı olaya
+yazılır. Domain `execution_usage` kaydedilmiş olaylardan kullanım, süre
+ve durma nedenini üretir; kesintide bilinmeyen sayıyı sıfır kabul etmez.
+V1 işler ve istek anahtarları korunur; yeni DB şeması gerekmez.
+Abonelik ve ortak sağlayıcı kotası backendde kalır. Eski koda dönüşün
+veri sınırı [0162 kararında](decisions/0162-source-job-request-usage.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı

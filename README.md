@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.157.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 75 · **İş kuyruğu:** 2.
+**Sürüm:** 0.158.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 75 · **İş kuyruğu:** 2.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -12,6 +12,12 @@ kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
 
 Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
 [NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
+
+0.158.0 kaynak işlerinde HTTP denemesi, alınan yanıt, bağlantı hatası ve
+429 bekleme yanıtını saklar; terminal ve firma JSON çıktısı işin sınırını,
+gerçek ölçümü ve durma nedenini ayırır. Kesilmiş/eski işte ölçülmeyen
+istekler sıfır gösterilmez. Abonelik ve ortak kota politikası backendin
+sorumluluğudur. [Kullanım ve ölçüm sınırları](docs/SOURCE_JOBS.md#işin-kullanım-raporu).
 
 0.157.0, CIRCL/urlscan ve seçilmiş MISP listelerini aynı kalıcı iş kuyruğuna
 bağlar. `source-jobs plan/submit/worker/status/result/cancel/retry` ile

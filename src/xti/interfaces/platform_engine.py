@@ -66,6 +66,8 @@ def platform_manifest():
         'job_type': 'saved_collection_profile',
         'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
         'source_jobs': {'schema_version': 2, 'plan_operation': 'sources.plan',
+                        'execution_version': 2, 'readable_execution_versions': [1, 2],
+                        'usage_unit': 'http_open_attempt', 'shared_quota_owner': 'consuming_platform',
                         'sources': ['circl', 'urlscan', 'misp'], 'review_opt_in': True,
                         'cancellation': 'between_steps', 'retry': 'explicit_new_job',
                         'uncertain_retry_requires_acknowledgement': True},

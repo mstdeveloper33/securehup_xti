@@ -9,6 +9,7 @@ from xti.domain.engine_jobs import canonical_json, digest
 from xti.domain.indicator_enrichment import enrichment_query, PROVIDERS
 from xti.domain.research_history import capture_scope
 from xti.domain.warninglists import POLICIES
+from xti.domain.source_job_usage import request_ceiling, validate_usage
 
 
 OPERATION = "sources.refresh"
@@ -42,7 +43,7 @@ def source_plan(**parameters):
     seconds, budget = parameters.get("max_seconds", 180), parameters.get("max_requests", 7)
     if type(seconds) is not int or not 1 <= seconds <= 600 or type(budget) is not int or not 1 <= budget <= 7:
         raise ValidationError("Süre 1–600 saniye, istek bütçesi 1–7 olmalı.")
-    requests = sum(2 + len(selected) if source == "misp" else 1 for source in sources)
+    requests = sum(request_ceiling(source, {'warninglist_ids': selected}) for source in sources)
     if requests > budget:
         raise ValidationError("Seçilen kaynaklar istek bütçesine sığmıyor; kaynak/liste seçimini daraltın.")
     return {**scope, "sources": sources, "warninglist_ids": selected, "record_review": review,
@@ -53,11 +54,11 @@ def step_keys(plan):
     return tuple(plan["sources"]) + (("review",) if plan["record_review"] else ())
 
 
-def plan_data(plan):
+def plan_data(plan, *, version=2):
     plan = source_plan(**plan)
-    return {"operation": OPERATION, "version": 1, "plan": plan,
+    return {"operation": OPERATION, "version": version, "plan": plan,
         "plan_sha256": digest(canonical_json(plan)), "step_order": list(step_keys(plan)),
-        "maximum_external_requests": sum(2 + len(plan["warninglist_ids"]) if key == "misp" else 1 for key in plan["sources"]),
+        "maximum_external_requests": sum(request_ceiling(key, plan) for key in plan['sources']),
         "paid_api": False, "request_network_access": False,
         "disclosure": [{"source": key, "target_sent": key != "misp",
                         "commercial_use": PROVIDERS[key]["commercial_use"] if key in PROVIDERS else "curated_lists_reviewed"}
@@ -71,6 +72,10 @@ def validate_receipt(key, value, plan):
     """Small pointers to existing immutable evidence, never unbounded provider bodies."""
     if not isinstance(value, dict):
         raise ValidationError("Kaynak işi kanıt başvurusu nesne olmalı.")
+    original = value
+    if 'usage' in value:
+        validate_usage(value['usage'], request_ceiling(key, plan))
+        value = {name: item for name, item in value.items() if name != 'usage'}
     if key in {"circl", "urlscan"}:
         if set(value) != {"kind", "run_id", "provider", "indicator_type", "value", "source_status", "snapshot_sha256", "has_more"}:
             raise ValidationError("URL/hash işi kanıt alanları geçersiz.")
@@ -99,9 +104,9 @@ def validate_receipt(key, value, plan):
         history_uuid(value["review_id"])
     else:
         raise ValidationError("Kaynak işi adımı bilinmiyor.")
-    if len(canonical_json(value)) > 8192:
+    if len(canonical_json(original)) > 8192:
         raise ValidationError("Kaynak işi başvurusu boyut sınırını aşıyor.")
-    return value
+    return original
 
 
 def receipt_status(key, value):
@@ -119,13 +124,16 @@ class SourceJobPayload:
     retry_of: str | None = None
     allow_uncertain: bool = False
     reused: tuple[dict, ...] = ()
+    version: int = 2
 
     def request_json(self):
+        # Execution instrumentation does not change caller intent or replay keys.
         return canonical_json({"operation": OPERATION, "version": 1, "plan": self.plan,
                                "retry_of": self.retry_of, "allow_uncertain": self.allow_uncertain})
 
     def to_json(self):
-        if source_plan(**self.plan) != self.plan or type(self.allow_uncertain) is not bool:
+        if (source_plan(**self.plan) != self.plan or type(self.allow_uncertain) is not bool
+                or type(self.version) is not int or self.version not in {1, 2}):
             raise ValidationError("Kaynak işi planı kanonik değil.")
         if self.retry_of is not None:
             history_uuid(self.retry_of)
@@ -137,9 +145,11 @@ class SourceJobPayload:
                 raise ValidationError("Yeniden kullanılan adım geçersiz.")
             seen.add(step["key"])
             validate_receipt(step["key"], step["receipt"], self.plan)
+            if self.version == 1 and 'usage' in step['receipt']:
+                raise ValidationError('Eski kaynak işi kullanım ölçümü taşıyamaz.')
             if receipt_status(step["key"], step["receipt"]) != "complete":
                 raise ValidationError("Yalnız tamamlanan kaynak adımı yeniden kullanılabilir.")
-        encoded = canonical_json({"operation": OPERATION, "version": 1, "plan": self.plan,
+        encoded = canonical_json({"operation": OPERATION, "version": self.version, "plan": self.plan,
             "retry_of": self.retry_of, "allow_uncertain": self.allow_uncertain, "reused": list(self.reused)})
         if len(encoded) > 65536:
             raise ValidationError("Kaynak işi boyut sınırını aşıyor.")
@@ -151,9 +161,9 @@ class SourceJobPayload:
             if not isinstance(text, str) or len(text) > 65536:
                 raise ValueError("Size")
             value = json.loads(text)
-            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] != 1 or not isinstance(value["reused"], list):
+            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2} or not isinstance(value["reused"], list):
                 raise ValueError("Shape")
-            result = cls(value["plan"], value["retry_of"], value["allow_uncertain"], tuple(value["reused"]))
+            result = cls(value["plan"], value["retry_of"], value["allow_uncertain"], tuple(value["reused"]), value['version'])
             if result.to_json() != text:
                 raise ValueError("Canonical form")
             return result
@@ -179,7 +189,7 @@ def final_status(steps, cancelled=False):
 
 def source_result_json(value):
     try:
-        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] != 1:
+        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2}:
             raise ValueError("Shape")
         history_uuid(value["job_id"])
         if value["status"] not in {"complete", "partial", "failed", "cancelled"} or not isinstance(value["plan_sha256"], str) or len(value["plan_sha256"]) != 64:
@@ -195,6 +205,6 @@ def source_result_json(value):
 
 
 def result_for(job):
-    return {"operation": OPERATION, "version": 1, "job_id": job.id,
+    return {"operation": OPERATION, "version": job.payload.version, "job_id": job.id,
             "status": final_status(job.steps, job.cancel_requested),
             "plan_sha256": digest(canonical_json(job.payload.plan)), "steps": list(job.steps)}

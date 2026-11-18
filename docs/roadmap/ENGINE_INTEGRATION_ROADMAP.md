@@ -405,6 +405,13 @@ veriden elde edilen yeni fayda, bağımlılık değişikliğinden ayrı sınanı
 
 ### 6.4 Ticari kullanım, dağıtım ve korunacak kararlar
 
+- **18 Kasım 2026 görev ayrımı:** Firma paketi, abonelik, kullanım hakkı
+  ve ortak sağlayıcı kotasının tek merkezde yönetimi backendde kalır.
+  Motor iş için verilen sınırları uygular; denenen istekleri, yeniden
+  kullanılan kanıtı ve kesintide belirsiz kalan tüketimi bildirir.
+  0.158.0 bu iş başına raporu ekler; merkezi kota sistemi değildir.
+  Backendin kota ayırma ve belirsiz tüketimi koruma bağlantısı gerçek
+  entegrasyonda tanımlanır; aynı ticari sayaç motorda yeniden yazılmaz.
 - Kullanıcı ilk ticari kullanım için **yalnız kendi sunucularımızda
   hizmet** modelini seçti. İlk üretim kabulü merkezi kurulum/güncelleme,
   yedek/kurtarma, firma kapsamı ve firma başına iş/kaynak bütçelerine

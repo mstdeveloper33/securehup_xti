@@ -1,6 +1,6 @@
 # Kaynak güncelleme işleri
 
-18 Kasım 2026 · 0.157.0 · çekirdek şema 75 · iş kuyruğu şeması 2.
+18 Kasım 2026 · 0.158.0 · çekirdek şema 75 · iş kuyruğu şeması 2.
 
 URL/hash kaynaklarını ve seçilmiş MISP listelerini bir işe bağlayabilirsin.
 İş sıraya girer, açıkça çalıştırılır, her adımın sonucu saklanır. İstersen
@@ -55,7 +55,8 @@ Süre sınırı devam eden HTTP çağrısını zorla kesmez; isteğin kendi zama
 aşımı ve boyut sınırı korunur. MISP seçili listeleri tek commit altında
 bir adımda indirir; iptal/süre denetimi grubun öncesi ve sonrasındadır.
 Toplam süre bu nedenle seçilen adımlar arası bütçeyi aşabilir. Firmalar
-arası ortak sağlayıcı kotası henüz yoktur (NOTES N-007).
+arası ortak sağlayıcı kotası backendin tek merkezde yöneteceği entegrasyon
+işidir (NOTES N-007). Motor firma paketi veya abonelik kararı vermez.
 
 `complete` seçilen işlemler tamamlandı demektir; tehdit bulunduğu veya
 bütün arşivin tarandığı anlamına gelmez. urlscan ilk 20 sonuçla sınırlıdır;
@@ -69,6 +70,68 @@ urlscan'e URL, CIRCL'e hash gönderilir; MISP'e araştırılan müşteri değeri
 gönderilmez. URL sorgusu yeni tarama başlatmaz. İnceleme kaydı insan
 kararını/alarmı değiştirmez. Kaynak atıfları ve ticari kullanım şartları
 [NOTES](../NOTES.md) içindedir; kuyruk eklenmesi yeni veri hakkı sağlamaz.
+
+## İşin kullanım raporu
+
+`source-jobs status/result/list` ve aynı firma platformu işlemleri
+`execution` alanını verir. Ayrıca worker, submit, cancel ve retry'nin
+döndürdüğü kaynak işi aynı görünümü taşır. Yeni işlem eklenmez.
+
+| Alan | Anlamı |
+|---|---|
+| `limits.max_requests` | Bu iş için verilen üst sınır; tüketilmiş istek değildir |
+| `limits.max_seconds` | Adımlar arasında uygulanan süre sınırı |
+| `requests.attempts` | Bu işteki HTTP açma denemesi; kesin sayı yoksa `null` |
+| `requests.measurement_complete` | Kaydedilmiş iş durumunda bütün başlamış kaynak adımlarının kullanımı biliniyor mu? İşin bittiğini göstermez |
+| `requests.recorded` | Kaydedilmiş `attempts`, `responses`, `transport_errors`, `rate_limited`, `budget_rejections` sayaçları |
+| `requests.possible_unrecorded_attempts_maximum` | Ölçülemeyen başlamış adımlardaki ek denemelerin üst sınırı; harcanmış sayı değildir |
+| `requests.by_step` | Her adım için ölçüm durumu, sayı ve varsa yeniden kullanılan iş kimliği |
+| `timing.queue_wait_seconds` | İşin kabulünden worker tarafından alınmasına kadar kayıtlı süre |
+| `timing.execution_seconds` | Başlangıç/bitiş UTC kayıtları arası süre; iş bitmediyse `null` |
+| `stop_reasons` | Tamamlanma, iptal, süre/istek sınırı, kaynak hatası, HTTP 429 veya belirsiz kesinti; birlikte bulunabilir |
+
+Örneğin CIRCL ve iki MISP listesi için plan en fazla **5** istek ayırır.
+MISP'in incelenmiş commit'i değişmemişse koşul belgesi tekrar indirilmez;
+gerçek toplam **4** olabilir. Commit sorgusu başarısızsa iki listenin ayrı
+hata kaydı oluşması iki ek HTTP isteği yapılmış olduğu anlamına gelmez.
+
+Sayaç HTTP açma çağrısından hemen önce ilerler. DNS/bağlantı hatası da bir
+denemedir; istek sağlayıcıya ulaşmış veya ücretlendirilmiş sayılmaz.
+Yanıt alındıktan sonra içerik okuma/ayrıştırma hatası olması, yanıtın
+alınmış olduğu bilgisini değiştirmez. `responses` başarılı içerik sayısı
+değildir; 404 ve 429 gibi yanıtları da kapsar. Sırlar, başlıklar ve
+yanıt gövdeleri kullanım kaydına kopyalanmaz. Ortak sağlayıcı kotası ve
+ticari faturalama bu sayaçtan otomatik türetilmez.
+
+Her adımın önceden hesaplanan istek tavanı HTTP açılmadan uygulanır;
+adımların tavanları planın toplam bütçesini aşamaz. Yeni sayaç kaynakların
+mevcut bekleme ve zaman aşımı kurallarını değiştirmez. Süre ölçümü UTC
+kayıt farkıdır; CPU süresi veya kesintide gerçek çalışma süresi değildir.
+
+Kullanım adım tamamlandığında kanıt başvurusuyla birlikte saklanır.
+Çalışan/kesilen adımın henüz makbuzu yoksa kesin kullanım bilinmez. Örneğin
+bir adımda **1** deneme kaydedilip sonraki MISP adımında süreç kesilirse
+`attempts=null`, `recorded.attempts=1` ve ölçülemeyen MISP adımının üst
+sınırı döner. Sayaçları sıfırlayarak bütçeyi geri verme kararı alınmamalı.
+Eski işlerin ölçülmemiş kullanımı `legacy_unmeasured` olarak görünür.
+Tekrar kullanılan başarılı adımın **bu işteki** tüketimi sıfırdır; eski
+işin tüketimi kendi kaydında kalır. İlk iş ve tekrarları ayrı iş
+kimlikleriyle değerlendirilir; bu görünüm zincirin toplamı değildir.
+
+### Sürüm uyumu
+
+Yeni kabul edilen `sources.refresh` işlerindeki yürütme/sonuç sürümü 2'dir;
+platform zarfı v1, çekirdek şema 75 ve kuyruk şeması 2 korunur. Yeni tablo,
+otomatik veri dönüşümü veya çekirdek geçişi gerekmez. Eski v1 işler eski
+biçimleriyle çalışır/okunur; saklı JSON/hash'ler yeniden yazılmaz. Aynı
+tekrar anahtarı eski işi döndürür. Eski başarısız işin açık retry'si yeni
+v2 iş olur. İstek niyeti aynı olduğundan kanonik istek sürümü 1 kalır;
+yürütme sürümü payload/result içinde ayrıca saklanır.
+
+0.157.0 yeni v2 işleri okuyamaz. Kod yükseltmeden önce birlikte firma
+yedeği alınmalı; kod geri dönüşünde yükseltme öncesi yedek yeni alana
+dönülmelidir. Şemanın aynı olması eski kodun yeni kayıt biçimini
+desteklediği anlamına gelmez.
 
 ## İptal, kesinti ve tekrar
 

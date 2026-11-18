@@ -3,12 +3,12 @@ from xti.application.indicator_enrichment import EnrichmentService
 from xti.interfaces.text import safe_text, xti_command
 
 
-def make_enrichment_service(database, *, refresh=False):
+def make_enrichment_service(database, *, refresh=False, request_usage=None):
     from xti.adapters.sqlite_enrichment import SQLiteEnrichmentRepository
     from xti.adapters.sqlite_cooldowns import SQLiteCooldownRepository
     from xti.adapters.enrichment_sources import PublicEnrichmentSource
     return EnrichmentService(SQLiteEnrichmentRepository(database),
-        PublicEnrichmentSource(SQLiteCooldownRepository(database)) if refresh else None)
+        PublicEnrichmentSource(SQLiteCooldownRepository(database), request_usage=request_usage) if refresh else None)
 
 
 def register_enrichment_parser(commands):

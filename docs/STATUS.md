@@ -1,10 +1,31 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.157.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.158.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.158.0 iş başına kullanım raporu:** Yeni kaynak işi v2, gerçek HTTP
+açma denemelerini adımın kanıt başvurusuyla birlikte saklar. Yanıt,
+bağlantı hatası, 429 ve istek sınırında engellenen ek deneme ayrıdır.
+Terminal/platform durum, sonuç ve listesinde `execution` görünümü;
+istek sınırı, kayıtlı kullanım, kuyruk beklemesi, kayıtlı yürütme süresi
+ve durma nedenlerini verir. Tekrar kullanılan kaynak bu işte sıfır yeni
+istektir. Kesilen adımın sayısı ve eski v1 kayıtların ölçülmemiş kullanımı
+`null`/üst sınır olarak görünür. Eski işler ve tekrar anahtarları korunur;
+çekirdek/kuyruk şeması değişmez. Firma paketi, abonelik ve ortak kota
+backendin sorumluluğunda kalır. [Kullanım](SOURCE_JOBS.md#işin-kullanım-raporu).
+
+**0.158.0 yerel doğrulaması:** `umask 002` altında yeni kullanım ölçümü,
+kaynak işleri, eski kuyruk, URL/hash/MISP, bekleme, firma izolasyonu,
+yedek, CI ve mimarinin **225 testi / 73,971 saniye** geçti; hata/atlama
+yok. 18 yeni test dahildir. Bu sonuç tam paket veya Linux kabulü değildir.
+Son küçük ortak tavan hesabı/sürüm güncellemesinin 57 ilgili testi de
+17,544 saniyede geçti. Ayrı gerçek kaynak kabulünde urlscan + bir MISP
+listesi 3, CIRCL 1 HTTP denemesiyle tamamlandı; 17 platform çağrısı,
+inceleme, aynı anahtarla tekrar ve firma yedeği başarılıydı.
+[Kabul kaydı](ACCEPTANCE_REVIEW.md).
 
 **0.157.0 yönetilebilir kaynak işleri:** CIRCL/urlscan ve seçili MISP listeleri
 ortak motor kuyruğunda planlanır, açık worker ile yenilenir. Terminal ve

@@ -20,8 +20,11 @@ class _NoRedirect(HTTPRedirectHandler):
 
 class PublicEnrichmentSource:
     def __init__(self, cooldowns, *, opener=None, clock=time.monotonic,
-                 wall_clock=None, sleep=time.sleep):
+                 wall_clock=None, sleep=time.sleep, request_usage=None):
         self.opener = opener or build_opener(_NoRedirect())
+        if request_usage is not None:
+            from xti.adapters.metered_source_http import MeteredSourceOpener
+            self.opener = MeteredSourceOpener(self.opener, request_usage)
         self.cooldowns = cooldowns
         self.clock, self.sleep = clock, sleep
         self.wall_clock = wall_clock or (lambda: datetime.now(timezone.utc))

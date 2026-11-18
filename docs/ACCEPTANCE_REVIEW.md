@@ -1,5 +1,56 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.158.0 — İş başına kullanım ve backend sınırı
+
+18 Kasım 2026, macOS arm64/Python 3.13.3; `233b657` üzerine çalışma ağacı.
+Çekirdek şema 75 ve kuyruk şeması 2 değişmedi. Yeni kaynak işi yürütme/sonuç
+sürümü 2; eski v1 kayıtları ve kanonik istek anahtarları korunur.
+
+| Doğrulama | Sonuç |
+|---|---|
+| `umask 002`; kullanım, kaynak işleri/platform, URL/hash/MISP, eski kuyruk, bekleme, firma ayrımı, yedek, CI ve mimari | **225 test / 73,971 saniye; OK, atlama yok** |
+| Son sürüm bilgisi ve ortak istek tavanı hesabından sonra kullanım, kaynak işleri/platform ve mimari | **57 test / 17,544 saniye; OK, atlama yok**; önceki tura ek farklı test sayısı değildir |
+| Yeni testler | 17 kullanım + 1 platform testi; mevcut firma restore testi gerçek HTTP adaptörüyle sayaç korunmasını da doğrular |
+
+İlk yeni test denemesinde iki tekrar fixture'ının saati kaynak bekleme
+süresince ilerlemiyordu; motor doğru şekilde yeni HTTP isteğini durdurdu.
+Fixture saati üç saniye ilerletildi; üretim bekleme kuralı değiştirilmedi.
+Kaynak tarafının 60 saniyelik 429 beklemesinde sıfır yeni istek ayrıca
+sınandı. Ham ilk sonuç `/tmp/xti-01580-first-tests.log`; başarılı kayıtlar
+`/tmp/xti-01580-regression.log` ve `/tmp/xti-01580-final-tests.log`.
+
+Testler plan üst sınırı/gerçek HTTP açma sayısı, MISP ek koşul isteği,
+manifest hatasında çoğalmayan tüketim, transport hatası/429, istek açılmadan
+bütçe reddi, iptal, adımlar arası süre sınırı, makbuz commit öncesi kesinti,
+çalışırken bilinmeyen kullanım, eski v1/aynı anahtar/açık v2 retry,
+tekrarda eski kaynağı yeniden saymama, bozuk sayaç, kuyruk/yürütme süresi,
+CLI/platform eşitliği, başka firma reddi ve backup/restore kapsamını içerir.
+
+### Gerçek kaynak kabulü
+
+İzole `xti-01580-live-91ya4cp7` firma alanında **17 platform çağrısı**
+exit 0/boş stderr ile tamamlandı. İki iş de `complete`; sonuç ve aynı
+anahtarla replay aynı kalıcı kullanım kaydını döndürdü. Firma yedeği alındı.
+
+| İş | Planın en kötü istek sayısı | Ölçülmüş HTTP denemesi | Gözlem |
+|---|---:|---:|---|
+| `https://example.com/`, urlscan + MISP `rfc6761` + inceleme | 4 | **3** | MISP commit + liste: 2; urlscan: 1; inceleme: 0. urlscan `has_more=true` korundu |
+| Önceki kabulün OpenSSL SHA-256 değeri, CIRCL + inceleme | 1 | **1** | CIRCL `matched`; inceleme: 0 |
+
+URL işi `6571d7fa-8ce5-4797-8763-c76ecff8d22b`, hash işi
+`7d5120f1-39fd-4b8e-a01a-9061ea37ec77`. İkisinde de ölçüm tam, transport
+hatası/429/bütçe reddi sıfırdı. Bunların başarısızlık senaryoları kontrollü
+testtedir; canlı ortamda bu hataları oluşturduğumuz iddia edilmez.
+Geçici `evidence.json` SHA-256:
+`6feddde8cd480de887b22ac9b076289964da9ddfaaece3cdd1ee7a5be567abcf`.
+Günlük `/tmp/xti-01580-live.log`; ham çalışma verisi repoya dahil değildir.
+
+Bu kabul hedef taraması, Tavily, gelişmiş Nmap, merkezi kota veya
+faturalama doğrulaması değildir. HTTP açma denemesi sağlayıcıya teslim
+veya ücretlendirilme garantisi vermez. Kesilen adım `null`/üst sınırla
+gösterilir. Yeni sürümün tam test paketi ve Linux CI sonucu bu yerel
+sonuçlardan çıkarılmaz; önceki 0.157.0 sonucu aşağıda ayrı korunur.
+
 ## 0.157.0 — Ortak kuyrukta kaynak yenilemesi
 
 18 Kasım 2026, macOS arm64/Python 3.13.3; `9266fbf` üzerine çalışma ağacı.

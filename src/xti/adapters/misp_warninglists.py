@@ -28,8 +28,11 @@ class _NoRedirects(HTTPRedirectHandler):
 
 
 class MispWarninglistSource:
-    def __init__(self, *, opener=None, monotonic=None):
+    def __init__(self, *, opener=None, monotonic=None, request_usage=None):
         self.opener = opener or build_opener(ProxyHandler({}), _NoRedirects())
+        if request_usage is not None:
+            from xti.adapters.metered_source_http import MeteredSourceOpener
+            self.opener = MeteredSourceOpener(self.opener, request_usage)
         self.monotonic = monotonic or time.monotonic
         self.deadline = None
 

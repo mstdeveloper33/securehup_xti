@@ -3,6 +3,7 @@
 from xti.adapters.sqlite import StorageError
 from xti.domain.research_history import SCOPE_FIELDS
 from xti.domain.source_jobs import validate_receipt
+from xti.domain.source_job_usage import RequestUsageMeter, request_ceiling
 
 
 class ExistingSourceJobOperations:
@@ -16,13 +17,21 @@ class ExistingSourceJobOperations:
             'indicator_type': run['indicator_type'], 'value': run['value'], 'source_status': run['status'],
             'snapshot_sha256': run['snapshot_sha256'], 'has_more': data['has_more']}
 
-    def execute(self, key, plan, job_id):
+    def execute(self, key, plan, job_id, *, measure=False):
+        meter = RequestUsageMeter(request_ceiling(key, plan)) if measure else None
+        receipt = self._execute(key, plan, job_id, meter)
+        if meter is not None:
+            receipt = {**receipt, 'usage': meter.snapshot()}
+        return receipt
+
+    def _execute(self, key, plan, job_id, meter):
+        options = {'refresh': True, **({'request_usage': meter} if meter is not None else {})}
         if key in {'circl', 'urlscan'}:
-            service = self.enrichment(refresh=True)
+            service = self.enrichment(**options)
             data = service.refresh(provider=key, indicator_type=plan['indicator_type'], value=plan['value'])
             return self._enrichment_receipt(service.show(data['run']['id']))
         if key == 'misp':
-            data = self.warninglists(refresh=True).sync(plan['warninglist_ids'])
+            data = self.warninglists(**options).sync(plan['warninglist_ids'])
             return {'kind': 'warninglist_runs', 'runs': [
                 {'list_id': row['list_id'], 'run_id': row['id'], 'status': row['status']} for row in data['runs']]}
         data = self.research().record(**{name: plan[name] for name in SCOPE_FIELDS},
@@ -31,6 +40,7 @@ class ExistingSourceJobOperations:
 
     def verify(self, key, receipt, plan):
         validate_receipt(key, receipt, plan)
+        receipt = {name: value for name, value in receipt.items() if name != 'usage'}
         if key in {'circl', 'urlscan'}:
             actual = self._enrichment_receipt(self.enrichment().show(receipt['run_id']))
             if receipt != actual:

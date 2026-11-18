@@ -5,10 +5,11 @@ from xti.domain.warninglists import POLICIES
 from xti.interfaces.text import safe_text, xti_command
 
 
-def make_warninglist_service(database, *, refresh=False):
+def make_warninglist_service(database, *, refresh=False, request_usage=None):
     from xti.adapters.sqlite_warninglists import SQLiteWarninglistRepository
     from xti.adapters.misp_warninglists import MispWarninglistSource
-    return WarninglistService(SQLiteWarninglistRepository(database), MispWarninglistSource() if refresh else None)
+    return WarninglistService(SQLiteWarninglistRepository(database),
+        MispWarninglistSource(request_usage=request_usage) if refresh else None)
 
 
 def register_warninglist_parser(commands):

@@ -226,8 +226,8 @@ class SourceJobTests(unittest.TestCase):
     def test_crash_after_request_or_evidence_commit_requires_explicit_uncertain_retry(self):
         job = self.submit()
         original = self.operations.execute
-        def crash(key, plan, job_id):
-            original(key, plan, job_id)
+        def crash(key, plan, job_id, **kwargs):
+            original(key, plan, job_id, **kwargs)
             raise RuntimeError('Lost progress acknowledgement')
         with patch.object(self.operations, 'execute', side_effect=crash), self.assertRaises(RuntimeError):
             self.worker.work_one(job.id)
