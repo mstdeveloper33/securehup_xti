@@ -1,10 +1,30 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.161.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.162.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.162.0:** Firma girişi ve engine bileşimi kullanılmayan toplayıcıları
+yüklemez; mevcut parser/kapsam/kuyruk kuralları korunur. Aynı yerel gerçek
+süreç kabulü **40,845 → 25,935 saniye**, okuma p95 **0,629 → 0,308 saniye**;
+36 okuma, iki şirket ve iki kesinti/kurtarma sınırı geçti. Eşikler değişmedi.
+Geniş regresyon **414 test / 172,719 saniye**, hata/atlama yok.
+Son sürüm/manifest kontrolü 97, son frozen uyum kontrolü 110 test ile
+geçti; demetler birlikte **415 farklı test** kapsar, 20'si yenidir.
+[Kabul ölçümü ve sınırı](ACCEPTANCE_REVIEW.md#01620--firma-başlangıç-süresi-ve-pasif-kaynak-durumu).
+
+Kayıtlı kökte pasif kaynaklar hiç sorgulanmadı, tamamlandı/boş, kısmi ve
+başarısız olarak ayrılır. Önceki complete yanıt ve aday kanıtı kendi
+tarihiyle korunur; kaynak kimliği adaya tahminî bağlanmaz. Araştırma ve
+değerlendirme modeli 3, politika v5; eski model 1/2 okunur. DB/iş şeması
+ve dış zarf değişmez. [Alanlar](RESEARCH.md#pasif-kaynakların-son-sorgu-durumu).
+
+**Linux durumu:** 0.161.0 hızlı kontrol 1.664 test ile, Linux ve marka
+kurulumu da geçti. Firma kabulünün iki 120 saniye aşımı N-016'da
+korunur; 0.162.0 için yeni Linux sonucu henüz alınmadı. Yerel başarı
+Linux doğrulaması veya tam test paketi olarak sunulmaz.
 
 **0.161.0 pasif aday araştırması:** Kayıtlı alt alan adayları ve insan
 sahiplik sınıflandırması ortak araştırma, öncelik ve incelemeye eklendi.

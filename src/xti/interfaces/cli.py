@@ -18,6 +18,7 @@ from typing import Any, Sequence
 from uuid import uuid4
 
 from xti import __version__
+from xti.interfaces.arguments import Parser, UsageError, root_parser
 from xti.interfaces.engine import register_engine_parser, run_engine
 from xti.interfaces.platform_engine import DataDirectoryAction, register_platform_parser, run_platform
 from xti.interfaces.components import register_components_parser, make_component_service, component_lines
@@ -753,26 +754,8 @@ SOURCE_LABELS = {
 }
 
 
-class UsageError(ValueError):
-    """Invalid terminal syntax, rendered in the selected output format."""
-
-
-class Parser(argparse.ArgumentParser):
-    def error(self, message: str) -> None:
-        raise UsageError(message)
-
-
 def build_parser() -> Parser:
-    parser = Parser(
-        prog="xti",
-        description="Marka taklidini ve yetkili DNS/TLS dış yüzeyini terminalden izle.",
-    )
-    parser.add_argument("--version", action="version", version=f"XTI {__version__}")
-    parser.add_argument(
-        "--data-dir", default=os.environ.get("XTI_DATA_DIR", ".xti-data"), action=DataDirectoryAction,
-        help="Kayıt klasörü (varsayılan: .xti-data veya XTI_DATA_DIR).",
-    )
-    parser.add_argument("--json", action="store_true", help="Otomasyon için JSON çıktı üret.")
+    parser = root_parser()
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("init", help="Yerel kayıt alanını oluştur.")
     commands.add_parser("doctor", help="Kayıt alanının durumunu kontrol et.")

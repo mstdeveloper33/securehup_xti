@@ -4,9 +4,34 @@ from xti.application.research import ResearchService, research_data, priority_da
 from xti.interfaces.text import safe_text, xti_command
 
 
+def _discovery_lines(states, value, data_dir):
+    labels = {'never': 'henüz sorgulanmadı', 'complete_found': 'tamamlandı, aday bulundu',
+              'complete_empty': 'tamamlandı, bu yanıtta aday yok', 'partial_found': 'kısmi yanıt, aday var',
+              'partial_empty': 'kısmi yanıt, aday görülmedi; sonuç eksik', 'failed': 'son sorgu başarısız',
+              'read_limited': 'kaynak durumu okuma sınırına sığmadı'}
+    ages = {'fresh': 'güncel kayıt', 'stale': 'eski kayıt', 'future': 'gelecek tarihli kayıt'}
+    lines = []
+    for state in states:
+        lines.append('   Pasif kaynak ' + safe_text(state['provider']) + ': ' + labels[state['outcome']])
+        latest, good = state['latest_run'], state['successful_run']
+        if latest:
+            lines.append('   Sorgu bitişi: ' + safe_text(latest['finished_at']) + ' | ' + ages[latest['freshness']])
+            if latest['error']:
+                lines.append('   Kaynak hatası: ' + safe_text(latest['error']))
+        if state['previous_success_preserved']:
+            lines.append('   Önceki tamamlanmış yanıt korunuyor: ' + safe_text(good['finished_at']) +
+                         ' | ' + ages[good['freshness']] + ' | ' + safe_text(good['id']))
+    if states:
+        lines.append('   Kaynak durumu adayların arşiv kanıtını veya insan kararını güncellemez.')
+        lines.append('   Ayrıntı: ' + xti_command('surface', 'discovery-health', value, data_dir=data_dir))
+    return lines
+
+
 def _surface_detail_commands(rows, data_dir):
     commands = set()
     for row in rows:
+        if row['record_type'] == 'surface_discovery_run':
+            commands.add(xti_command('surface', 'run', row['record_id'], data_dir=data_dir))
         if row["record_type"] in {"surface_candidate", "surface_candidate_source", "surface_candidate_decision"}:
             identifier = row["source_reference"] if row["record_type"] == "surface_candidate_decision" else row["record_id"]
             commands.add(xti_command("surface", "candidate", "show", identifier, data_dir=data_dir))
@@ -73,6 +98,7 @@ def priority_lines(data, *, data_dir=None):
         "supplier_read_budget": "Bazı tedarikçi geçmişleri bu isteğin doğrulama sınırına sığmadı; doğrulanmayan kayıt gösterilmedi.",
         "discovery_candidate_limit": "Bazı pasif alt alan adayları bu görünümün kayıt sınırına sığmadı.",
         "discovery_read_budget": "Bazı pasif adayların kaynak/karar geçmişi okuma sınırını aştı; doğrulanmayan kayıt gösterilmedi.",
+        "discovery_status_read_budget": "Bazı pasif kaynak durumları okuma sınırını aştı; boş sonuç sayılmadı.",
         "cti_adjacency_limit": "Bazı kayıtların CTI bağlantıları gösterim sınırını aşıyor.",
         "source_evidence_limit": "Bazı kayıtların kaynak kanıtları bu görünüme sığmadı.",
         "enrichment_result_window": "URL kaynağının sonuç penceresi sınırlı; bütün arşiv kapsanmıyor.",
@@ -87,6 +113,7 @@ def priority_lines(data, *, data_dir=None):
         lines.append(f"{number}. {labels[item['priority']]} — {safe_text(item['label'])}")
         for reason in item["reasons"]:
             lines.append("   " + reason["message"])
+        lines.extend(_discovery_lines(item.get('discovery', []), item['value'], data_dir))
         # Full identities remain in JSON and in the original detail commands;
         # source names here make a short list useful without only counters.
         if item["evidence"]:
@@ -185,6 +212,7 @@ def research_lines(data, *, data_dir=None):
             lines.append("  Ayrıntı: " + xti_command("cti", "relation-show", edge["id"].removeprefix("cti:"), data_dir=data_dir))
     for node in data["nodes"]:
         lines.append("Kayıt: " + safe_text(node["label"]))
+        lines.extend(_discovery_lines(node.get('discovery', []), node['value'], data_dir))
         show_evidence(node["evidence"])
         for command in sorted(_surface_detail_commands(node["evidence"], data_dir)):
             lines.append("  Ayrıntı: " + command)

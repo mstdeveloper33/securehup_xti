@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.161.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
+**Uygulama 0.162.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -64,6 +64,17 @@ anlamına gelmez. [Alanlar ve belirsizlik](SOURCE_JOBS.md#işin-kullanım-raporu
 [Kullanım, kaynak ve koşullar](WARNINGLISTS.md).
 
 ## Kayıtlı incelemeler
+
+0.162.0 kaynak denemelerini seçili firmanın aynı araştırma kesitinde
+`discovery` alanıyla sunar. Model 3/politika v5, zarf v1; eski model 1/2
+incelemeler özgün okunur. Aynı domainin başka firmadaki kaynak hatası veya
+çalışma kimliği görünmez. [Alanlar](RESEARCH.md#pasif-kaynakların-son-sorgu-durumu).
+
+Firma komutları ortak kök parser ve mevcut platform yürütücüsüyle daha
+hafif başlatılır. Durum/kurtarma komutu toplayıcı CLI'sını yüklemez;
+doğrulanmış engine okuması gereken servisi kurar. Oturum/firma sınırı,
+dosya doğrulaması, iş kabulü ve kilitler değişmez.
+[Başlangıç kararı ve ölçüm](decisions/0166-platform-cold-start.md).
 
 0.161.0 aynı firma araştırmasında kayıtlı pasif alt alan adaylarını ve
 sahiplik sınıflandırmalarını da sunar. Kaynak kanıtı ve insan kararı ayrı

@@ -38,7 +38,8 @@ def main():
         for target in ("socket.socket.connect", "socket.socket.connect_ex", "socket.create_connection",
                        "socket.getaddrinfo", "subprocess.Popen"):
             stack.enter_context(patch(target, side_effect=AssertionError("Acceptance is offline; network/tools forbidden")))
-        from xti.interfaces.cli import main as cli_main
+        from xti.interfaces.entrypoint import main as cli_main
+        entrypoint_ready = time.perf_counter()
         if args.source_log:
             from xti.adapters.feodo_tracker import parse_feodo_response
 
@@ -54,7 +55,7 @@ def main():
                     "first_seen": "2026-10-20 10:00:00", "last_online": "2026-11-15", "malware": "Fixture",
                 }]).encode("utf-8"))
 
-            stack.enter_context(patch("xti.interfaces.cli.FeodoTrackerSource.fetch", side_effect=fake_feed))
+            stack.enter_context(patch("xti.adapters.feodo_tracker.FeodoTrackerSource.fetch", side_effect=fake_feed))
         if args.gate:
             if not args.marker or not args.source_log:
                 parser.error("A gate requires marker and source log.")
@@ -100,6 +101,8 @@ def main():
         finally:
             usage = resource.getrusage(resource.RUSAGE_SELF)
             private_json(args.metrics, {"wall_seconds": time.perf_counter() - started,
+                "entrypoint_import_seconds": entrypoint_ready - started,
+                "loaded_xti_modules": sum(name.startswith('xti.') for name in sys.modules),
                 "cpu_seconds": usage.ru_utime + usage.ru_stime,
                 "peak_rss_bytes": int(usage.ru_maxrss if sys.platform == "darwin" else usage.ru_maxrss * 1024)})
 

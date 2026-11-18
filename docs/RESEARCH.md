@@ -1,6 +1,6 @@
 # İlişkili kanıt araştırması
 
-18 Kasım 2026 · 0.161.0 · araştırma modeli 2 · engine/platform zarfı v1 · çekirdek şema 75.
+18 Kasım 2026 · 0.162.0 · araştırma modeli 3 · engine/platform zarfı v1 · çekirdek şema 75.
 
 Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, pasif aday, tedarikçi, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
@@ -218,11 +218,61 @@ SHA-256 özgün kayıtla korunur; ham sağlayıcı payload'ı saklanmadığı i�
 içerikten tekrar doğrulandığı iddia edilmez. Kesin ilişki tablosu bulunmayan
 keşif çalışma kimliği zaman eşleştirmesiyle tahmin edilmez.
 
-Yeni boş/başarısız keşif çalışması eski adayı silmez. Bu araştırma aday
-geçmişini gösterir; son keşif çalışmasının erişim/kapsam sağlığı mevcut
-`surface discovery-status` görünümünde ayrıca incelenir. Araştırma modeli 2,
-istek/zarf v1, şema 75 kalır. Politika v4'ün ilk incelemesi yeni başlangıçtır;
-önceki v3/model 2 ve daha eski kayıtlar yeniden yazılmaz.
+Yeni boş/başarısız keşif çalışması eski adayı silmez. 0.161.0 aday
+geçmişini model 2/politika v4 ile ekledi. 0.162.0 son sorgu durumunu aşağıda
+ayrı bağlam olarak sunar; adayın kaynak tarihi veya insan kararı yenilenmez.
+
+## Pasif kaynakların son sorgu durumu
+
+```sh
+./xti research securehup.com --type domain
+./xti research securehup.com --type domain --priorities
+./xti surface discovery-health securehup.com
+```
+
+Araştırma kayıtlı kök domain için `crt.sh` ve `theharvester` durumunu ayrı
+gösterir. Yeni internet sorgusu yapmaz; kayıtsız alt alan kökün durumunu
+miras almaz. JSON'da `nodes[].discovery`, öncelik/incelemede
+`items[].discovery` bulunur. Diğer düğümler/ilişkilerde boş listedir.
+
+| `outcome` | Anlamı |
+|---|---|
+| `never` | Bu kök/sağlayıcı için kayıtlı sorgu yok; tarih veya çalışma kimliği yok |
+| `complete_found` | Sorgu tamamlanmış, bu yanıtta aday görülmüş |
+| `complete_empty` | Sorgu tamamlanmış, bu yanıtta aday görülmemiş |
+| `partial_found` | Eksik yanıtta aday var; sonuçların tamamı alınmış değil |
+| `partial_empty` | Eksik yanıtta aday görülmemiş; boş sonuç doğrulanmış sayılmaz |
+| `failed` | Son sorgu başarısız; aday varlığı hakkında yeni sonuç yok |
+| `read_limited` | Yerel okuma sınırına sığmamış; sorgulanmadı/boş deneme değildir |
+
+Her sağlayıcıda `latest_run` ve `successful_run` (son **complete** çalışma)
+ayrı okunur. `previous_success_preserved=true` eski complete yanıtın
+korunduğunu anlatır. Her çalışma özgün `id`, `source_url`, başlangıç/bitiş,
+sonuç sayıları, uyarı/hata ve kendi `freshness` alanını taşır. Son başarısız
+deneme eski başarılı yanıtın tarihini yenilemez. Sıra saatten değil kayıtlı
+çalışma sırasından seçilir. Boş sonuç bütün internette aday veya risk
+olmadığını kanıtlamaz. `never` isteğe bağlı aracın kurulu olmadığını da
+kanıtlamaz; yalnız kayıtlı deneme yoktur.
+
+`surface_discovery_run/source_context` kanıtı aynı domain düğümündedir;
+çalışma kimliği `source_run_id`, zaman `response_received_at` olarak
+korunur. Buradaki hash çalışma kaydının özetidir; sağlayıcı ham payload'ı
+değildir. Bu kimlik adayın arşiv kaynak satırına otomatik bağlanmaz.
+Terminalde özgün çalışma için `surface run KIMLIK` ayrıntısı sunulur.
+
+Her kökte en fazla dört çalışma, istek genelinde 4 MiB seçili çalışma
+alanı okunur. Ön kontrol sınırı aşarsa `discovery_status_read_budget`
+belirtilir; eski aday bağlantısı görünmeye devam edebilir. Üstteki
+`coverage_complete` yalnız sınırlı **yerel okumanın** tamamlanmasını ifade
+eder; bütün kaynakların sorgulandığı veya son yanıtlarının başarılı olduğu
+anlamına gelmez. Kaynak sonucu için `discovery` okunmalıdır.
+
+Araştırma/değerlendirme modeli **3**, öncelik **v5** olur; dış istek/zarf
+v1, DB/iş şeması 75/2 korunur. Eski model 1/2 incelemeleri kendi biçiminde
+okunur; ilk yeni inceleme `policy_baseline` olur. Yeni deneme kesit
+kimliğini değiştirir; eski sayfa anahtarıyla devam edilmez. Kod geri
+dönüşünde yükseltme öncesi uygun yedek gerekir; eski motor model 3'ü
+okuyamaz. [Karar](decisions/0167-passive-source-research-context.md).
 
 ## URL/hash kaynak bağlamı
 
@@ -319,7 +369,7 @@ Boş, başlatılmış bir kayıt alanında `unknown.example` için örnek cevap 
 
 ```json
 {
-  "model_version": 2,
+  "model_version": 3,
   "status": "not_recorded",
   "stored_data_only": true,
   "consistency": "single_read_snapshot",
@@ -410,19 +460,20 @@ bir hata üretmez; saklı son kontrolün hatası görünür kalır.
 
 ## Kapsam envanteri ve sonraki dilim
 
-| Yetenek | Önceden | 0.161.0 |
+| Yetenek | Önceden | 0.162.0 |
 |---|---|---|
 | Genel kayıt araması/ayrıntı, kaynak/araç durumu | CLI + engine/platform | Korundu |
 | DNS/sertifika/CNAME ilişki geçmişi | `surface relations` CLI | Korundu; kayıtlı kanıt ortak araştırma/öncelik/incelemede de kullanılır |
 | Tedarikçi adayları ve ilişki kararları | Ayrı aday/tedarikçi ve `surface relations` CLI | Ortak araştırma/öncelik/inceleme; teknik aday ile insan kararı ayrı |
 | Pasif alt alan adayları ve sahiplik sınıflandırması | Keşif/envanter/aday CLI | Ortak araştırma/öncelik/inceleme; arşiv, karar ve aktif kapsam ayrı |
+| Pasif kaynak son sorgusu ve önceki complete yanıt | `surface discovery-status/health` CLI | Aynı araştırma kesitinde ayrı bağlam; aday kanıtını yenilemez |
 | Doğrudan CTI bağlamı | `cti context` CLI | Korundu; kaynak denetimi yeniden kullanılır |
 | Domain/IP → DNS/IOC → CTI kaynaklı yolları | Ortak görünüm yok | `research` CLI ve `research.show` engine/platform |
 | Otomatik varlık birleştirme, açıklamalı çıkarım | Plan | Sonraki MTR-01/02 dilimleri |
 | MISP warninglists | Plan | Dört seçilmiş liste; kaynaklı domain/IP bağlamı, [ayrıntı](WARNINGLISTS.md) |
 | URL/hash zenginleştirme | Plan | CIRCL ve kayıtlı urlscan yanıtları; sınırlı kaynak bağlamı |
 
-Güncel çekirdek şema 75'tir; 0.161.0 yeni migration gerektirmez.
+Güncel çekirdek şema 75'tir; 0.162.0 yeni migration gerektirmez.
 0.152.0'ın araştırması tablo eklemiyordu. 0.153.0 warninglist kaynak
 geçmişi şema 73, 0.154.0 URL/hash şema 74, 0.156.0 inceleme şema 75
 oldu; daha eski alanlardan geçiş açık ve yedeklidir.

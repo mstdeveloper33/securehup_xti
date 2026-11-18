@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.161.0 / çekirdek 75 / iş kuyruğu 2**.
+Güncel çalışma: **0.162.0 / çekirdek 75 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -210,7 +210,7 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-016 — Linux kabul süresindeki dalgalanma
 
-- **Durum:** Bilinen sınır; son kabul geçti, süre dalgalanması izlenecek.
+- **Durum:** Açık; başlangıç yükü azaltıldı, yeni Linux doğrulaması bekliyor.
   **Güncellendi:** 18 Kasım 2026.
 - **Kanıt:** `94f1d9c` ilk koşu ve aynı kodlu tekrarında toplam 120 saniye
   sınırında durdu. Python 3.13 kolu 90,547 saniyede; aynı senaryo yerelde
@@ -233,10 +233,34 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   saniye** / p95 **1,435 saniye**. Eşikler aynı; eski süre aşımlarının kök
   nedenini bu başarılı koşu kapatmaz.
   [Koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427220).
-- **Sonraki iş:** Tekrarlanan toplam süre aşımında komut başlatma ve
-  yürütme sürelerini ayrı ölçmek. Mevcut kanıt toplam bütçenin tükendiğini
-  gösterir; bunun altyapı veya uygulamadaki kesin kök nedenini göstermez.
-  Başarılı tekrar ilk başarısızlığı silmez; eşikler gevşetilmedi.
+- **0.161.0 kanıtı:** `259bc5f` Python 3.11 koşusu **120,015 saniyede**
+  `TimeoutExpired` ile durdu; 61. `alpha/recover` komutuna **1,114 saniye**
+  kalmıştı. Python 3.13 koşusu **120,032 saniyede** `Gated worker exceeded
+  wait threshold` hatasıyla durdu; son kayıtlı 54. `alpha/jobs.submit`
+  komutu tamamlanmıştı ve o komut öncesinde **3,290 saniye** kalmıştı.
+  İki kabul de tamamlanmış sayılmaz. Kesin uygulama/altyapı kök nedeni
+  henüz doğrulanmadı; yalnız başarılı tekrar bu maddeyi kapatmayacak.
+  [Başarısız koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44273412771),
+  geçici günlük `/tmp/xti-01610-platform-ci.log`.
+- **0.162.0 düzeltmesi:** Komut başlamadan tüm terminal/toplayıcı modülleri
+  yükleniyordu. Yerel import ölçümü tam CLI için yaklaşık 570 ms,
+  platform için 221 ms. Firma girişi ortak parser ile hafifletildi;
+  yalnız gereken engine servisi kuruluyor, kuyruk durumu/kurtarma toplama
+  CLI'sını yüklemiyor. İlk aynı yerel kabul **40,845 → 28,288 saniye**;
+  36 okuma ve iki gerçek SIGTERM sınırı geçti. Son düzenleme ve Linux
+  kabulü ayrıca kaydedilir; bu yerel sonuç Linux'un yerine geçmez.
+  [Karar](docs/decisions/0166-platform-cold-start.md).
+- **Son yerel kabul:** İşleme göre engine bileşimi de eklendikten sonra
+  **25,935 saniye**, 36 okuma p95 **0,308 saniye**, en yüksek okuma RSS
+  **47.415.296 bayt**. Her iki SIGTERM sınırı, diğer şirketin eşzamanlı
+  çalışması ve bütünlük geçti. 63 komut/kapı kaydı dış artefakttadır:
+  `/tmp/xti-01620-final-acceptance.json`. Geniş regresyon 414 test /
+  172,719 saniye geçti; bu sonuç tam paket veya Linux sonucu değildir.
+- **Sonraki iş:** Yeni commit'in iki Linux Python kolunu doğrulamak.
+  Her komutun süreç/CPU/bellek ve modül sayısı, iki kesinti kapısının
+  bekleme süresi sentetik raporda tutulur. Ortak başlangıç maliyeti
+  ölçüldü; çalıştırıcıdaki bütün hız dalgalanmasının tek nedeni olduğu
+  iddia edilmez. Eşikler gevşetilmedi; ilk başarısızlıklar korunur.
 - **Dayanak:** [İşletim kabulü](docs/ACCEPTANCE_REVIEW.md#işletim-kabulü).
 
 ### N-017 — Kaynak işi kullanım ölçümünün sınırları
@@ -286,13 +310,34 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   yeniden hesaplanmış sayılmaz. Kaynak satırıyla keşif çalışması arasında
   kesin ilişki yoksa yalnız aynı zamana bakılarak `source_run_id` üretilmez.
   Yeni boş/başarısız çalışma eski adayın zamanını yenilemez ve adayı silmez.
-- **Uyum:** Model 2/zarf v1/şema 75 korunur; politika v4'ün ilk incelemesi
+- **0.161.0 uyumu:** Model 2/zarf v1/şema 75 korunur; politika v4'ün ilk incelemesi
   yeni başlangıçtır. Eski model/politika sonuçları yeniden yorumlanmaz.
-- **Sonraki öneri:** Mevcut keşif kaynak durumunu araştırmada ayrı bir
-  bağlam olarak göstermek; son başarısız deneme ile eski aday kanıtını
-  karıştırmamak. Güncel sağlık şimdilik `surface discovery-status` içindedir.
+- **0.162.0 güncellemesi:** Kaynak çalışma durumu ortak araştırmada ayrı
+  bağlamdır (N-020). Aday satırına kesin çalışma bağı tahmin edilmez;
+  yukarıdaki kanıt sınırları değişmedi.
 - **Dayanak:** [Kapsam](docs/RESEARCH.md#pasif-alt-alan-adayları-ve-sahiplik-incelemesi),
   [mimari karar](docs/decisions/0165-passive-candidate-research.md).
+
+### N-020 — Kaynak durumunun anlamı ve araştırma modeli 3
+
+- **Durum:** Bilinen sınır. **Güncellendi:** 18 Kasım 2026.
+- **Not:** `discovery` yalnız kayıtlı kökün `crt.sh`/`theharvester`
+  çalışmalarını okur. Sorgulanmadı, tamamlandı/boş, kısmi ve başarısız
+  ayrıdır. Son complete yanıt kendi tarihiyle korunur; canlı kaynak
+  erişilebilirliği veya internetin tamamında yokluk kanıtı değildir.
+- **Bütçe:** Kök başına en fazla dört farklı çalışma; seçili çalışma
+  alanları için istekte ortak 4 MiB. Sınırda `read_limited`, hiç deneme
+  yoksa `never`; biri diğerinin yerine kullanılmaz. `coverage_complete`
+  yerel okuma kapsamıdır, bütün sağlayıcıların başarılı olması değildir.
+- **Uyum:** Araştırma/değerlendirme modeli 3 ve politika v5. Eski model
+  1/2 özgün okunur; ilk yeni kayıt politika başlangıcıdır. DB 75/kuyruk 2
+  ve dış zarf v1 aynı; eski motor yeni model 3 incelemeyi okuyamaz.
+  Kod geri dönüşü için yükseltme öncesi uygun yedek gerekir.
+- **Yerel kanıt:** Geniş 414, son 97 ve frozen uyum 110 test demetleri
+  geçti; **415 farklı test**, 20 yeni test, hata/atlama yok.
+  [Ayrıntılı kabul](docs/ACCEPTANCE_REVIEW.md).
+- **Dayanak:** [Alanlar](docs/RESEARCH.md#pasif-kaynakların-son-sorgu-durumu),
+  [karar](docs/decisions/0167-passive-source-research-context.md).
 
 ## Korunacak kararlar
 
@@ -386,6 +431,12 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Sıradaki çalışma
 
+**Öncelik güncellendi:** 0.162.0 N-016'daki başlangıç yükünü azaltır;
+eşikler/kurtarma testleri korunur. Yeni Linux sonucu bekleniyor. Önceki
+0.161.0 hızlı kontrol **1.664 test / 1.096,802 saniye** ile geçti;
+Linux/marka kurulumu başarılıydı, firma kabulünün iki süre aşımı N-016'da
+açıkça korunur.
+
 **Uygulandı:** 0.157.0 URL/hash/MISP yenilemesini ortak firma kuyruğuna
 bağlar; açık kaynak seçimi, bütçe, ilerleme, iptal/kurtarma, tekrar ve
 isteğe bağlı son inceleme kaydı vardır. N-008'in test ve kapanma kaydı
@@ -409,9 +460,12 @@ sağlayıcı, API veya migration yoktur. Model 2 uyumu N-018'de korunur.
 kararlarını ortak araştırma/öncelik/incelemeye ekler. Aktif kapsam değişmez;
 yeniden keşif kararı sıfırlamaz. Kanıt ve çalışma sınırları N-019'da korunur.
 
-**Sonraki öneri, henüz uygulanmadı:** Pasif keşif kaynaklarının son çalışma
-durumunu ortak araştırmada aday kanıtından ayrı göstermek: başarılı/boş,
-kısmi veya başarısız deneme. Ayrıca N-016'daki toplam kabul süresi izlenir.
+**Uygulandı:** 0.162.0 pasif keşif kaynaklarının son çalışma durumunu
+ortak araştırmada aday kanıtından ayrı gösterir: hiç sorgulanmadı,
+başarılı/boş, kısmi veya başarısız. Önceki complete yanıt korunur (N-020).
+
+**Sonraki öneri, henüz uygulanmadı:** N-016 Linux sonucundan sonra mevcut
+tedarikçi izleme/risk olaylarının ortak araştırmaya alınmasını planlamak.
 Backendin oturum/abonelik/merkezi kota yönetimi bu sıraya dahil değildir.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması

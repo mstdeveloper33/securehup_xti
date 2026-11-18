@@ -13,6 +13,8 @@ from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
 from xti.adapters.sqlite_research_surface import StoredSurfaceLinks
 from xti.adapters.sqlite_research_suppliers import StoredSupplierLinks
 from xti.adapters.sqlite_research_discovery import StoredDiscoveryLinks
+from xti.adapters.sqlite_research_discovery_status import StoredDiscoveryStatuses
+from xti.domain.research_discovery_status import status_evidence
 from xti.adapters.sqlite_warninglists import read_warninglists
 from xti.adapters.sqlite_enrichment import read_enrichment
 from xti.domain.indicator_enrichment import enrichment_query, request_url
@@ -80,6 +82,8 @@ class _Reader:
         self.supplier_links = StoredSupplierLinks(path, connection,
             limitations=self.limitations, coverage=self.coverage)
         self.discovery_links = StoredDiscoveryLinks(connection,
+            limitations=self.limitations, coverage=self.coverage)
+        self.discovery_status = StoredDiscoveryStatuses(connection,
             limitations=self.limitations, coverage=self.coverage)
 
     def _claims(self, kind, identifier):
@@ -212,6 +216,7 @@ class _Reader:
             self.nodes[key] = result
             return result
         references, evidence, evidence_total = [], [], 0
+        discovery = ()
         label, record_type = value, kind
         if kind == "entity":
             details, claims = self._claims("entity", value)
@@ -226,6 +231,7 @@ class _Reader:
                 if row:
                     normalize_knowledge_id(row[0])
                     references.append(_reference("domain", "registered_domain", "local-assets", row[0]))
+                    discovery = self.discovery_status.read(row[0], value)
                 # Only the latest check is attached to a node; all selected
                 # positive DNS observations belong to the corresponding edges.
                 self._dns(value)
@@ -240,6 +246,10 @@ class _Reader:
                 if cname is not None:
                     evidence.append(cname)
                     evidence_total += 1
+                for state in discovery:
+                    attempts = status_evidence(state)
+                    evidence.extend(attempts)
+                    evidence_total += len(attempts)
             row = self.connection.execute(
                 "SELECT id FROM cti_indicators WHERE indicator_type=? AND value=?", key,
             ).fetchone()
@@ -280,7 +290,7 @@ class _Reader:
         if len(evidence) > 52:
             self.limitations.add("source_evidence_limit")
         result = ResearchNode(key, label, record_type, tuple(references), tuple(evidence[:52]), evidence_total,
-                              tuple(match_data(self.warninglists, kind, value)), enrichment)
+                              tuple(match_data(self.warninglists, kind, value)), enrichment, discovery)
         self.nodes[key] = result
         return result
 

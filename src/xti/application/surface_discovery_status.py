@@ -10,6 +10,7 @@ from xti.domain.surface import SURFACE_DISCOVERY_PROVIDERS, SurfaceDiscoveryRun
 from xti.domain.surface_discovery_status import (
     SurfaceDiscoveryHealthReport,
     SurfaceDiscoveryStatusReport,
+    discovery_outcome,
 )
 from xti.ports.assets import AssetRepository
 from xti.ports.surface import SurfaceCandidateRepository
@@ -59,7 +60,7 @@ class SurfaceDiscoveryStatusService:
         if run.status == "complete":
             return (
                 "available", "candidates_observed" if found else "none_observed",
-                "complete_found" if found else "complete_empty", True, not found,
+                discovery_outcome(run), True, not found,
                 "none",
                 (
                     "Kaynak sorgusu tamamlandı ve aday bulundu."
@@ -70,7 +71,7 @@ class SurfaceDiscoveryStatusService:
         if run.status == "partial":
             return (
                 "incomplete", "candidates_observed" if found else "none_observed",
-                "partial_found" if found else "partial_empty", False, False,
+                discovery_outcome(run), False, False,
                 "review_and_retry",
                 (
                     "Kısmi yanıtta aday bulundu; fakat daha fazla sonuç eksik olabilir."

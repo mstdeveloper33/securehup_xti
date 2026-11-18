@@ -1,5 +1,85 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.162.0 — Firma başlangıç süresi ve pasif kaynak durumu
+
+18 Kasım 2026, macOS arm64/Python 3.13.3; `259bc5f` üzerine çalışma ağacı.
+DB 75, iş şeması 2 ve engine/platform zarfı v1 korunur. Araştırma ve
+değerlendirme modeli 3, öncelik v5; eski model 1/2 incelemeler özgün okunur.
+
+`umask 002` altında geniş regresyon **414 test / 172,719 saniye**, hata
+ve atlama olmadan geçti. Araştırma/öncelik/geçmiş, keşif/kaynak durumu,
+tedarikçi/envanter, engine/platform, firma ayrımı, yedek, profil/kaynak
+işleri, giriş/kurulum, mimari ve CI yapılandırması kapsandı. Yeni manifest
+regresyonu ve son sürüm bildirimi için ayrı son kontrol aşağıda tutulur.
+Günlük `/tmp/xti-01620-regression.log`; ilk odaklı kontrol **103 test /
+40,265 saniye** idi ve toplam sayıya tekrar eklenmez.
+
+Son sürüm/manifest ve firma girişi kontrolü **97 test / 33,797 saniye**
+ile geçti. Frozen model 3'ün eksik kaynak bağını ve eski model etiketiyle
+sunulmasını da reddeden son düzenlemeden sonra ilgili **110 test / 43,704
+saniye** geçti; hata/atlama yok. Geniş ve son demetlerin birleşiminde
+**415 farklı test** vardır; 20 yeni test dahildir, tekrarlar toplanmaz.
+Son günlükler `/tmp/xti-01620-final-tests.log`,
+`/tmp/xti-01620-frozen-final.log`. Sürüm, AST, göreli doküman bağlantıları
+ve `git diff --check` de geçti.
+
+### Aynı yerel gerçek süreç kabulünün karşılaştırması
+
+İki sentetik şirket, 100/1.000 kayıt, 36 okuma; kaynak öncesi ve makbuz
+sonrası iki gerçek süreç SIGTERM kesintisi. Ağ ve dış araçlar kapalıdır.
+120 saniye toplam, 5 saniye okuma p95, 512 MiB süreç belleği ve diğer
+eşikler değişmedi. Senaryo veya assertion çıkarılmadı.
+
+| Ölçüm | 0.161.0 başlangıcı | 0.162.0 son kabul |
+|---|---:|---:|
+| Toplam süre | 40,845 sn | 25,935 sn |
+| 36 okumanın p95'i | 0,629 sn | 0,308 sn |
+| En uzun okuma | 0,932 sn | 0,317 sn |
+| Okuma süreçlerinde en yüksek RSS | 71.024.640 bayt | 47.415.296 bayt |
+| Şirket sayısı / bütünlük | 2 / geçti | 2 / geçti |
+
+Son kabulde 63 komut/kapı ölçümü vardır. Her iki kesinti sınırında
+ikinci worker ve eşzamanlı recover `busy` döndü; diğer şirket işini
+tamamladı. Açık kurtarma aynı işi `interrupted` yaptı; kaynak otomatik
+tekrarlanmadı. Kaynak öncesinde 0, makbuz sonrasında 1 özgün makbuz
+korundu. Disk 5.394.979 bayttı. Okuma ortalamaları search 0,302,
+organization.content 0,285, jobs.status 0,263 saniye.
+
+Yerel `-X importtime` tam CLI yüklemesinde yaklaşık 570 ms, platform
+adaptöründe 221 ms ölçtü. Ortak parser ile hafif giriş, yalnız gereken
+engine servisinin kurulması ve kuyrukta ertelenen toplama bileşimi
+uygulandı. İlk ara düzeltme kabulü 28,288 saniyeydi. Yeni sentetik rapor
+komutların süreç/CPU/bellek, modül sayısı ve kapıya ulaşma süresini saklar.
+Çalıştırıcıdaki bütün dalgalanma tek nedene bağlanmaz; başarılı yerel
+ölçüm yeni Linux kabulünün yerine geçmez (N-016).
+
+Artefaktlar `/tmp/xti-01620-before.json`, `/tmp/xti-01620-dispatch.json`,
+`/tmp/xti-01620-final-acceptance.json`; ham fixture repoya alınmaz.
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 ./scripts/python scripts/check-platform-acceptance.py --output /tmp/xti-new-acceptance.json
+```
+
+Kaynak durumu kabulünde hiç sorgulanmadı/boş/kısmi/başarısız ayrımı,
+eski complete yanıtın tarihi, iki sağlayıcı, saat gerilemesi, ilgisiz kök,
+bozuk seçili kayıt, decoder öncesi boyut sınırı, aynı okuma kesiti,
+kanıt sınırı, sayfa kimliği, frozen kaynak bağlantısı, firma ayrımı ve
+yedek doğrulandı. Sorgulanmamış sağlayıcıya tarih uydurulmadı; yeni deneme
+adayın arşiv tarihini/insan kararını değiştirmedi. Bu kontrollü kabul,
+Tavily/Nmap canlı kabulü, tam test paketi veya 7/24 üretim garantisi değildir.
+
+### 0.161.0 GitHub sonucunun kaydı
+
+`259bc5f` hızlı kontrol **1.664 test / 1.096,802 saniye** ile geçti;
+[hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44273412701),
+[marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44273412688),
+[Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44273412705)
+başarılı. [Firma kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44273412771)
+iki Python kolunda tamamlanmadı: 3.11, 120,015 saniyede son recover öncesi
+1,114 saniye kalmışken `TimeoutExpired`; 3.13, 120,032 saniyede kapı
+beklemesi toplam bütçeyi aştı. 36 okumanın ortalamaları sırasıyla
+1,794–1,845 ve 2,025–2,098 saniyeydi. Bu sonuçlar tekrar ile silinmedi.
+
 ## 0.161.0 — Pasif alt alan adayı ve sahiplik sınıflandırması
 
 18 Kasım 2026, macOS arm64/Python 3.13.3; `de80b54` üzerine çalışma ağacı.

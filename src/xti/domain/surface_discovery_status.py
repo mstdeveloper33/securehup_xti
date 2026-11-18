@@ -1,6 +1,28 @@
 """Read-only interpretation of the latest passive surface discovery run."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from xti.domain.surface import SurfaceDiscoveryRun
+
+
+@dataclass(frozen=True, slots=True)
+class StoredDiscoveryStatus:
+    provider: str
+    latest_run: SurfaceDiscoveryRun | None = None
+    successful_run: SurfaceDiscoveryRun | None = None
+    read_complete: bool = True
+
+
+def discovery_outcome(run):
+    if run is None:
+        return "never"
+    if run.status == "failed":
+        return "failed"
+    return run.status + ("_found" if run.candidate_count else "_empty")
 
 
 @dataclass(frozen=True, slots=True)

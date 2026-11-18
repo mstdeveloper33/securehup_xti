@@ -1,7 +1,21 @@
 # XTI Motorunun Mimarisi
 
-**18 Kasım 2026 — 0.161.0, çekirdek şema 75, iş kuyruğu şeması 2.**
+**18 Kasım 2026 — 0.162.0, çekirdek şema 75, iş kuyruğu şeması 2.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
+
+0.162.0 platform süreç başlangıcını ortak kök parser üzerinden hafif
+girişe ayırır. Engine bileşimi doğrulanmış işlem için gereken servisi
+kurar; kuyruk durumu/kurtarma toplayıcı CLI'sını yüklemez. İş, kilit ve
+firma sınırları korunur. [0166 kararı](decisions/0166-platform-cold-start.md).
+
+`StoredDiscoveryStatuses` aynı araştırma transaction'ında kökün iki
+pasif sağlayıcısının son çalışma ve son complete yanıtını boyut ön
+kontrolüyle okur. Domain dönüşümü çalışma bağlamını aday kaynak kanıtından
+ayırır; uygulama/terminal/engine/platform aynı açık alanları kullanır.
+Araştırma/değerlendirme modeli 3, politika v5; eski model 1/2 okuyucu
+korunur. DB ve kuyruk şeması değişmez. Yeni `discovery` alanı frozen
+okumada kaynak/çalışma kanıtına karşı doğrulanır.
+[0167 kararı](decisions/0167-passive-source-research-context.md).
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
 geliştiriliyor. Motorun veri/kanıt modeli, iş kuralları, firma kapsamı ve

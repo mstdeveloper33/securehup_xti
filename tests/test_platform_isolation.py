@@ -18,7 +18,7 @@ from xti.adapters.sqlite_mention_targets import SQLiteMentionTargetRepository
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.domain.collection_profiles import CollectionProfileDefinition
 from xti.domain.mentions import MentionHit, MentionRequest, MentionResponse, build_query
-from xti.interfaces.cli import main
+from xti.interfaces.entrypoint import main
 
 
 class PlatformIsolationTests(unittest.TestCase):

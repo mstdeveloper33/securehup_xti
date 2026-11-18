@@ -1,6 +1,6 @@
 # Kayıtlı incelemeler ve önceki incelemeye göre değişim
 
-18 Kasım 2026 · 0.161.0 · çekirdek şema 75 · değerlendirme modeli 2 (eski model 1 okunur).
+18 Kasım 2026 · 0.162.0 · çekirdek şema 75 · değerlendirme modeli 3 (eski model 1 ve 2 okunur).
 
 Bir domain, IP, URL veya dosya kimliğini incelerken o günkü kanıtları ve
 inceleme sırasını saklayabilirsiniz. Sonraki kayıt, aynı kapsamın önceki
@@ -12,6 +12,14 @@ veri getirmeye devam eder; incelemeyi kaydetmek yeni tarama, ücretli API
 veya LLM çağrısı yapmaz. Alarm ve analist kararlarını değiştirmez.
 
 ## Terminalden kullanım
+
+0.162.0 model 3/politika v5 ile `items[].discovery` alanını saklar.
+Son sorgu, önceki complete yanıt ve hiç sorgulanmamış sağlayıcı ayrıdır.
+Yeni deneme kanıt değişimi, yalnız saat ilerlemesi zaman değişimidir;
+aday silinmesi veya IOC geri çekilmesi türetilmez. Eski model 1 ve 2
+özgün okunur; model 3'ün ilk incelemesi `policy_baseline` olur. Eski motor
+model 3 incelemeyi okuyamaz; geri dönüşte yükseltme öncesi yedek gerekir.
+[Yeni alanın anlamı](RESEARCH.md#pasif-kaynakların-son-sorgu-durumu).
 
 0.161.0 kayıtlı pasif alt alan kanıtını ve sahiplik sınıflandırmasını da
 saklar. Model 2 korunur, politika v4 olur; önceki v3/model 2 kayıtları özgün
@@ -27,7 +35,7 @@ olur. İnsan kararının geri alınması `evidence_or_mixed` değişimidir;
 bir IOC iddiasının geri çekilmesi olarak etiketlenmez. Karar zamanı teknik
 gözlem zamanı değildir. Üst düzey karşılaştırma/özet modeli 1 kalır.
 
-DB migration gerekmez, fakat eski motor yeni model 2 incelemeyi okuyamaz.
+DB migration gerekmez, fakat önceki motor yeni model 3 incelemeyi okuyamaz.
 Geri dönülecekse yükseltme öncesi uygun yedek kullanılmalı. Firma yedeği
 çekirdek ve kuyruk birlikte; kişisel `backup` yalnız çekirdektir (N-015).
 Tarihî model 1 sonuçlarını okuyabilme, eski motorun yeni veriyi okuyabildiği

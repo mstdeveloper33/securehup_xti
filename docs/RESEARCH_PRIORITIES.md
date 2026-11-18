@@ -1,6 +1,6 @@
 # Gerekçeli inceleme önceliği
 
-18 Kasım 2026 · 0.161.0 · politika `research-priority-v4` · model 2 · şema 75.
+18 Kasım 2026 · 0.162.0 · politika `research-priority-v5` · model 3 · şema 75.
 
 Seçtiğin domain, kesin IP, URL veya dosya kimliği için **hangi kaydı önce
 incelemelisin ve neden?** Mevcut DNS/CNAME/TLS, pasif aday, tedarikçi, IOC/CTI, MISP listesi ve URL/hash
@@ -101,6 +101,14 @@ görülme aralığı `stored_seen_range`, karar zamanı `decision_recorded_at`
 olarak ayrılır. Yeni karar veya aynı arşiv kaydının tekrarı eski gözlem
 tarihini yenilemez. Model 2 korunur; v4'ün ilk incelemesi politika başlangıcıdır.
 
+V5, pasif kaynakların son denemesini ekler. `discovery_query_failed`,
+`discovery_query_partial` ve `discovery_status_limited` doğrulama gerekçeleridir.
+`discovery_never_checked` ve `discovery_complete_empty` bağlamdır; tehdit
+kararı üretmez. Eski complete yanıt kendi tarihiyle korunur; eski boş
+yanıt son başarısız/kısmi denemenin yerine geçmez. Kayıtlı adayın kaynak
+tarihi değişmez. Sonuç/inceleme modeli 3; ilk kayıt yeni başlangıçtır.
+[Alanlar ve yerel okuma sınırı](RESEARCH.md#pasif-kaynakların-son-sorgu-durumu).
+
 Kaynak iddialarının etkinliği, kaynak güveni (`confidence`) ve kanıt türü
 (`evidence_basis`) ayrı alanlardır. Kanıt türleri `observation`,
 `source_claim`, `source_context`, `candidate_context`, `human_decision`
@@ -185,5 +193,5 @@ Firma geneli öncelik kuyruğu, otomatik bildirim, anlamsal çelişki çözümü
 özel müşteri kuralları ve geniş IOC yaşam döngüsü otomasyonu henüz eklenmedi. Ağsız okuma mevcut
 Tavily/Nmap canlı kabulü veya kaynak kullanım hakkı notlarını kapatmaz.
 0.155.0 bu özelliği şema 74'te ekledi; 0.156.0 geçmiş için şema 75'e
-açık yedekli geçiş gerektirir. 0.161.0 şema 75'i korur; yeni değerlendirme
-modeli 2'dir. Eski model 1 incelemeleri korunur ve özgün okunur.
+açık yedekli geçiş gerektirir. 0.162.0 şema 75'i korur; yeni değerlendirme
+modeli 3'tür. Eski model 1 ve 2 incelemeleri korunur ve özgün okunur.

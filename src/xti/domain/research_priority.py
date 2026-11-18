@@ -7,9 +7,10 @@ from xti.domain.indicator_enrichment import EnrichmentState, request_url
 from xti.domain.research import (
     ResearchEvidence, ResearchReport, ResearchSnapshotChanged, freshness, identity, node_id,
 )
+from xti.domain.surface_discovery_status import StoredDiscoveryStatus
 
 
-POLICY_VERSION = "research-priority-v4"
+POLICY_VERSION = "research-priority-v5"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
@@ -28,12 +29,17 @@ RULES = {
     "supplier_dependency_historical": ("verify", "Aday son yenilemede tarihî işaretlenmiş; bu teknik durum insan onayının geri çekildiği anlamına gelmez."),
     "supplier_inventory_inactive": ("verify", "Tedarikçi envanter kaydı pasif; tarihî onay ve kaynak kanıtı korunuyor."),
     "surface_candidate_pending": ("verify", "Pasif alt alan adayı inceleme bekliyor; arşiv kaydı sahiplik veya aktif kontrol onayı değildir."),
+    "discovery_query_failed": ("verify", "Son pasif keşif sorgusu başarısız; kayıtlı adaylar ve önceki tamamlanmış yanıt korunuyor."),
+    "discovery_query_partial": ("verify", "Son pasif keşif yanıtı kısmi; aday görülmese de tamamlanmış boş sonuç değildir."),
+    "discovery_status_limited": ("verify", "Kaynak durumu okuma sınırına sığmadı; hiç sorgulanmadı veya boş sonuç olarak yorumlanamaz."),
     "source_lookup_failed": ("verify", "Son URL/dosya kaynak sorgusu başarısız; varsa önceki geçerli yanıt korunuyor."),
     "evidence_truncated": ("verify", "Bu kaydın kanıtlarının tamamı okuma sınırına sığmadı; özgün kayıt ayrıntısını inceleyin."),
     "stale_active_indicator": ("verify", "Etkin IOC iddiasının son gözlemi güncellik eşiğini aşıyor; iddianın güncel dayanağını kontrol edin."),
     "stale_evidence": ("verify", "Gösterilen son gözlem veya kaynak yanıtı güncellik eşiğini aşıyor; yeni durum doğrulanmış değil."),
     "evidence_missing": ("verify", "Bu kapsamda kayıtlı kanıt yok; veri yokluğu güvenli olduğu anlamına gelmez."),
     "source_no_match": ("context", "Son geçerli kaynak yanıtında eşleşme yok; bu yalnız o sorgunun sonucudur."),
+    "discovery_never_checked": ("context", "Bu kök için bir pasif keşif sağlayıcısı henüz sorgulanmamış; kaynak kapsamı eksik."),
+    "discovery_complete_empty": ("context", "Son tamamlanmış pasif sorguda aday görülmedi; tarihî adaylar silinmez ve bütün internetin boş olduğu sonucu çıkarılmaz."),
     "inactive_claims_only": ("context", "Bu kaydın gösterilen kaynak iddiaları etkin değil; tarihî kanıtı güncel tehdit olarak yorumlamayın."),
     "supplier_link_withdrawn": ("context", "Bu tedarikçi bağlantısı sonraki insan kararıyla kaldırılmış veya değiştirilmiş; eski kabul güncel onay değildir."),
     "surface_candidate_rejected": ("context", "Alt alan adayı insan kararıyla reddedilmiş; tarihî kaynak kanıtı korunur."),
@@ -75,6 +81,7 @@ class ReviewItem:
     evidence_total_count: int
     warninglist_matches: tuple[dict, ...]
     enrichment: EnrichmentState | None = None
+    discovery: tuple[StoredDiscoveryStatus, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,7 +117,7 @@ def _recent_evidence(rows):
     return (*latest.values(), *others)
 
 
-def _reasons(rows, total, matches, related, checked_at, hours):
+def _reasons(rows, total, matches, related, checked_at, hours, discovery=()):
     reasons = []
 
     def add(code, evidence=()):
@@ -164,6 +171,18 @@ def _reasons(rows, total, matches, related, checked_at, hours):
             add("surface_candidate_" + status, selected)
     if failed_source:
         add("source_lookup_failed", failed_source)
+    for code, condition in (
+        ('discovery_query_failed', lambda state: state.latest_run and state.latest_run.status == 'failed'),
+        ('discovery_query_partial', lambda state: state.latest_run and state.latest_run.status == 'partial'),
+        ('discovery_complete_empty', lambda state: state.latest_run and state.latest_run.status == 'complete' and not state.latest_run.candidate_count),
+    ):
+        runs = {state.latest_run.id for state in discovery if state.read_complete and condition(state)}
+        if runs:
+            add(code, [row for row in rows if row.record_type == 'surface_discovery_run' and row.record_id in runs])
+    if any(state.read_complete and not state.latest_run for state in discovery):
+        add('discovery_never_checked')
+    if any(not state.read_complete for state in discovery):
+        add('discovery_status_limited')
     if total > len(rows):
         add("evidence_truncated")
     old_indicators = [row for row in indicators if freshness(row.observed_at, checked_at, hours) == "stale"]
@@ -206,8 +225,8 @@ def _node_evidence(node):
 
 def _review_item(report, *, identifier, kind, label, record_type, rows, total,
                  value=None, source=None, target=None, references=(), related=(),
-                 matches=(), enrichment=None):
-    reasons = _reasons(rows, total, matches, related, report.checked_at, report.query.stale_after_hours)
+                 matches=(), enrichment=None, discovery=()):
+    reasons = _reasons(rows, total, matches, related, report.checked_at, report.query.stale_after_hours, discovery)
     priority = min((RULES[row.code][0] for row in reasons), key=PRIORITIES.index)
     return ReviewItem(
         id=identifier, subject_kind=kind, label=label, record_type=record_type,
@@ -215,7 +234,7 @@ def _review_item(report, *, identifier, kind, label, record_type, rows, total,
         related_item_ids=related, priority=priority,
         evidence_basis=tuple(sorted({row.kind for row in rows})), reasons=reasons,
         evidence=rows, evidence_total_count=total, warninglist_matches=matches,
-        enrichment=enrichment,
+        enrichment=enrichment, discovery=discovery,
     )
 
 
@@ -232,7 +251,7 @@ def prioritize_research(report: ResearchReport, *, paginate=True) -> ResearchPri
         items.append(_review_item(report, identifier=key, kind="node", label=node.label,
             record_type=node.record_type, value=node.key[1], rows=rows, total=total,
             references=node.references, related=tuple(sorted(set(adjacency[key]))),
-            matches=node.warninglist_matches, enrichment=node.enrichment))
+            matches=node.warninglist_matches, enrichment=node.enrichment, discovery=node.discovery))
     for edge in report.edges:
         source, target = node_id(edge.source), node_id(edge.target)
         items.append(_review_item(report, identifier=edge.id, kind="relationship",

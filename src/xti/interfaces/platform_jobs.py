@@ -26,9 +26,9 @@ def make_job_service(context):
     from xti.adapters.engine_job_collection import CollectionProfileJobRunner
     from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
     from xti.application.engine_jobs import EngineJobService
-    from xti.interfaces.cli import make_collection_history_service
 
     def history():
+        from xti.interfaces.cli import make_collection_history_service
         return make_collection_history_service(Settings(context.data_dir), SQLiteAssetRepository(context.database))
 
     queue = jobs_database(context)
@@ -40,13 +40,19 @@ def make_job_service(context):
 def make_source_runner(database):
     from xti.adapters.source_job_steps import ExistingSourceJobOperations
     from xti.application.source_jobs import CooperativeSourceJobRunner
-    from xti.interfaces.indicator_enrichment import make_enrichment_service
-    from xti.interfaces.warninglists import make_warninglist_service
-    from xti.interfaces.research_history import make_history_service
-    operations = ExistingSourceJobOperations(
-        lambda **kwargs: make_enrichment_service(database, **kwargs),
-        lambda **kwargs: make_warninglist_service(database, **kwargs),
-        lambda: make_history_service(database))
+    def enrichment(**kwargs):
+        from xti.interfaces.indicator_enrichment import make_enrichment_service
+        return make_enrichment_service(database, **kwargs)
+
+    def warninglists(**kwargs):
+        from xti.interfaces.warninglists import make_warninglist_service
+        return make_warninglist_service(database, **kwargs)
+
+    def history():
+        from xti.interfaces.research_history import make_history_service
+        return make_history_service(database)
+
+    operations = ExistingSourceJobOperations(enrichment, warninglists, history)
     return CooperativeSourceJobRunner(operations, LocalExecutionLock(database))
 
 

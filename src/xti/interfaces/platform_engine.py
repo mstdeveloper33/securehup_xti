@@ -1,6 +1,5 @@
 """Trusted host entry point for isolated company requests and bounded workers."""
 
-import argparse
 from dataclasses import asdict, is_dataclass
 import json
 from pathlib import Path
@@ -17,12 +16,7 @@ from xti.domain.engine import ENGINE_OPERATIONS, EngineContractError, valid_requ
 from xti.domain.platform_engine import PLATFORM_OPERATIONS, parse_platform_request
 from xti.interfaces.engine import _encode, make_engine_service, read_request
 from xti.ports.jobs import WorkerBusyError
-
-
-class DataDirectoryAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, values)
-        namespace.explicit_data_dir = True
+from xti.interfaces.arguments import DataDirectoryAction
 
 
 def register_platform_parser(commands):
@@ -57,6 +51,8 @@ def register_platform_parser(commands):
 
 
 def platform_manifest():
+    from xti.domain.research import RESEARCH_MODEL_VERSION
+    from xti.domain.research_history import READABLE_RESEARCH_MODELS
     return {
         'operations': list(PLATFORM_OPERATIONS),
         'scope_selected_by': 'trusted_launcher',
@@ -76,6 +72,7 @@ def platform_manifest():
         'submission_fence': 'expected_workspace_id',
         'automatic_replay_after_interruption': False,
         'research_history': {'record_operation': 'research.review.record', 'capture_network_access': False,
+                             'model_version': RESEARCH_MODEL_VERSION, 'readable_model_versions': list(READABLE_RESEARCH_MODELS),
                              'idempotency': 'company_key_and_normalized_scope', 'submission_fence': 'expected_workspace_id'},
         'request_max_bytes': 65536, 'response_max_bytes': 8 * 1024 * 1024,
         'notes': [
@@ -115,7 +112,7 @@ def execute_platform_request(context, request):
         from xti.interfaces.nmap_platform import execute_platform_nmap
         return execute_platform_nmap(context, request)
     if request.operation in ENGINE_OPERATIONS:
-        return make_engine_service(context.database).execute(request)
+        return make_engine_service(context.database, operation=request.operation).execute(request)
     if request.operation == 'organization.content':
         from xti.adapters.sqlite_company_content import SQLiteCompanyContentRepository
         from xti.application.company_content import CompanyContentService

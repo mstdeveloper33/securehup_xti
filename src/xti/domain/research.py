@@ -10,14 +10,15 @@ from xti.domain.assets import ValidationError
 from xti.domain.cti_context import context_query
 from xti.domain.warninglists import WarninglistState, catalog_data
 from xti.domain.indicator_enrichment import EnrichmentState
+from xti.domain.surface_discovery_status import StoredDiscoveryStatus
 
 
 MAX_PATHS = 2000
 Key = tuple[str, str]
 
-# V2 distinguishes stored candidate derivations and human decisions from
-# network observations. The engine request/envelope contract stays v1.
-RESEARCH_MODEL_VERSION = 2
+# V3 adds independent source-attempt context, including never queried states.
+# The engine request/envelope contract stays v1.
+RESEARCH_MODEL_VERSION = 3
 
 
 def identity(*values) -> str:
@@ -101,6 +102,7 @@ class ResearchNode:
     evidence_total_count: int = 0
     warninglist_matches: tuple[dict, ...] = ()
     enrichment: EnrichmentState | None = None
+    discovery: tuple[StoredDiscoveryStatus, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

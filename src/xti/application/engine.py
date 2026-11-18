@@ -72,8 +72,8 @@ def _sources_data(report) -> dict:
 
 
 class EngineReadService:
-    def __init__(self, search: GlobalSearchService, records: EngineRecordRepository,
-                 sources: SourceReadinessService, components: ComponentCatalogService | None = None,
+    def __init__(self, search: GlobalSearchService | None = None, records: EngineRecordRepository | None = None,
+                 sources: SourceReadinessService | None = None, components: ComponentCatalogService | None = None,
                  research: ResearchService | None = None, warninglists: WarninglistService | None = None,
                  enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None):
         self.search, self.records, self.sources = search, records, sources
@@ -111,11 +111,11 @@ class EngineReadService:
                 return research_data(self.research.show(**request.parameters))
             except ResearchSnapshotChanged as error:
                 raise EngineContractError('snapshot_changed', str(error)) from error
-        if request.operation == 'search':
+        if request.operation == 'search' and self.search is not None:
             return _search_data(self.search.search(**request.parameters))
-        if request.operation == 'record.get':
+        if request.operation == 'record.get' and self.records is not None:
             return self.records.get(**request.parameters)
-        if request.operation == 'sources.status':
+        if request.operation == 'sources.status' and self.sources is not None:
             return _sources_data(self.sources.show(**request.parameters))
         if request.operation == 'components.list' and self.components is not None:
             return self.components.list()

@@ -29,7 +29,7 @@ from tests.test_research import ResearchFixture, IP
 DEFAULT_TIME = object()
 
 
-class DiscoveryResearchTests(ResearchFixture, unittest.TestCase):
+class DiscoveryResearchFixture(ResearchFixture):
     def repo(self, path=None):
         return SQLiteSurfaceCandidateRepository(path or self.path)
 
@@ -65,6 +65,8 @@ class DiscoveryResearchTests(ResearchFixture, unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as connection, connection:
             return connection.execute(statement, parameters).fetchall()
 
+
+class DiscoveryResearchTests(DiscoveryResearchFixture, unittest.TestCase):
     def test_pending_archive_is_candidate_not_dns_ownership_or_scope(self):
         details = self.discover(raw="*.api.example.com")
         before = self.files()
@@ -119,7 +121,10 @@ class DiscoveryResearchTests(ResearchFixture, unittest.TestCase):
         self.assertEqual(repeated.candidate.status, "rejected")
         self.assertEqual(repeated.candidate.source_count, 1)
         graph = self.graph()
-        self.assertEqual(graph["snapshot_id"], first["snapshot_id"])
+        self.assertNotEqual(graph["snapshot_id"], first["snapshot_id"])
+        # The new attempt changes source context, not candidate evidence.
+        self.assertEqual([{k: v for k, v in edge.items() if k != 'evidence'} for edge in graph['edges']],
+                         [{k: v for k, v in edge.items() if k != 'evidence'} for edge in first['edges']])
         self.assertEqual(self.edges(graph=graph)[0]["evidence"][1]["observed_at"], original.sources[0].observed_at)
 
     def test_source_time_absent_uses_receipt_time_and_multiple_providers_keep_identity(self):
@@ -143,7 +148,8 @@ class DiscoveryResearchTests(ResearchFixture, unittest.TestCase):
             self.repo().record_discovery(candidate.asset_id, candidate.asset_value, (), SurfaceDiscoveryRunRequest(
                 status, "https://archive.example/search", stamp, stamp, 0, 0, 0, (), 0,
                 "Fixture source timeout" if status == "failed" else None))
-        self.assertEqual(self.graph()["snapshot_id"], first["snapshot_id"])
+        self.assertNotEqual(self.graph()["snapshot_id"], first["snapshot_id"])
+        self.assertEqual(self.graph()['edges'], first['edges'])
         self.assertEqual(self.edges("subdomain_classification")[0]["evidence"][0]["status"], "owned")
 
     def test_root_candidate_dns_ip_path_fits_two_hops_without_ownership_inference(self):
@@ -349,10 +355,13 @@ class DiscoveryResearchTests(ResearchFixture, unittest.TestCase):
         self.assertTrue(all(row["withdrawn_assertion_ids"] == [] for row in changes))
         self.assertEqual(service.show(first["review"]["id"], view="items", limit=100), original)
 
-    def test_old_v3_model_two_review_remains_unchanged_and_v4_starts_baseline(self):
+    def test_old_v3_model_two_review_remains_unchanged_and_new_policy_starts_baseline(self):
         repository = SQLiteResearchHistoryRepository(self.path)
         old = freeze(priority_data(self.service.full_priorities(indicator_type="domain", value="example.com")))
         old["policy_version"] = "research-priority-v3"
+        old['model_version'] = 2
+        for item in old['items']:
+            item.pop('discovery')
         review, _ = repository.append(capture_scope(indicator_type="domain", value="example.com"), old, "v3", None)
         original = deepcopy(repository.show(review.header.id))
         self.discover()

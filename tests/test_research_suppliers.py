@@ -116,7 +116,7 @@ class SupplierResearchTests(ResearchFixture, unittest.TestCase):
         node = next(row for row in graph["nodes"] if row["kind"] == "supplier")
         self.assertEqual(node["references"][0], {"kind": "supplier", "record_type": "supplier",
             "namespace": "local-suppliers", "record_id": supplier.id})
-        self.assertEqual(graph["model_version"], 2)
+        self.assertEqual(graph["model_version"], 3)
         reasons = {reason["code"] for item in self.priorities()["items"] for reason in item["reasons"]}
         self.assertNotIn("active_indicator_claim", reasons)
         self.assertNotIn("supplier_review_pending", reasons)
@@ -375,6 +375,8 @@ class SupplierResearchTests(ResearchFixture, unittest.TestCase):
         snapshot = freeze(priority_data(self.service.full_priorities(indicator_type="domain", value="example.com")))
         snapshot["model_version"] = 1
         snapshot["policy_version"] = "research-priority-v2"
+        for item in snapshot['items']:
+            item.pop('discovery')
         previous, _ = repository.append(capture_scope(indicator_type="domain", value="example.com"), snapshot, "old-v1", None)
         old = deepcopy(repository.show(previous.header.id))
         self.accepted()
@@ -382,7 +384,7 @@ class SupplierResearchTests(ResearchFixture, unittest.TestCase):
         self.assertEqual(current["review"]["comparison"]["state"], "policy_baseline")
         self.assertEqual(repository.show(previous.header.id), old)
         new = freeze(priority_data(self.service.full_priorities(indicator_type="domain", value="example.com")))
-        self.assertEqual(new["model_version"], 2)
+        self.assertEqual(new["model_version"], 3)
         new["model_version"] = 1
         with self.assertRaises(ValidationError):
             validate_snapshot(new)
@@ -425,7 +427,7 @@ class SupplierResearchTests(ResearchFixture, unittest.TestCase):
         code, out, err = self.invoke(["--data-dir", str(self.data), "engine"], self.request(limit=100))
         self.assertEqual((code, err), (0, ""), out)
         graph = json.loads(out)["data"]
-        self.assertEqual(graph["model_version"], 2)
+        self.assertEqual(graph["model_version"], 3)
         lines = research_lines(graph, data_dir=self.data) + priority_lines(self.priorities(), data_dir=self.data)
         self.assertTrue(any("Karar:" in line and "son karar" in line for line in lines))
         commands = {line.split("Ayrıntı: ", 1)[1] for line in lines if "Ayrıntı: " in line}

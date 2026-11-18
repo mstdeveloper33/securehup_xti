@@ -17,7 +17,7 @@ from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.domain.collection_profiles import CollectionProfileDefinition
 from xti.domain.engine import EngineContractError
 from xti.domain.platform_engine import parse_platform_request
-from xti.interfaces.cli import main
+from xti.interfaces.entrypoint import main
 from tests.test_news_integration import article, feed
 
 

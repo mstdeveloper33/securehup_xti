@@ -50,6 +50,7 @@ class Acceptance:
         self.base, self.root = base, base / "platform"
         self.deadline = time.monotonic() + LIMITS["total_seconds"]
         self.sequence, self.measurements = 0, []
+        self.commands = []
         self.last_command = None
         self.contexts, self.organizations, self.jobs = {}, {}, {}
 
@@ -72,10 +73,14 @@ class Acceptance:
         self.last_command = {"sequence": self.sequence, "company": company, "action": action,
             "operation": payload.get("operation") if payload else None,
             "remaining_seconds": remaining, "completed": False}
+        self.commands.append(self.last_command)
         require(remaining > 0, "Total acceptance duration threshold exceeded")
-        process = subprocess.run(args, input=json.dumps(payload) if payload else "", text=True,
-                                 capture_output=True, cwd=PROJECT,
-                                 timeout=min(LIMITS["command_timeout_seconds"], remaining))
+        try:
+            process = subprocess.run(args, input=json.dumps(payload) if payload else "", text=True,
+                                     capture_output=True, cwd=PROJECT,
+                                     timeout=min(LIMITS["command_timeout_seconds"], remaining))
+        finally:
+            self.last_command['process_wall_seconds'] = time.perf_counter() - started
         elapsed = time.perf_counter() - started
         require(not process.stderr, "Child command wrote unexpected stderr")
         response = json.loads(process.stdout)
@@ -87,6 +92,7 @@ class Acceptance:
             require(process.returncode == 0 and response["status"] == "complete", "Child command did not complete")
             require(response["scope"]["company_id"] == company, "Child response company mismatch")
         sample = json.loads(metrics.read_text())
+        self.last_command['child'] = sample
         require(sample["peak_rss_bytes"] <= LIMITS["child_peak_rss_bytes"], "Child RSS threshold exceeded")
         if measure:
             self.measurements.append({**sample, "process_wall_seconds": elapsed,
@@ -180,6 +186,10 @@ class Acceptance:
         marker, source_log = self.base / (gate + ".marker"), self.base / (gate + ".calls")
         args, _metrics = self.command("alpha", "worker", extra=("--job-id", job["job_id"]),
                                       gate=gate, marker=marker, source_log=source_log)
+        gated = {"sequence": self.sequence, "company": "alpha", "action": "worker", "gate": gate,
+                 "completed": False, "remaining_seconds": self.deadline - time.monotonic()}
+        self.commands.append(gated)
+        gate_started = time.perf_counter()
         baseline = self.receipt_counts("alpha")
         process = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, text=True, cwd=PROJECT)
@@ -190,6 +200,7 @@ class Acceptance:
                 require(time.monotonic() < deadline, "Gated worker exceeded wait threshold")
                 time.sleep(.02)
             observed = json.loads(marker.read_text())
+            gated['gate_ready_seconds'] = time.perf_counter() - gate_started
             require(observed["job_id"] == job["job_id"] and observed["phase"] == gate, "Worker gate identity mismatch")
             self.call("alpha", action="worker", extra=("--job-id", job["job_id"]),
                       expected_error="busy", source_log=source_log)
@@ -221,12 +232,14 @@ class Acceptance:
             after = self.receipt_counts("alpha")
             require(after == {name: value + expected_calls for name, value in baseline.items()},
                     "Durable source evidence was lost or duplicated")
+            gated['completed'] = True
             return {"gate": gate, "terminated_by": "SIGTERM", "source_calls": calls,
                     "durable_receipts_preserved": after["receipts"] - baseline["receipts"],
                     "second_worker": "busy", "concurrent_recovery": "busy",
                     "other_company_worker": "completed_one_fixture_collection",
                     "other_company_source_calls": 1, "replay": "same_interrupted_job"}
         finally:
+            gated['process_wall_seconds'] = time.perf_counter() - gate_started
             if process.poll() is None:
                 process.kill()
                 process.communicate(timeout=5)
@@ -286,6 +299,8 @@ def main():
             report["measurements"] = acceptance.measurements
             report["last_command"] = acceptance.last_command
     report["elapsed_seconds"] = time.perf_counter() - started
+    if acceptance is not None:
+        report['commands'] = acceptance.commands
     descriptor = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
         json.dump(report, stream, ensure_ascii=True, indent=2)

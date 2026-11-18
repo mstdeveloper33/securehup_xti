@@ -9,6 +9,7 @@ from xti.ports.research import ResearchRepository
 from xti.domain.warninglists import catalog_data
 from xti.application.indicator_enrichment import state_data
 from xti.domain.research_priority import POLICY_VERSION, RULES, evidence_id, prioritize_research
+from xti.domain.research_discovery_status import status_data
 
 
 class ResearchService:
@@ -96,6 +97,7 @@ def priority_data(review) -> dict:
                          for row in item.evidence],
             "evidence_total_count": item.evidence_total_count,
             "enrichment": state_data(item.enrichment, report.checked_at, query.stale_after_hours) if item.enrichment else None,
+            "discovery": status_data(item.discovery, report.checked_at, query.stale_after_hours),
             "warninglist_matches": [{key: match[key] for key in (
                 "list_id", "run_id", "snapshot_sha256", "matched_entries", "matching_type", "category")}
                 for match in item.warninglist_matches],
@@ -145,6 +147,7 @@ def research_data(report) -> dict:
                    "evidence": [evidence(row) for row in item.evidence],
                    "evidence_total_count": item.evidence_total_count,
                    "enrichment": state_data(item.enrichment, report.checked_at, query.stale_after_hours) if item.enrichment else None,
+                   "discovery": status_data(item.discovery, report.checked_at, query.stale_after_hours),
                    "warninglist_matches": [{key: match[key] for key in (
                        "list_id", "run_id", "snapshot_sha256", "matched_entries", "matching_type", "category")}
                        for match in item.warninglist_matches]}

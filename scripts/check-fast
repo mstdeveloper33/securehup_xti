@@ -24,6 +24,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_research_surface.py \
     tests/test_research_suppliers.py \
     tests/test_research_discovery.py \
+    tests/test_research_discovery_status.py \
     tests/test_research_priority.py \
     tests/test_research_history.py \
     tests/test_warninglists.py \
@@ -36,6 +37,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_nmap_management.py \
     tests/test_nmap_execution.py \
     tests/test_company_workspaces.py \
+    tests/test_platform_entrypoint.py \
     tests/test_company_content.py \
     tests/test_engine_jobs_storage.py \
     tests/test_engine_job_service.py \

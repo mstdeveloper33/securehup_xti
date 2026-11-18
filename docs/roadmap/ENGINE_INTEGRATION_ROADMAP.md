@@ -1,7 +1,7 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.161.0 / çekirdek şema 75, ayrı platform iş şeması 2.
+**Mevcut sürüm:** 0.162.0 / çekirdek şema 75, ayrı platform iş şeması 2.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -53,8 +53,11 @@ gözlem/iddia ayrımı korunur. 0.160.0 mevcut tedarikçi adayını, insan
 kararlarını ve envanterini araştırmaya bağlar; model 2/öncelik v3 ile eski
 incelemeleri özgün okur. 0.161.0 kayıtlı pasif alt alan adayını ve sahiplik
 sınıflandırmasını ayrı bağlarla ekler; model 2 ve öncelik v4 olur.
+0.162.0 pasif kaynakların son sorgusunu ve önceki complete yanıtını aday
+kanıtından ayrı ortak araştırmaya ekler; model 3/politika v5, eski modeller
+özgün okunur. Firma komutlarının gereksiz başlangıç yükü azaltılır.
 Tedarikçi risk/izleme, genel çıkarım ve kimlik birleştirme henüz ortak
-araştırmada değildir; pasif kaynak çalışma sağlığı ayrı görünümde kalır.
+araştırmada değildir.
 [Kapsam ve uyum](../RESEARCH.md).
 
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli

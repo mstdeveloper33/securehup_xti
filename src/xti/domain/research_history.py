@@ -15,6 +15,7 @@ MAX_SNAPSHOT_BYTES = 8 * 1024 * 1024
 MAX_COMPARISON_BYTES = 4 * 1024 * 1024
 SCOPE_FIELDS = ("indicator_type", "value", "max_hops", "node_limit", "edge_limit", "stale_after_hours")
 PRIORITIES = ("review_first", "verify", "context")
+READABLE_RESEARCH_MODELS = (1, 2, 3)
 
 
 class ResearchHistoryError(ValidationError):
@@ -83,9 +84,9 @@ def decode(text, expected_digest, *, limit=MAX_SNAPSHOT_BYTES):
 
 
 def validate_snapshot(data):
-    """Read frozen v1/v2 models without applying today's source state or rules."""
+    """Read frozen v1/v2/v3 models without applying today's source state or rules."""
     try:
-        if not isinstance(data, dict) or data["model_version"] not in (1, 2) or type(data["model_version"]) is not int:
+        if not isinstance(data, dict) or data["model_version"] not in READABLE_RESEARCH_MODELS or type(data["model_version"]) is not int:
             raise ValueError("Model")
         if capture_scope(**data["query"]) != data["query"]:
             raise ValueError("Scope")
@@ -134,7 +135,7 @@ def validate_snapshot(data):
                     raise ValueError("Duplicate evidence")
                 evidence_ids.add(row["id"])
                 kinds = ("observation", "source_claim", "source_context")
-                if data["model_version"] == 2:
+                if data["model_version"] >= 2:
                     kinds += ("candidate_context", "human_decision")
                 if row["kind"] not in kinds:
                     raise ValueError("Evidence kind")
@@ -158,6 +159,16 @@ def validate_snapshot(data):
                 for key in ("assertion_id", "event_id", "source_run_id"):
                     if row.get(key) is not None and (not isinstance(row[key], str) or not 1 <= len(row[key]) <= 128):
                         raise ValueError("Evidence identity")
+            if data['model_version'] >= 3:
+                from xti.domain.research_discovery_status import validate_status_data
+                validate_status_data(item['discovery'], rows)
+                if item['discovery'] and (item['subject_kind'] != 'node' or item['record_type'] != 'domain'):
+                    raise ValueError('Discovery root context')
+                registered = any(ref.get('record_type') == 'registered_domain' for ref in item['references'])
+                if len(item['discovery']) != (2 if registered else 0):
+                    raise ValueError('Discovery root source coverage')
+            elif 'discovery' in item:
+                raise ValueError('Discovery context requires model 3')
             if not isinstance(item["reasons"], list) or not 1 <= len(item["reasons"]) <= 32:
                 raise ValueError("Reasons")
             for reason in item["reasons"]:
@@ -222,6 +233,7 @@ def _subjects(snapshot):
         rows = {identity(_intrinsic(row)): row for item in items for row in item["evidence"]}
         facts = {"evidence": sorted(rows),
             "context": sorted({encode(_without_clock({"enrichment": item["enrichment"],
+                "discovery": item.get('discovery', []),
                 "warninglist_matches": item["warninglist_matches"], "label": item["label"],
                 "references": item["references"], "evidence_total_count": item["evidence_total_count"],
                 "related_subjects": sorted({subject_for_item[identifier] for identifier in item["related_item_ids"]})

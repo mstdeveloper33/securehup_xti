@@ -25,29 +25,42 @@ def register_engine_parser(commands):
                         help='İşlem, kapsam ve sürüm sözleşmesini kayıt okumadan JSON ile göster.')
 
 
-def make_engine_service(database: Path) -> EngineReadService:
+def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
     # Composition belongs here, never in the application/domain layer. No
     # collector, worker, network client or initializer is constructed.
-    from xti.adapters.engine_records import SQLiteEngineRecordRepository
-    from xti.adapters.source_readiness import SQLiteSourceReadinessRepository
-    from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
-    from xti.application.global_search import GlobalSearchService
-    from xti.application.source_readiness import SourceReadinessService
-    from xti.interfaces.components import make_component_service
-    from xti.interfaces.research import make_research_service
-    from xti.interfaces.warninglists import make_warninglist_service
-    from xti.interfaces.indicator_enrichment import make_enrichment_service
-    from xti.interfaces.research_history import make_history_service
-    return EngineReadService(
-        GlobalSearchService(SQLiteGlobalSearchRepository(database)),
-        SQLiteEngineRecordRepository(database),
-        SourceReadinessService(SQLiteSourceReadinessRepository(database)),
-        make_component_service(),
-        make_research_service(database),
-        make_warninglist_service(database),
-        make_enrichment_service(database),
-        make_history_service(database),
-    )
+    # A process serves one parsed request. Unrelated repositories added
+    # repeated cold-start work to every search and status command.
+    def selected(*names):
+        return operation is None or operation in names
+
+    services = {}
+    if selected('search'):
+        from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
+        from xti.application.global_search import GlobalSearchService
+        services['search'] = GlobalSearchService(SQLiteGlobalSearchRepository(database))
+    if selected('record.get'):
+        from xti.adapters.engine_records import SQLiteEngineRecordRepository
+        services['records'] = SQLiteEngineRecordRepository(database)
+    if selected('sources.status'):
+        from xti.adapters.source_readiness import SQLiteSourceReadinessRepository
+        from xti.application.source_readiness import SourceReadinessService
+        services['sources'] = SourceReadinessService(SQLiteSourceReadinessRepository(database))
+    if selected('components.list'):
+        from xti.interfaces.components import make_component_service
+        services['components'] = make_component_service()
+    if selected('research.show', 'research.priorities'):
+        from xti.interfaces.research import make_research_service
+        services['research'] = make_research_service(database)
+    if selected('warninglists.status', 'warninglists.lookup', 'warninglists.run.get'):
+        from xti.interfaces.warninglists import make_warninglist_service
+        services['warninglists'] = make_warninglist_service(database)
+    if selected('enrichment.lookup', 'enrichment.history', 'enrichment.run.get'):
+        from xti.interfaces.indicator_enrichment import make_enrichment_service
+        services['enrichment'] = make_enrichment_service(database)
+    if selected('research.history', 'research.review.get'):
+        from xti.interfaces.research_history import make_history_service
+        services['history'] = make_history_service(database)
+    return EngineReadService(**services)
 
 
 def _unique_object(pairs):
@@ -123,17 +136,20 @@ def _encode(response):
 
 def engine_manifest() -> dict:
     from xti.domain.research_priority import POLICY_VERSION, PRIORITIES
+    from xti.domain.research import RESEARCH_MODEL_VERSION
+    from xti.domain.research_history import READABLE_RESEARCH_MODELS
     return {
         'operations': list(ENGINE_OPERATIONS), 'read_only': True, 'network_access': False,
         'request_max_bytes': MAX_REQUEST_BYTES, 'response_max_bytes': MAX_RESPONSE_BYTES,
         'max_json_depth': MAX_JSON_DEPTH, 'default_limit': 50, 'max_limit': 500,
         'max_offset': 1_000_000,
-        'research': {'model_version': 1, 'max_hops': 2, 'max_nodes': 100,
+        'research': {'model_version': RESEARCH_MODEL_VERSION, 'max_hops': 2, 'max_nodes': 100,
                      'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6', 'url', 'md5', 'sha1', 'sha256'],
                      'max_edges': 200, 'max_limit': 100, 'pagination_guard': 'expected_snapshot',
                      'priority_policy_version': POLICY_VERSION, 'priorities': list(PRIORITIES),
                      'priority_pagination': 'items', 'priority_scope': 'bounded_research_neighborhood'},
         'research_history': {'capture_via': 'operator_cli_or_company_platform', 'snapshot_max_bytes': 8388608,
+                             'readable_model_versions': list(READABLE_RESEARCH_MODELS),
                              'max_limit': 100, 'list_pagination_guard': 'expected_snapshot',
                              'immutable_record_views': ['changes', 'items']},
         'warninglists': {'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6'],
@@ -172,7 +188,7 @@ def run_engine(database: Path, *, describe: bool = False, stream=None, output=No
                 if raw.get('operation') in ENGINE_OPERATIONS:
                     operation = raw['operation']
             request = parse_engine_request(raw)
-            data = make_engine_service(database).execute(request)
+            data = make_engine_service(database, operation=request.operation).execute(request)
         rendered = _encode(_envelope(request_id, operation, data=data))
     except Exception as error:
         if isinstance(error, EngineContractError):
