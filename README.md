@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.162.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 75 · **İş kuyruğu:** 2.
+**Sürüm:** 0.163.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 75 · **İş kuyruğu:** 2.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -12,6 +12,13 @@ kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
 
 Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
 [NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
+
+0.163.0 tedarikçi kaynak iddialarını, izleme karşılaştırmalarını ve mevcut
+inceleme kartını ortak araştırmaya ekler. Kaynak/tarih, aynı ad belirsizliği,
+son başarısız deneme ve tarihî izleme kapsamı ayrı gösterilir. Yeni internet
+sorgusu, ücretli API veya veri geçişi gerekmez. Araştırma modeli 3 korunur;
+öncelik v6, eski incelemeler özgün kalır.
+[Kullanım ve sınırlar](docs/RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 0.162.0 aynı araştırmada her pasif kaynağın son durumunu gösterir: hiç
 sorgulanmadı, aday bulundu, tamamlandı ama boş, kısmi veya başarısız.

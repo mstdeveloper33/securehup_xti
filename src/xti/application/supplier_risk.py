@@ -1,11 +1,9 @@
 """Compose supplier inventory, dependency decisions and claim evidence locally."""
 
-from datetime import datetime
-
 from xti.domain.assets import ValidationError
 from xti.domain.supplier_candidates import SupplierCandidate
 from xti.domain.supplier_risk import (
-    SupplierRiskCard,
+    build_supplier_risk_card,
     SupplierRiskCardDetails,
     SupplierRiskReport,
 )
@@ -27,16 +25,6 @@ _ATTENTION_ORDER = {
     "no_current_match": 4,
 }
 _MAX_SUPPLIERS = 500
-
-
-def _latest(values: tuple[str, ...]) -> str | None:
-    if not values:
-        return None
-    return max(values, key=lambda value: datetime.fromisoformat(value))
-
-
-def _has_domain_evidence(event: SupplierThreatEvent) -> bool:
-    return any(item.field == "website" for item in event.match_evidence)
 
 
 class SupplierRiskService:
@@ -64,133 +52,6 @@ class SupplierRiskService:
             self.suppliers.show(item.id, event_limit=1).supplier for item in records
         )
 
-    @staticmethod
-    def _missing_data(
-        coverage: tuple[SupplierThreatSourceCoverage, ...],
-    ) -> tuple[str, ...]:
-        missing = []
-        for source in coverage:
-            if source.state == "not_collected":
-                missing.append(f"{source.source_key}: henüz yerel snapshot yok")
-            elif source.state == "unavailable":
-                missing.append(f"{source.source_key}: başarılı snapshot yok; son deneme hatalı")
-            elif source.state == "stale_after_failure":
-                missing.append(
-                    f"{source.source_key}: son deneme hatalı; önceki başarılı snapshot kullanılıyor"
-                )
-        missing.append("ransomlook: kaynak domain sağlamaz; yalnız tam kuruluş adı kullanılabilir")
-        return tuple(missing)
-
-    @staticmethod
-    def _card(
-        supplier: Supplier,
-        coverage: tuple[SupplierThreatSourceCoverage, ...],
-        dependencies: tuple[SupplierCandidate, ...],
-        events: tuple[SupplierThreatEvent, ...],
-    ) -> SupplierRiskCard:
-        domain_events = tuple(item for item in events if _has_domain_evidence(item))
-        name_only = tuple(item for item in events if not _has_domain_evidence(item))
-        ambiguous = tuple(
-            item for item in name_only if item.same_name_supplier_count > 1
-        )
-        unambiguous = tuple(
-            item for item in events
-            if _has_domain_evidence(item) or item.same_name_supplier_count == 1
-        )
-        snapshots = tuple(
-            item.snapshot_finished_at for item in coverage
-            if item.snapshot_finished_at is not None
-        )
-        available = sum(item.snapshot_run_id is not None for item in coverage)
-        degraded = sum(item.state in {"stale_after_failure", "unavailable"} for item in coverage)
-        missing = sum(item.state in {"not_collected", "unavailable"} for item in coverage)
-
-        reasons = []
-        if events:
-            reasons.append(
-                f"Son yerel snapshot'larda {len(events)} kaynak iddiası adayı eşleşti."
-            )
-        if domain_events:
-            reasons.append(
-                f"{len(domain_events)} adayda kaynak web domaini tedarikçi domainiyle eşleşti."
-            )
-        if ambiguous:
-            reasons.append(
-                f"{len(ambiguous)} ad eşleşmesi aynı isimli birden fazla tedarikçiyi ayıramıyor."
-            )
-        if supplier.criticality in {"high", "critical"}:
-            reasons.append(
-                f"İnsan tarafından beyan edilen iş önemi {supplier.criticality}."
-            )
-        if dependencies:
-            reasons.append(
-                f"{len(dependencies)} güncel CNAME bağı insan kararıyla bu tedarikçiye bağlandı."
-            )
-
-        if unambiguous:
-            attention = (
-                "priority_review"
-                if supplier.criticality in {"high", "critical"}
-                else "review"
-            )
-        elif events:
-            attention = "identity_review"
-        elif available == 0:
-            attention = "insufficient_data"
-            reasons.append("Hiçbir ransomware kaynağında başarılı yerel snapshot yok.")
-        else:
-            attention = "no_current_match"
-            reasons.append(
-                "İncelenen son başarılı yerel snapshot'larda güncel eşleşme bulunmadı."
-            )
-
-        if attention == "priority_review":
-            actions = (
-                "Eşleşme dayanaklarını event-show ile incele.",
-                "İddiayı bağımsız ve yetkili kaynaklarla doğrula; tedarikçi etkisini varsayma.",
-                "Kritik ilişki için tedarikçi güvenlik irtibatıyla insan onaylı doğrulama yap.",
-            )
-        elif attention == "review":
-            actions = (
-                "Eşleşme dayanaklarını event-show ile incele.",
-                "İddiayı bağımsız kaynaklarla doğrula; otomatik aksiyon alma.",
-            )
-        elif attention == "identity_review":
-            actions = (
-                "Aynı isimli kuruluşları ana domain ve sözleşme bilgisiyle ayır.",
-                "Yalnız isim eşleşmesini ihlal kanıtı sayma.",
-            )
-        elif attention == "insufficient_data":
-            actions = (
-                "ThreatCluster ve RansomLook kaynaklarını açık yenileme komutlarıyla çalıştır.",
-                "Veri olmadan güvenli veya risksiz sonucu çıkarma.",
-            )
-        else:
-            actions = (
-                "Kaynak güncelliğini koru ve sonraki snapshot değişimlerini izle.",
-                "Eşleşme yokluğunu güvenli olma kanıtı sayma.",
-            )
-
-        return SupplierRiskCard(
-            supplier=supplier,
-            attention=attention,
-            current_dependency_count=len(dependencies),
-            claim_candidate_count=len(events),
-            matched_source_count=len({item.source_key for item in events}),
-            domain_evidence_count=len(domain_events),
-            name_only_evidence_count=len(name_only),
-            ambiguous_name_count=len(ambiguous),
-            available_source_count=available,
-            degraded_source_count=degraded,
-            missing_source_count=missing,
-            newest_claim_at=_latest(tuple(item.discovered_at for item in events)),
-            newest_snapshot_at=_latest(snapshots),
-            event_ids=tuple(item.id for item in events),
-            reasons=tuple(reasons),
-            missing_data=SupplierRiskService._missing_data(coverage),
-            next_actions=actions,
-        )
-
     def _build(self):
         suppliers = self._inventory()
         event_report = self.events.evidence()
@@ -210,7 +71,7 @@ class SupplierRiskService:
             if candidate.supplier_id in dependencies_by_supplier:
                 dependencies_by_supplier[candidate.supplier_id].append(candidate)
         cards = tuple(
-            self._card(
+            build_supplier_risk_card(
                 supplier,
                 event_report.coverage,
                 tuple(dependencies_by_supplier[supplier.id]),

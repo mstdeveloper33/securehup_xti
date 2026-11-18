@@ -30,7 +30,7 @@ from tests.test_research import ResearchFixture
 from tests import test_research_surface as surface_fixture
 
 
-class SupplierResearchTests(ResearchFixture, unittest.TestCase):
+class SupplierResearchFixture(ResearchFixture):
     scope = surface_fixture.SurfaceResearchTests.scope
     cname = surface_fixture.SurfaceResearchTests.cname
     tls = surface_fixture.SurfaceResearchTests.tls
@@ -86,6 +86,8 @@ class SupplierResearchTests(ResearchFixture, unittest.TestCase):
     def candidate_node(self, graph=None):
         return next(node for node in (graph or self.graph(limit=100))["nodes"] if node["kind"] == "supplier_candidate")
 
+
+class SupplierResearchTests(SupplierResearchFixture, unittest.TestCase):
     def test_pending_candidate_is_never_an_approved_supplier_and_keeps_cname_provenance(self):
         candidate = self.candidate()
         details = self.candidates.show(candidate.id)

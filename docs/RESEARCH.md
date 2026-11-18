@@ -1,6 +1,6 @@
 # İlişkili kanıt araştırması
 
-18 Kasım 2026 · 0.162.0 · araştırma modeli 3 · engine/platform zarfı v1 · çekirdek şema 75.
+18 Kasım 2026 · 0.163.0 · araştırma modeli 3 · engine/platform zarfı v1 · çekirdek şema 75.
 
 Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, pasif aday, tedarikçi, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
@@ -168,6 +168,80 @@ okunur; yeni model/kuralın ilk kaydı karşılaştırma başlangıcıdır. Mode
 bilen istemci model 2'yi aynı kabul etmemeli. Eski motor yeni model 2
 incelemeyi okuyamaz; geri dönüşte yükseltme öncesi uygun yedek kullanılır.
 İlk sayfa yeniden alınmalıdır; kesit kimliği model sürümünü de içerir.
+
+## Tedarikçi izleme ve inceleme bağlamı
+
+0.163.0 mevcut tedarikçi modüllerinin yerel verisini aynı araştırmaya bağlar:
+
+| İki adımlık yol | Görülen bilgi |
+|---|---|
+| Domain → insan onaylı tedarikçi → kaynak iddiası adayı | ThreatCluster/RansomLook özgün iddiası, tam ad/domain dayanağı, kaynak çalışması ve tarihi |
+| Domain → tedarikçi → izleme | ThreatCluster/RansomLook/HIBP için izleme tercihi, son kayıtlı karşılaştırma, yeni/değişen/çıkarılan eşleşmeler ve varsa yerel bildirim kimliği |
+| Domain → tedarikçi → inceleme kartı | Mevcut `risk-show` kurallarıyla hesaplanan gerekçeli inceleme durumu, eksik kaynaklar ve güncel insan onaylı CNAME bağı sayısı |
+
+```sh
+./xti research securehup.com --type domain --limit 100
+./xti research securehup.com --type domain --priorities --limit 100
+./xti research-history record securehup.com --type domain
+```
+
+Önceden kayıtlı envanter ve insan onaylı ilişki gerekir. Tedarikçinin kendi
+ana domaini de kök olabilir. Sırf adı aynı diye ilişkisiz tedarikçi eklenmez.
+Bu komutlar internete çıkmaz; kaynaklar mevcut `ransomware refresh`,
+`notices refresh` veya bunları içeren toplama işleriyle ayrı yenilenir.
+İzleme mevcut `suppliers watch enable` ile açık seçilir; araştırma açmaz.
+
+Kaynak kesildiğinde son başarısız deneme ve önceki başarılı yanıt birlikte
+kalır. `not_collected` / `unavailable` / `stale_after_failure` / `available`
+eşleşme sayısından ayrı kaynak durumlarıdır. `no_current_match` yalnız
+okunan son başarılı snapshot'larda eşleşme yok demektir. Sonuç internetin
+tamamını veya tedarikçinin güvenli olduğunu doğrulamaz.
+
+Aynı ad birden fazla etkin tedarikçiye uyuyorsa belirsizlik gösterilir;
+tek tedarikçi filtresi diğerlerini belirsizlik hesabından çıkarmaz.
+Domain dayanağı ayrı kalır. Risk kartı türetilmiş karar desteğidir, kalıcı
+ayrı bir risk olayı veya sayısal risk puanı değildir. HIBP kamu metaverisi
+hesap/parola sorgusu ya da ransomware iddiasına dönüştürülmez.
+
+İzleme kaydı kendi tarihî tedarikçi adını, o andaki aynı-ad sayısını,
+özgün kaynak çalışmasını ve sonuç özetini taşır. İzleme kapatılması,
+tedarikçinin pasife alınması veya kimlik döneminin değişmesi eski
+karşılaştırmayı `historical_scope` yapar; geçmiş silinmez. İlk ve yeniden
+açılmış karşılaştırma sıfır eşleşmeyle de `baseline` olabilir. `removed`
+kaynaktan/eşleşmeden çıkarılmadır; ihlalin çözüldüğü sonucu değildir.
+
+İç düğüm ve ilişki türleri `supplier_event`, `supplier_watch`,
+`supplier_risk` olur. Yeni kök türü veya `record.get` türü eklenmez.
+
+| Kanıt türü | Özgün kimlik / anlam |
+|---|---|
+| `supplier_threat_match` | `record_id`: mevcut olay görünümünün kararlı kimliği; `source_reference`: özgün kaynak kaydı; `source_run_id`: başarılı snapshot; `observed_at`: kaynağın iddia tarihi |
+| `supplier_watch` | `record_id`: izleme; `event_id`: son insan açma/kapatma olayı |
+| `supplier_watch_run` | `record_id`: değişmez karşılaştırma; `source_run_id`: özgün kaynak çalışması; `event_id`: varsa yerel bildirim |
+| `supplier_watch_item` | `record_id`: özgün kaynak öğesi; `source_reference`: karşılaştırma; açıklama: önce/sonra kayıt özetleri |
+| `supplier_source_coverage/run` | Kaynak kapsamı, son deneme ve korunmuş başarılı yanıt; iddia kanıtıyla karıştırılmaz |
+| `supplier_risk_context` | `record_id/source_reference`: tedarikçi; `status`: ortak kuralla hesaplanan inceleme durumu |
+
+Terminal özgün ayrıntılar için `suppliers event-show`, `risk-show`,
+`watch show`, `watch-run-show` komutlarını seçili veri klasörüyle verir.
+Kaynak çalışma kimlikleri JSON/kanıtta korunur; ransomware kaynak geçmişi
+`ransomware status --source ...`, HIBP çalışması `notices run-show` ile
+incelenir. Olay/kart ayrıntısı güncel görünüm, watch-run ayrıntısı tarihî
+kanıttır; daha sonra kaynak değişirse bunların aynı sonucu vermesi beklenmez.
+
+İstek başına bağlam doğrulaması 20.000 satır / 16 MiB saklı içerik /
+2.000.000 muhafazakâr yeniden oynatma iş birimiyle sınırlıdır. Kimlik
+belirsizliği için aynı firmanın tam tedarikçi kimlik geçmişi gerekir;
+başka tedarikçilerin izleme payload'ları okunmaz. Sınır aşılırsa
+`partial` ve `supplier_context_read_budget` görünür; eksik veriden kesin
+kart üretilmez. Tedarikçi başına 150 olay, düğüm başına 52 kanıt;
+`source_evidence_limit` / `supplier_context_event_limit` ile eksik görünüm
+bildirilir. Genel 100 düğüm / 200 bağlantı sınırı ayrıca geçerlidir.
+
+JSON modeli 3 korunur, politika v6 olur. Önceki model 1/2/3 incelemeleri
+özgün okunur; ilk v6 incelemesi yeni politika başlangıcıdır. Sonraki
+karşılaştırmalar kaynak/kimlik/izleme/kart değişimini ayrı kayıtlar üzerinden
+izler; görünmeyen kayıt otomatik geri çekilmiş/çözülmüş sayılmaz.
 
 ## Pasif alt alan adayları ve sahiplik incelemesi
 
@@ -446,7 +520,8 @@ Makine sınır kodları: `node_limit`, `edge_limit`, `path_limit`,
 `cname_history_window`, `cname_read_budget`, `cname_adjacency_limit`,
 `certificate_adjacency_limit`, `cti_adjacency_limit`, `source_evidence_limit`,
 `enrichment_result_window`, `supplier_adjacency_limit`, `supplier_read_budget`,
-`discovery_candidate_limit`, `discovery_read_budget`.
+`discovery_candidate_limit`, `discovery_read_budget`, `discovery_status_read_budget`,
+`supplier_context_read_budget`, `supplier_context_event_limit`.
 `coverage_complete` yalnız
 bu kapsamın sınırsız kalıp kalmadığını söyler; tazelik, internet kapsamı,
 eldeki kaynakların yeterliliği veya güvenlik garantisi değildir.
@@ -460,20 +535,21 @@ bir hata üretmez; saklı son kontrolün hatası görünür kalır.
 
 ## Kapsam envanteri ve sonraki dilim
 
-| Yetenek | Önceden | 0.162.0 |
+| Yetenek | Önceden | 0.163.0 |
 |---|---|---|
 | Genel kayıt araması/ayrıntı, kaynak/araç durumu | CLI + engine/platform | Korundu |
 | DNS/sertifika/CNAME ilişki geçmişi | `surface relations` CLI | Korundu; kayıtlı kanıt ortak araştırma/öncelik/incelemede de kullanılır |
 | Tedarikçi adayları ve ilişki kararları | Ayrı aday/tedarikçi ve `surface relations` CLI | Ortak araştırma/öncelik/inceleme; teknik aday ile insan kararı ayrı |
 | Pasif alt alan adayları ve sahiplik sınıflandırması | Keşif/envanter/aday CLI | Ortak araştırma/öncelik/inceleme; arşiv, karar ve aktif kapsam ayrı |
 | Pasif kaynak son sorgusu ve önceki complete yanıt | `surface discovery-status/health` CLI | Aynı araştırma kesitinde ayrı bağlam; aday kanıtını yenilemez |
+| Tedarikçi iddiası/izleme/kartı | Ayrı tedarikçi komutları | Ortak araştırma/öncelik/inceleme; kaynak ve tarihî kapsam ayrı |
 | Doğrudan CTI bağlamı | `cti context` CLI | Korundu; kaynak denetimi yeniden kullanılır |
 | Domain/IP → DNS/IOC → CTI kaynaklı yolları | Ortak görünüm yok | `research` CLI ve `research.show` engine/platform |
 | Otomatik varlık birleştirme, açıklamalı çıkarım | Plan | Sonraki MTR-01/02 dilimleri |
 | MISP warninglists | Plan | Dört seçilmiş liste; kaynaklı domain/IP bağlamı, [ayrıntı](WARNINGLISTS.md) |
 | URL/hash zenginleştirme | Plan | CIRCL ve kayıtlı urlscan yanıtları; sınırlı kaynak bağlamı |
 
-Güncel çekirdek şema 75'tir; 0.162.0 yeni migration gerektirmez.
+Güncel çekirdek şema 75'tir; 0.163.0 yeni migration gerektirmez.
 0.152.0'ın araştırması tablo eklemiyordu. 0.153.0 warninglist kaynak
 geçmişi şema 73, 0.154.0 URL/hash şema 74, 0.156.0 inceleme şema 75
 oldu; daha eski alanlardan geçiş açık ve yedeklidir.

@@ -1,6 +1,6 @@
 # Gerekçeli inceleme önceliği
 
-18 Kasım 2026 · 0.162.0 · politika `research-priority-v5` · model 3 · şema 75.
+18 Kasım 2026 · 0.163.0 · politika `research-priority-v6` · model 3 · şema 75.
 
 Seçtiğin domain, kesin IP, URL veya dosya kimliği için **hangi kaydı önce
 incelemelisin ve neden?** Mevcut DNS/CNAME/TLS, pasif aday, tedarikçi, IOC/CTI, MISP listesi ve URL/hash
@@ -32,11 +32,32 @@ ilişki ayrı öğelerdir; örneğin bir IP'nin IOC iddiası ile domainin o IP'y
 eski DNS bağı ayrı nedenlerle incelenebilir. Bir komşunun önceliği diğer
 komşuya otomatik taşınmaz.
 
+## Tedarikçi incelemesi (v6)
+
+- `supplier_priority_review`: insan tarafından yüksek/kritik önemde
+  tanımlanmış tedarikçide ortak kart kuralının öncelikli iddia adayı.
+- `supplier_claim_review`: tam ad veya domain dayanağıyla iddia adayı.
+- `supplier_identity_ambiguous`: aynı adı taşıyan etkin tedarikçiler
+  nedeniyle kuruluş kimliği belirsiz.
+- `supplier_source_degraded`: son kaynak denemesi başarısız; eski yanıt
+  ayrıca korunur. `supplier_source_missing`: henüz kaynak kaydı yok.
+- `supplier_watch_historical`: eski karşılaştırma bugünkü etkin izleme /
+  tedarikçi kimliği kapsamında değil. `supplier_watch_changes`: son yerel
+  karşılaştırmada yeni, değişen veya çıkarılan kaynak eşleşmesi var.
+- `supplier_no_current_match`: okunan başarılı kaynaklarda eşleşme yok;
+  bu bir güvenlik sonucu değildir.
+
+İddia, HIBP metaverisi, yerel bildirim ve hesaplanan kart ayrıdır. V6 ilk
+kaydı yeni politika başlangıcıdır; eski incelemeler güncellenmez. Aynı
+ad belirsizliği tek tedarikçi filtresiyle kaybolmaz. Kaynak hiç toplanmadıysa
+eski envanter tarihi yeni ağ gözlemi veya eskimiş kaynak yanıtı sayılmaz.
+[Ayrıntı ve bütçeler](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
+
 ## Sıralama politikası
 
 | Sıra | Gösterim | Anlamı |
 |---|---|---|
-| `review_first` | Önce incele | Etkin ve güncel IOC iddiası, kaynak durum farkı, IOC ile birlikte liste bağlamı veya gelecekte görünen kanıt zamanı var |
+| `review_first` | Önce incele | Etkin ve güncel IOC iddiası, kaynak durum farkı, IOC ile birlikte liste bağlamı gelecekte görünen kanıt zamanı veya önemli tedarikçi için inceleme adayı var |
 | `verify` | Doğrula | Eski/eksik/sınırda kesilmiş kanıt, bekleyen aday, eski etkin IOC veya son başarısız kontrol var |
 | `context` | Bağlam | Bu kurallar ek öncelik üretmedi; kayıtlı bağlam veya tarihî/etkin olmayan iddia var |
 
@@ -47,6 +68,14 @@ tehdit puanı yoktur; `context` “güvenli” demek değildir.
 
 | Kural kodu (aynı sınıfta sırasıyla) | Dayanak |
 |---|---|
+| `supplier_priority_review` | İnsan beyanlı yüksek/kritik öneme göre ortak kartta öncelikli iddia adayı |
+| `supplier_claim_review` | Domain/tam ad dayanaklı tedarikçi iddiası adayı |
+| `supplier_identity_ambiguous` | Aynı isimli birden fazla etkin tedarikçi; kimlik doğrulanmalı |
+| `supplier_source_degraded` | Son deneme başarısız; önceki başarılı yanıt ayrıca korunur |
+| `supplier_watch_historical` | Karşılaştırma bugünkü etkin izleme/kimlik kapsamında değil |
+| `supplier_watch_changes` | Yeni/değişen/çıkarılan eşleşme; çözülmüş ihlal kararı değil |
+| `supplier_source_missing` | Kaynak henüz toplanmamış |
+| `supplier_no_current_match` | Okunan son başarılı yanıtlarda eşleşme yok; güvenli sonucu değil |
 | `future_evidence_time` | Gösterilen kanıtın gözlem veya kayıt zamanı değerlendirme anından ileride |
 | `source_status_difference` | Aynı öğede farklı kaynaklardan etkin ve geri çekilmiş iddia; süresi dolmuş iddia tek başına bu gerekçeyi üretmez |
 | `indicator_with_list_context` | Etkin IOC iddiası ve bir MISP liste eşleşmesi; liste iddiayı geçersiz kılmaz |

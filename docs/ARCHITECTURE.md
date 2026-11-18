@@ -1,6 +1,15 @@
 # XTI Motorunun Mimarisi
 
-**18 Kasım 2026 — 0.162.0, çekirdek şema 75, iş kuyruğu şeması 2.**
+0.163.0 `StoredSupplierContext` aynı araştırma transaction'ında kaynak
+kataloglarını ve seçili tedarikçi izlemesini denetler. Eşleştirme/inceleme
+kuralları domain katmanına taşındı; bağımsız komutlarla ortak kullanılır.
+Kaynak, tarihî izleme, yerel bildirim ve hesaplanan kart ayrı kanıtlardır.
+Ön ölçümlü satır/byte/iş bütçesi kısmi kapsamı bildirir. Model 3 korunur,
+öncelik v6; DB/iş şeması değişmez.
+[0168 kararı](decisions/0168-supplier-monitoring-research.md).
+
+
+**18 Kasım 2026 — 0.163.0, çekirdek şema 75, iş kuyruğu şeması 2.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 0.162.0 platform süreç başlangıcını ortak kök parser üzerinden hafif

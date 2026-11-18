@@ -1,6 +1,15 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.162.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
+0.163.0 `research.show` / `research.priorities` ve kayıtlı incelemelerde
+`supplier_event`, `supplier_watch`, `supplier_risk` düğüm/ilişki türleri
+mevcut model 3 alanlarıyla döner. Öncelik `research-priority-v6`;
+istek/zarf, firma kapsamı ve `record.get` türleri değişmez. Araştırma
+kaynak yenilemez, izleme açmaz ve bildirim yazmaz. Kaynak/karşılaştırma
+kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
+[Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
+
+
+**Uygulama 0.163.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi

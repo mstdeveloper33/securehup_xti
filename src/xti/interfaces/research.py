@@ -46,6 +46,19 @@ def _surface_detail_commands(rows, data_dir):
             commands.add(xti_command("suppliers", "candidate-show", row["source_reference"], data_dir=data_dir))
         elif row["record_type"] == "supplier_inventory":
             commands.add(xti_command("suppliers", "show", row["source_reference"], data_dir=data_dir))
+        elif row['record_type'] == 'supplier_risk_context':
+            commands.add(xti_command('suppliers', 'risk-show', row['record_id'], data_dir=data_dir))
+        elif row['record_type'] == 'supplier_threat_match':
+            commands.add(xti_command('suppliers', 'event-show', row['record_id'], data_dir=data_dir))
+        elif row['record_type'] == 'supplier_watch':
+            commands.add(xti_command('suppliers', 'watch', 'show', row['record_id'], data_dir=data_dir))
+        elif row['record_type'] in {'supplier_watch_run', 'supplier_watch_item'}:
+            identifier = row['record_id'] if row['record_type'] == 'supplier_watch_run' else row['source_reference']
+            commands.add(xti_command('suppliers', 'watch-run-show', identifier, data_dir=data_dir))
+        elif row['record_type'] == 'supplier_source_run':
+            command = ('notices', 'run-show', row['record_id']) if row['source'] == 'hibp' else (
+                'ransomware', 'status', '--source', row['source'])
+            commands.add(xti_command(*command, data_dir=data_dir))
     return commands
 
 
@@ -96,6 +109,8 @@ def priority_lines(data, *, data_dir=None):
         "certificate_adjacency_limit": "Bazı sertifikaların domain bağlantıları gösterim sınırını aşıyor.",
         "supplier_adjacency_limit": "Bazı tedarikçi veya aday bağlantıları gösterim sınırını aşıyor.",
         "supplier_read_budget": "Bazı tedarikçi geçmişleri bu isteğin doğrulama sınırına sığmadı; doğrulanmayan kayıt gösterilmedi.",
+        "supplier_context_read_budget": "Tedarikçi izleme/risk kanıtının bir bölümü doğrulama sınırına sığmadı; eksik kart üretilmedi.",
+        "supplier_context_event_limit": "Tedarikçi iddia adaylarının bir bölümü gösterim sınırına sığmadı; kartın toplamı korunuyor.",
         "discovery_candidate_limit": "Bazı pasif alt alan adayları bu görünümün kayıt sınırına sığmadı.",
         "discovery_read_budget": "Bazı pasif adayların kaynak/karar geçmişi okuma sınırını aştı; doğrulanmayan kayıt gösterilmedi.",
         "discovery_status_read_budget": "Bazı pasif kaynak durumları okuma sınırını aştı; boş sonuç sayılmadı.",
@@ -155,13 +170,24 @@ def research_lines(data, *, data_dir=None):
               "accepted": "insan onayı", "rejected": "reddedilmiş aday", "uncertain": "belirsiz aday",
               "pending": "inceleme bekleyen aday", "derived": "kayıtlı kanıttan aday",
               "withdrawn": "insan kararıyla kaldırılmış bağlantı", "owned": "insan tarafından bana ait sınıflandırılmış",
-              "recorded": "arşivde kayıtlı ad"}
+              "recorded": "arşivde kayıtlı ad", "enabled": "izleme açık", "disabled": "izleme kapalı",
+              "priority_review": "öncelikli insan incelemesi", "review": "iddia incelemesi",
+              "identity_review": "kuruluş kimliği belirsiz", "insufficient_data": "veri yetersiz",
+              "no_current_match": "son başarılı yanıtlarda eşleşme yok", "not_collected": "kaynak henüz toplanmadı",
+              "unavailable": "başarılı kaynak yanıtı yok", "stale_after_failure": "son deneme hatalı, eski yanıt korunuyor",
+              "available": "başarılı kaynak yanıtı kayıtlı", "not_evaluated": "henüz karşılaştırılmadı",
+              "historical_scope": "önceki kimlik veya izleme kapsamı", "baseline": "sessiz başlangıç",
+              "changes": "yerel karşılaştırmada değişim", "domain_match": "domain dayanaklı aday",
+              "name_match": "yalnız tam adla aday", "ambiguous_name": "aynı ad nedeniyle belirsiz aday"}
     relations = {"cname_alias": "CNAME yönlendirmesi", "cname_target_address": "CNAME son hedefi → IP",
                  "certificate_presented": "Domain → gözlenmiş TLS sertifikası",
                  "supplier_candidate": "Domain → teknik tedarikçi adayı",
                  "supplier_candidate_domain": "Aday → olası hizmet domaini",
                  "human_supplier_link": "İnsan kararıyla tedarikçi bağlantısı (geçmiş dahil)",
                  "supplier_registered_domain": "Tedarikçi → envantere girilmiş domain",
+                 "supplier_risk": "Tedarikçi → hesaplanan inceleme kartı",
+                 "supplier_event": "Tedarikçi → kaynak iddiası adayı",
+                 "supplier_watch": "Tedarikçi → kaynak bağlı izleme karşılaştırması",
                  "passive_subdomain": "Kök domain → pasif alt alan adayı",
                  "subdomain_classification": "Alt alan sahiplik incelemesi (insan kararı; geçmiş dahil)"}
     lines = [f"İlişkili kanıt araştırması: {safe_text(data['query']['value'])}",
@@ -178,7 +204,9 @@ def research_lines(data, *, data_dir=None):
     def show_evidence(rows):
         for row in rows:
             when = {"response_received_at": "Yanıt alınma", "decision_recorded_at": "Karar",
-                    "stored_seen_range": "Arşivde son görülme"}.get(row["time_basis"], "Gözlem")
+                    "stored_seen_range": "Arşivde son görülme", "source_response_received_at": "Kaynak yanıtı",
+                    "stored_context_updated_at": "Dayanak kayıt zamanı", "inventory_recorded_at": "Envanter kaydı",
+                    "watch_configured_at": "İzleme tanımı"}.get(row["time_basis"], "Gözlem")
             status = states.get(row['status'], safe_text(row['status']))
             if row["kind"] == "human_decision":
                 status = ("envanter etkin" if row["status"] == "active" else

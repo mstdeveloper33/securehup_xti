@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.162.0 / çekirdek 75 / iş kuyruğu 2**.
+Güncel çalışma: **0.163.0 / çekirdek 75 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -134,8 +134,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   sertifikaları ortak araştırma/öncelik/incelemeye taşır. 0.160.0 kayıtlı
   tedarikçi adayını, insan kararlarını ve envanteri ayrı kanıt türleriyle
   ekler. 0.161.0 kayıtlı pasif alt alan adaylarını ve sahiplik sınıflandırmasını
-  ekler. Tedarikçi risk kartları/izleme uyarıları ve pasif keşif çalışmasının
-  son sağlık durumu henüz taşınmadı. SAN/wildcard adı gözlenmiş host sayılmaz.
+  ekler. 0.162.0 pasif keşif çalışmasının son sağlık durumunu ayrı bağlam
+  olarak ekledi. 0.163.0 tedarikçi kaynak iddiasını, izleme karşılaştırmasını
+  ve hesaplanan inceleme kartını ekler (N-021). SAN/wildcard adı gözlenmiş
+  host sayılmaz.
   Ters bağlantılar sınırlı kayıt penceresinden gelir; eksik kapsam görünürdür.
 - **Kanıt:** 24 yeni test dahil 266 ilgili yerel test geçti; firma ayrımı,
   özgün kanıt, eşzamanlı okuma, sınırlar ve yedek korundu. Ek 68 CI/kaynak
@@ -283,6 +285,34 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   [Ayrıntılı kabul](docs/ACCEPTANCE_REVIEW.md).
 - **Dayanak:** [Alanlar](docs/RESEARCH.md#pasif-kaynakların-son-sorgu-durumu),
   [karar](docs/decisions/0167-passive-source-research-context.md).
+
+### N-021 — Tedarikçi iddiası, izleme ve hesaplanan kartın sınırları
+
+- **Durum:** Bilinen sınır / korunacak anlam. **Güncellendi:** 18 Kasım 2026.
+- **Not:** 0.163.0 mevcut ThreatCluster/RansomLook iddia adayını, üç
+  kaynaklı izleme karşılaştırmasını (HIBP dahil) ve ortak kurallı kartı
+  araştırmaya bağlar. Kaynak iddiası, kamu metaverisi, yerel bildirim ve
+  hesaplanan karar desteği ayrı kalır. İhlal, müşteri etkisi veya sayısal
+  risk sonucu üretilmez. Yeni kaynak/API/ücret yoktur.
+- **Kimlik:** Tek tedarikçi filtresi aynı adlı diğer etkin tedarikçileri
+  belirsizlik hesabından çıkarmaz. Tarihî izleme kendi o-günkü kimliğini
+  ve aynı-ad sayısını korur; pasif/yeniden adlandırılmış kapsam güncel
+  eşleşme diye sunulmaz. Çıkarılma çözülmüş ihlal sayılmaz.
+- **Okuma sınırı:** Ortak kaynak/kimlik doğrulaması 20.000 satır, 16 MiB
+  saklı içerik ve 2.000.000 muhafazakâr iş birimiyle sınırlıdır; zaman
+  garantisi değildir. Sınırda eksik kart yerine kısmi kapsam verilir.
+  Tedarikçi başına 150 iddia, düğüm başına 52 kanıt ve genel graph
+  sınırları geçerlidir. Büyük kataloglarda kaynak-bağlı indeksleme /
+  doğrulanmış checkpoint tasarımı gerçek hacim ölçümünden sonra ele alınır;
+  denetimi kaldırarak veya geçmişi silerek sınır aşılmaz.
+- **Uyum:** Model 3, DB 75, kuyruk 2 korunur. Politika v6'nın ilk kaydı
+  yeni başlangıçtır; eski model 1/2/3 kayıtları özgün okunur.
+- **Kanıt:** 432 geniş + 86 son kontrol demetinde **435 farklı test**
+  geçti (28 yeni senaryo). Yerel iki firma/süreç/kurtarma kabulü 29,331
+  saniyede geçti; eşikler korunur. [Kabul kaydı](docs/ACCEPTANCE_REVIEW.md)
+  canlı kaynak veya Tavily/Nmap kabulü değildir; yeni GitHub sonucu ayrıdır.
+- **Dayanak:** [Kullanım](docs/RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı),
+  [mimari karar](docs/decisions/0168-supplier-monitoring-research.md).
 
 ## Korunacak kararlar
 
@@ -438,14 +468,15 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Sıradaki çalışma
 
-**Öncelik güncellendi:** 0.162.0 N-016'daki başlangıç yükünü azaltır;
-eşikler/kurtarma testleri korunur. `dba3dbd` Linux firma kabulü iki Python
-kolunda ilk koşuda geçti; N-016 kanıtlarıyla kapatıldı. Linux kurulum
-kabulü de geçti; geniş hızlı kontrol ve marka kurulumu bu kayıt anında
-sürüyordu. Önceki
-0.161.0 hızlı kontrol **1.664 test / 1.096,802 saniye** ile geçti;
-Linux/marka kurulumu başarılıydı, firma kabulünün iki süre aşımı N-016'da
-açıkça korunur.
+**Önceki kabul tamamlandı:** 0.162.0 N-016'daki başlangıç yükünü azalttı;
+eşikler/kurtarma testleri korundu. `dba3dbd` Linux firma kabulü iki Python
+kolunda ilk koşuda geçti; N-016 kanıtlarıyla kapatıldı. Linux ve marka
+kurulumu da geçti. `0c130bb` [hızlı kontrolü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44283192210)
+**1.684 test / 1.070,277 saniye** ile başarılı. Önceki `dba3dbd` hızlı
+kontrolü not gönderimi sonrasında `cancelled` olmuştu; test başarısızlığı
+veya tamamlanmış kabul sayılmaz. 0.163.0'ın test/kabul sonucu aşağıdaki
+sürümün [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) ayrı tutulur. Önceki
+0.161.0 iki firma kabulü süre aşımı N-016'da korunur.
 
 **Uygulandı:** 0.157.0 URL/hash/MISP yenilemesini ortak firma kuyruğuna
 bağlar; açık kaynak seçimi, bütçe, ilerleme, iptal/kurtarma, tekrar ve
@@ -474,8 +505,13 @@ yeniden keşif kararı sıfırlamaz. Kanıt ve çalışma sınırları N-019'da 
 ortak araştırmada aday kanıtından ayrı gösterir: hiç sorgulanmadı,
 başarılı/boş, kısmi veya başarısız. Önceki complete yanıt korunur (N-020).
 
-**Sonraki öneri, henüz uygulanmadı:** Mevcut
-tedarikçi izleme/risk olaylarının ortak araştırmaya alınmasını planlamak.
+**Uygulandı:** 0.163.0 tedarikçi kaynak iddiaları, izleme karşılaştırmaları
+ve hesaplanan inceleme kartını ortak araştırma/öncelik/incelemeye bağlar.
+Anlam, hacim ve eski kayıt uyumu N-021'de korunur.
+
+**Sonraki öneri, henüz uygulanmadı:** Mevcut vaka ve analist kararlarını
+özgün kanıt bağlarıyla araştırmaya taşımak; kapatılan vaka ile kaynak
+iddiasının geri çekilmesini ayrı tutmak.
 Backendin oturum/abonelik/merkezi kota yönetimi bu sıraya dahil değildir.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması

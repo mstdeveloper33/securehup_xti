@@ -48,14 +48,17 @@ def _positive(value):
         raise ValueError('Invalid positive integer')
 
 
-def _rows(connection, table, columns, order, maximum):
-    rows = connection.execute(f'SELECT {columns} FROM {table} ORDER BY {order} LIMIT ?', (maximum + 1,)).fetchall()
+def _rows(connection, table, columns, order, maximum, supplier_id=None):
+    where = ' WHERE supplier_id=?' if supplier_id is not None else ''
+    values = (supplier_id, maximum + 1) if supplier_id is not None else (maximum + 1,)
+    rows = connection.execute(f'SELECT {columns} FROM {table}{where} ORDER BY {order} LIMIT ?', values).fetchall()
     if len(rows) > maximum:
         raise ValueError('Supplier watch history capacity exceeded')
     if table in {'supplier_watch_events', 'supplier_watch_runs'}:
         allocated = connection.execute('SELECT seq FROM sqlite_sequence WHERE name=?', (table,)).fetchone()
-        if ((allocated[0] if allocated else 0) != len(rows)
-                or any(type(row[0]) is not int or row[0] != sequence for sequence, row in enumerate(rows, 1))):
+        count, first, last = connection.execute(f'SELECT COUNT(*),MIN(sequence),MAX(sequence) FROM {table}').fetchone()
+        if ((allocated[0] if allocated else 0) != count
+                or count and (first != 1 or last != count)):
             raise ValueError('Supplier watch append-only allocator differs')
     return rows
 
@@ -119,10 +122,16 @@ def _result_hash(run, comparison):
     return _hash({'run': values, 'comparison': asdict(comparison)})
 
 
-def _audit(connection):
-    state = _State(read_supplier_history(connection), {}, {}, {}, {}, {}, {})
+def _audit(connection, *, selected_supplier_id=None, supplier_history=None, catalogs=None):
+    # A composed reader may select one supplier in its existing transaction.
+    # Historical ambiguity still needs the FULL supplier identity history;
+    # source catalogs and supplier history can be shared after bounded preflight.
+    history = supplier_history if supplier_history is not None else read_supplier_history(connection)
+    state = _State(history, dict(catalogs or {}), {}, {}, {}, {}, {})
     try:
-        for row in _rows(connection, 'supplier_watches', ','.join(_WATCH_COLUMNS), 'id', _MAX_WATCHES):
+        if not history.complete:
+            raise ValueError('Full supplier identity history is required')
+        for row in _rows(connection, 'supplier_watches', ','.join(_WATCH_COLUMNS), 'id', _MAX_WATCHES, selected_supplier_id):
             identifier, supplier_id, source, active, revision, created, updated = row
             normalize_supplier_id(identifier); normalize_supplier_id(supplier_id); supplier_watch_source(source)
             _positive(revision); notice_timestamp(created); notice_timestamp(updated)
@@ -130,7 +139,7 @@ def _audit(connection):
                 raise ValueError('Invalid supplier watch identity')
             state.watches[identifier] = SupplierWatch(identifier, supplier_id, source, bool(active), revision, created, updated)
         current = {}
-        for row in _rows(connection, 'supplier_watch_events', ','.join(_EVENT_COLUMNS), 'sequence', _MAX_HISTORY):
+        for row in _rows(connection, 'supplier_watch_events', ','.join(_EVENT_COLUMNS), 'sequence', _MAX_HISTORY, selected_supplier_id):
             event = SupplierWatchEvent(*row)
             _positive(event.sequence); _positive(event.revision)
             normalize_supplier_id(event.id); notice_timestamp(event.recorded_at)
@@ -147,9 +156,10 @@ def _audit(connection):
         if current != state.watches:
             raise ValueError('Supplier watch differs from event history')
         for source in {watch.source_key for watch in state.watches.values()}:
-            state.catalogs[source] = _Catalog(connection, source)
+            if source not in state.catalogs:
+                state.catalogs[source] = _Catalog(connection, source)
         previous_by_watch, source_sequences = {}, {}
-        for row in _rows(connection, 'supplier_watch_runs', _RUN_SELECT, 'sequence', _MAX_HISTORY):
+        for row in _rows(connection, 'supplier_watch_runs', _RUN_SELECT, 'sequence', _MAX_HISTORY, selected_supplier_id):
             values = dict(zip(_RUN_COLUMNS, row[:-4]))
             providers = dict(zip(_SOURCE_COLUMNS, row[-4:-1]))
             source_key = supplier_watch_source(values['source_key'])
@@ -184,7 +194,7 @@ def _audit(connection):
             previous_by_watch[watch.id], source_sequences[source_key] = run, source.sequence
         notified = set()
         for row in _rows(connection, 'supplier_watch_notifications',
-                'sequence,id,run_id,watch_id,supplier_id,source_key,event_type,origin,created_at,read_at', 'sequence', _MAX_HISTORY):
+                'sequence,id,run_id,watch_id,supplier_id,source_key,event_type,origin,created_at,read_at', 'sequence', _MAX_HISTORY, selected_supplier_id):
             sequence, identifier, run_id, watch_id, supplier_id, source_key, event_type, origin, created, read_at = row
             _positive(sequence); normalize_supplier_id(identifier); notice_timestamp(created)
             if read_at is not None:

@@ -164,6 +164,21 @@ class StoredSupplierLinks:
             ("domain", supplier.primary_domain), "supplier_registered_domain", "human_decision",
             self._shown(rows), len(rows))
 
+    def current_dependencies(self, supplier_id):
+        """All or explicitly incomplete; never build a risk card from a slice."""
+        rows = self.connection.execute(
+            "SELECT id FROM supplier_candidates WHERE supplier_id=? AND status='accepted' AND current=1 "
+            "ORDER BY id LIMIT ?", (supplier_id, MAX_SUPPLIER_ADJACENCY + 1),
+        ).fetchall()
+        if len(rows) > MAX_SUPPLIER_ADJACENCY:
+            self.limitations.add('supplier_context_read_budget')
+            return None
+        details = [self._candidate(row[0]) for row in rows]
+        if any(item is None for item in details):
+            self.limitations.add('supplier_context_read_budget')
+            return None
+        return tuple(item.candidate for item in details)
+
     def neighbors(self, key):
         if key in self.adjacency:
             return self.adjacency[key]

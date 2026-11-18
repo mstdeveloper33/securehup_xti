@@ -12,6 +12,7 @@ from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
 from xti.adapters.sqlite_research_surface import StoredSurfaceLinks
 from xti.adapters.sqlite_research_suppliers import StoredSupplierLinks
+from xti.adapters.sqlite_research_supplier_context import StoredSupplierContext
 from xti.adapters.sqlite_research_discovery import StoredDiscoveryLinks
 from xti.adapters.sqlite_research_discovery_status import StoredDiscoveryStatuses
 from xti.domain.research_discovery_status import status_evidence
@@ -80,6 +81,8 @@ class _Reader:
         self.surface_links = StoredSurfaceLinks(connection, web_checks=self._web_checks,
             limitations=self.limitations, coverage=self.coverage)
         self.supplier_links = StoredSupplierLinks(path, connection,
+            limitations=self.limitations, coverage=self.coverage)
+        self.supplier_context = StoredSupplierContext(connection, suppliers=self.supplier_links,
             limitations=self.limitations, coverage=self.coverage)
         self.discovery_links = StoredDiscoveryLinks(connection,
             limitations=self.limitations, coverage=self.coverage)
@@ -207,6 +210,10 @@ class _Reader:
         if key in self.nodes:
             return self.nodes[key]
         kind, value = key
+        if key in self.supplier_context.nodes:
+            result = self.supplier_context.nodes[key]
+            self.nodes[key] = result
+            return result
         if kind in {"supplier", "supplier_candidate"}:
             result = self.supplier_links.node(key)
             self.nodes[key] = result
@@ -327,6 +334,7 @@ class _Reader:
         edges.extend(self.surface_links.cname_edges(key))
         edges.extend(self.surface_links.certificate_edges(key))
         edges.extend(self.supplier_links.neighbors(key))
+        edges.extend(self.supplier_context.neighbors(key))
         edges.extend(self.discovery_links.neighbors(key))
         edges.extend(edge for edge in self.enrichment_edges.values() if key in (edge.source, edge.target))
         if key[0] == "entity":

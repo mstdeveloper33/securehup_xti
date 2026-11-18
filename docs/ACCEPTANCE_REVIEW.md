@@ -1,5 +1,59 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.163.0 — Tedarikçi izleme ve inceleme bağlamı
+
+18 Kasım 2026, macOS arm64/Python 3.13.3; `0c130bb` üzerine çalışma
+ağacı. Araştırma modeli 3, DB 75, iş şeması 2, engine/platform zarfı v1
+korunur; öncelik v6. Canlı ağ, API anahtarı ve kullanıcı çalışma verisi
+kullanılmadı; geçici fixture alanları kullanıldı.
+
+`umask 002` altında **432 test / 154,226 saniye**, hata/atlama olmadan
+geçti. Araştırma/öncelik/geçmiş, keşif, tedarikçi envanteri/aday/kart/
+izleme, kaynak geçmişleri, izleme migration/entegrasyonu, engine/platform,
+firma ayrımı, yedek, kaynak işleri, mimari ve CI yapılandırması kapsandı.
+Günlük `/tmp/xti-01630-regression.log`. Son değişiklikte kartın dayanak
+tarihine insanın bağımlılık kararı da katıldı; bunun ayrı son testi aşağıda
+kaydedilir. Demetler ve tekrarlar tek toplam gibi toplanmaz.
+
+Son kart tarihi ve üç ek anlam kontrolünden sonra araştırma önceliği/
+geçmişiyle birlikte **86 test / 33,074 saniye** geçti; hata/atlama yok.
+İki demetin birleşimi **435 farklı test**, **28 yeni tedarikçi bağlam
+senaryosu** içerir. Son günlük `/tmp/xti-01630-final-focus.log`.
+Son sürüm/AST, göreli belge bağlantıları ve `git diff --check` de geçti.
+
+Özel kabul; iki adımda özgün olay/claim/run kimliği, bağımsız kartla aynı
+kural, kaynak ayrımı, HIBP metaverisi, filtrede aynı-ad belirsizliği,
+sessiz başlangıç ve sıfır eşleşmeli yeniden açılış, güncelleme/çıkarılma,
+yerel bildirim, son hata/önceki başarı, kimlik değişimi/pasif izleme,
+bozuk kaynak veya izleme bağında güvenli ret, decoder öncesi byte/satır/
+iş bütçesi, 150 olay/52 kanıt sınırı, tek WAL okuma kesiti, sayfa koruması,
+eski frozen politika, iki firma ve yedek korunmasını kapsar. Terminalin
+ürettiği ayrıntı komutları seçili fixture alanında gerçekten çalıştırıldı.
+
+İlk odaklı turlarda seçili-audit parametresini gölgeleyen yerel değişken ve
+80 karakteri aşan yeni ilişki kimliği düzeltildi; RansomLook fixture alanı/
+tarihi de kaynak sözleşmesine uyarlandı. Bu başarısız geliştirme turları
+başarılı kabul sayılmadı; yukarıdaki geniş paket bu düzeltmelerden sonradır.
+
+### Gerçek yerel süreç kabulü
+
+`PYTHONDONTWRITEBYTECODE=1 ./scripts/python scripts/check-platform-acceptance.py`
+aynı iki geçici firma ve aynı eşiklerle **29,331 saniyede** geçti.
+36 okuma p95 **0,521 saniye**, en uzun okuma **0,552 saniye**, okuma
+süreçlerinde en yüksek RSS **47.742.976 bayt**, fixture disk
+**5.390.883 bayt**. 63 komut/kapı ölçümü saklandı.
+
+Kaynak öncesi ve makbuz sonrası SIGTERM senaryolarında ikinci worker ve
+eşzamanlı recover `busy`; diğer firma kendi işini tamamladı. Kaynak
+öncesinde sıfır, makbuz sonrasında bir özgün makbuz korundu. Otomatik
+kaynak tekrarı olmadı ve iki SQLite bütünlük denetimi geçti. Süre/bellek
+sınırı yükseltilmedi, test çıkarılmadı. Artefaktlar
+`/tmp/xti-01630-platform-acceptance.json` ve `.log`; ham fixture repoya girmez.
+
+Bu yerel/kontrollü sonuç tam test paketi, yeni Linux kurulumu, Tavily/Nmap
+canlı kabulü veya 7/24 hizmet kabulü değildir. Önceki 0.162.0 Linux sonucu
+ayrı bölümde tutulur; yeni commit'in GitHub sonucu henüz alınmamıştır.
+
 ## 0.162.0 — Firma başlangıç süresi ve pasif kaynak durumu
 
 18 Kasım 2026, macOS arm64/Python 3.13.3; `259bc5f` üzerine çalışma ağacı.
@@ -86,10 +140,15 @@ toplam, 5 saniye p95, 512 MiB bellek ve diğer eşikler değiştirilmedi.
 N-016 önceki başarısızlıkları korunarak düzeltme/kanıt ile kapatılır.
 
 [Linux kurulum kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282647213)
-de geçti. [Geniş hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282647271)
 ve [marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282646938)
-bu kayıt anında sürüyordu; bu iki iş başarılı varsayılmadı. Günlük
-`/tmp/xti-01620-platform-ci.log`; rapor güncellemesi yalnız dokümantasyondur.
+geçti. `dba3dbd` [hızlı kontrolü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282647271)
+sonraki dokümantasyon push'u nedeniyle `cancelled` oldu. Aynı ürün kodunun
+`0c130bb4a378922b5edbae57f9a284e151d7fcf7` commit'indeki
+[hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44283192210)
+**1.684 test / 1.070,277 saniye**, hata/atlama olmadan başarılıdır.
+Önceki iptal test başarısızlığı veya başarılı kabul diye yeniden yazılmadı.
+Günlükler `/tmp/xti-01620-platform-ci.log`, `/tmp/xti-01620-quick-ci.log`;
+bunlar 0.163.0'ın yeni kodunun sonucu değildir.
 
 ### 0.161.0 GitHub sonucunun kaydı
 

@@ -10,12 +10,20 @@ from xti.domain.research import (
 from xti.domain.surface_discovery_status import StoredDiscoveryStatus
 
 
-POLICY_VERSION = "research-priority-v5"
+POLICY_VERSION = "research-priority-v6"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
 # observations do not vote, add points, or change an analyst's decision.
 RULES = {
+    "supplier_priority_review": ("review_first", "İnsan tarafından önemli tanımlanan tedarikçide kaynak iddiası adayı var; kimliği ve iddiayı doğrulayın. Müşteri etkisi kanıtlanmış değildir."),
+    "supplier_claim_review": ("verify", "Tedarikçiyle eşleşen kaynak iddiası var; özgün kaydı ve eşleşme dayanağını inceleyin."),
+    "supplier_identity_ambiguous": ("verify", "Kaynak adı birden fazla etkin tedarikçiyle eşleşiyor; kuruluş kimliği belirsiz."),
+    "supplier_source_degraded": ("verify", "Tedarikçi kaynağının son denemesi başarısız; varsa önceki başarılı yanıt korunuyor, güncel boş sonuç değildir."),
+    "supplier_watch_historical": ("verify", "Son izleme karşılaştırması bugünkü etkin kimlik/izleme kapsamında değil; tarihî kaynak ve karar korunuyor."),
+    "supplier_watch_changes": ("verify", "Son yerel tedarikçi karşılaştırmasında yeni, değişen veya çıkarılan kaynak eşleşmesi var; çıkarılma çözülmüş ihlal değildir."),
+    "supplier_source_missing": ("context", "Tedarikçi kaynağı henüz toplanmamış; veri yokluğu eşleşme yokluğu veya güvenli olduğu anlamına gelmez."),
+    "supplier_no_current_match": ("context", "İncelenen son başarılı kaynak yanıtlarında tedarikçiyle eşleşme yok; kaynak kapsamı ve tarihini ayrıca kontrol edin."),
     "future_evidence_time": ("review_first", "Kanıtın gözlem veya kayıt zamanı gelecekte; zaman bilgisini doğrulayın."),
     "source_status_difference": ("review_first", "Aynı kayıt için farklı kaynakların etkin ve geri çekilmiş iddiaları var; gerekçelerini karşılaştırın. Bu tek başına mantıksal çelişki değildir."),
     "indicator_with_list_context": ("review_first", "Etkin IOC iddiasına liste bağlamı eşlik ediyor; kaynak iddiasını ve altyapı bağlamını birlikte inceleyin. Liste eşleşmesi iddiayı geçersiz kılmaz."),
@@ -102,6 +110,10 @@ def _recent_evidence(rows):
     """
     latest, others = {}, []
     for item in rows:
+        if (item.record_type in {'supplier_risk_context', 'supplier_watch_pending'} or
+            item.record_type == 'supplier_source_coverage' and item.status in {'not_collected', 'unavailable'}):
+            # Configuration/missing-source clocks are not network observations.
+            continue
         if item.kind == "human_decision":
             # Decision age is exposed, but isn't a new network observation
             # or grounds to stale every superseded decision in a long history.
@@ -128,6 +140,21 @@ def _reasons(rows, total, matches, related, checked_at, hours, discovery=()):
               for value in (row.observed_at, row.recorded_at))]
     if future:
         add("future_evidence_time", future)
+    for record_type, states, code in (
+        ('supplier_risk_context', {'priority_review'}, 'supplier_priority_review'),
+        ('supplier_risk_context', {'review'}, 'supplier_claim_review'),
+        ('supplier_threat_match', {'domain_match', 'name_match'}, 'supplier_claim_review'),
+        ('supplier_threat_match', {'ambiguous_name'}, 'supplier_identity_ambiguous'),
+        ('supplier_risk_context', {'identity_review'}, 'supplier_identity_ambiguous'),
+        ('supplier_source_coverage', {'stale_after_failure', 'unavailable'}, 'supplier_source_degraded'),
+        ('supplier_source_coverage', {'not_collected'}, 'supplier_source_missing'),
+        ('supplier_risk_context', {'no_current_match'}, 'supplier_no_current_match'),
+        ('supplier_watch_run', {'historical_scope'}, 'supplier_watch_historical'),
+        ('supplier_watch_run', {'changes'}, 'supplier_watch_changes'),
+    ):
+        selected = [row for row in rows if row.record_type == record_type and row.status in states]
+        if selected:
+            add(code, selected)
     claims = [row for row in rows if row.kind == "source_claim"]
     active = [row for row in claims if row.current]
     revoked = [row for row in claims if row.status == "revoked"]

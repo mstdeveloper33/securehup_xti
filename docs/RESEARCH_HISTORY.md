@@ -1,6 +1,13 @@
 # Kayıtlı incelemeler ve önceki incelemeye göre değişim
 
-18 Kasım 2026 · 0.162.0 · çekirdek şema 75 · değerlendirme modeli 3 (eski model 1 ve 2 okunur).
+0.163.0 aynı model 3 içinde tedarikçi izleme, kaynak iddiası ve hesaplanan
+kart kanıtlarını saklar; politika v6'dır. Kaynak güncellemesi, insan kimlik
+kararı ve yerel karşılaştırma değişimi kendi özgün kimlikleriyle görünür.
+Eski v5 kayıtları özgün okunur; ilk v6 kaydı politika başlangıcıdır.
+[Alanlar ve kapsam](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
+
+
+18 Kasım 2026 · 0.163.0 · çekirdek şema 75 · değerlendirme modeli 3 (eski model 1 ve 2 okunur).
 
 Bir domain, IP, URL veya dosya kimliğini incelerken o günkü kanıtları ve
 inceleme sırasını saklayabilirsiniz. Sonraki kayıt, aynı kapsamın önceki

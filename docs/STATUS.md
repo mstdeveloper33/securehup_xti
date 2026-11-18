@@ -1,10 +1,28 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.162.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.163.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.163.0:** İnsan onaylı tedarikçiye bağlı kaynak iddiaları, yerel izleme
+karşılaştırması ve hesaplanan inceleme kartı ortak araştırma, öncelik ve
+kayıtlı incelemeye eklendi. Üç izleme kaynağı ayrı kalır; HIBP metaverisi
+ransomware iddiası olmaz. Tek tedarikçi filtresindeki aynı-ad belirsizliği
+düzeltildi. Kaynak kesintisi eski başarılı kanıtı silmez; eski kimlik/izleme
+kapsamı ayrıca görünür. Yeni ağ/API/paket/migration yoktur. Model 3,
+DB 75 ve kuyruk 2 korunur; öncelik v6.
+[Kullanım](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı),
+[mimari karar](decisions/0168-supplier-monitoring-research.md).
+
+**0.163.0 yerel doğrulama:** Geniş regresyon **432 test / 154,226 saniye**
+ile geçti; hata/atlama yok. İki firmalı gerçek süreç/kurtarma kabulü
+**29,331 saniye**; 36 okuma p95 **0,521 saniye**, 63 komut/kapı ve iki
+SIGTERM sınırı geçti. Eşikler aynı kaldı. Son tarih/frozen kontrolü
+**86 test / 33,074 saniye** ile geçti; demetlerin birleşimi **435 farklı
+test**, 28 yeni senaryo içerir. Yeni commit'in GitHub sonucu henüz yok;
+[kabul kaydında](ACCEPTANCE_REVIEW.md) ayrı tutulur.
 
 **0.162.0:** Firma girişi ve engine bileşimi kullanılmayan toplayıcıları
 yüklemez; mevcut parser/kapsam/kuyruk kuralları korunur. Aynı yerel gerçek
@@ -24,8 +42,9 @@ ve dış zarf değişmez. [Alanlar](RESEARCH.md#pasif-kaynakların-son-sorgu-dur
 **0.162.0 Linux sonucu:** `dba3dbd` firma kabulü ilk koşuda Python
 3.11'de **40,914 saniye** (p95 0,505), 3.13'te **51,655 saniye**
 (p95 0,651) ile geçti; aynı süre/kurtarma sınırları korundu. Linux
-kurulumu da başarılı. Geniş hızlı kontrol ve marka kurulumu bu kayıt
-anında sürüyordu. Önceki 0.161.0 iki süre aşımı N-016'da korunur;
+ve marka kurulumu da başarılı. `0c130bb` hızlı kontrolü **1.684 test /
+1.070,277 saniye** ile geçti. Önceki `dba3dbd` hızlı işi not push'u
+nedeniyle iptal olmuştu; başarısız test sayılmaz. Önceki 0.161.0 iki süre aşımı N-016'da korunur;
 N-016 düzeltme ve Linux kanıtıyla kapanan notlara taşındı.
 [CI kanıtı](ACCEPTANCE_REVIEW.md#01620-linux-kabulü).
 
