@@ -208,61 +208,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   dosya yedeği tam firma yedeği sayılmaz.
 - **Dayanak:** [Yedek ve geri dönüş](docs/SOURCE_JOBS.md#yedek-ve-geri-dönüş).
 
-### N-016 — Linux kabul süresindeki dalgalanma
-
-- **Durum:** Açık; başlangıç yükü azaltıldı, yeni Linux doğrulaması bekliyor.
-  **Güncellendi:** 18 Kasım 2026.
-- **Kanıt:** `94f1d9c` ilk koşu ve aynı kodlu tekrarında toplam 120 saniye
-  sınırında durdu. Python 3.13 kolu 90,547 saniyede; aynı senaryo yerelde
-  38,635 saniyede geçti. Bunlar ilk başarısızlığı silmez.
-- **Güncel kanıt:** Aynı motor/test kodunun `cfcfbe3` tanı güncellemesiyle
-  Linux Python 3.11 kolu **80,290 saniye**, 3.13 kolu **96,601 saniye**
-  ile geçti. 120 saniye toplam, 5 saniye p95, 512 MiB bellek eşikleri
-  değiştirilmedi. [Başarılı koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44205985536).
-  Sonraki `da2b0bb` firma izolasyonu kabulü de başarıyla tamamlandı;
-  [koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840390).
-- **0.159.0 kanıtı:** `1601e75` ilk Python 3.11 koşusu **120,015 saniyede**
-  durdu. 36 okuma tamamlandı (p95 **1,885 saniye**); 61. komut `alpha/recover`
-  başlarken toplam bütçeden **0,666 saniye** kalmıştı. Kurtarma/bütünlük
-  kabulü bu ilk denemede tamamlanmadı. Python 3.13 ilk koşuda **94,359
-  saniyede**, yalnız başarısız 3.11 işinin aynı commit/sınırlarla tekrarı
-  **79,735 saniyede** geçti; tekrar p95 **1,186 saniye**.
-  [Koşu ve tekrar](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259846928).
-- **0.160.0 kanıtı:** `de80b54` firma kabulünün iki Python kolu ilk koşuda
-  geçti: 3.11 **78,487 saniye** / p95 **1,174 saniye**; 3.13 **95,733
-  saniye** / p95 **1,435 saniye**. Eşikler aynı; eski süre aşımlarının kök
-  nedenini bu başarılı koşu kapatmaz.
-  [Koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427220).
-- **0.161.0 kanıtı:** `259bc5f` Python 3.11 koşusu **120,015 saniyede**
-  `TimeoutExpired` ile durdu; 61. `alpha/recover` komutuna **1,114 saniye**
-  kalmıştı. Python 3.13 koşusu **120,032 saniyede** `Gated worker exceeded
-  wait threshold` hatasıyla durdu; son kayıtlı 54. `alpha/jobs.submit`
-  komutu tamamlanmıştı ve o komut öncesinde **3,290 saniye** kalmıştı.
-  İki kabul de tamamlanmış sayılmaz. Kesin uygulama/altyapı kök nedeni
-  henüz doğrulanmadı; yalnız başarılı tekrar bu maddeyi kapatmayacak.
-  [Başarısız koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44273412771),
-  geçici günlük `/tmp/xti-01610-platform-ci.log`.
-- **0.162.0 düzeltmesi:** Komut başlamadan tüm terminal/toplayıcı modülleri
-  yükleniyordu. Yerel import ölçümü tam CLI için yaklaşık 570 ms,
-  platform için 221 ms. Firma girişi ortak parser ile hafifletildi;
-  yalnız gereken engine servisi kuruluyor, kuyruk durumu/kurtarma toplama
-  CLI'sını yüklemiyor. İlk aynı yerel kabul **40,845 → 28,288 saniye**;
-  36 okuma ve iki gerçek SIGTERM sınırı geçti. Son düzenleme ve Linux
-  kabulü ayrıca kaydedilir; bu yerel sonuç Linux'un yerine geçmez.
-  [Karar](docs/decisions/0166-platform-cold-start.md).
-- **Son yerel kabul:** İşleme göre engine bileşimi de eklendikten sonra
-  **25,935 saniye**, 36 okuma p95 **0,308 saniye**, en yüksek okuma RSS
-  **47.415.296 bayt**. Her iki SIGTERM sınırı, diğer şirketin eşzamanlı
-  çalışması ve bütünlük geçti. 63 komut/kapı kaydı dış artefakttadır:
-  `/tmp/xti-01620-final-acceptance.json`. Geniş regresyon 414 test /
-  172,719 saniye geçti; bu sonuç tam paket veya Linux sonucu değildir.
-- **Sonraki iş:** Yeni commit'in iki Linux Python kolunu doğrulamak.
-  Her komutun süreç/CPU/bellek ve modül sayısı, iki kesinti kapısının
-  bekleme süresi sentetik raporda tutulur. Ortak başlangıç maliyeti
-  ölçüldü; çalıştırıcıdaki bütün hız dalgalanmasının tek nedeni olduğu
-  iddia edilmez. Eşikler gevşetilmedi; ilk başarısızlıklar korunur.
-- **Dayanak:** [İşletim kabulü](docs/ACCEPTANCE_REVIEW.md#işletim-kabulü).
-
 ### N-017 — Kaynak işi kullanım ölçümünün sınırları
 
 - **Durum:** Bilinen sınır. **Güncellendi:** 18 Kasım 2026.
@@ -362,6 +307,68 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Kapanan notlar ve kanıtları
 
+### N-016 — Linux kabul süresindeki dalgalanma
+
+- **Durum:** Kapatıldı; başlangıç yükü azaltıldı ve iki Linux kolu ilk koşuda geçti.
+  **Güncellendi:** 18 Kasım 2026.
+- **Kanıt:** `94f1d9c` ilk koşu ve aynı kodlu tekrarında toplam 120 saniye
+  sınırında durdu. Python 3.13 kolu 90,547 saniyede; aynı senaryo yerelde
+  38,635 saniyede geçti. Bunlar ilk başarısızlığı silmez.
+- **Güncel kanıt:** Aynı motor/test kodunun `cfcfbe3` tanı güncellemesiyle
+  Linux Python 3.11 kolu **80,290 saniye**, 3.13 kolu **96,601 saniye**
+  ile geçti. 120 saniye toplam, 5 saniye p95, 512 MiB bellek eşikleri
+  değiştirilmedi. [Başarılı koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44205985536).
+  Sonraki `da2b0bb` firma izolasyonu kabulü de başarıyla tamamlandı;
+  [koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840390).
+- **0.159.0 kanıtı:** `1601e75` ilk Python 3.11 koşusu **120,015 saniyede**
+  durdu. 36 okuma tamamlandı (p95 **1,885 saniye**); 61. komut `alpha/recover`
+  başlarken toplam bütçeden **0,666 saniye** kalmıştı. Kurtarma/bütünlük
+  kabulü bu ilk denemede tamamlanmadı. Python 3.13 ilk koşuda **94,359
+  saniyede**, yalnız başarısız 3.11 işinin aynı commit/sınırlarla tekrarı
+  **79,735 saniyede** geçti; tekrar p95 **1,186 saniye**.
+  [Koşu ve tekrar](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259846928).
+- **0.160.0 kanıtı:** `de80b54` firma kabulünün iki Python kolu ilk koşuda
+  geçti: 3.11 **78,487 saniye** / p95 **1,174 saniye**; 3.13 **95,733
+  saniye** / p95 **1,435 saniye**. Eşikler aynı; eski süre aşımlarının kök
+  nedenini bu başarılı koşu kapatmaz.
+  [Koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44263427220).
+- **0.161.0 kanıtı:** `259bc5f` Python 3.11 koşusu **120,015 saniyede**
+  `TimeoutExpired` ile durdu; 61. `alpha/recover` komutuna **1,114 saniye**
+  kalmıştı. Python 3.13 koşusu **120,032 saniyede** `Gated worker exceeded
+  wait threshold` hatasıyla durdu; son kayıtlı 54. `alpha/jobs.submit`
+  komutu tamamlanmıştı ve o komut öncesinde **3,290 saniye** kalmıştı.
+  İki kabul de tamamlanmış sayılmaz. Kesin uygulama/altyapı kök nedeni
+  henüz doğrulanmadı; yalnız başarılı tekrar bu maddeyi kapatmayacak.
+  [Başarısız koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44273412771),
+  geçici günlük `/tmp/xti-01610-platform-ci.log`.
+- **0.162.0 düzeltmesi:** Komut başlamadan tüm terminal/toplayıcı modülleri
+  yükleniyordu. Yerel import ölçümü tam CLI için yaklaşık 570 ms,
+  platform için 221 ms. Firma girişi ortak parser ile hafifletildi;
+  yalnız gereken engine servisi kuruluyor, kuyruk durumu/kurtarma toplama
+  CLI'sını yüklemiyor. İlk aynı yerel kabul **40,845 → 28,288 saniye**;
+  36 okuma ve iki gerçek SIGTERM sınırı geçti. Son düzenleme ve Linux
+  kabulü ayrıca kaydedilir; bu yerel sonuç Linux'un yerine geçmez.
+  [Karar](docs/decisions/0166-platform-cold-start.md).
+- **Son yerel kabul:** İşleme göre engine bileşimi de eklendikten sonra
+  **25,935 saniye**, 36 okuma p95 **0,308 saniye**, en yüksek okuma RSS
+  **47.415.296 bayt**. Her iki SIGTERM sınırı, diğer şirketin eşzamanlı
+  çalışması ve bütünlük geçti. 63 komut/kapı kaydı dış artefakttadır:
+  `/tmp/xti-01620-final-acceptance.json`. Geniş regresyon 414 test /
+  172,719 saniye geçti; bu sonuç tam paket veya Linux sonucu değildir.
+- **Linux doğrulaması:** `dba3dbd` Python 3.11.18 kabulü **40,914 saniye**,
+  okuma p95 **0,505 saniye**; Python 3.13.18 **51,655 saniye**, p95
+  **0,651 saniye**. İkisi de ilk koşuda geçti. 36 okuma, 63 komut/kapı,
+  iki gerçek kesinti, firma ayrımı ve bütünlük doğrulandı; 120 saniye
+  toplam ve diğer eşikler aynı. [Koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282646610).
+  Günlük `/tmp/xti-01620-platform-ci.log`. Bu kapanış genel 7/24 garanti
+  veya geniş hızlı test işinin sonucu değildir; önceki başarısızlıklar kalır.
+- **İzleme:** Aynı sınırlarla normal Linux CI kabulü sürer.
+  Her komutun süreç/CPU/bellek ve modül sayısı, iki kesinti kapısının
+  bekleme süresi sentetik raporda tutulur. Ortak başlangıç maliyeti
+  ölçüldü; çalıştırıcıdaki bütün hız dalgalanmasının tek nedeni olduğu
+  iddia edilmez. Eşikler gevşetilmedi; ilk başarısızlıklar korunur.
+- **Dayanak:** [İşletim kabulü](docs/ACCEPTANCE_REVIEW.md#işletim-kabulü).
+
 ### N-008 — Yeni kaynakları platformdan yenileme
 
 - **Durum:** Kapandı; seçilmiş URL/hash/MISP kaynakları kapsamında.
@@ -432,7 +439,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 ## Sıradaki çalışma
 
 **Öncelik güncellendi:** 0.162.0 N-016'daki başlangıç yükünü azaltır;
-eşikler/kurtarma testleri korunur. Yeni Linux sonucu bekleniyor. Önceki
+eşikler/kurtarma testleri korunur. `dba3dbd` Linux firma kabulü iki Python
+kolunda ilk koşuda geçti; N-016 kanıtlarıyla kapatıldı. Linux kurulum
+kabulü de geçti; geniş hızlı kontrol ve marka kurulumu bu kayıt anında
+sürüyordu. Önceki
 0.161.0 hızlı kontrol **1.664 test / 1.096,802 saniye** ile geçti;
 Linux/marka kurulumu başarılıydı, firma kabulünün iki süre aşımı N-016'da
 açıkça korunur.
@@ -464,7 +474,7 @@ yeniden keşif kararı sıfırlamaz. Kanıt ve çalışma sınırları N-019'da 
 ortak araştırmada aday kanıtından ayrı gösterir: hiç sorgulanmadı,
 başarılı/boş, kısmi veya başarısız. Önceki complete yanıt korunur (N-020).
 
-**Sonraki öneri, henüz uygulanmadı:** N-016 Linux sonucundan sonra mevcut
+**Sonraki öneri, henüz uygulanmadı:** Mevcut
 tedarikçi izleme/risk olaylarının ortak araştırmaya alınmasını planlamak.
 Backendin oturum/abonelik/merkezi kota yönetimi bu sıraya dahil değildir.
 

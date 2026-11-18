@@ -21,10 +21,13 @@ tarihiyle korunur; kaynak kimliği adaya tahminî bağlanmaz. Araştırma ve
 değerlendirme modeli 3, politika v5; eski model 1/2 okunur. DB/iş şeması
 ve dış zarf değişmez. [Alanlar](RESEARCH.md#pasif-kaynakların-son-sorgu-durumu).
 
-**Linux durumu:** 0.161.0 hızlı kontrol 1.664 test ile, Linux ve marka
-kurulumu da geçti. Firma kabulünün iki 120 saniye aşımı N-016'da
-korunur; 0.162.0 için yeni Linux sonucu henüz alınmadı. Yerel başarı
-Linux doğrulaması veya tam test paketi olarak sunulmaz.
+**0.162.0 Linux sonucu:** `dba3dbd` firma kabulü ilk koşuda Python
+3.11'de **40,914 saniye** (p95 0,505), 3.13'te **51,655 saniye**
+(p95 0,651) ile geçti; aynı süre/kurtarma sınırları korundu. Linux
+kurulumu da başarılı. Geniş hızlı kontrol ve marka kurulumu bu kayıt
+anında sürüyordu. Önceki 0.161.0 iki süre aşımı N-016'da korunur;
+N-016 düzeltme ve Linux kanıtıyla kapanan notlara taşındı.
+[CI kanıtı](ACCEPTANCE_REVIEW.md#01620-linux-kabulü).
 
 **0.161.0 pasif aday araştırması:** Kayıtlı alt alan adayları ve insan
 sahiplik sınıflandırması ortak araştırma, öncelik ve incelemeye eklendi.

@@ -68,6 +68,29 @@ yedek doğrulandı. Sorgulanmamış sağlayıcıya tarih uydurulmadı; yeni dene
 adayın arşiv tarihini/insan kararını değiştirmedi. Bu kontrollü kabul,
 Tavily/Nmap canlı kabulü, tam test paketi veya 7/24 üretim garantisi değildir.
 
+### 0.162.0 Linux kabulü
+
+`dba3dbd596134acf5bfd70f65dc85673b1c25a50` için
+[firma kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282646610)
+**iki Python kolunda ilk koşuda başarılıdır**. Tekrar çalıştırma yapılmadı.
+
+| Linux | Toplam | 36 okuma p95 | En yüksek okuma RSS |
+|---|---:|---:|---:|
+| Python 3.11.18 | 40,914 sn | 0,505 sn | 46.661.632 bayt |
+| Python 3.13.18 | 51,655 sn | 0,651 sn | 46.866.432 bayt |
+
+Her kolda 63 komut/kapı kaydı, iki SIGTERM sınırı, ikinci worker/recover
+`busy`, diğer şirketin eşzamanlı tamamlanması, otomatik kaynak tekrarı
+olmaması ve SQLite bütünlüğü geçti. Disk 5.382.691 bayt. 120 saniye
+toplam, 5 saniye p95, 512 MiB bellek ve diğer eşikler değiştirilmedi.
+N-016 önceki başarısızlıkları korunarak düzeltme/kanıt ile kapatılır.
+
+[Linux kurulum kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282647213)
+de geçti. [Geniş hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282647271)
+ve [marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44282646938)
+bu kayıt anında sürüyordu; bu iki iş başarılı varsayılmadı. Günlük
+`/tmp/xti-01620-platform-ci.log`; rapor güncellemesi yalnız dokümantasyondur.
+
 ### 0.161.0 GitHub sonucunun kaydı
 
 `259bc5f` hızlı kontrol **1.664 test / 1.096,802 saniye** ile geçti;
