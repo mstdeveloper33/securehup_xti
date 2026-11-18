@@ -1,6 +1,6 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.158.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 75 · **İş kuyruğu:** 2.
+**Sürüm:** 0.159.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 75 · **İş kuyruğu:** 2.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -12,6 +12,14 @@ kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
 
 Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
 [NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
+
+0.159.0, `./xti research securehup.com --type domain` içinde kayıtlı CNAME
+yollarını ve aynı TLS sertifikasının gözlendiği domainleri birleştirir.
+Bağlantının kaynağı/tarihi, son başarısız kontrol ve sertifikanın geçerlilik
+tarihleri korunur. Aynı görünüm öncelik, kayıtlı inceleme ve firma JSON
+işlemlerinde kullanılır. Yeni internet isteği, ücretli API veya şema
+geçişi yoktur. Ortak sertifika sahiplik veya tehdit kararı değildir.
+[Kullanım ve kapsam](docs/RESEARCH.md#cname-ve-gözlenmiş-tls-sertifikaları).
 
 0.158.0 kaynak işlerinde HTTP denemesi, alınan yanıt, bağlantı hatası ve
 429 bekleme yanıtını saklar; terminal ve firma JSON çıktısı işin sınırını,

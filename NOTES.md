@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.158.0 / çekirdek 75 / iş kuyruğu 2**.
+Güncel çalışma: **0.159.0 / çekirdek 75 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -126,11 +126,17 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-009 — Araştırmanın kapsam sınırları
 
-- **Durum:** Bilinen sınır. **Güncellendi:** 17 Kasım 2026.
+- **Durum:** Bilinen sınır; CNAME/TLS dilimi uygulandı. **Güncellendi:** 18 Kasım 2026.
 - **Not:** Araştırma en fazla iki ilişki adımıyla çalışıyor. URL kaynağı
   ilk 20 arşiv sonucunu alıyor; bütün arşivde ters yönde arama yok.
-  CNAME, sertifika ve tedarikçi ilişkilerinin tamamı ortak araştırmaya
-  taşınmış değil. Ek sonuç ve eksik kapsam görünür tutulmalı.
+  0.159.0 kayıtlı CNAME adımları/son hedef IP'sini ve gerçekten sunulan
+  sertifikaları ortak araştırma/öncelik/incelemeye taşır. Tedarikçi kararları
+  ve pasif adaylar henüz taşınmadı. SAN/wildcard adı gözlenmiş host sayılmaz.
+  Ters bağlantılar sınırlı kayıt penceresinden gelir; eksik kapsam görünürdür.
+- **Kanıt:** 24 yeni test dahil 266 ilgili yerel test geçti; firma ayrımı,
+  özgün kanıt, eşzamanlı okuma, sınırlar ve yedek korundu. Ek 68 CI/kaynak
+  testiyle toplam 334 farklı test başarılı. Ağsız/kontrollü
+  kabul [kabul belgesinde](docs/ACCEPTANCE_REVIEW.md); canlı tarama değildir.
 - **Sonraki iş:** Kapsam genişletirken eski kanıt kimliklerini korumak;
   bütün internetin tarandığı veya ilişkilerin sahiplik/zararlılık kanıtı
   olduğu izlenimini vermemek. Ayrıntılar ilgili modüllerde korunuyor.
@@ -203,6 +209,8 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Linux Python 3.11 kolu **80,290 saniye**, 3.13 kolu **96,601 saniye**
   ile geçti. 120 saniye toplam, 5 saniye p95, 512 MiB bellek eşikleri
   değiştirilmedi. [Başarılı koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44205985536).
+  Sonraki `da2b0bb` firma izolasyonu kabulü de başarıyla tamamlandı;
+  [koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840390).
 - **Sonraki iş:** Süre aşımı tekrarlanırsa artık saklanan tamamlanmış
   ölçümler/son komutla aşamasını incelemek. İlk başarısızlıkların kesin
   kök nedeni iddia edilmiyor; uygulama hatası düzeltildi diye sunulmaz.
@@ -327,9 +335,15 @@ sayılmaz. Bekleyen Tavily/Nmap girdileri N-004/N-005'te korunur.
 işi backend entegrasyonunda kalır. 0.158.0 motorun verilen iş sınırını
 uygulamasını ve ölçülmüş/belirsiz tüketimini bildirmesini tamamlar.
 
-**Sonraki öneri, henüz uygulanmadı:** N-009 kapsamındaki mevcut CNAME ve
-sertifika kanıtlarını ortak ilişki araştırmasına taşımak; eski kanıt
-kimliklerini ve firma kapsamını korumak. Yeni ücretli API/LLM gerekmez.
+**Uygulandı:** 0.159.0 N-009'un kayıtlı CNAME ve gözlenmiş TLS dilimini
+ortak araştırmaya taşır; özgün kanıtlar ve firma kapsamı korunur. Yeni
+API/LLM gerekmez. Öncelik v2'nin ilk incelemesi yeni politika başlangıcıdır;
+eski v1 kayıtları değiştirilmez.
+
+**Sonraki öneri, henüz uygulanmadı:** Mevcut tedarikçi ilişki kararlarını
+ortak araştırmaya katmak; insan onayı, reddi ve değişim geçmişini kaynak
+gözleminden ayrı tutmak. Bu iş mevcut motor kayıtlarını kullanır; backendin
+oturum/abonelik/merkezi kota yönetimi değildir.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması
 özelliğin tamamlandığı anlamına gelmez.

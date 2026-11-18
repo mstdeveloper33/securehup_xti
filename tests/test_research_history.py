@@ -146,7 +146,7 @@ class ResearchHistoryTests(ResearchFixture, unittest.TestCase):
         first = self.record()
         stored = self.repository.show(first["review"]["id"])
         snapshot = deepcopy(stored.snapshot)
-        snapshot["policy_version"] = "research-priority-v2"
+        snapshot["policy_version"] = "research-priority-v999"
         second, _ = self.repository.append(stored.header.scope, snapshot, "next-policy", stored.header.id)
         self.assertEqual(second.comparison["state"], "policy_baseline")
         self.assertFalse(second.comparison["changes"])

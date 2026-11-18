@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**18 Kasım 2026 — 0.158.0, çekirdek şema 75, iş kuyruğu şeması 2.**
+**18 Kasım 2026 — 0.159.0, çekirdek şema 75, iş kuyruğu şeması 2.**
 Uzun vadeli hedefler [ana roadmap](roadmap/MASTER_ROADMAP.md) içindedir.
 
 **Ürün ve geliştirme yönü:** Kendi platformumuzun kapalı kaynak motoru
@@ -71,6 +71,14 @@ ve durma nedenini üretir; kesintide bilinmeyen sayıyı sıfır kabul etmez.
 V1 işler ve istek anahtarları korunur; yeni DB şeması gerekmez.
 Abonelik ve ortak sağlayıcı kotası backendde kalır. Eski koda dönüşün
 veri sınırı [0162 kararında](decisions/0162-source-job-request-usage.md).
+
+0.159.0 `research_surface` domain dönüşümleriyle kayıtlı CNAME zinciri ve
+gözlenmiş TLS sertifikasını ortak araştırmaya ekler. `StoredSurfaceLinks`
+adaptörü aynı SQLite okuma transaction'ını ve mevcut kayıt doğrulayıcılarını
+kullanır; CNAME ayrı sınırlı, DNS/TLS ortak sınırlı okunur. Sertifika kimliği
+dosya hash IOC'sinden ayrıdır. Öncelik politikası v2 olur; kayıt modeli 1
+ve şemalar korunur. Önceki v1 inceleme yeniden hesaplanmaz; v2 ilk kayıt
+yeni politika başlangıcıdır. [0163 kararı](decisions/0163-saved-cname-certificate-research.md).
 
 **Planlanan işletim:** İlk ticari sürüm yalnız kendi sunucularımızda
 sunulacak. React/.NET kullanıcı erişimini, motorun iç sözleşmesi ve ayrı

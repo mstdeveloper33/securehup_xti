@@ -1,8 +1,8 @@
 # İlişkili kanıt araştırması
 
-17 Kasım 2026 · 0.155.0 · araştırma modeli 1 · engine/platform v1 · şema 74.
+18 Kasım 2026 · 0.159.0 · araştırma modeli 1 · engine/platform v1 · çekirdek şema 75.
 
-Domain, kesin IP, URL veya dosya kimliği için mevcut DNS, IOC ve CTI kayıtlarını tek
+Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
 aktör. Her bağlantı özgün kanıt/iddia kimliğini ve tarihini taşır. Bu bir
 saldırı veya ihlal kararı değildir. Kaynak iddiaları yeni gözleme dönüşmez.
@@ -49,6 +49,52 @@ Gerekçeli inceleme sırası için `research ... --priorities` veya
 `research.priorities` kullanılır. Bu ayrı görünüm bütün toplanan düğüm ve
 ilişkileri sıralar; yol sayfalamasıyla karıştırılmaz.
 [Örnekler, sıralama kuralları ve sözleşme](RESEARCH_PRIORITIES.md).
+
+## CNAME ve gözlenmiş TLS sertifikaları
+
+0.159.0 aynı araştırmaya iki kayıtlı ilişki ailesi ekler:
+
+| Yol | Dayanak | Sınır |
+|---|---|---|
+| Domain → CNAME hedefi → son hedefin IP'si | Kayıtlı CNAME kontrolü; her zincir adımı ayrı | IP yalnız son hedefte gerçekten çözümlenmişse eklenir; uzun zincirin tamamı iki adımlık sorguya sığmayabilir |
+| Domain → sertifika → başka domain | İki domainin kayıtlı web kontrollerinde aynı DER SHA-256 | Aynı sertifika, aynı sahip veya aynı saldırgan demek değildir |
+
+Örneğin elindeki kayıtlar `example.com → edge.example.net` CNAME'ini
+gösteriyorsa, hedef adından araştırma da bu gelen bağlantıyı bulabilir.
+Hedef adının ayrıca kayıtlı varlık olması gerekmez; bulundu diye aktif
+kontrol onayı veya sahiplik oluşturulmaz. Bu örnek canlı hedef sonucu değildir.
+
+Sertifika düğümünün `kind=certificate`, `record_type=tls_certificate`,
+değeri DER SHA-256'dır. Bu düğüm dosya `sha256` IOC'sine dönüşmez.
+Sertifikanın SAN/wildcard alanındaki diğer adlar, gerçekten kontrol edilmiş
+hostlar gibi bağlanmaz. Yalnız issuer/konu adı benzerliği eşleşme değildir.
+`--type certificate` yeni kök seçeneği olarak eklenmedi; domain/IP
+araştırmasının bağlantılarında sertifikaya ulaşılır.
+
+İlişki türleri `cname_alias`, `cname_target_address`, `certificate_presented`.
+Özgün kontrol kimliği `record_id`, kontrol domaini `source_reference`,
+özgün durum özeti `state_sha256` içinde kalır. CNAME kontrolünün son
+durumu `surface_cname_check`, gözlenmiş bağlantı `surface_cname_observation`;
+TLS son kontrolü `surface_tls_check`, sertifika gözlemi `surface_certificate`
+olarak ayrılır. `valid_from/valid_until` sertifika geçerlilik tarihleridir.
+`status=presented` ve `current=null` bugünkü sunumu doğrulamaz.
+
+Sertifika değişimi veya sonraki başarısız TLS/CNAME denemesi eski bağlantıyı
+silmez. Son kontrol düğümde ayrıca görünür. Kanıtlar farklı tarihlerde
+gözlenmiş olabilir; yollar eşzamanlı altyapı resmi değildir. Geçmişin tamamı
+özgün salt okuma komutlarından açılabilir:
+
+```sh
+./xti surface relations securehup.com --kind cname --history
+./xti surface relations securehup.com --kind certificate --history
+./xti research securehup.com --type domain --priorities
+./xti research-history record securehup.com --type domain
+```
+
+İlk iki komut mevcut varlık geçmişini okur; son komut inceleme kaydını
+saklar. Bu komutlar yeni internet taraması başlatmaz. Henüz kaydedilmemiş
+CNAME/TLS kanıtı burada üretilmez. Mevcut açık onaylı `surface` kontrolleri
+kanıt toplama işini yapmaya devam eder. Yeni kaynak, paket veya şema yoktur.
 
 ## URL/hash kaynak bağlamı
 
@@ -123,7 +169,7 @@ Sonuç `data` alanları:
 | `paths` | Kökten başlayan `node_ids`, `edge_ids`, `hops`; en fazla iki adım, döngüsüz |
 | `collected_node_count`, `collected_edge_count`, `collected_path_count` | Bütçe içinde toplanan alt graf/yol sayıları; bütün veri tabanının toplamı değildir |
 | `offset`, `limit`, `has_more`, `next_offset` | Yol sayfalaması |
-| `coverage_complete`, `limitations`, `coverage` | Seçilen dar kapsamın eksikleri ve incelenen DNS/CTI pencereleri |
+| `coverage_complete`, `limitations`, `coverage` | Seçilen dar kapsamın eksikleri ve incelenen DNS/TLS, CNAME, CTI pencereleri |
 | `notes` | Yorum ve kapsam sınırları |
 
 Kanıt nesnesi `record_type`, `record_id`, `assertion_id`, `event_id`,
@@ -175,13 +221,22 @@ görünür. İlişki iddiasının özgün yönünü yolun okuma yönünden çık
 
 Sabit okuma sınırları:
 
-- En fazla 1.000 farklı DNS kontrolü, toplam 16 MiB JSON. Domain araması
-  kendi en yeni kontrollerini; IP'den geriye arama çalışma alanının en yeni
-  1.000 kontrolünü inceler. İlgisiz kontroller de bu pencereye dahildir.
-- Düğüm başına en fazla 200 DNS bağı ve 200 CTI ilişkisi; en fazla 2.000
+- DNS ve TLS birlikte en fazla 1.000 farklı web kontrolü, toplam 16 MiB
+  JSON kullanır. Domain kendi en yeni kontrollerini; IP veya sertifikadan
+  geriye arama çalışma alanının en yeni 1.000 web kontrolünü inceler.
+  `coverage.kind=dns` bu ortak web kontrol penceresini ifade eder.
+- CNAME ayrıca en fazla 1.000 farklı kontrol/16 MiB kullanır. Domainin
+  son kontrolü ve gelen bağlantılar için çalışma alanının en yeni 1.000
+  CNAME kontrolü okunur. Her iki ailede ilgisiz kontroller de pencereye
+  dahildir; ters arama bütün arşiv değildir. Önceden okunan kök kanıtı
+  ters pencerenin dışında kaldığında da korunur.
+- Düğüm başına aile başına en fazla 200 DNS, CNAME, sertifika veya CTI
+  bağı; istek genelinde yine en fazla 200 bağ ve 2.000
   döngüsüz yol. İstek ayrıca daha küçük düğüm/bağ bütçesi seçebilir.
-- Her IOC/CTI kaydı veya DNS bağı için en fazla 50 kaynak/kanıt gösterilir;
-  domain düğümünde son DNS kontrolü ayrıca bulunur. Bütçeye sığmayan son
+- Her IOC/CTI kaydı, yüzey bağı veya sertifika düğümünde en fazla 50
+  kaynak/kanıt gösterilir. Domain düğümünde son DNS/TLS/CNAME kontrolü
+  önce, ardından sığan IOC kanıtları görünür; toplam üst sınır 52'dir.
+  Bütçeye sığmayan son
   kontrolün yerine eski kontrol son kontrol diye gösterilmez.
   `evidence_total_count` o kayıt/pencere içindeki sayıyı verir; atlananlar
   özgün ayrıntıdan incelenebilir. Bu durumda kapsam kısmi işaretlenir.
@@ -192,7 +247,9 @@ Sabit okuma sınırları:
 
 Makine sınır kodları: `node_limit`, `edge_limit`, `path_limit`,
 `dns_history_window`, `dns_read_budget`, `dns_adjacency_limit`,
-`cti_adjacency_limit`, `source_evidence_limit`. `coverage_complete` yalnız
+`cname_history_window`, `cname_read_budget`, `cname_adjacency_limit`,
+`certificate_adjacency_limit`, `cti_adjacency_limit`, `source_evidence_limit`,
+`enrichment_result_window`. `coverage_complete` yalnız
 bu kapsamın sınırsız kalıp kalmadığını söyler; tazelik, internet kapsamı,
 eldeki kaynakların yeterliliği veya güvenlik garantisi değildir.
 
@@ -205,17 +262,20 @@ bir hata üretmez; saklı son kontrolün hatası görünür kalır.
 
 ## Kapsam envanteri ve sonraki dilim
 
-| Yetenek | Önceden | 0.153.0 |
+| Yetenek | Önceden | 0.159.0 |
 |---|---|---|
 | Genel kayıt araması/ayrıntı, kaynak/araç durumu | CLI + engine/platform | Korundu |
-| DNS/sertifika/CNAME/tedarikçi ilişki geçmişi | `surface relations` CLI | Korundu; araştırma ilk olarak web kontrolündeki DNS adreslerini kullanır |
+| DNS/sertifika/CNAME ilişki geçmişi | `surface relations` CLI | Korundu; kayıtlı kanıt ortak araştırma/öncelik/incelemede de kullanılır |
+| Tedarikçi ilişki kararları | `surface relations` CLI | Ortak araştırmaya aktarımı henüz yapılmadı |
 | Doğrudan CTI bağlamı | `cti context` CLI | Korundu; kaynak denetimi yeniden kullanılır |
 | Domain/IP → DNS/IOC → CTI kaynaklı yolları | Ortak görünüm yok | `research` CLI ve `research.show` engine/platform |
 | Otomatik varlık birleştirme, açıklamalı çıkarım | Plan | Sonraki MTR-01/02 dilimleri |
 | MISP warninglists | Plan | Dört seçilmiş liste; kaynaklı domain/IP bağlamı, [ayrıntı](WARNINGLISTS.md) |
-| Yeni URL/hash zenginleştirme | Plan | Sonraki kaynak paketi |
+| URL/hash zenginleştirme | Plan | CIRCL ve kayıtlı urlscan yanıtları; sınırlı kaynak bağlamı |
 
+Güncel çekirdek şema 75'tir; 0.159.0 yeni migration gerektirmez.
 0.152.0'ın araştırması tablo eklemiyordu. 0.153.0 warninglist kaynak
-geçmişi için şema 73'e iki tablo ekler; açık yedekli geçiş gerekir.
+geçmişi şema 73, 0.154.0 URL/hash şema 74, 0.156.0 inceleme şema 75
+oldu; daha eski alanlardan geçiş açık ve yedeklidir.
 Graph deposu, LLM veya zorunlu ücretli servis yoktur. Bu teslim bütün
 MTR-01/02/03 planının veya OpenCTI seviyesinin tamamlandığı anlamına gelmez.

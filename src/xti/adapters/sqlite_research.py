@@ -1,4 +1,4 @@
-"""Existing DNS/IOC/CTI evidence, selected workspace, one read transaction."""
+"""Saved surface/IOC/CTI evidence, selected workspace, one read transaction."""
 
 from contextlib import contextmanager
 from datetime import datetime
@@ -10,6 +10,7 @@ from xti.adapters.sqlite_cti_context import _audit_assertion_history
 from xti.adapters.sqlite_cti_indicators import SQLiteCtiIndicatorRepository
 from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.adapters.sqlite_surface import SQLiteSurfaceRepository
+from xti.adapters.sqlite_research_surface import StoredSurfaceLinks
 from xti.adapters.sqlite_warninglists import read_warninglists
 from xti.adapters.sqlite_enrichment import read_enrichment
 from xti.domain.indicator_enrichment import enrichment_query, request_url
@@ -18,6 +19,7 @@ from xti.domain.cti_attack import ATTACK_SOURCE_NAME
 from xti.domain.cti_feeds import CTI_FEED_POLICIES, feed_indicator_state_sha256
 from xti.domain.cti_knowledge import normalize_knowledge_id
 from xti.domain.research import ResearchEdge, ResearchEvidence, ResearchNode, identity
+from xti.domain.research_surface import tls_check_evidence
 from xti.domain.warninglists import match_data
 
 
@@ -71,6 +73,8 @@ class _Reader:
         self.audit_rows, self.dns_bytes, self.audit_attack = 0, 0, False
         self.warninglists = read_warninglists(connection)
         self.enrichment_edges = {}
+        self.surface_links = StoredSurfaceLinks(connection, web_checks=self._web_checks,
+            limitations=self.limitations, coverage=self.coverage)
 
     def _claims(self, kind, identifier):
         # The kind is internal, never a request SQL fragment. Bound histories
@@ -181,10 +185,22 @@ class _Reader:
         self.dns_scopes[domain] = tuple(checks)
         return tuple(checks)
 
+    def _web_checks(self, domain=None):
+        checks = self._dns(domain)
+        if domain is not None:
+            return checks
+        # Global reverse lookup shares the existing count/byte budget. Keep
+        # already decoded root observations even outside the recent window.
+        return tuple({check.id: check for check in (*checks, *self.checks.values())}.values())
+
     def node(self, key):
         if key in self.nodes:
             return self.nodes[key]
         kind, value = key
+        if kind == "certificate":
+            result = self.surface_links.certificate_node(key)
+            self.nodes[key] = result
+            return result
         references, evidence, evidence_total = [], [], 0
         label, record_type = value, kind
         if kind == "entity":
@@ -205,6 +221,13 @@ class _Reader:
                 latest = self.dns_latest[value]
                 if latest is not None:
                     evidence.append(_dns_evidence(latest))
+                    evidence_total += 1
+                    if latest.result.tls_status != "not_checked":
+                        evidence.append(tls_check_evidence(latest))
+                        evidence_total += 1
+                cname = self.surface_links.latest_cname_evidence(value)
+                if cname is not None:
+                    evidence.append(cname)
                     evidence_total += 1
             row = self.connection.execute(
                 "SELECT id FROM cti_indicators WHERE indicator_type=? AND value=?", key,
@@ -241,7 +264,11 @@ class _Reader:
                         edge_id = "enrich:" + identity(good.id, record["id"], link)
                         self.enrichment_edges[edge_id] = ResearchEdge(edge_id, source, target,
                             link["relationship_type"], "source_context", (claim,), 1)
-        result = ResearchNode(key, label, record_type, tuple(references), tuple(evidence), evidence_total,
+        # Frozen review v1 permits 52 evidence rows per item. Preserve latest
+        # check states first; expose omitted claims with their true total.
+        if len(evidence) > 52:
+            self.limitations.add("source_evidence_limit")
+        result = ResearchNode(key, label, record_type, tuple(references), tuple(evidence[:52]), evidence_total,
                               tuple(match_data(self.warninglists, kind, value)), enrichment)
         self.nodes[key] = result
         return result
@@ -276,6 +303,8 @@ class _Reader:
     def neighbors(self, key):
         self.node(key)
         edges = list(self._dns_edges(key))
+        edges.extend(self.surface_links.cname_edges(key))
+        edges.extend(self.surface_links.certificate_edges(key))
         edges.extend(edge for edge in self.enrichment_edges.values() if key in (edge.source, edge.target))
         if key[0] == "entity":
             where, values = "source_entity_id=? OR target_entity_id=?", (key[1], key[1])

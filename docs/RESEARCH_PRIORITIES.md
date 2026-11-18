@@ -1,9 +1,9 @@
 # Gerekçeli inceleme önceliği
 
-17 Kasım 2026 · 0.155.0 · politika `research-priority-v1` · model 1 · şema 74.
+18 Kasım 2026 · 0.159.0 · politika `research-priority-v2` · model 1 · şema 75.
 
 Seçtiğin domain, kesin IP, URL veya dosya kimliği için **hangi kaydı önce
-incelemelisin ve neden?** Mevcut DNS, IOC/CTI, MISP listesi ve URL/hash
+incelemelisin ve neden?** Mevcut DNS/CNAME/TLS, IOC/CTI, MISP listesi ve URL/hash
 kayıtlarını kullanır. Her önerinin dayandığı kayıt ve kaynak korunur.
 
 Bu bir inceleme sırasıdır. Kaynak iddiasının doğruluğunu, firmanın ihlal
@@ -52,6 +52,10 @@ tehdit puanı yoktur; `context` “güvenli” demek değildir.
 | `indicator_with_list_context` | Etkin IOC iddiası ve bir MISP liste eşleşmesi; liste iddiayı geçersiz kılmaz |
 | `active_indicator_claim` | Etkin IOC iddiasının son gözlemi güncellik eşiği içinde |
 | `latest_check_failed` | Düğümdeki son kayıtlı DNS kontrolü başarısız |
+| `latest_cname_check_failed` | Son CNAME veya son hedef DNS sorgusu başarısız; tarihî olumlu bağlar korunur |
+| `latest_tls_check_failed` | Son kayıtlı web kontrolünde TLS başarısız |
+| `certificate_expired` | Gösterilen sertifika kanıtının `valid_until` zamanı aşılmış; bugün hâlâ sunulduğu iddia edilmez |
+| `certificate_not_yet_valid` | Sertifika kanıtının `valid_from` zamanı henüz gelmemiş |
 | `source_lookup_failed` | Son URL/hash kaynak sorgusu başarısız; önceki geçerli yanıt ayrı korunur |
 | `evidence_truncated` | Öğenin toplam kanıtı gösterilebilen kanıttan fazla |
 | `stale_active_indicator` | Etkin IOC iddiasının son gözlemi eşikten eski |
@@ -67,6 +71,13 @@ Güncellik eşiği varsayılan 24 saat, `--stale-after-hours` 1–8760 saattir.
 Tam eşik anı güncel; eşiği aşan gözlem eskidir. Aynı DNS bağında daha yeni
 gözlem varsa eski tekrarlar sırayı yükseltmez; eski kanıtlar listede kalır.
 Son DNS kontrolünün başarısız olması, önceki olumlu gözlemi yenilemez.
+CNAME/TLS için de son başarısız deneme eski olumlu bağı güncellemez.
+Sertifika geçerlilik gerekçeleri sertifika düğümü ve ilgili gözlemde kalır;
+bir domainin güncel zafiyet kararı veya otomatik alarmı olmaz.
+
+V2 bu dört yüzey gerekçesini ekler. Önceki v1 inceleme kayıtları özgün
+değerlendirmeleriyle okunur. V2'nin ilk kaydı `policy_baseline` olur;
+kural değişimi yeni kaynak kanıtı diye sayılmaz. Yeni DB şeması yoktur.
 
 Kaynak iddialarının etkinliği, kaynak güveni (`confidence`) ve kanıt türü
 (`evidence_basis`) ayrı alanlardır. Kanıt türleri `observation`,
@@ -149,5 +160,5 @@ ekler; mevcut `research --priorities` okuması kendiliğinden kayıt almaz.
 Firma geneli öncelik kuyruğu, otomatik bildirim, anlamsal çelişki çözümü,
 özel müşteri kuralları ve geniş IOC yaşam döngüsü otomasyonu henüz eklenmedi. Ağsız okuma mevcut
 Tavily/Nmap canlı kabulü veya kaynak kullanım hakkı notlarını kapatmaz.
-0.155.0 bu özelliği şema 74'te ekledi; güncel 0.156.0 geçmiş için şema 75'e
-açık yedekli geçiş gerektirir. Önceki yedekler korunur.
+0.155.0 bu özelliği şema 74'te ekledi; 0.156.0 geçmiş için şema 75'e
+açık yedekli geçiş gerektirir. 0.159.0 şema 75'i korur. Önceki yedekler korunur.

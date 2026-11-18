@@ -1,7 +1,7 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.157.0 / çekirdek şema 75, ayrı platform iş şeması 2.
+**Mevcut sürüm:** 0.159.0 / çekirdek şema 75, ayrı platform iş şeması 2.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -44,6 +44,13 @@ kesinti ve açık tekrar. İsteğe bağlı son inceleme önceki kayıtla karşı
 Çekirdek 75 korunur, ortak kuyruk açık yedekli geçişle şema 2 olur. Genel
 akış kurucusu, ortak sağlayıcı kotası ve dağıtık worker henüz yoktur.
 [Kaynak işi kapsamı](../SOURCE_JOBS.md).
+
+0.158.0 motorun iş başına gerçek HTTP denemesi ve belirsiz tüketim raporunu
+ekler; merkezi kota/abonelik backendde kalır. 0.159.0 kayıtlı CNAME ve
+gözlenmiş TLS sertifikası kanıtlarını aynı araştırma, öncelik ve incelemeye
+bağlar. Yeni şema/ağ yoktur. İki adım, firma kapsamı, kaynak kimliği ve
+gözlem/iddia ayrımı korunur. Tedarikçi kararları, genel çıkarım ve kimlik
+birleştirme henüz ortak araştırmada değildir. [Kapsam](../RESEARCH.md).
 
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
@@ -349,9 +356,10 @@ mevcut web DNS gözlemi, kesin IOC değeri ve doğrudan CTI iddiasından en fazl
 iki adımlı yolları tek okuma kesitinde sunar. Kaynak/kimlik/tarih korunur;
 sayfa değişimi ve bütçe nedeniyle eksik kapsam açıktır. Yeni bağımlılık,
 tablo veya ücretli API yoktur. [İşlem envanteri ve sınırlar](../RESEARCH.md).
-CNAME/sertifika/tedarikçi ilişki geçmişi mevcut CLI'da kalır; genel kimlik
-incelemesi, kural çıkarımı ve bütün kaynakların ortak modele taşınması bu
-ilk dilimin teslimi değildir. MTR-01/02 bütünüyle tamamlandı sayılmaz.
+0.159.0 devam dilimi CNAME ve gözlenmiş sertifikayı ortak araştırmaya taşır;
+tedarikçi karar geçmişi mevcut CLI'da kalır. Genel kimlik incelemesi, kural
+çıkarımı ve bütün kaynakların ortak modele taşınması henüz tamamlanmadı.
+MTR-01/02 bütünüyle tamamlandı sayılmaz.
 
 **Kabul raporu önceliği:** Kullanıcının 0.147.1 Linux raporu üzerine
 MTR-00 kapsamında CTI izleme ve yeni klasör izinleri düzeltildi; umask

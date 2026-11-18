@@ -4,6 +4,17 @@ from xti.application.research import ResearchService, research_data, priority_da
 from xti.interfaces.text import safe_text, xti_command
 
 
+def _surface_detail_commands(rows, data_dir):
+    commands = set()
+    for row in rows:
+        kind = ("cname" if row["record_type"] in {"surface_cname_check", "surface_cname_observation"} else
+                "certificate" if row["record_type"] in {"surface_tls_check", "surface_certificate"} else None)
+        if kind:
+            commands.add(xti_command("surface", "relations", row["source_reference"],
+                "--kind", kind, "--history", data_dir=data_dir))
+    return commands
+
+
 def make_research_service(database):
     from xti.adapters.sqlite_research import SQLiteResearchRepository
     return ResearchService(SQLiteResearchRepository(database))
@@ -32,9 +43,13 @@ def priority_lines(data, *, data_dir=None):
         "node_limit": "Kayıt sayısı sınırına ulaşıldı.",
         "edge_limit": "Bağlantı sayısı sınırına ulaşıldı.",
         "path_limit": "İlişki yollarının sayısı sınırına ulaşıldı.",
-        "dns_history_window": "DNS geçmişinin yalnız en son kontrol penceresi okundu.",
-        "dns_read_budget": "DNS kanıtlarının bir bölümü okuma boyutu sınırına sığmadı.",
+        "dns_history_window": "DNS/TLS geçmişinin yalnız en son web kontrol penceresi okundu.",
+        "dns_read_budget": "DNS/TLS kanıtlarının bir bölümü ortak okuma sınırına sığmadı.",
         "dns_adjacency_limit": "Bazı kayıtların DNS bağlantıları gösterim sınırını aşıyor.",
+        "cname_history_window": "CNAME geçmişinin yalnız en son kontrol penceresi okundu.",
+        "cname_read_budget": "CNAME kanıtlarının bir bölümü okuma sınırına sığmadı.",
+        "cname_adjacency_limit": "Bazı kayıtların CNAME bağlantıları gösterim sınırını aşıyor.",
+        "certificate_adjacency_limit": "Bazı sertifikaların domain bağlantıları gösterim sınırını aşıyor.",
         "cti_adjacency_limit": "Bazı kayıtların CTI bağlantıları gösterim sınırını aşıyor.",
         "source_evidence_limit": "Bazı kayıtların kaynak kanıtları bu görünüme sığmadı.",
         "enrichment_result_window": "URL kaynağının sonuç penceresi sınırlı; bütün arşiv kapsanmıyor.",
@@ -53,7 +68,7 @@ def priority_lines(data, *, data_dir=None):
         # source names here make a short list useful without only counters.
         if item["evidence"]:
             lines.append("   Kaynak: " + ", ".join(sorted({safe_text(row["source"]) for row in item["evidence"]})))
-        commands = set()
+        commands = _surface_detail_commands(item["evidence"], data_dir)
         for ref in item["references"]:
             args = (("ioc", "show", ref["record_id"]) if ref["kind"] == "indicator" else
                     ("cti", "entity-show", ref["record_id"]) if ref["kind"] == "cti" else
@@ -87,7 +102,11 @@ def research_lines(data, *, data_dir=None):
               "no_relationships": "Kayıt var, bu kapsamda ilişki yok", "not_recorded": "Bu kapsamda kayıt bulunamadı"}
     states = {"active": "etkin iddia", "revoked": "geri çekilmiş", "expired": "süresi dolmuş",
               "not_yet_valid": "geçerliliği başlamamış", "resolved": "DNS adresi gözlenmiş",
-              "failed": "başarısız", "fresh": "güncel", "stale": "eski", "future": "gelecek tarihli"}
+              "failed": "başarısız", "fresh": "güncel", "stale": "eski", "future": "gelecek tarihli",
+              "presented": "sertifika gözlenmiş", "valid": "kontrol sırasında TLS geçerli",
+              "present": "CNAME gözlenmiş", "absent": "CNAME yok", "nxdomain": "DNS'te ad yok"}
+    relations = {"cname_alias": "CNAME yönlendirmesi", "cname_target_address": "CNAME son hedefi → IP",
+                 "certificate_presented": "Domain → gözlenmiş TLS sertifikası"}
     lines = [f"İlişkili kanıt araştırması: {safe_text(data['query']['value'])}",
              labels[data["status"]],
              f"Toplanan: {data['collected_node_count']} düğüm, {data['collected_edge_count']} bağlantı, "
@@ -116,8 +135,11 @@ def research_lines(data, *, data_dir=None):
 
     for edge in data["edges"]:
         lines.append(f"Bağlantı {edge['id']}: {safe_text(nodes[edge['source_id']]['label'])} → "
-                     f"{safe_text(nodes[edge['target_id']]['label'])} | {safe_text(edge['relationship_type'])}")
+                     f"{safe_text(nodes[edge['target_id']]['label'])} | " +
+                     relations.get(edge['relationship_type'], safe_text(edge['relationship_type'])))
         show_evidence(edge["evidence"])
+        for command in sorted(_surface_detail_commands(edge["evidence"], data_dir)):
+            lines.append("  Ayrıntı: " + command)
         if edge["evidence_total_count"] > len(edge["evidence"]):
             lines.append(f"    Bu görünümde gösterilmeyen kanıt: {edge['evidence_total_count'] - len(edge['evidence'])}; ayrıntıyı açın.")
         if edge["kind"] == "source_claim":
@@ -125,6 +147,8 @@ def research_lines(data, *, data_dir=None):
     for node in data["nodes"]:
         lines.append("Kayıt: " + safe_text(node["label"]))
         show_evidence(node["evidence"])
+        for command in sorted(_surface_detail_commands(node["evidence"], data_dir)):
+            lines.append("  Ayrıntı: " + command)
         if node.get("enrichment") and node["enrichment"]["latest_run"]:
             from xti.interfaces.indicator_enrichment import enrichment_lines
             lines.extend(enrichment_lines(node["enrichment"], data_dir=data_dir))

@@ -156,13 +156,15 @@ def research_data(report) -> dict:
         "paths": [{"node_ids": list(nodes), "edge_ids": list(edges), "hops": len(edges)}
                   for nodes, edges in report.paths],
         "notes": [
-            "Yalnız seçili çalışma alanının kayıtlı DNS, IOC, CTI ve URL/dosya kaynak yanıtları okunur; kaynaklar yeniden sorgulanmaz.",
+            "Yalnız seçili çalışma alanının kayıtlı DNS, CNAME, TLS, IOC, CTI ve URL/dosya kaynak yanıtları okunur; kaynaklar yeniden sorgulanmaz.",
             "Yollar iki yönde araştırılabilir; ilişkinin özgün yönü source_id/target_id alanlarında korunur.",
-            "Ortak IP veya kaynak iddiası sahiplik, aynı saldırgan, kötü niyet veya doğrulanmış ihlal sonucu değildir.",
+            "Ortak IP, CNAME hedefi, aynı sertifika veya kaynak iddiası sahiplik, aynı saldırgan, kötü niyet veya doğrulanmış ihlal sonucu değildir.",
             "Eski DNS ve geri çekilmiş/geçersiz IOC/CTI iddiaları tarihî kanıt olarak görünür; geçerlilik ile güncellik ayrıdır.",
             "Sayım yalnız toplanan alt grafı kapsar; kısmi sonuç bütün kayıtların tarandığı anlamına gelmez.",
             "Sonraki sayfada expected_snapshot kullanın; değişen kayıtlar snapshot_changed ile reddedilir. Bu tarihî kesit deposu değildir.",
-            "İlk kapsam surface web kontrollerindeki DNS adresleridir; pasif aday, CNAME, sertifika ve diğer modüller mevcut ayrıntı komutlarında kalır.",
+            "Sertifika bağlantısı yalnız kayıtlı web kontrolünde gerçekten sunulmuş sertifikadır; SAN/wildcard adları gözlenmiş domain sayılmaz. certificate düğümü dosya hash IOC'sinden ayrıdır.",
+            "CNAME zincirinin her adımı ve yalnız son hedefin IP'si ayrıdır. Tarihî bağlantılar korunur; son başarısız kontrol ve sertifikanın geçerlilik tarihleri bugünkü durumu doğrulamaz.",
+            "Ters CNAME ve sertifika bağlantıları sınırlı kayıt penceresinden gelir. Pasif aday ve tedarikçi kararları henüz bu araştırmada birleşmez; özgün ayrıntı komutlarında kalır.",
             "Warninglist eşleşmeleri kaynak bağlamıdır; otomatik güvenli kararı, alarm kapatma veya aktör ilişkisi oluşturmaz.",
             "Kaynak araştırması yalnız sorgulanmış URL/hash için saklanan yanıtlardan genişler; ters yönde bütün arşivi taramaz. Yanıt alınma tarihi ile sağlayıcının gözlem tarihi ayrıdır.",
         ],

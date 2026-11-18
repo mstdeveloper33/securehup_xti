@@ -1,5 +1,59 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.159.0 — Kayıtlı CNAME ve TLS ilişki araştırması
+
+18 Kasım 2026, macOS arm64/Python 3.13.3; `da2b0bb` üzerine çalışma ağacı.
+Çekirdek 75, kuyruk 2 ve inceleme modeli 1 değişmedi. Öncelik politikası
+`research-priority-v2`; eski v1 incelemeler korunur.
+
+`umask 002` altında **266 test / 103,381 saniye; OK, atlama yok**.
+Bu 24 yeni yüzey araştırma testi ile eski araştırma/öncelik/geçmiş,
+DNS/CNAME/varlık ilişkileri, engine/platform sözleşmesi, firma izolasyonu,
+yedek, kaynak işleri/kullanımı ve mimari kontrollerini içerir.
+Günlük `/tmp/xti-01590-regression.log`; ham test DB'leri repoya dahil değildir.
+
+Ek CI yapılandırması, URL/hash ve MISP regresyonu **68 test / 21,340
+saniye; OK, atlama yok**. Günlük `/tmp/xti-01590-source-ci.log`.
+İki demette toplam **334 farklı test** vardır; ilk dar tekrar bu toplama
+yeniden eklenmez. Yeni yüzey araştırma testleri hızlı CI listesine eklendi.
+
+Yeni kabul gerçek SQLite/CLI/JSON üzerinden kontrollü kayıtlarla yapıldı:
+
+- CNAME her adımının yönü, yalnız son hedefe IP eklenmesi, kayıtsız hedef
+  ve IPv6'dan ters araştırma, başarısız/kısmi/yok sonuçlarının ayrılması.
+- Aynı bağlantının tekrarlarında tek ilişki ve ayrı özgün kanıtlar;
+  değişen CNAME veya sertifikada eski gözlemlerin korunması.
+- İki hostun gerçekten aynı sertifikayı sunması; SAN/wildcard/issuer
+  benzerliğinden host veya sahiplik türetilmemesi; dosya IOC ayrımı.
+- Son TLS/CNAME hatası, sertifika geçerlilik gerekçeleri ve yalnız zamanla
+  değişen değerlendirme; yeni tehdit veya iddia geri çekmesi üretilmemesi.
+- Satır/boyut/bağlantı/kanıt sınırları ve açık kısmi kapsam; büyük yeni
+  kayıt okunamadığında eski kaydın son kontrol olarak gösterilmemesi.
+- 50 IOC iddiası + son DNS/TLS/CNAME kontrolünde 52 kanıt sınırı;
+  gösterilmeyen iddianın toplamı ve eksik kapsamın korunması.
+- Bozuk hash/kapsam reddi, değişen sayfa işareti, eşzamanlı yazmada tek
+  okuma kesiti, iki firmanın aynı sertifikasında izolasyon, yedekten okuma.
+- V1 incelemenin özgün okunması ve v2'nin `policy_baseline` oluşturması;
+  terminalin özgün ayrıntı komutlarının aynı veri alanında çalışması.
+
+Yeni araştırma testlerinde ağ ve alt süreç başlatma assertion ile
+engellendi; test süresince gerçek hedef sorgulanmadı. İlk geliştirme
+koşularındaki üç hata test hazırlığındaydı: eski politika testinin v2'yi
+"sonraki sürüm" sayması, engine komutuna olmayan `request` alt komutunun
+eklenmesi ve firma fixture'ında kuyruk başlatmasının eksik olması.
+Fixture/gelecek sürüm örneği düzeltildi; üretim sınırları gevşetilmedi.
+
+Bu sonuç bütün test paketi, yeni Linux CI veya canlı hedef kabulü değildir.
+Tavily ve gelişmiş Nmap N-004/N-005'te bekler. Mevcut CNAME/TLS kayıtlarını
+ortak modelde okumak onların bugün tekrar doğrulandığı anlamına gelmez.
+Tedarikçi kararları/pasif adaylar bu araştırma diliminde henüz yoktur.
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_research tests.test_research_surface tests.test_research_priority tests.test_research_history tests.test_surface tests.test_cname tests.test_asset_relations tests.test_architecture tests.test_engine_contract tests.test_engine_records tests.test_platform_engine tests.test_platform_isolation tests.test_platform_backup tests.test_source_jobs tests.test_source_jobs_usage tests.test_source_jobs_platform
+./scripts/python -m unittest tests.test_ci_configuration tests.test_indicator_enrichment tests.test_warninglists
+```
+
 ## 0.158.0 — İş başına kullanım ve backend sınırı
 
 18 Kasım 2026, macOS arm64/Python 3.13.3; `233b657` üzerine çalışma ağacı.
@@ -50,6 +104,20 @@ faturalama doğrulaması değildir. HTTP açma denemesi sağlayıcıya teslim
 veya ücretlendirilme garantisi vermez. Kesilen adım `null`/üst sınırla
 gösterilir. Yeni sürümün tam test paketi ve Linux CI sonucu bu yerel
 sonuçlardan çıkarılmaz; önceki 0.157.0 sonucu aşağıda ayrı korunur.
+
+### 0.158.0 GitHub kabulünün sonucu
+
+18 Kasım 2026 kontrolünde `da2b0bb42e3b2f2c82e4ec971ec5a03d3fc1b44c`
+için aşağıdaki dört çalışma `completed/success` durumundaydı:
+
+- [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840360).
+- [Marka araçları kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840331).
+- [Linux kurulum kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840411).
+- [Firma izolasyonu kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840390).
+
+Bu sonuç önceki 0.158.0 commit'ine aittir; 0.159.0 veya bütün test
+paketinin tamamlandığı iddiası değildir. İlk başarısız eski Linux süre
+ölçümleri ve takip notu N-016 silinmedi.
 
 ## 0.157.0 — Ortak kuyrukta kaynak yenilemesi
 

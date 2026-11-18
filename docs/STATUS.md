@@ -1,10 +1,35 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.158.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.159.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.159.0 CNAME ve TLS araştırması:** Kayıtlı CNAME zincirleri, son hedefin
+IP'si ve gerçekten aynı sertifikayı sunmuş domainler ortak `research`,
+öncelik ve kayıtlı incelemeye bağlandı. Son başarısız CNAME/TLS kontrolü
+tarihî olumlu bağlantıdan ayrı kalır. Sertifika geçerliliği doğrulama
+gerekçesidir; güncel sunum, sahiplik veya tehdit kararı değildir. SAN ve
+wildcard adlarından gözlenmiş host üretilmez; sertifika kimliği dosya IOC'si
+değildir. İki adım ve sınırlı okuma korunur. Yeni ağ, ücretli API, paket
+veya şema geçişi yoktur. Öncelik v2; önceki v1 incelemeler özgün okunur.
+[Kullanım](RESEARCH.md#cname-ve-gözlenmiş-tls-sertifikaları),
+[mimari karar](decisions/0163-saved-cname-certificate-research.md).
+
+**0.159.0 yerel doğrulaması:** `umask 002` altında **266 test / 103,381
+saniye**, tamamı başarılı; 24 yeni yüzey araştırma testi dahil. Araştırma,
+öncelik/geçmiş, mevcut DNS/CNAME/varlık ilişkisi, kaynak işleri, firma
+izolasyonu, yedek, engine/platform ve mimari kontrol edildi. Bu kontrollü
+yerel kabul; bütün paket, Linux veya canlı kaynak kabulü değildir.
+Ek CI yapılandırması, URL/hash ve MISP regresyonunun **68 testi / 21,340
+saniye** de geçti; iki demette toplam **334 farklı test**, hata/atlama yok.
+[Ayrıntı](ACCEPTANCE_REVIEW.md).
+
+**0.158.0 GitHub sonucu:** `da2b0bb` için hızlı kontrol, marka kurulumu,
+Linux kurulum kabulü ve firma izolasyonu kabulü başarıyla tamamlandı.
+Bu önceki commit'in sonucudur; 0.159.0 sonucu değildir.
+[CI bağlantıları](ACCEPTANCE_REVIEW.md#01580-github-kabulünün-sonucu).
 
 **0.158.0 iş başına kullanım raporu:** Yeni kaynak işi v2, gerçek HTTP
 açma denemelerini adımın kanıt başvurusuyla birlikte saklar. Yanıt,

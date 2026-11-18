@@ -1,6 +1,6 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.158.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
+**Uygulama:** 0.159.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,
@@ -311,6 +311,13 @@ sorgu geçmişini, `enrichment.run.get` özgün çalışmanın ayrıntılarını
 [Tam parametre/sonuç sözleşmesi](INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu).
 
 ## `research.priorities`: gerekçeli inceleme sırası
+
+0.159.0 kayıtlı CNAME/TLS kanıtlarını `research.show` ve bu görünümde
+birleştirir. İç düğüm türü `certificate`, ilişki türleri `cname_alias`,
+`cname_target_address`, `certificate_presented` eklenir; kabul edilen kök
+türleri ve istek modeli değişmez. Sertifika düğümünün `record.get`
+başvurusu yoktur; kanıt, özgün `surface_checks` kimliğini ve kaynak domaini
+taşır. `policy_version=research-priority-v2`; eski inceleme v1 olarak okunur.
 
 0.155.0 bu salt okuma işlemini v1'e ekler. `research.show` parametrelerini
 kullanır; `offset/limit` burada yol değil öncelik öğesi sayfasıdır.

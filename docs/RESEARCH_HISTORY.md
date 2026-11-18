@@ -1,6 +1,6 @@
 # Kayıtlı incelemeler ve önceki incelemeye göre değişim
 
-17 Kasım 2026 · 0.156.0 · çekirdek şema 75 · kayıt modeli 1.
+18 Kasım 2026 · 0.159.0 · çekirdek şema 75 · kayıt modeli 1.
 
 Bir domain, IP, URL veya dosya kimliğini incelerken o günkü kanıtları ve
 inceleme sırasını saklayabilirsiniz. Sonraki kayıt, aynı kapsamın önceki
@@ -12,6 +12,13 @@ veri getirmeye devam eder; incelemeyi kaydetmek yeni tarama, ücretli API
 veya LLM çağrısı yapmaz. Alarm ve analist kararlarını değiştirmez.
 
 ## Terminalden kullanım
+
+0.159.0 CNAME ve gözlenmiş TLS bağlantılarını da inceleme içinde saklar.
+Politika `research-priority-v2` olur. Önceki v1 incelemeler özgün haliyle
+okunur; yeni politikanın ilk kaydı `policy_baseline` üretir, kural değişimi
+yeni tehdit veya kanıt geri çekmesi olarak sunulmaz. Sertifika süresinin
+yalnız zamanla dolması `time_only` değişimidir; eski kanıt silinmez.
+Şema 75 kullanan alanda bu teslim için yeni migration gerekmez.
 
 Eski kayıt alanında bir kez açık ve yedekli geçiş gerekir:
 

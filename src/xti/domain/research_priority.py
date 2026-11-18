@@ -9,7 +9,7 @@ from xti.domain.research import (
 )
 
 
-POLICY_VERSION = "research-priority-v1"
+POLICY_VERSION = "research-priority-v2"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
@@ -20,6 +20,10 @@ RULES = {
     "indicator_with_list_context": ("review_first", "Etkin IOC iddiasına liste bağlamı eşlik ediyor; kaynak iddiasını ve altyapı bağlamını birlikte inceleyin. Liste eşleşmesi iddiayı geçersiz kılmaz."),
     "active_indicator_claim": ("review_first", "Güncel ve etkin IOC kaynak iddiası var; özgün iddiayı inceleyin. Bu doğrulanmış tehdit kararı değildir."),
     "latest_check_failed": ("verify", "Son kayıtlı DNS kontrolü başarısız; önceki gözlemler bugünkü durumu doğrulamaz."),
+    "latest_cname_check_failed": ("verify", "Son kayıtlı CNAME veya son hedef sorgusu başarısız; eski bağlantılar güncel doğrulama değildir."),
+    "latest_tls_check_failed": ("verify", "Son kayıtlı web kontrolünde TLS başarısız; eski sertifika gözlemi bugünkü durumu doğrulamaz."),
+    "certificate_expired": ("verify", "Gözlenmiş sertifikanın geçerlilik süresi dolmuş; bugün hâlâ sunulduğu veya bir zafiyet bulunduğu sonucu çıkarılamaz."),
+    "certificate_not_yet_valid": ("verify", "Gözlenmiş sertifikanın geçerlilik başlangıcı henüz gelmemiş; tarihleri ve gözlemi doğrulayın."),
     "source_lookup_failed": ("verify", "Son URL/dosya kaynak sorgusu başarısız; varsa önceki geçerli yanıt korunuyor."),
     "evidence_truncated": ("verify", "Bu kaydın kanıtlarının tamamı okuma sınırına sığmadı; özgün kayıt ayrıntısını inceleyin."),
     "stale_active_indicator": ("verify", "Etkin IOC iddiasının son gözlemi güncellik eşiğini aşıyor; iddianın güncel dayanağını kontrol edin."),
@@ -120,6 +124,18 @@ def _reasons(rows, total, matches, related, checked_at, hours):
     failed_dns = [row for row in rows if row.record_type == "surface_check" and row.status == "failed"]
     if failed_dns:
         add("latest_check_failed", failed_dns)
+    for record_type, code in (("surface_cname_check", "latest_cname_check_failed"),
+                              ("surface_tls_check", "latest_tls_check_failed")):
+        failed = [row for row in rows if row.record_type == record_type and row.status == "failed"]
+        if failed:
+            add(code, failed)
+    certificates = [row for row in rows if row.record_type == "surface_certificate"]
+    expired = [row for row in certificates if row.valid_until and datetime.fromisoformat(row.valid_until) < now]
+    pending = [row for row in certificates if row.valid_from and datetime.fromisoformat(row.valid_from) > now]
+    if expired:
+        add("certificate_expired", expired)
+    if pending:
+        add("certificate_not_yet_valid", pending)
     failed_source = [row for row in rows if row.record_type == "enrichment_run" and row.status == "failed"]
     if failed_source:
         add("source_lookup_failed", failed_source)
