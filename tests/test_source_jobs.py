@@ -369,7 +369,7 @@ class SourceJobTests(unittest.TestCase):
         repo = self.old_queue()
         original = repo._schema
         def fail_after_change(db):
-            if db.execute('PRAGMA user_version').fetchone()[0] == 2:
+            if db.execute('PRAGMA user_version').fetchone()[0] == 3:
                 raise StorageError('Controlled failure before commit')
             return original(db)
         with patch.object(repo, '_schema', side_effect=fail_after_change), self.assertRaises(StorageError):

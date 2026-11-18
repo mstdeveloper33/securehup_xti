@@ -1,6 +1,6 @@
 # XTI Motorunun Mimarisi
 
-**18 Kasım 2026 — 0.164.0, çekirdek şema 76, iş kuyruğu şeması 2.**
+**18 Kasım 2026 — 0.164.0, çekirdek şema 76, iş kuyruğu şeması 3.**
 Küçük investigation/company-review portları, saf aday/karar/çıkarım kuralları
 ve mevcut araştırma transaction'ına bağlı depo okuyucuları eklendi. Şema 76
 eklemeli karar günlüğüdür; eski tablolar/kimlikler korunur. Platform yazmaları

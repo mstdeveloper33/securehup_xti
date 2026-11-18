@@ -1,6 +1,6 @@
 # Kaynak güncelleme işleri
 
-18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · iş kuyruğu şeması 2.
+18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · iş kuyruğu şeması 3.
 
 IP/URL/hash kaynaklarını, seçilmiş MISP listelerini, yayıncı akışlarını ve
 saklı rapor çıkarımını bir işe bağlayabilirsin.
@@ -12,11 +12,13 @@ karşılaştırılır. Yeni ücretli API, anahtar veya paket gerekmez.
 
 Normal `./setup` ile çekirdek alan hazır olmalı. Eski çekirdek için
 `./xti migrate` kullan. Yerel iş kuyruğu ilk kez kurulacaksa
-`./xti source-jobs init`, eski sürüm 1 kuyruğu varsa
+`./xti source-jobs init`, eski sürüm 1/2 kuyruğu varsa
 `./xti source-jobs migrate` çalıştır. `init` var olan dosyaya yazmaz.
-Yükseltme önce benzersiz, doğrulanmış `.v1-UUID.backup` dosyası oluşturur;
+Yükseltme önce benzersiz, doğrulanmış `.vESKISURUM-UUID.backup` dosyası oluşturur;
 eski profil işleri, anahtarlar ve olay içerikleri korunur. Çalışan veya
-kurtarma bekleyen iş varken geçiş reddedilir. Şema 2 zaten varsa değişmez.
+kurtarma bekleyen iş varken geçiş reddedilir. Şema 3 zaten varsa değişmez.
+Eski iş/event byte'ları ve rowid değerleri korunur. Altı adım ve son anda
+iptal dahil en fazla 16 kuyruk olayı yeni şemada doğrulanır.
 
 ```sh
 ./xti source-jobs plan https://example.com/ --type url --source urlscan --source misp --list rfc6761 --record-review
@@ -124,7 +126,7 @@ kimlikleriyle değerlendirilir; bu görünüm zincirin toplamı değildir.
 ### Sürüm uyumu
 
 Yeni kabul edilen `sources.refresh` işlerindeki yürütme/sonuç sürümü 3'tür;
-platform zarfı v1 ve kuyruk şeması 2 korunur. Rapor/kimlik günlüğü için
+platform zarfı v1 korunur; kuyruk şeması 3'e açık geçiş gerekir. Rapor/kimlik günlüğü için
 çekirdek 76 geçişi `./xti migrate` ile açıkça yapılır. Eski v1/v2 işler eski
 biçimleriyle çalışır/okunur; saklı JSON/hash'ler yeniden yazılmaz. Aynı
 tekrar anahtarı eski işi döndürür. Eski başarısız işin açık retry'si yeni
@@ -168,7 +170,7 @@ paylaşır. İş ve kanıt hash'leri yerel bütünlük denetimidir, imza değild
 
 ## Firma platformu
 
-Yeni `platform provision` şema 2 kuyruğu oluşturur. Mevcut firma için:
+Yeni `platform provision` şema 3 kuyruğu oluşturur. Mevcut firma için:
 
 ```sh
 ./xti platform jobs-migrate --root "$PWD/.xti-platform" --company firma-a

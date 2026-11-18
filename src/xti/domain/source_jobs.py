@@ -217,7 +217,8 @@ def source_result_json(value):
         history_uuid(value["job_id"])
         if value["status"] not in {"complete", "partial", "failed", "cancelled"} or not isinstance(value["plan_sha256"], str) or len(value["plan_sha256"]) != 64:
             raise ValueError("Result")
-        if not isinstance(value["steps"], list) or not 1 <= len(value["steps"]) <= 3:
+        maximum_steps = 6 if value['version'] >= 3 else 3
+        if not isinstance(value["steps"], list) or not 1 <= len(value["steps"]) <= maximum_steps:
             raise ValueError("Steps")
         encoded = canonical_json(value)
         if len(encoded) > 32768:

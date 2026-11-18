@@ -11,13 +11,13 @@ from xti.domain.source_jobs import initial_steps, validate_receipt, receipt_stat
 
 FIELDS = {'kind', 'recorded_at', 'token', 'session_id', 'status', 'result_json',
           'result_sha256', 'error_code', 'previous_sha256', 'step_key', 'receipt', 'reason'}
-MAX_EVENTS = 12  # claim, session, 3 pairs, cancel request, finish; spare capacity is not free-form.
+MAX_EVENTS = 16  # claim, session, 6 step pairs, optional cancellation and finish.
 
 
 def replay_source_job(job, events):
     job = replace(job, steps=initial_steps(job.payload))
     previous_hash, token, previous_at = None, None, job.created_at
-    if len(events) > MAX_EVENTS:
+    if len(events) > (MAX_EVENTS if job.payload.version >= 3 else 12):
         raise ValueError('Event capacity')
     for expected, (ordinal, kind, encoded, event_hash) in enumerate(events, 1):
         if ordinal != expected or not isinstance(encoded, str) or len(encoded) > 65536 or digest(encoded) != event_hash:

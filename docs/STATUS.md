@@ -1,6 +1,6 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.164.0 · Çekirdek şema 76 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.164.0 · Çekirdek şema 76 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
@@ -12,7 +12,9 @@ kimlik eşleştirme günlüğü; saklı metinden kaynaklı gösterge adayları;
 RIPEstat IP/ağ/ASN bağlamı; pencereli firma inceleme listesi; genişletilmiş
 yönetilen kaynak işleri. Otomatik kimlik merge/IOC/atak atfı yoktur.
 Şema 76 açık yedekli geçiş gerektirir; araştırma modeli 3, öncelik v7,
-kaynak işi v3 (eski v1/v2 okunur), kuyruk 2 ve protokoller v1.
+kaynak işi v3 (eski v1/v2 okunur), kuyruk 3 ve protokoller v1.
+Kuyruk 1/2 açık yedekli `source-jobs migrate` / `platform jobs-migrate`
+ile yükseltilir; altı adım ve geç iptal dahil 16 olay korunur.
 [Kullanım](INVESTIGATION.md), [mimari karar](decisions/0169-investigation-and-company-review.md).
 
 **0.164.0 kabul durumu:** Yeni/ilgili entegrasyon demeti 68 test ile geçti.

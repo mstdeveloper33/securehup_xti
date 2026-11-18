@@ -52,10 +52,15 @@ storage = SQLiteAssetRepository(Path(old['database']))
 migration = storage.migrate()
 assert (migration['from_version'], migration['to_version']) == (75, 76)
 assert migration['backup'] and storage.list()[0].id == old['asset_id']
-job = SourceJobService(SQLiteEngineJobRepository(Path(old['database']).parent / 'engine-jobs.sqlite3')).status(old['job_id'])
+queue = SQLiteEngineJobRepository(Path(old['database']).parent / 'engine-jobs.sqlite3')
+queue_migration = queue.migrate()
+assert (queue_migration['from_version'], queue_migration['to_version']) == (2, 3)
+assert queue_migration['backup']
+job = SourceJobService(queue).status(old['job_id'])
 assert job.payload.version == 2 and job.status == 'queued'
 assert make_company_review_service(Path(old['database'])).show()['root_total_count'] == 1
-print(json.dumps({'from_schema': 75, 'to_schema': 76, 'pre_upgrade_job_readable': True}))
+print(json.dumps({'from_schema': 75, 'to_schema': 76, 'queue_from_schema': 2,
+                  'queue_to_schema': 3, 'pre_upgrade_job_readable': True}))
 '''
 
 ROLLBACK = '''

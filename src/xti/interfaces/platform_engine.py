@@ -61,7 +61,7 @@ def platform_manifest():
         'request_network_access': False,
         'job_type': 'saved_collection_profile',
         'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
-        'source_jobs': {'schema_version': 2, 'plan_operation': 'sources.plan',
+        'source_jobs': {'schema_version': 3, 'plan_operation': 'sources.plan',
                         'execution_version': 3, 'readable_execution_versions': [1, 2, 3],
                         'usage_unit': 'http_open_attempt', 'shared_quota_owner': 'consuming_platform',
                         'sources': ['circl', 'urlscan', 'misp', 'ripestat', 'news:cisa', 'news:ncsc', 'news:cert-fr', 'reports'], 'review_opt_in': True,
@@ -251,7 +251,7 @@ def run_platform(args, *, stream=None, output=None):
                 'invalid_job_state': 'İşin kayıtlı durumu bu işlemi desteklemiyor.',
                 'profile_changed': 'Kayıtlı profil veya izleme kapsamı değişti; güncel seçimle yeni iş planlayın.',
                 'capacity_exceeded': 'İş geçmişi kapasite sınırına ulaştı; tekrar anahtarları silinmedi.',
-                'migration_required': 'Kaynak işleri için platform jobs-migrate ile iş kuyruğunu şema 2’ye yükseltin.',
+                'migration_required': 'Yeni kaynak işleri için platform jobs-migrate ile iş kuyruğunu şema 3’e yükseltin.',
                 'plan_changed': 'Kaynak planı özeti uyuşmuyor; sources.plan ile güncel planı alın.',
                 'uncertain_outcome': 'Kesilen isteğin sonucu belirsiz; yeniden gönderme allow_uncertain seçimi gerektirir.',
             }.get(error.code, 'İş isteği mevcut kayıtlı durumla uyuşmuyor.'))

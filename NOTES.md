@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.164.0 / çekirdek 76 / iş kuyruğu 2**.
+Güncel çalışma: **0.164.0 / çekirdek 76 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -353,7 +353,9 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Araştırma okuyucuları ayrıca ön ölçümlü satır/byte bütçesi uygular.
   Bütçe aşımı eksik kapsam veya açık ret verir, kanıtı sessizce kesmez.
 - **Uyum:** Çekirdek 76 açık yedekli migration; araştırma/frozen model 3,
-  öncelik v7. Yeni kaynak işi v3; eski v1/v2 okunur; kuyruk 2. Eski kodla
+  öncelik v7. Yeni kaynak işi v3; eski v1/v2 okunur; kuyruk 3. Eski 1/2
+  kuyruk ayrıca açık yedekli migration ister; altı adım ve geç iptal
+  dahil 16 olay, eski event/payload byte'ları ve rowid'ler korunur. Eski kodla
   geri dönüş yükseltme öncesi birlikte yedeğin yeni alana restore edilmesidir.
   Yükseltmeden sonraki veriler eski yedekte yoktur; yükseltilmiş alan korunur.
 - **Kabul:** Yerel hacim, saklama arşivi, yedekten dönüş ve gerçek eski kodla

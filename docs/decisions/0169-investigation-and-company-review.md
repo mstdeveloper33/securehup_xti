@@ -56,10 +56,18 @@ veya LLM eklenmez.
 ## Yönetilen işler ve uyum
 
 Yeni kaynak iş yükü/plan/sonuç sürümü 3; önceki 1/2 özgün okunur. Kuyruk
-şeması 2 kalır. RIPEstat, seçili üç yayıncı ve yerel `reports` adımı mevcut
+şeması 3'e açık yedekli geçiş yapılır. RIPEstat, seçili üç yayıncı ve yerel `reports` adımı mevcut
 bütçe/iptal/kurtarma işçisine eklenir. En fazla beş kaynak; news başına bir
 dış istek, report adımında sıfır istek. Makbuzlar özgün haber çalışması ve
 rapor adayı hash'ine doğrulanır. En yeni 20 haber sınırı kısmi kapsam verir.
+
+Canlı birleşik kabul, önceki sonuç doğrulayıcısının üç adımla sınırlı
+olduğunu ortaya çıkardı. Yeni v3 sonuç en fazla altı adımı taşır. Kuyruk
+3, altı start/finish çifti + claim/session + geç iptal + finish için 16
+olaya izin verir. Önceki kuyruk 1/2 okunur; yeni iş kabulü ve yürütme
+açık migration ister. Migration özgün payload/event byte'larını ve
+rowid'leri, ayrıca doğrulanmış eski yedeği korur. Maksimum akışın hem
+başarı hem son adımda iptal senaryosu kalıcı depoyla test edilir.
 
 Bu değişiklik genel iş akışı editörü, ücretli abonelik, merkezi firma
 kotası, .NET/React kullanıcı yönetimi veya LLM/TAXII sunucusu değildir.

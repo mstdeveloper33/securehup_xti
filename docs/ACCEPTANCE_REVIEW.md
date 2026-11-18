@@ -2,9 +2,53 @@
 
 ## 0.164.0 — Roadmap 1–7 motor paketi
 
-18 Kasım 2026; `dbee4ab` üzerine çalışma ağacı. Çekirdek 76, kuyruk 2,
+18 Kasım 2026; `dbee4ab` üzerine çalışma ağacı. Son teslim çekirdek 76, kuyruk 3,
 araştırma/frozen model 3, öncelik v7, kaynak işi v3 (eski 1/2 okunur).
 Kullanıcı `.xti-data` alanı değiştirilmedi. Kabul alanları geçicidir.
+
+### Son kuyruk ve canlı birleşik kabul
+
+İlk canlı firma işinde üç kaynak + inceleme tamamlandığı halde eski
+üç-adım sonuç doğrulayıcısı finalizasyonu reddetti. Özgün dört makbuz
+korundu, iş `interrupted` kaldı; başarılı sayılmadı. Düzeltme v3 sonuçta
+altı adımı, kuyruk 3'te geç iptal dahil 16 olayı açıkça destekler.
+Kuyruk 1/2 → 3 migration eski JSON/hash/rowid'leri ve doğrulanmış yedeği
+korur. Önceki geliştirme adayının v3 işi eski kuyrukta okunur; worker
+migration öncesi dış isteğe başlamaz. Bu senaryolar kalıcı depoyla test edilir.
+
+Son geniş kuyruk demeti **102 test / 24,258 saniye**, hata/atlama olmadan
+geçti: `/tmp/xti-01640-queue3.log`. En büyük beş kaynak + inceleme işi hem
+başarı hem son adımda iptal durumunda tamamlandı; iptal geçmişi tam 16
+olayla doğrulandı. Son ek eski-aday testi ayrıca çalıştırıldı.
+
+Kuyruk 3 ile tekrar edilen yerel hacim kabulü **38,355 saniye**, 84 komut,
+okuma p95 **0,429715 saniye**, RSS **66.060.288 bayt**, disk **14.687.652
+bayt**; temizlik arşivi ve restore geçti. Gerçek SIGTERM/firma kabulü
+**30,800 saniye**, 36 okuma p95 **0,445244 saniye**, RSS **61.931.520
+bayt** ile geçti. Core 75 → 76 ve kuyruk 2 → 3 gerçek eski kod yükseltme /
+eski yedekten geri dönüşü **1,528 saniye** ile geçti. Artefaktlar:
+`/tmp/xti-01640-volume-queue3.json`, `/tmp/xti-01640-platform-queue3.json`,
+`/tmp/xti-01640-upgrade-final.json`.
+
+**Canlı platform akışı PASS:** yeni geçici firmada plan → kabul → worker →
+sonuç → firma inceleme listesi. İş `48452ac1-8056-4ae6-96d7-20da7c260869`
+NCSC, 20 saklı metnin aday çıkarımı, RIPEstat ve son incelemeyi `complete`
+bitirdi. Gerçek worker 2,778 saniye; kaynaklar için toplam iki HTTP denemesi,
+yerel adımlar için sıfır. Araştırma adayları zararlı IOC olarak eklenmedi.
+`/tmp/xti-01640-live-platform-2.json`. Bu Tavily anahtar kabulü değildir.
+
+İlk yerel tam paket **3.030 test / 1.392,213 saniye**, 2 başarısız + 1 hata
+ve 4 ortam atlamasıyla tamamlandı: iki eski katalog beklentisi ve eski Linux
+migration hedefi. Hepsi düzeltildi; kaynak kataloğu/CLI son demeti **21 test /
+12,329 saniye** ile geçti. İlk tam paket temiz kabul sayılmaz. `c2ccb05`
+için önce başlatılmış tam Linux ve uzun hacim işleri, son kuyruk düzeltmesi
+geldiği için iptal edildi; bunlar da tamamlanmış kabul sayılmaz. Son commit
+için yeni tam paket/uzun Linux sonuçları ayrıca eklenecek.
+
+### Önceki geliştirme diliminin ölçümleri
+
+Aşağıdaki ilk ölçümler kuyruk 2 adayına aittir; son kuyruk 3 kabulünün
+yerine kullanılmaz. Hatalar ve sonraki düzeltmeler üstte korunur.
 
 Yeni/ilgili entegrasyon demeti **68 test / 22,246 saniye** ile geçti:
 vaka kapanışı/kaldırılmış kanıt, kamu kaynakları ve ransomware vaka bağı,

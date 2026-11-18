@@ -31,7 +31,7 @@ def register_source_jobs_parser(commands):
     parser = commands.add_parser('source-jobs', help='IP/URL/hash, liste, haber ve rapor adımlarını kuyrukla yönet; ilerlemeyi izle.')
     actions = parser.add_subparsers(dest='source_job_action', required=True)
     for name, label in (('init', 'Mevcut yerel veri alanında iş kuyruğunu açıkça oluştur.'),
-                        ('migrate', 'Mevcut kuyruğu yedekle ve şema 2’ye yükselt.'),
+                        ('migrate', 'Mevcut kuyruğu yedekle ve şema 3’e yükselt.'),
                         ('recover', 'Kesilen işleri işaretle; ağ isteğini tekrarlama.')):
         actions.add_parser(name, help=label)
     for name in ('plan', 'submit'):

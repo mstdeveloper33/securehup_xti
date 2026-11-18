@@ -25,7 +25,7 @@ from xti.ports.jobs import WorkerBusyError
 
 
 ENGINE_JOB_DATABASE_NAME = 'engine-jobs.sqlite3'
-ENGINE_JOB_SCHEMA_VERSION = 2
+ENGINE_JOB_SCHEMA_VERSION = 3
 MAX_ENGINE_JOBS = 10_000
 _APPLICATION_ID = 0x58544A31
 _JOBS_DDL = """CREATE TABLE engine_jobs (
@@ -39,9 +39,10 @@ _EVENTS_DDL_V1 = """CREATE TABLE engine_job_events (
     event_json TEXT NOT NULL, event_sha256 TEXT NOT NULL,
     PRIMARY KEY(job_id, ordinal)
 )"""
-_EVENTS_DDL = _EVENTS_DDL_V1.replace('BETWEEN 1 AND 3', 'BETWEEN 1 AND 12').replace(
+_EVENTS_DDL_V2 = _EVENTS_DDL_V1.replace('BETWEEN 1 AND 3', 'BETWEEN 1 AND 12').replace(
     "'claimed','session','finished','cancelled'",
     "'claimed','session','finished','cancelled','step_started','step_finished','cancel_requested'")
+_EVENTS_DDL = _EVENTS_DDL_V2.replace('BETWEEN 1 AND 12', 'BETWEEN 1 AND 16')
 _JOB_COLUMNS = 'id, request_key, request_json, request_sha256, payload_json, payload_sha256, created_at'
 _EVENT_FIELDS = {'kind', 'recorded_at', 'token', 'session_id', 'status', 'result_json',
                  'result_sha256', 'error_code', 'previous_sha256'}
@@ -63,14 +64,14 @@ class SQLiteEngineJobRepository:
     def _schema(connection):
         version = connection.execute('PRAGMA user_version').fetchone()[0]
         if (connection.execute('PRAGMA application_id').fetchone() != (_APPLICATION_ID,)
-                or version not in {1, ENGINE_JOB_SCHEMA_VERSION}
+                or version not in {1, 2, 3}
                 or connection.execute('PRAGMA journal_mode').fetchone() != ('delete',)):
             raise StorageError('Motor işi şeması desteklenmiyor; otomatik geçiş yapılmadı.')
         objects = set(connection.execute(
             "SELECT name, type, sql FROM sqlite_master WHERE sql IS NOT NULL"
         ).fetchall())
         if objects != {('engine_jobs', 'table', _JOBS_DDL),
-                       ('engine_job_events', 'table', _EVENTS_DDL if version == 2 else _EVENTS_DDL_V1)}:
+                       ('engine_job_events', 'table', {1: _EVENTS_DDL_V1, 2: _EVENTS_DDL_V2, 3: _EVENTS_DDL}[version])}:
             raise StorageError('Motor işi şeması beklenen yapıyla uyuşmuyor.')
         if (connection.execute('PRAGMA quick_check').fetchall() != [('ok',)]
                 or connection.execute('PRAGMA foreign_key_check').fetchall()):
@@ -162,10 +163,10 @@ class SQLiteEngineJobRepository:
             token, previous_hash, previous_time = None, None, job.created_at
             events = connection.execute(
                 'SELECT ordinal, kind, event_json, event_sha256 FROM engine_job_events '
-                'WHERE job_id=? ORDER BY ordinal LIMIT 13', (job_id,),
+                'WHERE job_id=? ORDER BY ordinal LIMIT 17', (job_id,),
             ).fetchall()
             if isinstance(payload, SourceJobPayload):
-                if connection.execute('PRAGMA user_version').fetchone()[0] != 2:
+                if connection.execute('PRAGMA user_version').fetchone()[0] not in {2, 3}:
                     raise ValueError('Source job schema')
                 if payload.retry_of:
                     try:
@@ -295,8 +296,8 @@ class SQLiteEngineJobRepository:
         job_time(recorded_at)
         with self._connection() as connection:
             connection.execute('BEGIN IMMEDIATE')
-            if isinstance(payload, SourceJobPayload) and connection.execute('PRAGMA user_version').fetchone()[0] != 2:
-                raise EngineJobError('migration_required', 'Kaynak işleri için iş kuyruğunu açıkça şema 2’ye yükseltin.')
+            if isinstance(payload, SourceJobPayload) and connection.execute('PRAGMA user_version').fetchone()[0] < (3 if payload.version >= 3 else 2):
+                raise EngineJobError('migration_required', 'Yeni kaynak işleri için iş kuyruğunu açıkça şema 3’e yükseltin.')
             row = connection.execute('SELECT id FROM engine_jobs WHERE request_key=?', (key,)).fetchone()
             if row:
                 previous = self._read(connection, row[0])[0]
@@ -351,6 +352,8 @@ class SQLiteEngineJobRepository:
             job = self._read(connection, job_id)[0]
             if job.status != 'queued':
                 return None
+            if isinstance(job.payload, SourceJobPayload) and job.payload.version >= 3 and connection.execute('PRAGMA user_version').fetchone()[0] < 3:
+                raise EngineJobError('migration_required', 'Yeni kaynak işini çalıştırmadan önce kuyruğu şema 3’e yükseltin.')
             token = str(uuid4())
             job = self._append(connection, job, kind='claimed', at=recorded_at, token=token, status='running')
             connection.commit()
@@ -460,12 +463,12 @@ class SQLiteEngineJobRepository:
                 raise WorkerBusyError('Çalışan veya kurtarma bekleyen iş varken kuyruk yükseltilemez.')
             for (job_id,) in connection.execute('SELECT id FROM engine_jobs'):
                 self._read(connection, job_id)
-            backup = self.path.with_name(f'{self.path.name}.v1-{uuid4()}.backup')
+            backup = self.path.with_name(f'{self.path.name}.v{version}-{uuid4()}.backup')
             self.backup(backup)
-            rows = connection.execute('SELECT * FROM engine_job_events').fetchall()
+            rows = connection.execute('SELECT rowid,* FROM engine_job_events ORDER BY rowid').fetchall()
             connection.execute('DROP TABLE engine_job_events')
             connection.execute(_EVENTS_DDL)
-            connection.executemany('INSERT INTO engine_job_events VALUES (?, ?, ?, ?, ?)', rows)
+            connection.executemany('INSERT INTO engine_job_events(rowid,job_id,ordinal,kind,event_json,event_sha256) VALUES (?, ?, ?, ?, ?, ?)', rows)
             connection.execute(f'PRAGMA user_version={ENGINE_JOB_SCHEMA_VERSION}')
             self._schema(connection)
             for (job_id,) in connection.execute('SELECT id FROM engine_jobs'):

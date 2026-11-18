@@ -9,12 +9,14 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama 0.164.0 · protokol `xti-platform` v1 · çekirdek şema 76 · kuyruk 2.**
+**Uygulama 0.164.0 · protokol `xti-platform` v1 · çekirdek şema 76 · kuyruk 3.**
 
 0.164.0 firma kapsamlı `company.review` ve `investigation` okuma/yazma
 işlemleri ekler. Kimlik/rapor önerisi ve kararları mevcut workspace kimliği,
 writer kilidi ve tekrar anahtarıyla korunur. Kaynak işlerinin yeni v3 biçimi
 RIPEstat, yayıncı ve yerel rapor adımlarını taşır; eski v1/v2 işler okunur.
+Yeni kaynak işleri öncesinde eski firma kuyruğu `platform jobs-migrate`
+ile şema 3'e açıkça yükseltilir; öncesinde doğrulanmış yedek alınır.
 [Parametreler ve örnekler](INVESTIGATION.md#kaynak-işleri-ve-platform-sözleşmesi).
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında

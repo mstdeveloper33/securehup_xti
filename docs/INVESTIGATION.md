@@ -1,6 +1,6 @@
 # Araştırma, kimlik incelemesi ve firma listesi
 
-18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · kuyruk şeması 2.
+18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · kuyruk şeması 3.
 
 Bu teslim yol haritasındaki 1–7 paketinin motor kapsamını birleştirir.
 Mevcut vakalar, sosyal profiller ve saklanmış firma içerikleri aynı
@@ -15,10 +15,14 @@ gerekçeli insan kararlarıyla incelenir. Firma inceleme listesi bu kayıtları
 Yeni alan `./xti init` ile kurulur. Okuma komutları kendiliğinden migration
 yapmaz. Firma alanında aynı komuta seçili firmanın `--data-dir` konumu verilir;
 öncesinde `platform backup` ile çekirdek ve kuyruğu birlikte yedekle.
-Kuyruk zaten şema 2 ise yeni kuyruk geçişi gerekmez.
+Eski şema 1/2 kuyruğu için ayrıca `./xti source-jobs migrate`;
+firma kuyruğunda `./xti platform jobs-migrate --root KOK --company FIRMA`
+gerekir. Bu geçiş kuyruk yedeğini ayrı alır; eski payload/event byte'ları ve
+kimlikleri korunur. Salt okuma ve eski işler yeni kodla okunabilir.
 
 ```sh
 ./xti migrate
+./xti source-jobs migrate
 ./xti research securehup.com --type domain --priorities
 ./xti review-queue --root-limit 25 --limit 20
 ./xti investigate list
@@ -139,6 +143,9 @@ listesi ve `reason` alır. `platform request --describe` güncel sözleşmeyi ve
 Okuma gerçek firma alanına bağlıdır; başka firmanın kimliği geçerli sayılmaz.
 
 Karar günlüğü 10.000 olay/32 MiB sınırındadır; otomatik silinmez.
+Kuyruk 3, beş kaynak + son inceleme için altı adımı ve son anda gelen iptal
+dahil 16 olay kaydını taşır. Eski kuyruk sessizce yükseltilmez; yeni v3 iş
+kabulü/başlatılması explicit kuyruk geçişini ister.
 Araştırma okuyucuları ayrıca satır/byte sınırları uygular, aşımda kısmi kapsam
 bildirir. Daha yüksek kapasite mevcut bütünlük denetimini kaldırarak açılmaz.
 Yeni ücretli servis veya Python paketi eklenmedi; mevcut sabit sürümlü
