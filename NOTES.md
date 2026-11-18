@@ -370,6 +370,25 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   [başarılı tam koşuyu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44311197271)
   ayrı korur. Sınırlı kabul 7/24 SLA veya OpenCTI eşdeğerliği değildir.
 
+### N-024 — Geniş STIX/TAXII dış sistem alışverişini erteleme
+
+- **Durum:** Kullanıcı kararıyla ertelendi. **Güncellendi:** 18 Kasım 2026.
+- **Dayanak:** Motor kendi platformumuzda kullanılacak; kullanıcı geniş
+  dış sistem içe/dışa aktarımını ve TAXII alışverişini sonraya bıraktı.
+  Roadmap 1–7'nin tamamlanması, 8. adımı kendiliğinden başlatmaz.
+- **Kapsam:** Geniş STIX nesne/ilişki içe-dışa aktarımı ile TAXII üzerinden
+  başka güvenlik sistemleriyle alışveriş aktif geliştirme sırasından çıkarıldı.
+  Mevcut sınırlı STIX dışa aktarımı ve MITRE ATT&CK gibi çalışan kaynak
+  bağlantıları kullanılmaya devam eder.
+- **Motor/platform:** Kendi .NET platformunun mevcut engine/platform JSON
+  sözleşmesiyle bağlantısı ayrı kapsamdır; bu bağlantıyı tüketici ekip uygular.
+  Veri kaynakları ve uygun açık kaynak araç adaptörleri de bu ertelemenin
+  kapsamına girmez.
+- **Yeniden ele alma koşulu:** Somut dış sistem veya müşteri veri alışverişi
+  ihtiyacı oluştuğunda, karşı uç ve gerekli nesne/işlem kapsamı kullanıcıyla
+  belirlenir. LLM ayrı bekleyen başlıktır; bu karar LLM'yi başlatmaz.
+- **Dayanak plan:** [Motor yol haritası](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md).
+
 ## Korunacak kararlar
 
 18 Kasım 2026 itibarıyla mevcut kullanıcı tercihleri:
@@ -385,7 +404,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - Firma paketi/abonelik/kullanım hakkı backendde; motor iş sınırları,
   kaynak beklemeleri ve kullanım raporundan sorumludur. Ortak sağlayıcı
   kotası tek merkezden backend entegrasyonunda yönetilecek (N-007).
-- LLM ve geniş STIX/TAXII en son. Mevcut sınırlı STIX çıktısı korunuyor.
+- Geniş STIX/TAXII dış sistem alışverişi, somut ihtiyaç oluşana kadar
+  ertelendi (N-024). Kendi platformunun JSON bağlantısı ve mevcut kaynak/
+  araç adaptörleri ayrı kapsamdır. Mevcut sınırlı STIX çıktısı korunuyor.
+  LLM ayrı bekleyen başlıktır.
 - Geniş marka koruması, e-posta/SMS ve diğer ertelenmiş işler sırf yeni
   kaynak eklendi diye yeniden kapsam içine alınmayacak.
 - Saldırı/istismar otomasyonu hedef değil. Mevcut yetkili Nmap kapsamı
@@ -523,6 +545,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**18 Kasım 2026 kullanıcı kararı:** Geniş STIX/TAXII, 1–7 sonrasında
+otomatik sıradaki geliştirme olmayacak; dış sistem alışverişi ihtiyacına
+kadar ertelendi (N-024). Odağımız kendi platformumuzun motorudur. Mevcut
+JSON sözleşmesi, kaynaklar ve araç adaptörleri korunur. LLM ayrıca bekler.
 
 **Önceki kabul tamamlandı:** 0.162.0 N-016'daki başlangıç yükünü azalttı;
 eşikler/kurtarma testleri korundu. `dba3dbd` Linux firma kabulü iki Python

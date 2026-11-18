@@ -347,7 +347,7 @@ kurallarını veri okuma, yazma ve iş yürütmede uygulamaktan sorumludur.
 | **MTR-04 — Kalite, öncelik ve değişim** | Hangi kaydın yeni, eski, çelişkili veya öncelikli olduğunu gerekçeleriyle görme | 0.155.0 sürümlü inceleme sırası; 0.156.0 kalıcı inceleme/fark geçmişi; 0.164.0 pencereli firma geneli inceleme listesi ve kaynak durumlarını ayrı gösterme mevcut. Daha geniş IOC yaşam döngüsü ve anlamsal çelişki değerlendirmesi ayrı genişlemelerdir. | Öncelik değişiminin gerekçesi ve kural sürümü tekrar üretilebilir. Kaynak yokluğu sıfır risk olmaz. Zamanla eskiyen kayıt silinmez. İnsan kararı otomatik ezilmez; aynı kanıt yeni alarm üretmez. |
 | **MTR-05 — Yönetilebilir motor akışları** | Seçtiği kaynaklarla toplama → ilişkilendirme → değerlendirme → sonuç akışını çalıştırma | 0.157.0 seçili URL/hash/MISP → isteğe bağlı inceleme, bütçe, ilerleme, iptal/kurtarma/tekrar; 0.164.0 RIPEstat, üç yayıncı ve yerel metin adayları aynı akışta. Genel akış kurucusu somut ihtiyaçla ayrıca ele alınır. | Akış adımları ve kaynak maliyeti başlamadan görülebilir. Aynı istek tekrar iş yaratmaz. Belirsiz dış istek otomatik tekrar edilmez. Ücretli kaynak açık seçim gerektirir. Adımlar genel komut/kod çalıştıramaz. |
 | **MTR-06 — Üretim ve kapasite** | Ölçülmüş yük altında sürekli çalışan, kurtarılabilir hizmet | 0.164.0 iki firmada 6.000 kayıtla 30 dakikalık Linux süreç/iş/iptal kabulü, disk/bellek ölçümü, arşiv, yedekten ve gerçek eski sürüme dönüş geçti. Daha büyük depo, arama veya çoklu worker tasarımı yeni yük ölçümüne bağlıdır. | Test makinesi ve yük profiliyle sonuç yayımlanır. İki firmanın yük/kapsam ayrımı, veri kaybı ve tekrar davranışı sınanır. Kapasite sınırı veri sessizce kesilerek gizlenmez. Ölçülmemiş SLA veya OpenCTI eşdeğerliği ilan edilmez. |
-| **MTR-07 — Standart paylaşım, en son** | İstihbaratı diğer güvenlik sistemleriyle alışveriş yapma | Geniş STIX 2.1 nesne/ilişki aktarımı, içe alma, TAXII, değişiklik/geri çekme ve paylaşım kısıtları | İçe/dışa dönüşte kimlik, ilişki, kaynak ve kısıtlar korunur. Karşı sistemle kabul yapılır. Kaynak lisansı veya firma kapsamı izin vermeyen bilgi dışarı çıkmaz. |
+| **MTR-07 — Standart paylaşım, ertelendi** | İhtiyaç olduğunda istihbaratı diğer güvenlik sistemleriyle alışveriş yapma | Kullanıcı kararıyla somut dış sistem ihtiyacına bırakıldı (N-024). Gelecek kapsam: geniş STIX nesne/ilişki aktarımı, içe alma, TAXII, değişiklik/geri çekme ve paylaşım kısıtları | Yeniden ele alındığında kimlik, ilişki, kaynak ve kısıtlar korunur; karşı sistemle kabul yapılır. Kaynak veya firma kapsamının izin vermediği bilgi dışarı çıkmaz. |
 | **MTR-08 — LLM desteği, en son** | Kanıtlara dayanan özet, ilişki önerisi ve analist açıklaması | Yerel/API model adaptörü, kaynak referanslı sınırlı bağlam, maliyet/gizlilik ayarları, değerlendirme kümesi | Model yokken çekirdek çalışır. Öneri gerçek kayıt veya doğrulanmış tehdit sayılmaz. Model firma sınırını, kaynak yetkisini veya araç izinlerini değiştiremez. Kalite/maliyet ölçülmeden etkin varsayılan olmaz. |
 
 **0.163.0 sonrasındaki somut sıra — 18 Kasım 2026:** Kullanıcı 1–7'yi
@@ -357,6 +357,14 @@ sürüm geri dönüşü, firma izolasyonu ve 3.039 testlik tam Linux paketi geç
 Bu sonuç belirtilen yük profilinin kabulüdür; geniş STIX/TAXII ve LLM
 8/9 olarak bekler.
 [Uygulama rehberi](../INVESTIGATION.md), [kanıt](../ACCEPTANCE_REVIEW.md).
+
+**18 Kasım 2026 erteleme kararı:** Geniş STIX/TAXII aktif sıradaki iş
+olmaktan çıkarıldı. Motor kendi platformumuza mevcut JSON sözleşmesiyle
+bağlanabilir. Somut dış sistem veya müşteri alışverişi ihtiyacı
+oluştuğunda 8. adımın kapsamı yeniden belirlenir. Kaynak/araç adaptörleri
+ve kendi .NET platformunun bağlantısı bu ertelemeye dahil değildir.
+Mevcut temel STIX çıktısı korunur; LLM ayrı bekler.
+[Karar kaydı: NOTES.md, N-024](../../NOTES.md).
 
 1. **Vaka ve insan kararlarını ortak araştırmaya bağlama — entegrasyon.**
    İlgili vaka, açık/kapalı durum, karar gerekçesi ve özgün kanıt bağını
@@ -384,8 +392,9 @@ Bu sonuç belirtilen yük profilinin kabulüdür; geniş STIX/TAXII ve LLM
    hacmi ve uzun süreli Linux çalışması; disk, bellek, kuyruk, arşivleme,
    yedekten dönüş ve sürüm geri dönüşü. Ölçümler bütün adımlara eşlik eder;
    daha büyük depo veya paralel çalışma tasarımı ölçülen ihtiyaçla seçilir.
-8. **Geniş STIX/TAXII — en son.** Kimlik, kaynak, ilişki, geri çekme ve
-   firma/paylaşım sınırlarını koruyan standart veri alışverişi.
+8. **Geniş STIX/TAXII — kullanıcı kararıyla ertelendi.** Somut dış sistem
+   alışverişi ihtiyacında kimlik, kaynak, ilişki, geri çekme ve firma/paylaşım
+   sınırlarını koruyan kapsam ayrıca planlanır; mevcut sıradaki iş değildir.
 9. **LLM desteği — en son.** Kaynak gösteren özet ve ilişki önerisi;
    doğruluk, yanlış alarm, gizlilik ve maliyet değerlendirmesinden sonra
    isteğe bağlı kullanım.

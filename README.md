@@ -21,7 +21,9 @@ RIPEstat IP/ağ/ASN bağlamı, yayıncı ve yerel rapor adımları yönetilen ka
 işlerine eklendi. Eski alan için yedekli `./xti migrate`, eski kuyruk için
 `./xti source-jobs migrate` gerekir; yeni iş
 biçimi v3, eski v1/v2 okunur. [Kullanım ve sınırlar](docs/INVESTIGATION.md),
-[ölçülmüş kabul](docs/ACCEPTANCE_REVIEW.md). Geniş STIX/TAXII ve LLM bekler.
+[ölçülmüş kabul](docs/ACCEPTANCE_REVIEW.md). Geniş STIX/TAXII, somut dış
+sistem alışverişi ihtiyacına kadar kullanıcı kararıyla ertelendi (NOTES.md,
+N-024). Kendi platformunun JSON bağlantısı ayrı kapsamdır; LLM ayrıca bekler.
 
 0.163.0 tedarikçi kaynak iddialarını, izleme karşılaştırmalarını ve mevcut
 inceleme kartını ortak araştırmaya ekler. Kaynak/tarih, aynı ad belirsizliği,

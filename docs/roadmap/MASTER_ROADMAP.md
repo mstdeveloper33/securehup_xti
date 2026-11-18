@@ -1,14 +1,19 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 16 Kasım 2026 · **Mevcut uygulama:** 0.150.0 / çekirdek şema 72.
+**Plan güncellemesi:** 18 Kasım 2026 · **Mevcut uygulama:** 0.164.0 / çekirdek şema 76 / iş kuyruğu 3.
 
 **Son ürün netleştirmesi:** Kendi ticari platformumuz için kapalı kaynak
 motor geliştiriliyor. Yeni motor yeteneklerinin güncel sırası
 [MTR-00–08](ENGINE_INTEGRATION_ROADMAP.md) planıdır: ortak istihbarat,
 ilişki araştırması, kaynak genişletme, kalite/öncelik, yönetilebilir işler
-ve ölçülmüş üretim kabulü. Geniş STIX/TAXII ve LLM en sonda kalır.
-Bu sıra aşağıdaki tarihî ürün/ENG kayıtlarını genişletir; yeni MTR
-yetenekleri uygulanmış sayılmaz. Bileşenlerin ticari kullanım ve veri
+ve ölçülmüş üretim kabulü. Somut 1–7 motor paketi 0.164.0'da tamamlandı;
+teslim kapsamı [STATUS.md](../STATUS.md) içinde belirtilir.
+**Geniş STIX/TAXII**, 18 Kasım kullanıcı kararıyla somut dış sistem
+alışverişi ihtiyacına ertelendi; otomatik sıradaki iş değildir (N-024).
+Kendi platformunun JSON bağlantısı ve kaynak/araç adaptörleri ayrı kapsamdır.
+Mevcut temel STIX çıktısı korunur; LLM ayrıca bekler.
+Bu sıra aşağıdaki tarihî ürün/ENG kayıtlarını genişletir; gelecekteki işler
+uygulanmış sayılmaz. Bileşenlerin ticari kullanım ve veri
 hakları [seçim planında](COMPONENT_SELECTION_PLAN.md) ayrıca izlenir.
 
 **İlk ticari işletim:** Yalnız kendi sunucularımızda platform hizmeti.

@@ -6,6 +6,11 @@ Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
 
+**18 Kasım plan kararı:** Geniş STIX/TAXII dış sistem alışverişi, somut
+ihtiyaç oluşana kadar kullanıcı kararıyla ertelendi (NOTES.md, N-024).
+Kendi platformu için JSON işlem sözleşmesi, mevcut kaynak/araç adaptörleri ve temel
+STIX çıktısı korunur. LLM ayrı bekler; bu karar kod veya şema değişikliği değildir.
+
 **0.164.0:** Roadmap 1–7'nin tanımlanan motor ve ölçümlü kabul paketi tamamlandı:
 mevcut vakalar/kararlar,
 sosyal profiller ve saklı firma içerikleri ortak araştırmada; geri alınabilir
