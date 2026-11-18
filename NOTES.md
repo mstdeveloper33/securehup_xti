@@ -358,10 +358,14 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   dahil 16 olay, eski event/payload byte'ları ve rowid'ler korunur. Eski kodla
   geri dönüş yükseltme öncesi birlikte yedeğin yeni alana restore edilmesidir.
   Yükseltmeden sonraki veriler eski yedekte yoktur; yükseltilmiş alan korunur.
-- **Kabul:** Yerel hacim, saklama arşivi, yedekten dönüş ve gerçek eski kodla
-  sürüm geri dönüşü geçti. Uzun Linux/tam paket sonuçları
-  [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) ayrı izlenir; sınırlı kabul
-  7/24 SLA veya OpenCTI eşdeğerliği değildir.
+- **Kabul:** Yerel ve 30 dakikalık Linux hacim, saklama arşivi, yedekten
+  dönüş ve gerçek eski kodla sürüm geri dönüşü geçti. Linux'ta 232 tur /
+  2.784 süreç, p95 0,745487 saniye, RSS 49.979.392 bayt ölçüldü.
+  Tam paket ilk Linux koşusu 30 dakika CI sınırında 2.509 test satırından
+  sonra iptal oldu; test hatası görünmedi ama tam başarı sayılmaz. Yalnız
+  CI tam paket iş bütçesi 60 dakika oldu; kabul eşikleri değişmedi. Yeni
+  tam sonuç [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) beklenir; sınırlı
+  kabul 7/24 SLA veya OpenCTI eşdeğerliği değildir.
 
 ## Korunacak kararlar
 

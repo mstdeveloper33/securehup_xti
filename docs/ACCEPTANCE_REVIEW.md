@@ -2,9 +2,95 @@
 
 ## 0.164.0 — Roadmap 1–7 motor paketi
 
-18 Kasım 2026; `dbee4ab` üzerine çalışma ağacı. Son teslim çekirdek 76, kuyruk 3,
+18 Kasım 2026; kod commit'i `432f530c64c64614c6c4418eaa05e959d06c65ab`.
+Başlangıç sürümü `dbee4ab` / 0.163.0. Son teslim çekirdek 76, kuyruk 3,
 araştırma/frozen model 3, öncelik v7, kaynak işi v3 (eski 1/2 okunur).
 Kullanıcı `.xti-data` alanı değiştirilmedi. Kabul alanları geçicidir.
+
+### İstenen yedi adımın karşılığı
+
+| Adım | Teslim edilen davranış | Tekrar üretilebilir kanıt |
+|---|---|---|
+| 1. Vaka ve insan kararları | Vaka durumu, gerekçe ve özgün kanıt ortak araştırmada; kapatma kaynak geri çekilmesi olmaz | [Vaka/içerik testleri](../tests/test_research_case_content.py); kalıcı inceleme kapanış farkı ve eski dondurulmuş incelemenin değişmemesi ayrıca doğrulandı |
+| 2. Mevcut sosyal/firma içerikleri | Sosyal gözlem ve insan kararı; firma aramasının özgün domain/URL bağı; son hata ile önceki olumlu kanıt ayrı | [Vaka/içerik testleri](../tests/test_research_case_content.py); yeni Tavily isteği yapılmaz |
+| 3. Kimlik incelemesi | Kayıtlı ad/alternatif ad adayları; kanıtlı onay, ret, belirsiz ve geri alma; kaynak kimlikleri korunur | [Kimlik ve günlük testleri](../tests/test_investigation.py), [firma yazma/restore testleri](../tests/test_investigation_platform.py) |
+| 4. Kaynak ve metin kapsamı | RIPEstat IP/prefix/ASN bağlamı; saklı metinden özgün konumuyla gösterge adayları | [Kaynak testleri](../tests/test_extended_source_jobs.py), [metin sınırları](../tests/test_investigation.py); canlı pasif RIPEstat ve NCSC akışı |
+| 5. Firma inceleme listesi | Pencereli kökler, gerekçeli öncelik, bağımsız vakalar ve kaynak durumları; eksik kapsam açık | [İnceleme listesi testleri](../tests/test_investigation.py), [hacim/sayfalama kabulü](../scripts/check-engine-soak.py) |
+| 6. Yönetilen akışlar | RIPEstat, yayıncı ve metin adımları; bütçe, kalıcı sonuç, tekrar, iptal ve eski iş uyumu | [Altı adım/geç iptal/kuyruk geçişi testleri](../tests/test_extended_source_jobs.py); canlı firma plan → worker → sonuç zinciri |
+| 7. Kapasite ve işletim | Hacim, gerçek süreç tekrarı, kuyruk, arşiv, restore ve eski kodla geri dönüş | [Hacim kabulü](../scripts/check-engine-soak.py), [sürüm geri dönüşü](../scripts/check-engine-upgrade.py); yerel ve Linux firma kabulü geçti, uzun Linux/tam paket sonucu bekleniyor |
+
+Vaka kapanışından sonra yeni kalıcı inceleme bir değişim kaydetti;
+`withdrawn_assertion_ids` boş kaldı ve önceki incelemenin saklı içeriği
+değişmedi. Kanıt: `/tmp/xti-01640-case-history-acceptance.json`.
+
+### Son kodun hızlı Linux kontrolü
+
+`432f530` için [hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44305422546)
+Python 3.11'de **1.742 test / 1.146,589 saniye**, hata ve atlama olmadan
+geçti. Günlük: `/tmp/xti-01640-linux-quick-final.log`. Bu demet tam paketle
+örtüşür; sayıları toplanarak farklı test sayısı gibi verilmez.
+
+### Uzun Linux hacim ve geri dönüş kabulü
+
+`432f530` için [30 dakikalık Linux kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44305506952)
+ilk koşuda geçti: Ubuntu 24.04 / Linux 7.0.0-1014-aws, x86_64, 4 CPU,
+Python 3.13.18, SQLite 3.45.1. 1.800 saniyelik tekrar penceresiyle toplam
+**1.812,966 saniye**, **232 tur / 2.784 gerçek süreç çağrısı** çalıştı.
+Okuma p95 **0,745487 saniye**, en yüksek RSS **49.979.392 bayt**,
+disk **18.104.785 bayt**. Temizlik arşivi, karar günlüğünün korunması,
+firma ayrımı ve birlikte yedekten dönüş geçti. Eşikler değişmedi.
+
+Aynı Linux işinde gerçek 0.163.0 kodu/çekirdek 75/kuyruk 2 üzerinden
+0.164.0/76/3 yükseltme ve eski kodla eski yedekten boş alana geri dönüş
+**1,628 saniye** ile geçti. Eski kod yeni şemayı reddetti; özgün kimlikler
+korundu, yeni workspace üretildi ve bekleyen iş iptal kaldı.
+Günlük: `/tmp/xti-01640-linux-soak-final.log`.
+
+### Tam Linux paketinin süre sınırı
+
+`432f530` [ilk tam Linux koşusu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44305518106)
+12:36:24–13:06:38 UTC arasında çalıştı; GitHub'ın 30 dakikalık iş süresi
+dolduğu için iptal edildi. Günlükte 2.509 tamamlanan test satırı bulunur;
+FAIL/ERROR testi yoktur, fakat nihai paket özeti de yoktur. Bu koşu tam
+paket başarısı sayılmaz. Günlük: `/tmp/xti-01640-linux-full-first.log`.
+
+Üç binin üzerindeki tam regresyon için yalnız CI iş süresi 60 dakikaya
+çıkarıldı; test listesi, assert'ler ve motorun komut/p95/RSS/disk/kurtarma
+eşikleri değişmedi. Runtime kodu aynı `432f530` sürümüdür. Tam paket yeni
+CI bütçesiyle baştan çalıştırılır; sonuç geldikten sonra burada kapatılır.
+
+### Son kodun Linux firma kabulü
+
+`432f530` için [firma izolasyonu kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44305422658)
+iki Python sürümünde ilk koşuda geçti. Ubuntu 24.04.5, x86_64, 4 CPU,
+SQLite 3.45.1; iki geçici firmada 100/1.000 kayıt, 36 okuma ve 63 süreç/kapı.
+
+| Python | Toplam süre | Okuma p95 | En yüksek okuma RSS | Disk |
+|---|---:|---:|---:|---:|
+| 3.11.18 | 41,022 sn | 0,510990 sn | 46.710.784 bayt | 5.427.747 bayt |
+| 3.13.18 | 51,369 sn | 0,644509 sn | 47.054.848 bayt | 5.431.843 bayt |
+
+Kaynak öncesi ve kalıcı sonuç sonrası gerçek SIGTERM, aynı firmada ikinci
+worker ve eşzamanlı kurtarma reddi, diğer firmada tamamlanan iş ve aynı
+kesilmiş işin tekrar anahtarıyla korunması geçti. Toplam 120 saniye,
+okuma p95 5 saniye, RSS 512 MiB ve disk 128 MiB sınırları değiştirilmedi.
+Günlük: `/tmp/xti-01640-linux-platform-final.log`.
+
+### Hacim testinin ölçtüğü iş yükü
+
+Hacim testi iki firmada toplam 6.000 varlık (1.000 ve 5.000), kayıtlı
+DNS/IOC/aktör bağları, bir kimlik kararı, firma başına 10 vaka ve bir saklı
+rapor metni kullanır. Her turda 10 köklük inceleme penceresinin ilk ve
+ikinci sayfası, bağımsız vaka penceresi, kaynak planı ve yeni iş çalıştırılır;
+turlar sırayla worker tamamlama ve kuyrukta iptal yolunu kullanır.
+
+Bu ölçüm 6.000 kökü tek istekte dolaşmaz. Kök ve sonuç sayfaları ayrı
+kalır; eksik kapsamın görünmesi, aynı kesitte sayfaya devam etme, yinelenen
+metnin yeni aday çoğaltmaması ve firma ayrımı kontrol edilir. Test sonunda
+100 eski bağlantısız gözlem yedeklenerek temizlenir; karar günlüğü aynı
+kalır. Çekirdek/kuyruk birlikte yedekten boş alana döndürülür ve veritabanı
+bütünlüğü doğrulanır. Gerçek internet kaynakları bu tekrar yüküne katılmaz;
+canlı kaynak kabulü aşağıda ayrı verilir.
 
 ### Son kuyruk ve canlı birleşik kabul
 

@@ -17,11 +17,13 @@ Kuyruk 1/2 açık yedekli `source-jobs migrate` / `platform jobs-migrate`
 ile yükseltilir; altı adım ve geç iptal dahil 16 olay korunur.
 [Kullanım](INVESTIGATION.md), [mimari karar](decisions/0169-investigation-and-company-review.md).
 
-**0.164.0 kabul durumu:** Yeni/ilgili entegrasyon demeti 68 test ile geçti.
+**0.164.0 kabul durumu:** Son kuyruk/ilgili entegrasyon demeti 102 test ile geçti.
 İki firmada 6.000 varlıklı yerel hacim/tekrar/iptal/temizlik arşivi/yedekten
-dönüş 38,431 saniyede; okuma p95 0,452 saniye, en yüksek RSS 65.945.600
-bayt. Gerçek 0.163.0 koduyla 75 → 76 yükseltme ve eski kodla boş alana
-geri dönüş geçti. RIPEstat canlı pasif GET başarılı. Tam paket ve uzun
+dönüş 38,355 saniyede; okuma p95 0,430 saniye, en yüksek RSS 66.060.288
+bayt. Gerçek 0.163.0 koduyla çekirdek 75 → 76 / kuyruk 2 → 3 yükseltme
+ve eski kodla boş alana geri dönüş geçti. NCSC → yerel metin adayları →
+RIPEstat → kayıtlı inceleme canlı firma işi tamamlandı. Linux firma kabulü
+Python 3.11 ve 3.13'te ilk koşuda geçti. Tam paket ve uzun
 Linux kabulü sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) tamamlandıkça
 işaretlenir; devam eden iş başarılı sayılmaz.
 
@@ -40,8 +42,9 @@ ile geçti; hata/atlama yok. İki firmalı gerçek süreç/kurtarma kabulü
 **29,331 saniye**; 36 okuma p95 **0,521 saniye**, 63 komut/kapı ve iki
 SIGTERM sınırı geçti. Eşikler aynı kaldı. Son tarih/frozen kontrolü
 **86 test / 33,074 saniye** ile geçti; demetlerin birleşimi **435 farklı
-test**, 28 yeni senaryo içerir. Yeni commit'in GitHub sonucu henüz yok;
-[kabul kaydında](ACCEPTANCE_REVIEW.md) ayrı tutulur.
+test**, 28 yeni senaryo içerir. `dbee4ab` için GitHub hızlı kontrol,
+firma izolasyonu, Linux kurulumu ve marka araçları kurulumu da geçti;
+bağlantılar [NOTES.md, N-021](../NOTES.md) içinde korunur.
 
 **0.162.0:** Firma girişi ve engine bileşimi kullanılmayan toplayıcıları
 yüklemez; mevcut parser/kapsam/kuyruk kuralları korunur. Aynı yerel gerçek
