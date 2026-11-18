@@ -1,5 +1,73 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.160.0 — Tedarikçi adayı ve insan kararı araştırması
+
+18 Kasım 2026, macOS arm64/Python 3.13.3; `1601e75` üzerine çalışma ağacı.
+Çekirdek 75 ve kuyruk 2 değişmedi. Araştırma/değerlendirme modeli 2,
+`research-priority-v3`; eski model 1 özgün okunur. İlk yeni model/kural
+kaydı yeni başlangıçtır. Bu kabul kayıtlı veriyi okur; yeni ağ kaynağı yoktur.
+
+| Doğrulama | Sonuç |
+|---|---|
+| `umask 002`; araştırma/öncelik/geçmiş, tedarikçi envanteri/adayı/izlemesi/riski, varlık ilişkileri, engine/platform, firma ayrımı, yedek, kaynak işleri, mimari ve CI | **336 test / 132,661 saniye; OK, atlama yok** |
+| Son bozuk tedarikçi kimliğinin `storage_error` olarak sınıflanmasından sonra yeni araştırma, tedarikçi risk ve tehdit olayları | **42 test / 18,566 saniye; OK, atlama yok** |
+| Ayrı iki firmalı gerçek süreç kabulü | **40,395 saniye; passed**; 36 okuma, p95 **0,578 saniye**, en yüksek alt süreç belleği **71.188.480 bayt** |
+
+İki test demetinde **337 farklı test** vardır; tekrarlar toplanmaz.
+32 yeni araştırma testi hızlı CI listesine dahil edildi. İlk 125 eski
+regresyon ve 29 geliştirme testi bu toplama tekrar eklenmez.
+
+Yeni kabulün kapsadığı davranışlar:
+
+- Bekleyen/reddedilen/belirsiz adaydan tedarikçi onayı üretilmemesi;
+  özgün CNAME kanıtı, kayıtlı PSL ve insan kararı kimliklerinin korunması.
+- Onay → ret/yeniden açma, başka sağlayıcıya geçiş ve yeniden kabul;
+  eski bağlantının özgün yeni kararla kaldırılmış gösterilmesi.
+- Teknik kanıtın kaybolması, envanterin pasifleştirilmesi ve insan
+  kararının ayrı kalması; yeni DNS kontrolünün adayı sessizce yenilememesi.
+- İsim değişiminde kimlik/geçmişin korunması; aynı isimden birleştirme
+  yapılmaması; teknik aday domaini ile envanter domaininin ayrılması.
+- İki adımlı ters araştırma, gerçek `record.get` tedarikçi başvurusu,
+  doğru ayrıntı komutları, firma ayrımı ve yedekten aynı kanıtı okuma.
+- Seçili geçmişi doğrulama; ilgisiz büyük envanter içeriklerini yüklememe;
+  satır/bayt sınırı öncesi ölçüm, kısmi kapsam ve gösterilmeyen kanıt sayısı.
+- Eksik yaşam döngüsü, bozuk kimlik/kapsam/hash ve geçmişte silinmiş
+  tedarikçi başvurusunu reddetme; dar geçmişi firma watermark'ı saymama.
+- Eşzamanlı yazmada tek okuma kesiti; değişen sayfa işaretinin reddi;
+  50'den fazla kararda son karar ve teknik kanıtın birlikte korunması.
+- İnsan kararını ağ gözlemi/IOC iddiası gibi kabul etmeme, yaşını tehdit
+  puanı yapmama; gerçek karar değişimini yalnız saat değişiminden ayırma.
+- Model 1 geçmişinin değişmeden okunması, model 2'nin yanlışlıkla model 1
+  olarak saklanmasının reddi ve yeni modelde karşılaştırma başlangıcı.
+
+Yeni araştırma testleri ağ ve dış süreç başlatmayı assertion ile engeller.
+Ayrı platform kabulü ise iki geçici firmada gerçek yerel süreçleri kullanır:
+kaynak öncesi ve makbuz sonrası `SIGTERM`, çalışan işe ikinci worker/kurtarma
+reddi, diğer firmanın çalışabilmesi, kalıcı kanıt ve aynı kesilmiş işe dönüş
+doğrulandı. SQLite bütünlüğü geçti. Eşikler 120 saniye toplam, 5 saniye p95,
+512 MiB alt süreç belleği ve 128 MiB disk olarak korundu. Bu kontrollü yük,
+7/24 kapasite veya yeni tedarikçi grafiğinin büyük veri performans ölçümü değildir.
+
+Geçici kanıtlar: `/tmp/xti-01600-regression.log`,
+`/tmp/xti-01600-final-tests.log`, `/tmp/xti-01600-platform-acceptance.json`.
+Son JSON SHA-256:
+`bd543ebc4c26bfff41acdd3b1808ce1f59f1d2efaeb4b9ad6254d7ae4a489a9b`.
+Ham test veritabanları repoya dahil değildir. Bu sonuç tam test paketi,
+Linux veya Tavily/Nmap canlı kabulü değildir; N-004/N-005 açık kalır.
+Kod geri dönüşünde yeni model 2 incelemelerinin eski motorla okunamayacağı
+N-018'de kaydedildi; otomatik veri downgrade yapılmaz.
+
+```sh
+umask 002
+./scripts/python -m unittest tests.test_research tests.test_research_surface tests.test_research_suppliers tests.test_research_priority tests.test_research_history tests.test_suppliers tests.test_supplier_candidates tests.test_supplier_watches tests.test_supplier_watch_integration tests.test_supplier_threat_events tests.test_supplier_risk tests.test_asset_relations tests.test_engine_contract tests.test_engine_records tests.test_platform_engine tests.test_platform_isolation tests.test_platform_backup tests.test_source_jobs tests.test_source_jobs_usage tests.test_source_jobs_platform tests.test_architecture tests.test_ci_configuration
+./scripts/python -m unittest tests.test_research_suppliers tests.test_supplier_risk tests.test_supplier_threat_events
+./scripts/python scripts/check-platform-acceptance.py --output /tmp/xti-01600-platform-acceptance.json
+```
+
+İlk komutun 336 sayısı son kimlik testi eklenmeden öncedir; aynı komut
+güncel dosyayla 337 test seçer. Rapor dosyası zaten varsa kabul çalıştırıcısı
+üstüne yazmaz; yeniden denemede yeni bir çıktı yolu seçilmelidir.
+
 ## 0.159.0 — Kayıtlı CNAME ve TLS ilişki araştırması
 
 18 Kasım 2026, macOS arm64/Python 3.13.3; `da2b0bb` üzerine çalışma ağacı.
@@ -53,6 +121,31 @@ umask 002
 ./scripts/python -m unittest tests.test_research tests.test_research_surface tests.test_research_priority tests.test_research_history tests.test_surface tests.test_cname tests.test_asset_relations tests.test_architecture tests.test_engine_contract tests.test_engine_records tests.test_platform_engine tests.test_platform_isolation tests.test_platform_backup tests.test_source_jobs tests.test_source_jobs_usage tests.test_source_jobs_platform
 ./scripts/python -m unittest tests.test_ci_configuration tests.test_indicator_enrichment tests.test_warninglists
 ```
+
+### 0.159.0 GitHub kabulünün sonucu
+
+18 Kasım 2026, `1601e75d625db6bddb0dc9a3400937841d8035bd`:
+
+- [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259845900),
+  [marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259845978)
+  ve [Linux kurulum kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259845890)
+  ilk koşuda başarılı.
+- [Firma kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259846928):
+  Python 3.13.18 ilk koşuda **94,359 saniye** / p95 **1,408 saniye** ile geçti.
+  Python 3.11.18 ilk koşuda **120,015 saniyede** toplam süreyi tüketti.
+  Tamamlanmış 36 okumanın p95'i **1,885 saniye**, eşik altındaydı;
+  61. `alpha/recover` komutu başlarken **0,666 saniye** kalmıştı.
+  Bu ilk koşuda kurtarma ve son bütünlük kabulü tamamlanmadı.
+- Yalnız başarısız 3.11 işi **aynı commit ve aynı eşiklerle bir kez**
+  tekrarlandı: **79,735 saniye**, p95 **1,186 saniye**, en yüksek alt süreç
+  belleği **67.125.248 bayt**; kesinti/kurtarma ve bütünlük dahil başarılı.
+  3.13 başarıyla tamamlandığı için yeniden çalıştırılmadı.
+
+İlk koşu `/tmp/xti-01590-platform-ci.log`, tekrar
+`/tmp/xti-01590-platform-ci-rerun.log` içinden ayrı okundu. Bu ölçümler
+toplam bütçenin hangi aşamada tükendiğini gösterir; kesin altyapı veya
+uygulama kök nedeni kanıtlamaz. N-016 açık/bilinen sınır olarak korunur.
+Bu önceki sürümün sonucudur; 0.160.0 veya bütün paketin sonucu değildir.
 
 ## 0.158.0 — İş başına kullanım ve backend sınırı
 

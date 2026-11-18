@@ -4,7 +4,7 @@ from dataclasses import replace
 from datetime import datetime, timezone
 
 from xti.domain.assets import ValidationError
-from xti.domain.research import build_research, freshness, node_id, research_query
+from xti.domain.research import RESEARCH_MODEL_VERSION, build_research, freshness, node_id, research_query
 from xti.ports.research import ResearchRepository
 from xti.domain.warninglists import catalog_data
 from xti.application.indicator_enrichment import state_data
@@ -63,7 +63,7 @@ def priority_data(review) -> dict:
     report, query = review.research, review.research.query
     warninglists = catalog_data(report.warninglists, checked_at=report.checked_at)
     return {
-        "model_version": 1, "policy_version": POLICY_VERSION,
+        "model_version": RESEARCH_MODEL_VERSION, "policy_version": POLICY_VERSION,
         "checked_at": report.checked_at, "snapshot_id": review.snapshot_id,
         "evidence_snapshot_id": report.snapshot_id, "consistency": "single_read_snapshot",
         "stored_data_only": True, "scope": "bounded_research_neighborhood",
@@ -113,7 +113,7 @@ def priority_data(review) -> dict:
 
 
 def research_data(report) -> dict:
-    """Explicit v1 fields shared by CLI, local engine and company platform."""
+    """Explicit research-model fields shared by CLI and v1 engine/platform envelopes."""
     query = report.query
     warninglists = catalog_data(report.warninglists, checked_at=report.checked_at)
 
@@ -121,7 +121,7 @@ def research_data(report) -> dict:
         return research_evidence_data(item, report.checked_at, query.stale_after_hours)
 
     return {
-        "model_version": 1, "status": report.status, "checked_at": report.checked_at,
+        "model_version": RESEARCH_MODEL_VERSION, "status": report.status, "checked_at": report.checked_at,
         "snapshot_id": report.snapshot_id, "consistency": "single_read_snapshot",
         "root_id": report.root_id, "stored_data_only": True,
         "query": {"indicator_type": query.indicator_type, "value": query.value,
@@ -156,7 +156,7 @@ def research_data(report) -> dict:
         "paths": [{"node_ids": list(nodes), "edge_ids": list(edges), "hops": len(edges)}
                   for nodes, edges in report.paths],
         "notes": [
-            "Yalnız seçili çalışma alanının kayıtlı DNS, CNAME, TLS, IOC, CTI ve URL/dosya kaynak yanıtları okunur; kaynaklar yeniden sorgulanmaz.",
+            "Yalnız seçili çalışma alanının kayıtlı DNS, CNAME, TLS, IOC, CTI, tedarikçi ve URL/dosya kanıtları okunur; kaynaklar yeniden sorgulanmaz.",
             "Yollar iki yönde araştırılabilir; ilişkinin özgün yönü source_id/target_id alanlarında korunur.",
             "Ortak IP, CNAME hedefi, aynı sertifika veya kaynak iddiası sahiplik, aynı saldırgan, kötü niyet veya doğrulanmış ihlal sonucu değildir.",
             "Eski DNS ve geri çekilmiş/geçersiz IOC/CTI iddiaları tarihî kanıt olarak görünür; geçerlilik ile güncellik ayrıdır.",
@@ -164,7 +164,9 @@ def research_data(report) -> dict:
             "Sonraki sayfada expected_snapshot kullanın; değişen kayıtlar snapshot_changed ile reddedilir. Bu tarihî kesit deposu değildir.",
             "Sertifika bağlantısı yalnız kayıtlı web kontrolünde gerçekten sunulmuş sertifikadır; SAN/wildcard adları gözlenmiş domain sayılmaz. certificate düğümü dosya hash IOC'sinden ayrıdır.",
             "CNAME zincirinin her adımı ve yalnız son hedefin IP'si ayrıdır. Tarihî bağlantılar korunur; son başarısız kontrol ve sertifikanın geçerlilik tarihleri bugünkü durumu doğrulamaz.",
-            "Ters CNAME ve sertifika bağlantıları sınırlı kayıt penceresinden gelir. Pasif aday ve tedarikçi kararları henüz bu araştırmada birleşmez; özgün ayrıntı komutlarında kalır.",
+            "Ters CNAME ve sertifika bağlantıları sınırlı kayıt penceresinden gelir. Pasif alt alan adı adayları henüz bu araştırmada birleşmez.",
+            "Tedarikçi adayı candidate_context, insan kararı human_decision olarak ayrıdır. İnsan kararında current son ilgili kararı belirtir; accepted/withdrawn/rejected ve envanter etkinliği ayrıca okunmalıdır.",
+            "Adayın current değeri son aday yenilemesinin durumudur; yeni DNS kontrolü değildir. Teknik kanıtın kaybolması insan onayını kendiliğinden kaldırmaz. Envantere girilmiş domain bağı sahiplik doğrulaması değildir.",
             "Warninglist eşleşmeleri kaynak bağlamıdır; otomatik güvenli kararı, alarm kapatma veya aktör ilişkisi oluşturmaz.",
             "Kaynak araştırması yalnız sorgulanmış URL/hash için saklanan yanıtlardan genişler; ters yönde bütün arşivi taramaz. Yanıt alınma tarihi ile sağlayıcının gözlem tarihi ayrıdır.",
         ],

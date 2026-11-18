@@ -15,6 +15,10 @@ from xti.domain.indicator_enrichment import EnrichmentState
 MAX_PATHS = 2000
 Key = tuple[str, str]
 
+# V2 distinguishes stored candidate derivations and human decisions from
+# network observations. The engine request/envelope contract stays v1.
+RESEARCH_MODEL_VERSION = 2
+
 
 def identity(*values) -> str:
     return hashlib.sha256(json.dumps(values, ensure_ascii=True, sort_keys=True,
@@ -186,7 +190,7 @@ def build_research(reader, query: ResearchQuery, checked_at: str, *, paginate=Tr
     limitations.update(reader.limitations)
     coverage = tuple(reader.coverage)
     snapshot = identity(
-        "research-v1", root, query.max_hops, query.node_limit, query.edge_limit,
+        f"research-v{RESEARCH_MODEL_VERSION}", root, query.max_hops, query.node_limit, query.edge_limit,
         [asdict(nodes[key]) for key in sorted(nodes)],
         [asdict(edges[key]) for key in sorted(edges)], sorted(limitations), coverage,
         catalog_data(reader.warninglists, checked_at=checked_at),

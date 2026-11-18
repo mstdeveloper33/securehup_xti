@@ -1,6 +1,6 @@
 # Çok firmalı platform motoru
 
-**Uygulama 0.159.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
+**Uygulama 0.160.0 · protokol `xti-platform` v1 · çekirdek şema 75 · kuyruk 2.**
 
 Bu giriş, aynı platformun farklı firmaları için ayrı kayıt alanlarında
 arama, firma içeriği ve kalıcı toplama işleri çalıştırır. .NET ekibi
@@ -65,10 +65,18 @@ anlamına gelmez. [Alanlar ve belirsizlik](SOURCE_JOBS.md#işin-kullanım-raporu
 
 ## Kayıtlı incelemeler
 
+0.160.0 seçili firmanın kayıtlı tedarikçi adayları ve insan kararları da
+aynı işlemlerden sunulur. Araştırma/öncelik `data.model_version=2`, kural
+v3 olur; dış `xti-platform` zarfı v1 kalır. Eski model 1 incelemeler kendi
+modeliyle okunur. İlk model 2 kaydı yeni karşılaştırma başlangıcıdır.
+Firma seçimi/oturum yönetimi sınırı değişmez; kararlar API çağrısıyla
+kendiliğinden onaylanmaz. [Kullanım ve uyumluluk](RESEARCH.md#tedarikçi-adayları-ve-insan-kararları).
+
 0.159.0 `research.show`, `research.priorities` ve inceleme kaydı seçili
 firmanın CNAME/TLS kanıtlarını da kullanır. Aynı sertifika başka firmada
-bulunsa bile o firmanın domaini okunmaz. Sözleşme/model 1 korunur;
-öncelik politikası v2 olur, eski v1 incelemeleri yeniden yazılmaz.
+bulunsa bile o firmanın domaini okunmaz. O dilimde sözleşme/model 1 korundu,
+öncelik politikası v2 oldu; 0.160.0'ın güncel sürümleri yukarıdadır.
+Eski incelemeler yeniden yazılmaz.
 [Bağlantı türleri ve okuma sınırları](RESEARCH.md#cname-ve-gözlenmiş-tls-sertifikaları).
 
 `research.history` ve `research.review.get` seçili firmanın inceleme

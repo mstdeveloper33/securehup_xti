@@ -1,6 +1,6 @@
 # Engine okuma sözleşmesi v1
 
-**Uygulama:** 0.159.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
+**Uygulama:** 0.160.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 75.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,
@@ -311,6 +311,16 @@ sorgu geçmişini, `enrichment.run.get` özgün çalışmanın ayrıntılarını
 [Tam parametre/sonuç sözleşmesi](INDICATOR_ENRICHMENT.md#engine-ve-firma-platformu).
 
 ## `research.priorities`: gerekçeli inceleme sırası
+
+0.160.0 `research.show` ve `research.priorities` sonuçlarının
+`data.model_version` değeri **2** olur; istek/dış zarf v1 kalır. Yeni
+`candidate_context` ve `human_decision` türleri gözlem/IOC iddiasından
+ayrılır. `supplier` ve `supplier_candidate` iç düğümleri, dört yeni ilişki
+türü ve `decision_recorded_at` zaman temeli vardır. Yeni kök sorgu türü
+eklenmedi. İnsan kararında `current` son ilgili kararı gösterir; tek başına
+etkin kabul demek değildir, `status` ile okunur. Öncelik v3'tür.
+Eski model 1 incelemeleri özgün döner; eski istemci yalnız model 1 biliyorsa
+yeni sonucu sessizce aynı kabul etmemeli. [Sözlük ve geri dönüş](RESEARCH.md#tedarikçi-adayları-ve-insan-kararları).
 
 0.159.0 kayıtlı CNAME/TLS kanıtlarını `research.show` ve bu görünümde
 birleştirir. İç düğüm türü `certificate`, ilişki türleri `cname_alias`,

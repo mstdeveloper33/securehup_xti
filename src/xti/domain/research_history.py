@@ -83,9 +83,9 @@ def decode(text, expected_digest, *, limit=MAX_SNAPSHOT_BYTES):
 
 
 def validate_snapshot(data):
-    """Validate the frozen v1 shape without consulting today's source state/rules."""
+    """Read frozen v1/v2 models without applying today's source state or rules."""
     try:
-        if not isinstance(data, dict) or data["model_version"] != 1 or type(data["model_version"]) is not int:
+        if not isinstance(data, dict) or data["model_version"] not in (1, 2) or type(data["model_version"]) is not int:
             raise ValueError("Model")
         if capture_scope(**data["query"]) != data["query"]:
             raise ValueError("Scope")
@@ -133,8 +133,21 @@ def validate_snapshot(data):
                 if row["id"] in evidence_ids:
                     raise ValueError("Duplicate evidence")
                 evidence_ids.add(row["id"])
-                if row["kind"] not in ("observation", "source_claim", "source_context"):
+                kinds = ("observation", "source_claim", "source_context")
+                if data["model_version"] == 2:
+                    kinds += ("candidate_context", "human_decision")
+                if row["kind"] not in kinds:
                     raise ValueError("Evidence kind")
+                if row["kind"] in {"human_decision", "candidate_context"}:
+                    if (row.get("assertion_id") is not None or row.get("confidence") is not None or
+                        re.fullmatch(r"[a-f0-9]{64}", row.get("state_sha256", "")) is None):
+                        raise ValueError("Supplier provenance")
+                if row["kind"] == "human_decision" and (
+                    row.get("time_basis") != "decision_recorded_at" or
+                    row["observed_at"] != row["recorded_at"] or not row.get("event_id") or
+                    type(row["current"]) is not bool
+                ):
+                    raise ValueError("Human decision clock or identity")
                 if row["current"] is not None and type(row["current"]) is not bool:
                     raise ValueError("Activity")
                 if row["freshness"] not in ("fresh", "stale", "future"):
@@ -180,7 +193,10 @@ def freeze(data):
 def _intrinsic(row):
     # CTI active/expired/not_yet_valid and freshness depend on checked_at.
     # The assertion event, validity dates and observed/recorded times are facts.
-    return {key: value for key, value in row.items() if key not in {"id", "freshness", "current"} and
+    omitted = {"id", "freshness"}
+    if row["kind"] not in {"candidate_context", "human_decision"}:
+        omitted.add("current")
+    return {key: value for key, value in row.items() if key not in omitted and
             not (key == "status" and row["kind"] == "source_claim")}
 
 
@@ -228,7 +244,8 @@ def compare(previous, current):
         return base
     if previous["query"] != current["query"]:
         raise ValidationError("Farklı araştırma kapsamları karşılaştırılamaz.")
-    if previous["policy_version"] != current["policy_version"]:
+    if (previous["policy_version"] != current["policy_version"] or
+        previous["model_version"] != current["model_version"]):
         return {**base, "state": "policy_baseline"}
     old, new = _subjects(previous), _subjects(current)
     base["coverage_limited"] |= not previous["coverage_complete"]

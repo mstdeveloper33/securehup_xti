@@ -1,7 +1,7 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.159.0 / çekirdek şema 75, ayrı platform iş şeması 2.
+**Mevcut sürüm:** 0.160.0 / çekirdek şema 75, ayrı platform iş şeması 2.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -49,8 +49,11 @@ akış kurucusu, ortak sağlayıcı kotası ve dağıtık worker henüz yoktur.
 ekler; merkezi kota/abonelik backendde kalır. 0.159.0 kayıtlı CNAME ve
 gözlenmiş TLS sertifikası kanıtlarını aynı araştırma, öncelik ve incelemeye
 bağlar. Yeni şema/ağ yoktur. İki adım, firma kapsamı, kaynak kimliği ve
-gözlem/iddia ayrımı korunur. Tedarikçi kararları, genel çıkarım ve kimlik
-birleştirme henüz ortak araştırmada değildir. [Kapsam](../RESEARCH.md).
+gözlem/iddia ayrımı korunur. 0.160.0 mevcut tedarikçi adayını, insan
+kararlarını ve envanterini araştırmaya bağlar; model 2/öncelik v3 ile eski
+incelemeleri özgün okur. Pasif keşif adayları, tedarikçi risk/izleme,
+genel çıkarım ve kimlik birleştirme henüz ortak araştırmada değildir.
+[Kapsam ve uyum](../RESEARCH.md).
 
 **Durum:** ENG-01 yerel okuma sınırı ve ENG-02 mevcut araç kataloğu temeli
 uygulandı; 11 maddelik mevcut motor sağlamlaştırma paketi tamamlandı.
@@ -356,9 +359,12 @@ mevcut web DNS gözlemi, kesin IOC değeri ve doğrudan CTI iddiasından en fazl
 iki adımlı yolları tek okuma kesitinde sunar. Kaynak/kimlik/tarih korunur;
 sayfa değişimi ve bütçe nedeniyle eksik kapsam açıktır. Yeni bağımlılık,
 tablo veya ücretli API yoktur. [İşlem envanteri ve sınırlar](../RESEARCH.md).
-0.159.0 devam dilimi CNAME ve gözlenmiş sertifikayı ortak araştırmaya taşır;
-tedarikçi karar geçmişi mevcut CLI'da kalır. Genel kimlik incelemesi, kural
-çıkarımı ve bütün kaynakların ortak modele taşınması henüz tamamlanmadı.
+0.159.0 devam dilimi CNAME ve gözlenmiş sertifikayı ortak araştırmaya taşır.
+0.160.0 tedarikçi adayını ve karar geçmişini `candidate_context` ve
+`human_decision` olarak ayırır; kabul/ret/sağlayıcı değişimi, envanter ve
+özgün kanıtlar aynı firma içinde araştırılır. Kayıtlı pasif keşif adayları
+sonraki aday kapsamdır. Genel kimlik incelemesi, kural çıkarımı, tedarikçi
+risk kartları ve bütün kaynakların ortak modele taşınması henüz tamamlanmadı.
 MTR-01/02 bütünüyle tamamlandı sayılmaz.
 
 **Kabul raporu önceliği:** Kullanıcının 0.147.1 Linux raporu üzerine

@@ -1,8 +1,8 @@
 # İlişkili kanıt araştırması
 
-18 Kasım 2026 · 0.159.0 · araştırma modeli 1 · engine/platform v1 · çekirdek şema 75.
+18 Kasım 2026 · 0.160.0 · araştırma modeli 2 · engine/platform zarfı v1 · çekirdek şema 75.
 
-Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, IOC ve CTI kayıtlarını tek
+Domain, kesin IP, URL veya dosya kimliği için mevcut DNS/CNAME/TLS, tedarikçi, IOC ve CTI kayıtlarını tek
 araştırmada gösterir. Örnek: domain → gözlenen IP → kaynakta ilişkilendirilen
 aktör. Her bağlantı özgün kanıt/iddia kimliğini ve tarihini taşır. Bu bir
 saldırı veya ihlal kararı değildir. Kaynak iddiaları yeni gözleme dönüşmez.
@@ -96,6 +96,77 @@ saklar. Bu komutlar yeni internet taraması başlatmaz. Henüz kaydedilmemiş
 CNAME/TLS kanıtı burada üretilmez. Mevcut açık onaylı `surface` kontrolleri
 kanıt toplama işini yapmaya devam eder. Yeni kaynak, paket veya şema yoktur.
 
+## Tedarikçi adayları ve insan kararları
+
+0.160.0 mevcut tedarikçi kayıtlarını aynı araştırmaya ekler. Aday, insan
+onayı ve teknik gözlem birbirine dönüşmez:
+
+| Yol / kayıt | Tür | Ne anlatır? |
+|---|---|---|
+| Domain → aday → olası hizmet domaini | `candidate_context` | Kayıtlı CNAME'den daha önce türetilmiş teknik aday; insan onayı değildir |
+| Domain → tedarikçi | `human_decision` | Kullanıcının kaydettiği kabul ve sonradan kaldırma/değiştirme kararları |
+| Tedarikçi → envanter domaini | `human_decision` | Envantere girilmiş ana domain; bağımsız sahiplik doğrulaması değildir |
+
+İç düğüm türleri `supplier_candidate` ve `supplier`; ilişki türleri
+`supplier_candidate`, `supplier_candidate_domain`, `human_supplier_link`,
+`supplier_registered_domain`. Yeni kök sorgu seçeneği eklenmedi. Tedarikçinin
+ana domainini `--type domain` ile aradığında aynı çalışma alanında onunla
+ilişkilendirilmiş kayıtlı domainlere iki adımda ulaşabilirsin. Aynı isimdeki
+tedarikçiler birleştirilmez. Adayın hizmet domaini ile insanın seçtiği
+tedarikçinin ana domaini farklı olabilir; iki değer de korunur.
+
+```sh
+./xti research securehup.com --type domain
+./xti research securehup.com --type domain --priorities
+./xti research-history record securehup.com --type domain
+./xti suppliers candidate-list
+```
+
+`research` yalnız saklı kayıtları okur. Henüz aday üretilmediyse mevcut
+`./xti suppliers candidate-refresh` kayıtlı CNAME kontrollerinden açıkça
+aday oluşturur; internet sorgulamaz. Araştırma bu yazımı kendiliğinden
+başlatmaz. Ekrandaki ayrıntı komutları `suppliers candidate-show KIMLIK`
+ve `suppliers show KIMLIK` üzerinden özgün geçmişe gider. `candidate-list`
+varsayılan olarak yalnız güncel/bekleyen adayları listeler; araştırma
+tarihî ve reddedilmiş adayları da kaynak bağlamında korur.
+
+İnsan kanıtının `time_basis=decision_recorded_at` değeri kararın tarihidir;
+bir hizmetin teknik başlangıç/bitişi veya yeni ağ gözlemi değildir.
+`current=true` **son ilgili karar** demektir. `status=accepted`,
+`withdrawn`, `pending`, `uncertain`, `rejected`, envanterde `active/revoked`
+ayrıca okunmalıdır. Son kararın kaldırılmış olması mümkündür.
+Karar alan kişiye ilişkin kullanıcı kimliği mevcut kayıtta bulunmadığından
+uydurulmaz; özgün karar kimliği, zamanı ve gerekçesi gösterilir.
+
+Başka tedarikçiyi kabul etmek, reddetmek veya yeniden incelemeye almak eski
+onayı tarihî yapar. İlgili özgün yeni olay eski bağlantıda `withdrawn`
+olarak gösterilir; yeni bir karar kaydı oluşturulmaz. CNAME kaydının
+kaybolması insan onayını kaldırmaz. Envanterin pasifleştirilmesi de adayın
+karar geçmişini silmez. Adaydaki `current` son **aday yenilemesinin** teknik
+durumudur; araştırma güncel DNS'i yeniden kontrol etmez.
+
+Kanıt başvuruları:
+
+| `record_type` | Özgün başvuru |
+|---|---|
+| `supplier_candidate` | `record_id` aday kimliği; durum özeti son kayıtlı adaya aittir |
+| `supplier_candidate_evidence` | `record_id` aday; `event_id` türetme kanıtı; `source_reference` özgün CNAME kontrol kimliği; PSL sürümü/özeti açıklamada |
+| `supplier_resolution` | `record_id/event_id` insan karar olayı; `source_reference` aday kimliği |
+| `supplier_inventory` | `record_id/event_id` envanter olayı; `source_reference` tedarikçi kimliği |
+
+Tedarikçi düğümündeki `references` mevcut `record.get` ile açılır. Aday
+kanıtı için sahte `record.get` başvurusu üretilmez. Güncel risk kartı veya
+tedarikçi izleme uyarıları henüz ortak araştırmanın parçası değildir;
+ilgili mevcut modüllerde kalır.
+
+**Sürüm uyumu:** Araştırma ve yeni dondurulmuş değerlendirme
+`model_version=2`; öncelik `research-priority-v3`. Engine/platform istek ve
+dış zarfı v1, veritabanı şeması 75 kalır. Eski değerlendirme modeli 1 özgün
+okunur; yeni model/kuralın ilk kaydı karşılaştırma başlangıcıdır. Model 1
+bilen istemci model 2'yi aynı kabul etmemeli. Eski motor yeni model 2
+incelemeyi okuyamaz; geri dönüşte yükseltme öncesi uygun yedek kullanılır.
+İlk sayfa yeniden alınmalıdır; kesit kimliği model sürümünü de içerir.
+
 ## URL/hash kaynak bağlamı
 
 0.154.0 URL, MD5, SHA-1, SHA-256 köklerini ekler. `enrich fetch` ile saklanan
@@ -175,7 +246,7 @@ Sonuç `data` alanları:
 Kanıt nesnesi `record_type`, `record_id`, `assertion_id`, `event_id`,
 `source`, `source_reference`, `source_run_id`, `kind`, `status`, `current`,
 `first_observed_at`, `observed_at`, `recorded_at`, `freshness`, `confidence`,
-`valid_from`, `valid_until`, `state_sha256`, `description` taşır.
+`valid_from`, `valid_until`, `state_sha256`, `description`, `time_basis` taşır.
 DNS gözlemlerinde `current=null`; eski gözlem bugünkü DNS doğrulaması değildir.
 CTI `current` iddianın etkinlik/geçerlilik durumudur. `freshness` son gözlem
 zamanına göre `fresh`, `stale` veya `future` olur. `recorded_at` DNS kontrolünün
@@ -183,12 +254,15 @@ kaydedilme veya CTI iddiasının güncellenme zamanıdır. `event_id` son eklene
 olaya başvurur; olayın bütün geçmişi özgün kayıt ayrıntısında kalır.
 Kaynak çalışması yalnız kayıtlı makbuzla kesin eşleştiğinde verilir; yerel
 geri çekme kararı için bir dış kaynak çalışması uydurulmaz.
+Tedarikçi insan kararında zaman temeli `decision_recorded_at` olur;
+karar yaşı gösterilir ancak ağ gözlemi eskimesi gibi sıralanmaz. Özgün
+kararlar ayrı kanıtlardır, `event_id` her birinin kendi olayına başvurur.
 
 Boş, başlatılmış bir kayıt alanında `unknown.example` için örnek cevap parçası:
 
 ```json
 {
-  "model_version": 1,
+  "model_version": 2,
   "status": "not_recorded",
   "stored_data_only": true,
   "consistency": "single_read_snapshot",
@@ -244,12 +318,21 @@ Sabit okuma sınırları:
   istek başına 20.000 iddia+olay sınırı vardır. Doğrulanamayan kaynak
   geçmişi `storage_error` olur; eksik geçmişten etkinlik hesaplanmaz.
   Mevcut ATT&CK iç denetimi kendi bütünlük sınırlarını ayrıca korur.
+- Tedarikçi adayı ve envanteri için düğüm başına en fazla 200 bağ;
+  araştırma genelinde 10.000 bağlı satır/16 MiB ön doğrulama bütçesi.
+  Adayın tam kaynak/karar geçmişi ve ilgili tedarikçi yaşam döngüsü
+  doğrulanır. İlgisiz envanter içerikleri okunmaz; küresel olay sıra
+  boşluğu denetlenir. Bütçeye sığmayan kayıt atlanır, kısmi kapsam verilir;
+  bozuk kanıt ise `storage_error` olur. Aday düğümünde en fazla 52 kanıt,
+  son durum/son karar/en az bir teknik kanıt önce; diğer bağlarda en fazla
+  50 kanıt bulunur. Toplam geçmiş sayıları korunur.
 
 Makine sınır kodları: `node_limit`, `edge_limit`, `path_limit`,
 `dns_history_window`, `dns_read_budget`, `dns_adjacency_limit`,
 `cname_history_window`, `cname_read_budget`, `cname_adjacency_limit`,
 `certificate_adjacency_limit`, `cti_adjacency_limit`, `source_evidence_limit`,
-`enrichment_result_window`. `coverage_complete` yalnız
+`enrichment_result_window`, `supplier_adjacency_limit`, `supplier_read_budget`.
+`coverage_complete` yalnız
 bu kapsamın sınırsız kalıp kalmadığını söyler; tazelik, internet kapsamı,
 eldeki kaynakların yeterliliği veya güvenlik garantisi değildir.
 
@@ -262,18 +345,18 @@ bir hata üretmez; saklı son kontrolün hatası görünür kalır.
 
 ## Kapsam envanteri ve sonraki dilim
 
-| Yetenek | Önceden | 0.159.0 |
+| Yetenek | Önceden | 0.160.0 |
 |---|---|---|
 | Genel kayıt araması/ayrıntı, kaynak/araç durumu | CLI + engine/platform | Korundu |
 | DNS/sertifika/CNAME ilişki geçmişi | `surface relations` CLI | Korundu; kayıtlı kanıt ortak araştırma/öncelik/incelemede de kullanılır |
-| Tedarikçi ilişki kararları | `surface relations` CLI | Ortak araştırmaya aktarımı henüz yapılmadı |
+| Tedarikçi adayları ve ilişki kararları | Ayrı aday/tedarikçi ve `surface relations` CLI | Ortak araştırma/öncelik/inceleme; teknik aday ile insan kararı ayrı |
 | Doğrudan CTI bağlamı | `cti context` CLI | Korundu; kaynak denetimi yeniden kullanılır |
 | Domain/IP → DNS/IOC → CTI kaynaklı yolları | Ortak görünüm yok | `research` CLI ve `research.show` engine/platform |
 | Otomatik varlık birleştirme, açıklamalı çıkarım | Plan | Sonraki MTR-01/02 dilimleri |
 | MISP warninglists | Plan | Dört seçilmiş liste; kaynaklı domain/IP bağlamı, [ayrıntı](WARNINGLISTS.md) |
 | URL/hash zenginleştirme | Plan | CIRCL ve kayıtlı urlscan yanıtları; sınırlı kaynak bağlamı |
 
-Güncel çekirdek şema 75'tir; 0.159.0 yeni migration gerektirmez.
+Güncel çekirdek şema 75'tir; 0.160.0 yeni migration gerektirmez.
 0.152.0'ın araştırması tablo eklemiyordu. 0.153.0 warninglist kaynak
 geçmişi şema 73, 0.154.0 URL/hash şema 74, 0.156.0 inceleme şema 75
 oldu; daha eski alanlardan geçiş açık ve yedeklidir.

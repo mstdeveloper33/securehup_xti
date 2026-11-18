@@ -1,10 +1,34 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.159.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
+**18 Kasım 2026 · 0.160.0 · Çekirdek şema 75 · İş kuyruğu şeması 2.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 [NOTES.md](../NOTES.md) içinde tarih ve dayanaklarıyla tutulur.
+
+**0.160.0 tedarikçi araştırması:** Kayıtlı teknik aday, insan kararı ve
+tedarikçi envanteri ortak `research`, öncelik ve inceleme geçmişine bağlandı.
+Reddedilen/yeniden açılan aday veya başka sağlayıcıya geçen onay eski
+bağlantıda açıkça gösterilir. Teknik kanıtın kaybolması ve envanterin pasif
+olması insan onayını kendiliğinden silmez. Kökten iki adım ve firma
+izolasyonu korunur; ters arama yalnız kayıtlı ilişkilerdedir. Yeni ağ,
+API, paket veya DB migration yoktur. Araştırma/inceleme değerlendirme
+modeli 2, öncelik v3; engine/platform zarfı v1. Eski model 1 özgün okunur;
+yeni modelin ilk kaydı yeni başlangıçtır. [Kapsam ve uyum](RESEARCH.md#tedarikçi-adayları-ve-insan-kararları).
+
+**0.160.0 yerel doğrulaması:** `umask 002` altında **336 test / 132,661
+saniye** geçti. Son bozuk kimlik hata sınıfı kontrolünden sonra **42 test /
+18,566 saniye** yeniden geçti; iki demette **337 farklı test**, hata/atlama
+yok. 32 yeni tedarikçi araştırma testi dahildir. Ayrı iki firmalı gerçek
+süreç/kesinti/kurtarma kabulü **40,395 saniyede** tamamlandı; 36 okumanın
+p95'i **0,578 saniye**. Bu tam paket veya Linux/canlı kaynak kabulü değildir.
+[Kabul kaydı](ACCEPTANCE_REVIEW.md).
+
+**0.159.0 GitHub sonucu:** `1601e75` hızlı kontrol, marka kurulumu ve Linux
+kurulum kabulü geçti. Firma kabulünde Python 3.11 ilk koşu toplam 120 saniye
+sınırında durdu; aynı commit/sınırlarla yalnız bu işin tekrarı geçti.
+Python 3.13 ilk koşuda geçti. İlk süre aşımı N-016'da korunur.
+[Ölçümler ve CI](ACCEPTANCE_REVIEW.md#01590-github-kabulünün-sonucu).
 
 **0.159.0 CNAME ve TLS araştırması:** Kayıtlı CNAME zincirleri, son hedefin
 IP'si ve gerçekten aynı sertifikayı sunmuş domainler ortak `research`,

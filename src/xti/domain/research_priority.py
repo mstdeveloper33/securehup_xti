@@ -9,7 +9,7 @@ from xti.domain.research import (
 )
 
 
-POLICY_VERSION = "research-priority-v2"
+POLICY_VERSION = "research-priority-v3"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
@@ -24,6 +24,9 @@ RULES = {
     "latest_tls_check_failed": ("verify", "Son kayıtlı web kontrolünde TLS başarısız; eski sertifika gözlemi bugünkü durumu doğrulamaz."),
     "certificate_expired": ("verify", "Gözlenmiş sertifikanın geçerlilik süresi dolmuş; bugün hâlâ sunulduğu veya bir zafiyet bulunduğu sonucu çıkarılamaz."),
     "certificate_not_yet_valid": ("verify", "Gözlenmiş sertifikanın geçerlilik başlangıcı henüz gelmemiş; tarihleri ve gözlemi doğrulayın."),
+    "supplier_review_pending": ("verify", "Tedarikçi adayı inceleme bekliyor veya belirsiz; kaynak bağı insan onayı değildir."),
+    "supplier_dependency_historical": ("verify", "Aday son yenilemede tarihî işaretlenmiş; bu teknik durum insan onayının geri çekildiği anlamına gelmez."),
+    "supplier_inventory_inactive": ("verify", "Tedarikçi envanter kaydı pasif; tarihî onay ve kaynak kanıtı korunuyor."),
     "source_lookup_failed": ("verify", "Son URL/dosya kaynak sorgusu başarısız; varsa önceki geçerli yanıt korunuyor."),
     "evidence_truncated": ("verify", "Bu kaydın kanıtlarının tamamı okuma sınırına sığmadı; özgün kayıt ayrıntısını inceleyin."),
     "stale_active_indicator": ("verify", "Etkin IOC iddiasının son gözlemi güncellik eşiğini aşıyor; iddianın güncel dayanağını kontrol edin."),
@@ -31,6 +34,7 @@ RULES = {
     "evidence_missing": ("verify", "Bu kapsamda kayıtlı kanıt yok; veri yokluğu güvenli olduğu anlamına gelmez."),
     "source_no_match": ("context", "Son geçerli kaynak yanıtında eşleşme yok; bu yalnız o sorgunun sonucudur."),
     "inactive_claims_only": ("context", "Bu kaydın gösterilen kaynak iddiaları etkin değil; tarihî kanıtı güncel tehdit olarak yorumlamayın."),
+    "supplier_link_withdrawn": ("context", "Bu tedarikçi bağlantısı sonraki insan kararıyla kaldırılmış veya değiştirilmiş; eski kabul güncel onay değildir."),
     "listed_context": ("context", "Kaynak listesiyle eşleşme var; altyapı bağlamı sağlar, güvenli veya zararlı hükmü vermez."),
     "recorded_context": ("context", "Kayıtlı gözlem veya kaynak bağlamı var; bu kurallar ek inceleme önceliği üretmedi."),
     "relationship_context_only": ("context", "Bu düğüm ilişkili kanıtta geçiyor; düğüme ait ayrı bir iddia kaydı yok."),
@@ -88,7 +92,11 @@ def _recent_evidence(rows):
     """
     latest, others = {}, []
     for item in rows:
-        if item.kind == "observation":
+        if item.kind == "human_decision":
+            # Decision age is exposed, but isn't a new network observation
+            # or grounds to stale every superseded decision in a long history.
+            continue
+        if item.kind in {"observation", "candidate_context"}:
             key = (item.record_type, item.source)
             if key not in latest or (
                 datetime.fromisoformat(item.observed_at), item.record_id
@@ -136,6 +144,14 @@ def _reasons(rows, total, matches, related, checked_at, hours):
         add("certificate_expired", expired)
     if pending:
         add("certificate_not_yet_valid", pending)
+    for code, selected in (
+        ("supplier_review_pending", [row for row in rows if row.record_type == "supplier_candidate" and row.status in {"pending", "uncertain"}]),
+        ("supplier_dependency_historical", [row for row in rows if row.record_type == "supplier_candidate" and row.current is False]),
+        ("supplier_inventory_inactive", [row for row in rows if row.record_type == "supplier_inventory" and row.current and row.status == "revoked"]),
+        ("supplier_link_withdrawn", [row for row in rows if row.record_type == "supplier_resolution" and row.current and row.status == "withdrawn"]),
+    ):
+        if selected:
+            add(code, selected)
     failed_source = [row for row in rows if row.record_type == "enrichment_run" and row.status == "failed"]
     if failed_source:
         add("source_lookup_failed", failed_source)

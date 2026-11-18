@@ -1,6 +1,6 @@
 # Kayıtlı incelemeler ve önceki incelemeye göre değişim
 
-18 Kasım 2026 · 0.159.0 · çekirdek şema 75 · kayıt modeli 1.
+18 Kasım 2026 · 0.160.0 · çekirdek şema 75 · değerlendirme modeli 2 (eski model 1 okunur).
 
 Bir domain, IP, URL veya dosya kimliğini incelerken o günkü kanıtları ve
 inceleme sırasını saklayabilirsiniz. Sonraki kayıt, aynı kapsamın önceki
@@ -12,6 +12,19 @@ veri getirmeye devam eder; incelemeyi kaydetmek yeni tarama, ücretli API
 veya LLM çağrısı yapmaz. Alarm ve analist kararlarını değiştirmez.
 
 ## Terminalden kullanım
+
+0.160.0 tedarikçi adayları ve insan kararlarını ayrı kanıt türleriyle
+saklar. Yeni değerlendirme modeli 2 ve politika v3'tür. Önceki model 1
+incelemeler yeniden yazılmaz; sürüm değişiminin ilk kaydı `policy_baseline`
+olur. İnsan kararının geri alınması `evidence_or_mixed` değişimidir;
+bir IOC iddiasının geri çekilmesi olarak etiketlenmez. Karar zamanı teknik
+gözlem zamanı değildir. Üst düzey karşılaştırma/özet modeli 1 kalır.
+
+DB migration gerekmez, fakat eski motor yeni model 2 incelemeyi okuyamaz.
+Geri dönülecekse yükseltme öncesi uygun yedek kullanılmalı. Firma yedeği
+çekirdek ve kuyruk birlikte; kişisel `backup` yalnız çekirdektir (N-015).
+Tarihî model 1 sonuçlarını okuyabilme, eski motorun yeni veriyi okuyabildiği
+anlamına gelmez. [Modelin kapsamı](RESEARCH.md#tedarikçi-adayları-ve-insan-kararları).
 
 0.159.0 CNAME ve gözlenmiş TLS bağlantılarını da inceleme içinde saklar.
 Politika `research-priority-v2` olur. Önceki v1 incelemeler özgün haliyle

@@ -7,7 +7,8 @@ import json
 
 from xti.adapters.sqlite import StorageError
 from xti.adapters.sqlite_suppliers import SQLiteSupplierRepository
-from xti.domain.suppliers import Supplier, SupplierEvent, normalize_supplier_name
+from xti.domain.assets import ValidationError
+from xti.domain.suppliers import Supplier, SupplierEvent, normalize_supplier_id, normalize_supplier_name
 
 MAX_SUPPLIERS = 10_000
 MAX_SUPPLIER_EVENTS = 100_000
@@ -17,22 +18,33 @@ MAX_SUPPLIER_EVENTS = 100_000
 class SupplierHistory:
     suppliers: dict[str, Supplier]
     events: tuple[SupplierEvent, ...]
+    complete: bool = True
 
 
-def read_supplier_history(connection) -> SupplierHistory:
+def read_supplier_history(connection, *, supplier_id=None) -> SupplierHistory:
     try:
-        rows = connection.execute('SELECT id,name_key,display_name,primary_domain,relationship_type,criticality,active,reason,created_at,updated_at FROM suppliers ORDER BY id LIMIT ?', (MAX_SUPPLIERS + 1,)).fetchall()
-        raw_events = connection.execute('SELECT sequence,id,supplier_id,action,display_name,primary_domain,relationship_type,criticality,reason,recorded_at FROM supplier_events ORDER BY sequence LIMIT ?', (MAX_SUPPLIER_EVENTS + 1,)).fetchall()
+        if supplier_id is not None:
+            normalize_supplier_id(supplier_id)
+        values = (supplier_id,) if supplier_id is not None else ()
+        rows = connection.execute('SELECT id,name_key,display_name,primary_domain,relationship_type,criticality,active,reason,created_at,updated_at FROM suppliers ' +
+            ('WHERE id=? ' if values else '') + 'ORDER BY id LIMIT ?', (*values, MAX_SUPPLIERS + 1)).fetchall()
+        raw_events = connection.execute('SELECT sequence,id,supplier_id,action,display_name,primary_domain,relationship_type,criticality,reason,recorded_at FROM supplier_events ' +
+            ('WHERE supplier_id=? ' if values else '') + 'ORDER BY sequence LIMIT ?', (*values, MAX_SUPPLIER_EVENTS + 1)).fetchall()
         if len(rows) > MAX_SUPPLIERS or len(raw_events) > MAX_SUPPLIER_EVENTS:
             raise ValueError('Supplier history capacity exceeded')
         suppliers = {value.id: value for value in map(SQLiteSupplierRepository._supplier, rows)}
         events = tuple(map(SQLiteSupplierRepository._event, raw_events))
         allocated = connection.execute("SELECT seq FROM sqlite_sequence WHERE name='supplier_events'").fetchone()
-        if (allocated[0] if allocated else 0) != len(events):
+        # Scoped reads still detect missing global sequence entries, without
+        # materializing unrelated suppliers or their event payloads.
+        count, first, last = connection.execute('SELECT COUNT(*),MIN(sequence),MAX(sequence) FROM supplier_events').fetchone()
+        if ((allocated[0] if allocated else 0) != count or
+            (count and (first != 1 or last != count)) or
+            (supplier_id is not None and set(suppliers) != {supplier_id})):
             raise ValueError('Supplier history sequence allocator differs')
         states = {}
         for sequence, event in enumerate(events, 1):
-            if event.sequence != sequence or event.supplier_id not in suppliers:
+            if (supplier_id is None and event.sequence != sequence) or event.supplier_id not in suppliers:
                 raise ValueError('Supplier history sequence or pointer differs')
             before = states.get(event.supplier_id)
             if before is None:
@@ -52,12 +64,14 @@ def read_supplier_history(connection) -> SupplierHistory:
                 event.reason, created, updated)
         if states != suppliers:
             raise ValueError('Supplier state differs from lifecycle')
-        return SupplierHistory(suppliers, events)
-    except (ValueError, TypeError, KeyError, OverflowError) as error:
+        return SupplierHistory(suppliers, events, complete=supplier_id is None)
+    except (ValueError, TypeError, KeyError, OverflowError, ValidationError) as error:
         raise StorageError('Tedarikçi yaşam döngüsü kaynak kaydıyla uyuşmuyor; kayıtlar değiştirilmedi.') from error
 
 
 def supplier_scope(history: SupplierHistory, supplier_id: str, cutoff: int | None = None) -> dict:
+    if not history.complete:
+        raise ValueError('Historical workspace watermark requires complete supplier history')
     cutoff = len(history.events) if cutoff is None else cutoff
     if type(cutoff) is not int or not 1 <= cutoff <= len(history.events):
         raise ValueError('Supplier event watermark invalid')

@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.159.0 / çekirdek 75 / iş kuyruğu 2**.
+Güncel çalışma: **0.160.0 / çekirdek 75 / iş kuyruğu 2**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -126,17 +126,23 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-009 — Araştırmanın kapsam sınırları
 
-- **Durum:** Bilinen sınır; CNAME/TLS dilimi uygulandı. **Güncellendi:** 18 Kasım 2026.
+- **Durum:** Bilinen sınır; CNAME/TLS ve tedarikçi kararları uygulandı.
+  **Güncellendi:** 18 Kasım 2026.
 - **Not:** Araştırma en fazla iki ilişki adımıyla çalışıyor. URL kaynağı
   ilk 20 arşiv sonucunu alıyor; bütün arşivde ters yönde arama yok.
   0.159.0 kayıtlı CNAME adımları/son hedef IP'sini ve gerçekten sunulan
-  sertifikaları ortak araştırma/öncelik/incelemeye taşır. Tedarikçi kararları
-  ve pasif adaylar henüz taşınmadı. SAN/wildcard adı gözlenmiş host sayılmaz.
+  sertifikaları ortak araştırma/öncelik/incelemeye taşır. 0.160.0 kayıtlı
+  tedarikçi adayını, insan kararlarını ve envanteri ayrı kanıt türleriyle
+  ekler. Pasif alt alan adayları, tedarikçi risk kartları ve izleme uyarıları
+  henüz taşınmadı. SAN/wildcard adı gözlenmiş host sayılmaz.
   Ters bağlantılar sınırlı kayıt penceresinden gelir; eksik kapsam görünürdür.
 - **Kanıt:** 24 yeni test dahil 266 ilgili yerel test geçti; firma ayrımı,
   özgün kanıt, eşzamanlı okuma, sınırlar ve yedek korundu. Ek 68 CI/kaynak
   testiyle toplam 334 farklı test başarılı. Ağsız/kontrollü
   kabul [kabul belgesinde](docs/ACCEPTANCE_REVIEW.md); canlı tarama değildir.
+- **0.160.0 kanıtı:** 32 yeni test dahil **337 farklı ilgili test** geçti.
+  Ayrı iki firmalı gerçek süreç kabulü **40,395 saniyede** tamamlandı;
+  bu yerel/kontrollü sonuç Linux veya canlı kaynak kabulü değildir.
 - **Sonraki iş:** Kapsam genişletirken eski kanıt kimliklerini korumak;
   bütün internetin tarandığı veya ilişkilerin sahiplik/zararlılık kanıtı
   olduğu izlenimini vermemek. Ayrıntılar ilgili modüllerde korunuyor.
@@ -211,9 +217,17 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   değiştirilmedi. [Başarılı koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44205985536).
   Sonraki `da2b0bb` firma izolasyonu kabulü de başarıyla tamamlandı;
   [koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44254840390).
-- **Sonraki iş:** Süre aşımı tekrarlanırsa artık saklanan tamamlanmış
-  ölçümler/son komutla aşamasını incelemek. İlk başarısızlıkların kesin
-  kök nedeni iddia edilmiyor; uygulama hatası düzeltildi diye sunulmaz.
+- **0.159.0 kanıtı:** `1601e75` ilk Python 3.11 koşusu **120,015 saniyede**
+  durdu. 36 okuma tamamlandı (p95 **1,885 saniye**); 61. komut `alpha/recover`
+  başlarken toplam bütçeden **0,666 saniye** kalmıştı. Kurtarma/bütünlük
+  kabulü bu ilk denemede tamamlanmadı. Python 3.13 ilk koşuda **94,359
+  saniyede**, yalnız başarısız 3.11 işinin aynı commit/sınırlarla tekrarı
+  **79,735 saniyede** geçti; tekrar p95 **1,186 saniye**.
+  [Koşu ve tekrar](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44259846928).
+- **Sonraki iş:** Tekrarlanan toplam süre aşımında komut başlatma ve
+  yürütme sürelerini ayrı ölçmek. Mevcut kanıt toplam bütçenin tükendiğini
+  gösterir; bunun altyapı veya uygulamadaki kesin kök nedenini göstermez.
+  Başarılı tekrar ilk başarısızlığı silmez; eşikler gevşetilmedi.
 - **Dayanak:** [İşletim kabulü](docs/ACCEPTANCE_REVIEW.md#işletim-kabulü).
 
 ### N-017 — Kaynak işi kullanım ölçümünün sınırları
@@ -232,6 +246,25 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   kimliklerini korumalı; kota/faturalama kararı ölçüm kapsamını aşmamalı.
 - **Dayanak:** [Kullanım raporu](docs/SOURCE_JOBS.md#işin-kullanım-raporu),
   [sürüm kararı](docs/decisions/0162-source-job-request-usage.md).
+
+### N-018 — Araştırma modeli 2 ve tedarikçi kararının anlamı
+
+- **Durum:** Bilinen sınır. **Güncellendi:** 18 Kasım 2026.
+- **Not:** 0.160.0 araştırma/öncelik ve yeni dondurulmuş değerlendirmeyi
+  model 2 olarak üretir; engine/platform istek ve zarfı v1 kalır. Eski
+  model 1 incelemeleri özgün okunur, ilk yeni model/kural kaydı başlangıçtır.
+  Yeni model 2 incelemeyi eski motor okuyamaz. Kod geri dönüşü için
+  yükseltme öncesi uygun yedek gerekir; şema 75'in aynı kalması tek başına
+  eski kodla veri uyumu anlamına gelmez.
+- **Korunacak anlam:** İnsan kararında `current` son ilgili karardır;
+  durum `withdrawn` veya `revoked` olabilir. Adayın `current` değeri son
+  aday yenilemesine aittir. Teknik kanıtın kaybolması insan onayını silmez.
+  Kararın zamanı teknik hizmet süresi değildir; işletme önemi tehdit
+  puanına çevrilmez. Mevcut kayıtta bulunmayan karar sahibi uydurulmaz.
+- **Kanıt:** Eski/yeni model okuması, farklı modelde başlangıç, bozuk
+  kanıt reddi, tarihçe değişimi, firma ayrımı ve yedek kabul testleri geçti.
+- **Dayanak:** [Kullanım ve uyum](docs/RESEARCH.md#tedarikçi-adayları-ve-insan-kararları),
+  [mimari karar](docs/decisions/0164-human-supplier-research.md).
 
 ## Korunacak kararlar
 
@@ -340,10 +373,15 @@ ortak araştırmaya taşır; özgün kanıtlar ve firma kapsamı korunur. Yeni
 API/LLM gerekmez. Öncelik v2'nin ilk incelemesi yeni politika başlangıcıdır;
 eski v1 kayıtları değiştirilmez.
 
-**Sonraki öneri, henüz uygulanmadı:** Mevcut tedarikçi ilişki kararlarını
-ortak araştırmaya katmak; insan onayı, reddi ve değişim geçmişini kaynak
-gözleminden ayrı tutmak. Bu iş mevcut motor kayıtlarını kullanır; backendin
-oturum/abonelik/merkezi kota yönetimi değildir.
+**Uygulandı:** 0.160.0 mevcut tedarikçi adayını, insan onayı/ret/değişim
+geçmişini ve envanteri ortak araştırma/öncelik/incelemeye ekler. Yeni
+sağlayıcı, API veya migration yoktur. Model 2 uyumu N-018'de korunur.
+
+**Sonraki öneri, henüz uygulanmadı:** Kayıtlı pasif alt alan keşif adaylarını
+ve sahiplik inceleme kararlarını aynı araştırmaya bağlamak; aday, insan
+kararı ve doğrudan ağ gözlemini ayrı tutmak. Ayrıca N-016'daki toplam kabul
+süresini komut bazında izlemek. Backendin oturum/abonelik/merkezi kota
+yönetimi bu sıraya dahil değildir.
 
 Bu sıra gelişme ve kullanıcı kararlarıyla güncellenir; burada yazılması
 özelliğin tamamlandığı anlamına gelmez.

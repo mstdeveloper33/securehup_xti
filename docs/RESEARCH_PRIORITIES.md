@@ -1,9 +1,9 @@
 # Gerekçeli inceleme önceliği
 
-18 Kasım 2026 · 0.159.0 · politika `research-priority-v2` · model 1 · şema 75.
+18 Kasım 2026 · 0.160.0 · politika `research-priority-v3` · model 2 · şema 75.
 
 Seçtiğin domain, kesin IP, URL veya dosya kimliği için **hangi kaydı önce
-incelemelisin ve neden?** Mevcut DNS/CNAME/TLS, IOC/CTI, MISP listesi ve URL/hash
+incelemelisin ve neden?** Mevcut DNS/CNAME/TLS, tedarikçi, IOC/CTI, MISP listesi ve URL/hash
 kayıtlarını kullanır. Her önerinin dayandığı kayıt ve kaynak korunur.
 
 Bu bir inceleme sırasıdır. Kaynak iddiasının doğruluğunu, firmanın ihlal
@@ -56,6 +56,9 @@ tehdit puanı yoktur; `context` “güvenli” demek değildir.
 | `latest_tls_check_failed` | Son kayıtlı web kontrolünde TLS başarısız |
 | `certificate_expired` | Gösterilen sertifika kanıtının `valid_until` zamanı aşılmış; bugün hâlâ sunulduğu iddia edilmez |
 | `certificate_not_yet_valid` | Sertifika kanıtının `valid_from` zamanı henüz gelmemiş |
+| `supplier_review_pending` | Kayıtlı tedarikçi adayı pending/uncertain; teknik bağ insan onayı değildir |
+| `supplier_dependency_historical` | Aday son yenilemede tarihî olmuş; insan onayı kendiliğinden silinmez |
+| `supplier_inventory_inactive` | Son tedarikçi envanter kararı pasif; eski kanıt korunur |
 | `source_lookup_failed` | Son URL/hash kaynak sorgusu başarısız; önceki geçerli yanıt ayrı korunur |
 | `evidence_truncated` | Öğenin toplam kanıtı gösterilebilen kanıttan fazla |
 | `stale_active_indicator` | Etkin IOC iddiasının son gözlemi eşikten eski |
@@ -63,6 +66,7 @@ tehdit puanı yoktur; `context` “güvenli” demek değildir.
 | `evidence_missing` | Öğeye ait veya ilişkili kayıtlı kanıt yok |
 | `source_no_match` | Son geçerli kaynak yanıtında eşleşme yok |
 | `inactive_claims_only` | Gösterilen kaynak iddialarının hiçbiri etkin değil |
+| `supplier_link_withdrawn` | Tedarikçi bağı sonraki insan kararıyla kaldırılmış/değiştirilmiş; bağlamdır, yeni tehdit değildir |
 | `listed_context` | Kaynak/üye/çalışma kimliğiyle MISP bağlamı |
 | `recorded_context` | Diğer kurallar tetiklenmeden kalan gözlem/kaynak bağlamı |
 | `relationship_context_only` | Düğüm yalnız ilişkili kanıtta geçiyor; ayrı düğüm iddiası yok; doğrudan kanıtlı bağlamdan sonra gelir |
@@ -79,9 +83,19 @@ V2 bu dört yüzey gerekçesini ekler. Önceki v1 inceleme kayıtları özgün
 değerlendirmeleriyle okunur. V2'nin ilk kaydı `policy_baseline` olur;
 kural değişimi yeni kaynak kanıtı diye sayılmaz. Yeni DB şeması yoktur.
 
+V3 tedarikçi adaylarını ve insan kararlarını ekler. Eski insan kararı
+zamanı görünür ama ağ gözlemi eskimesi gibi sıralanmaz. İşletme önemi
+(`criticality`) risk puanı veya IOC kaynak güveni değildir. Teknik adayın
+güncelliği kaynak tarihine dayanır; insan kararının güncelliği son ilgili
+karar oluşudur. `current=true` için `status` mutlaka okunur; son karar
+`withdrawn`/`revoked` olabilir. İnsan kararlarının değişmesi kanıt değişimidir,
+yalnız saat ilerlemesi veya IOC iddiası geri çekmesi değildir.
+
 Kaynak iddialarının etkinliği, kaynak güveni (`confidence`) ve kanıt türü
 (`evidence_basis`) ayrı alanlardır. Kanıt türleri `observation`,
-`source_claim`, `source_context` olabilir; nicel “kanıt gücü” uydurulmaz.
+`source_claim`, `source_context`, `candidate_context`, `human_decision`
+olabilir; nicel “kanıt gücü” uydurulmaz. Son iki tür araştırma modeli 2'ye
+aittir; eski model 1 altında kabul edilmez.
 CIRCL gibi gözlem tarihi vermeyen kayıtta `time_basis=response_received_at`
 korunur. Yeni indirilen eski URL taraması yeni gözlem sayılmaz.
 
@@ -161,4 +175,5 @@ Firma geneli öncelik kuyruğu, otomatik bildirim, anlamsal çelişki çözümü
 özel müşteri kuralları ve geniş IOC yaşam döngüsü otomasyonu henüz eklenmedi. Ağsız okuma mevcut
 Tavily/Nmap canlı kabulü veya kaynak kullanım hakkı notlarını kapatmaz.
 0.155.0 bu özelliği şema 74'te ekledi; 0.156.0 geçmiş için şema 75'e
-açık yedekli geçiş gerektirir. 0.159.0 şema 75'i korur. Önceki yedekler korunur.
+açık yedekli geçiş gerektirir. 0.160.0 şema 75'i korur; yeni değerlendirme
+modeli 2'dir. Eski model 1 incelemeleri korunur ve özgün okunur.

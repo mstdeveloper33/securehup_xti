@@ -12,7 +12,21 @@ def _surface_detail_commands(rows, data_dir):
         if kind:
             commands.add(xti_command("surface", "relations", row["source_reference"],
                 "--kind", kind, "--history", data_dir=data_dir))
+        if row["record_type"] in {"supplier_candidate", "supplier_candidate_evidence"}:
+            commands.add(xti_command("suppliers", "candidate-show", row["record_id"], data_dir=data_dir))
+        elif row["record_type"] == "supplier_resolution":
+            commands.add(xti_command("suppliers", "candidate-show", row["source_reference"], data_dir=data_dir))
+        elif row["record_type"] == "supplier_inventory":
+            commands.add(xti_command("suppliers", "show", row["source_reference"], data_dir=data_dir))
     return commands
+
+
+def _record_detail_command(ref, value, data_dir):
+    args = (("ioc", "show", ref["record_id"]) if ref["kind"] == "indicator" else
+            ("cti", "entity-show", ref["record_id"]) if ref["kind"] == "cti" else
+            ("suppliers", "show", ref["record_id"]) if ref["kind"] == "supplier" else
+            ("surface", "relations", value, "--kind", "dns", "--history"))
+    return xti_command(*args, data_dir=data_dir)
 
 
 def make_research_service(database):
@@ -50,6 +64,8 @@ def priority_lines(data, *, data_dir=None):
         "cname_read_budget": "CNAME kanıtlarının bir bölümü okuma sınırına sığmadı.",
         "cname_adjacency_limit": "Bazı kayıtların CNAME bağlantıları gösterim sınırını aşıyor.",
         "certificate_adjacency_limit": "Bazı sertifikaların domain bağlantıları gösterim sınırını aşıyor.",
+        "supplier_adjacency_limit": "Bazı tedarikçi veya aday bağlantıları gösterim sınırını aşıyor.",
+        "supplier_read_budget": "Bazı tedarikçi geçmişleri bu isteğin doğrulama sınırına sığmadı; doğrulanmayan kayıt gösterilmedi.",
         "cti_adjacency_limit": "Bazı kayıtların CTI bağlantıları gösterim sınırını aşıyor.",
         "source_evidence_limit": "Bazı kayıtların kaynak kanıtları bu görünüme sığmadı.",
         "enrichment_result_window": "URL kaynağının sonuç penceresi sınırlı; bütün arşiv kapsanmıyor.",
@@ -70,10 +86,7 @@ def priority_lines(data, *, data_dir=None):
             lines.append("   Kaynak: " + ", ".join(sorted({safe_text(row["source"]) for row in item["evidence"]})))
         commands = _surface_detail_commands(item["evidence"], data_dir)
         for ref in item["references"]:
-            args = (("ioc", "show", ref["record_id"]) if ref["kind"] == "indicator" else
-                    ("cti", "entity-show", ref["record_id"]) if ref["kind"] == "cti" else
-                    ("surface", "relations", item["value"], "--kind", "dns", "--history"))
-            commands.add(xti_command(*args, data_dir=data_dir))
+            commands.add(_record_detail_command(ref, item["value"], data_dir))
         if item["subject_kind"] == "relationship" and item["id"].startswith("cti:"):
             commands.add(xti_command("cti", "relation-show", item["id"].removeprefix("cti:"), data_dir=data_dir))
         for row in item["evidence"]:
@@ -104,9 +117,16 @@ def research_lines(data, *, data_dir=None):
               "not_yet_valid": "geçerliliği başlamamış", "resolved": "DNS adresi gözlenmiş",
               "failed": "başarısız", "fresh": "güncel", "stale": "eski", "future": "gelecek tarihli",
               "presented": "sertifika gözlenmiş", "valid": "kontrol sırasında TLS geçerli",
-              "present": "CNAME gözlenmiş", "absent": "CNAME yok", "nxdomain": "DNS'te ad yok"}
+              "present": "CNAME gözlenmiş", "absent": "CNAME yok", "nxdomain": "DNS'te ad yok",
+              "accepted": "insan onayı", "rejected": "reddedilmiş aday", "uncertain": "belirsiz aday",
+              "pending": "inceleme bekleyen aday", "derived": "kayıtlı kanıttan aday",
+              "withdrawn": "insan kararıyla kaldırılmış bağlantı"}
     relations = {"cname_alias": "CNAME yönlendirmesi", "cname_target_address": "CNAME son hedefi → IP",
-                 "certificate_presented": "Domain → gözlenmiş TLS sertifikası"}
+                 "certificate_presented": "Domain → gözlenmiş TLS sertifikası",
+                 "supplier_candidate": "Domain → teknik tedarikçi adayı",
+                 "supplier_candidate_domain": "Aday → olası hizmet domaini",
+                 "human_supplier_link": "İnsan kararıyla tedarikçi bağlantısı (geçmiş dahil)",
+                 "supplier_registered_domain": "Tedarikçi → envantere girilmiş domain"}
     lines = [f"İlişkili kanıt araştırması: {safe_text(data['query']['value'])}",
              labels[data["status"]],
              f"Toplanan: {data['collected_node_count']} düğüm, {data['collected_edge_count']} bağlantı, "
@@ -120,8 +140,14 @@ def research_lines(data, *, data_dir=None):
 
     def show_evidence(rows):
         for row in rows:
-            lines.append(f"    {safe_text(row['source'])} | {states.get(row['status'], safe_text(row['status']))} | "
-                         f"{states[row['freshness']]} | {'Yanıt alınma' if row['time_basis'] == 'response_received_at' else 'Gözlem'}: {safe_text(row['observed_at'])} | Kayıt: {safe_text(row['recorded_at'])}")
+            when = {"response_received_at": "Yanıt alınma", "decision_recorded_at": "Karar"}.get(row["time_basis"], "Gözlem")
+            status = states.get(row['status'], safe_text(row['status']))
+            if row["kind"] == "human_decision":
+                status = ("envanter etkin" if row["status"] == "active" else
+                          "envanter pasif" if row["status"] == "revoked" else status)
+                status += " | " + ("son karar" if row["current"] else "önceki karar")
+            lines.append(f"    {safe_text(row['source'])} | {status} | "
+                         f"{states[row['freshness']]} | {when}: {safe_text(row['observed_at'])} | Kayıt: {safe_text(row['recorded_at'])}")
             lines.append(f"    Kanıt: {safe_text(row['record_id'])} | Kaynak: {safe_text(row['source_reference'])}")
             if row["first_observed_at"] != row["observed_at"]:
                 lines.append("    İlk gözlem: " + safe_text(row["first_observed_at"]))
@@ -129,6 +155,8 @@ def research_lines(data, *, data_dir=None):
                 lines.append(f"    Geçerlilik: {safe_text(row['valid_from'] or 'belirtilmemiş')} — {safe_text(row['valid_until'] or 'belirtilmemiş')}")
             if row["assertion_id"]:
                 lines.append(f"    İddia: {safe_text(row['assertion_id'])} | Son olay: {safe_text(row['event_id'])} | Kaynak güveni: {row['confidence']}")
+            elif row["event_id"]:
+                lines.append("    Özgün karar/kanıt olayı: " + safe_text(row["event_id"]))
             if row["source_run_id"]:
                 lines.append("    Kaynak çalışması: " + safe_text(row["source_run_id"]))
             lines.append("    " + safe_text(row["description"]))
@@ -159,10 +187,7 @@ def research_lines(data, *, data_dir=None):
         if node["evidence_total_count"] > len(node["evidence"]):
             lines.append(f"    Bu görünümde gösterilmeyen kanıt: {node['evidence_total_count'] - len(node['evidence'])}; ayrıntıyı açın.")
         for ref in node["references"]:
-            args = (("ioc", "show", ref["record_id"]) if ref["kind"] == "indicator" else
-                    ("cti", "entity-show", ref["record_id"]) if ref["kind"] == "cti" else
-                    ("surface", "relations", node["value"], "--kind", "dns", "--history"))
-            lines.append("  Ayrıntı: " + xti_command(*args, data_dir=data_dir))
+            lines.append("  Ayrıntı: " + _record_detail_command(ref, node["value"], data_dir))
     if data["has_more"]:
         query = data["query"]
         args = ["research", query["value"], "--type", query["indicator_type"]]
