@@ -143,7 +143,8 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
         added = {key: value for key, value in after.items() if key not in before}
         # Include SQLite's constraint auto-indexes as well as named declarations.
         with closing(sqlite3.connect(":memory:")) as expected_connection:
-            for statement in (*COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
+            from xti.adapters.relationship_notification_schema import DDL as NOTIFICATION_DDL
+            for statement in (*NOTIFICATION_DDL, *COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
                 expected_connection.execute(statement)
             expected_added = {
                 (kind, name): declaration for kind, name, declaration in expected_connection.execute(
@@ -152,7 +153,8 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
             }
         self.assertEqual(added, expected_added)
         self.assertEqual(before[("table", "case_evidence")], CASE_EVIDENCE_V62_DDL)
-        self.assertEqual(after[("table", "case_evidence")], CASE_EVIDENCE_DDL)
+        from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
+        self.assertEqual(after[("table", "case_evidence")], CURRENT_CASE_DDL)
         with closing(sqlite3.connect(self.path)) as connection:
             self.assertEqual(connection.execute(
                 "SELECT COUNT(*) FROM case_evidence WHERE evidence_type IN ('public_notice','public_notice_watch')"

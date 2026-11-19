@@ -138,8 +138,10 @@ class InvestigationTests(ResearchFixture, unittest.TestCase):
         self.dns()
         with self.repository.storage._connection() as connection, connection:
             connection.execute('DROP TABLE investigation_events')
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute('PRAGMA user_version=75')
         migration = self.repository.storage.migrate()
-        self.assertEqual((migration['from_version'], migration['to_version']), (75, 79))
+        self.assertEqual((migration['from_version'], migration['to_version']), (75, 80))
         self.assertTrue(migration['backup'])
         self.assertTrue(self.graph()['nodes'])

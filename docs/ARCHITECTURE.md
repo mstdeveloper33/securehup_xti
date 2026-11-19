@@ -1,5 +1,15 @@
 # XTI Motorunun Mimarisi
 
+0.170.0 kaynak işi v5, seçilen yayıncı listesini belge adımlarına açar.
+Planın toplam altı adım sınırı kuyruk3 ile korunur. PublisherDocumentStep
+mevcut ReportService/depo portu ile kalıcı makbuzu kullanır; aynı iş
+soyundaki başarılı core commit ilerleme kesilse de yeniden indirilmez.
+İlişki bildirim adaptörü aynı transaction içinde özgün insan kararı ve
+güncel kanıtı dondurur; değişiklik kimliği tekildir. Mevcut inbox ve case
+adaptörleri bu kanıtı okur. Şema80 bildirimi ve yeni vaka türünü yedekli
+geçişle ekler; eski günlük ve case rowid/hash'leri korunur.
+[0175 kararı](decisions/0175-publisher-jobs-and-review-delivery.md).
+
 0.169.0 yayıncı alımı küçük port + HTTPS/HTML/PDF adaptörleriyle ayrıldı.
 Özgün nesne, belge ve alım makbuzu atomik saklanır; model 1 korunur,
 model 2 alım/atıf bilgisi ekler. İlişki yeniden incelemesi aynı okuma
@@ -8,7 +18,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**19 Kasım 2026 — 0.169.0, çekirdek şema 79, iş kuyruğu şeması 3.**
+**19 Kasım 2026 — 0.170.0, çekirdek şema 80, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

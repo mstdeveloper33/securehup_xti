@@ -17,6 +17,7 @@ from xti.adapters.investigation_schema import create as create_investigation_sch
 from xti.adapters.report_schema import create as create_report_schema
 from xti.adapters.evidence_schema import create as create_evidence_schema
 from xti.adapters.document_storage_schema import create as create_document_storage_schema
+from xti.adapters.relationship_notification_schema import create as create_relationship_notification_schema
 
 from xti.domain.assets import Asset
 from xti.adapters.schema import (
@@ -198,6 +199,7 @@ class SQLiteAssetRepository:
                 create_surface_cname_schema(connection)
                 create_supplier_candidate_schema(connection)
                 create_case_schema(connection)
+                create_relationship_notification_schema(connection)
                 create_collection_profile_schema(connection)
                 create_public_notice_schema(connection)
                 create_collection_history_schema(connection)
@@ -1093,6 +1095,8 @@ class SQLiteAssetRepository:
                     create_evidence_schema(connection)
                 if version < 79:
                     create_document_storage_schema(connection)
+                if version < 80:
+                    create_relationship_notification_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

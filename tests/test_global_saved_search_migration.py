@@ -33,7 +33,7 @@ def legacy_manifest(path):
         manifest["sqlite_sequence"] = connection.execute(
             "SELECT name,seq FROM sqlite_sequence ORDER BY name"
         ).fetchall()
-        for table in ("collection_session_steps", "collection_step_receipts"):
+        for table in ("collection_session_steps", "collection_step_receipts", "case_evidence"):
             if table in manifest:
                 manifest[table] = legacy_collection_manifest_entry(table, manifest[table])
         return manifest
@@ -63,6 +63,8 @@ class GlobalSavedSearchMigrationTests(unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("PRAGMA foreign_keys=ON")
             remove_global_saved_search_schema(connection)
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=64")
             self.assertEqual(validate_schema(connection, allow_legacy=True), 64)
         return SQLiteAssetRepository(self.path)
@@ -135,6 +137,8 @@ class GlobalSavedSearchMigrationTests(unittest.TestCase):
 
     def test_old_version_number_cannot_hide_new_tables_or_trigger_partial_migration(self):
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=64")
         before = self.path.read_bytes()
         with self.assertRaises(StorageError):

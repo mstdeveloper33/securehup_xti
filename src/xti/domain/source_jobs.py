@@ -13,10 +13,10 @@ from xti.domain.source_job_usage import request_ceiling, validate_usage
 
 
 OPERATION = "sources.refresh"
-SOURCE_KEYS = ("circl", "urlscan", "misp", "ripestat", "ripestat-whois", "news:cisa", "news:ncsc", "news:cert-fr", "reports", "report-capture")
+SOURCE_KEYS = ("circl", "urlscan", "misp", "ripestat", "ripestat-whois", "news:cisa", "news:ncsc", "news:cert-fr", "reports", "report-capture", "publisher", "relationship-notify")
 FLOW_FIELDS = {'source_order', 'failure_policy', 'capture_source', 'capture_limit'}
 PLAN_FIELDS = {"indicator_type", "value", "sources", "warninglist_ids", "record_review",
-               "max_hops", "node_limit", "edge_limit", "stale_after_hours", "max_seconds", "max_requests"} | FLOW_FIELDS
+               "max_hops", "node_limit", "edge_limit", "stale_after_hours", "max_seconds", "max_requests"} | FLOW_FIELDS | {"publisher_documents", "notification_offset"}
 
 
 def source_plan(**parameters):
@@ -43,9 +43,15 @@ def source_plan(**parameters):
     if type(review) is not bool:
         raise ValidationError("İnceleme kaydı seçimi boolean olmalı.")
     seconds, budget = parameters.get("max_seconds", 180), parameters.get("max_requests", 7)
-    if type(seconds) is not int or not 1 <= seconds <= 600 or type(budget) is not int or not 1 <= budget <= 7:
-        raise ValidationError("Süre 1–600 saniye, istek bütçesi 1–7 olmalı.")
-    requests = sum(request_ceiling(source, {'warninglist_ids': selected}) for source in sources)
+    if type(seconds) is not int or not 1 <= seconds <= 600 or type(budget) is not int or not 1 <= budget <= (32 if "publisher" in sources else 7):
+        raise ValidationError("Süre 1–600 saniye; istek bütçesi normal işlerde 1–7, seçilmiş yayın işinde 1–32 olmalı.")
+    docs = parameters.get("publisher_documents")
+    if "publisher" in sources:
+        from xti.domain.publisher_jobs import documents
+        docs = documents(docs)
+    elif docs is not None:
+        raise ValidationError("Belge seçimi publisher adımı gerektirir.")
+    requests = sum(request_ceiling(source, {'warninglist_ids': selected, 'publisher_documents': docs}) for source in sources)
     if requests > budget:
         raise ValidationError("Seçilen kaynaklar istek bütçesine sığmıyor; kaynak/liste seçimini daraltın.")
     extra = {key: value for key, value in parameters.items() if key in FLOW_FIELDS and value is not None}
@@ -67,31 +73,48 @@ def source_plan(**parameters):
         extra.setdefault('capture_limit', 20)
         if extra['capture_source'] not in ('news', 'mentions') or type(extra['capture_limit']) is not int or not 1 <= extra['capture_limit'] <= 20:
             raise ValidationError('Rapor kaynağı news/mentions, sınırı 1–20 olmalı.')
+    if "relationship-notify" in sources and order[-1] != "relationship-notify":
+        raise ValidationError("İlişki bildirimi kaynak adımlarından sonra olmalı; --step ile sıralayın.")
+    notify_offset = parameters.get("notification_offset")
+    if notify_offset is not None and "relationship-notify" not in sources:
+        raise ValidationError("Bildirim penceresi relationship-notify adımı gerektirir.")
+    if "relationship-notify" in sources:
+        extra["notification_offset"] = 0 if notify_offset is None else notify_offset
+        if type(extra["notification_offset"]) is not int or not 0 <= extra["notification_offset"] <= 1_000_000:
+            raise ValidationError("Bildirim penceresi geçersiz.")
+    if docs is not None:
+        extra["publisher_documents"] = docs
+    expanded_count = len(sources) + (len(docs) - 1 if docs is not None else 0) + int(review)
+    if expanded_count > 6:
+        raise ValidationError("Bir iş en fazla altı adım içerebilir; belge sayısını veya ek kaynakları azaltın.")
     return {**scope, "sources": sources, "warninglist_ids": selected, "record_review": review,
             "max_seconds": seconds, "max_requests": budget, **extra}
 
 
 def step_keys(plan):
-    return tuple(plan.get('source_order', plan["sources"])) + (("review",) if plan["record_review"] else ())
+    steps = []
+    for key in plan.get("source_order", plan["sources"]):
+        steps.extend([f"publisher:{i + 1}" for i in range(len(plan["publisher_documents"]))] if key == "publisher" else [key])
+    return tuple(steps) + (("review",) if plan["record_review"] else ())
 
 
-def reusable_steps(parent, *, version=4):
+def reusable_steps(parent, *, version=5):
     """Derived reports must follow a retried upstream news step in workflow v4."""
     redo_capture = (version >= 4 and parent.payload.plan.get('capture_source') == 'news'
         and any(step['key'].startswith('news:') and step['status'] != 'complete' for step in parent.steps))
     return tuple({'key': step['key'], 'receipt': step['receipt']} for step in parent.steps
-        if step['key'] != 'review' and step['status'] == 'complete'
+        if step['key'] not in {'review', 'relationship-notify'} and step['status'] == 'complete'
         and not (redo_capture and step['key'] == 'report-capture'))
 
 
-def plan_data(plan, *, version=4):
+def plan_data(plan, *, version=5):
     plan = source_plan(**plan)
     return {"operation": OPERATION, "version": version, "plan": plan,
         "plan_sha256": digest(canonical_json(plan)), "step_order": list(step_keys(plan)),
         "maximum_external_requests": sum(request_ceiling(key, plan) for key in plan['sources']),
         "paid_api": False, "request_network_access": False,
         "disclosure": [{"source": key, "target_sent": key in PROVIDERS,
-                        "commercial_use": PROVIDERS[key]["commercial_use"] if key in PROVIDERS else "publisher_terms_apply" if key.startswith("news:") else "local_derived_evidence" if key in {"reports", "report-capture"} else "curated_lists_reviewed"}
+                        "commercial_use": PROVIDERS[key]["commercial_use"] if key in PROVIDERS else "publisher_terms_apply" if key.startswith("news:") or key == "publisher" else "local_derived_evidence" if key in {"reports", "report-capture", "relationship-notify"} else "curated_lists_reviewed"}
                        for key in plan["sources"]],
         "notes": ["İş kabulü ağ kullanmaz; kaynak isteğini açık worker çalıştırır.",
             "Süre sınırı adımlar arasında uygulanır; açık isteğin kendi zaman aşımı korunur.",
@@ -117,6 +140,12 @@ def validate_receipt(key, value, plan):
         sha = value["snapshot_sha256"]
         if (value["source_status"] == "failed") != (sha is None) or (sha is not None and (not isinstance(sha, str) or len(sha) != 64 or any(c not in "0123456789abcdef" for c in sha))):
             raise ValidationError("Kaynak kanıt özeti geçersiz.")
+    elif key.startswith("publisher:"):
+        from xti.domain.publisher_jobs import validate_publisher_receipt
+        validate_publisher_receipt(key, value, plan)
+    elif key == "relationship-notify":
+        from xti.domain.relationship_notifications import validate_job_receipt
+        validate_job_receipt(value)
     elif key.startswith('news:'):
         if set(value) != {'kind', 'source', 'run_id', 'source_status'} or value['kind'] != 'news_run' or value['source'] != key[5:]:
             raise ValidationError('Haber işi kaynak kanıtı geçersiz.')
@@ -172,6 +201,10 @@ def validate_receipt(key, value, plan):
 def receipt_status(key, value):
     if key in PROVIDERS:
         return "failed" if value["source_status"] == "failed" else "complete"
+    if key.startswith("publisher:"):
+        return value["source_status"]
+    if key == "relationship-notify":
+        return "partial" if value["has_more"] or value["skipped_incomplete_count"] else "complete"
     if key.startswith('news:'):
         return value['source_status']
     if key in {'reports', 'report-capture'}:
@@ -188,7 +221,7 @@ class SourceJobPayload:
     retry_of: str | None = None
     allow_uncertain: bool = False
     reused: tuple[dict, ...] = ()
-    version: int = 4
+    version: int = 5
 
     def request_json(self):
         # Execution instrumentation does not change caller intent or replay keys.
@@ -197,19 +230,21 @@ class SourceJobPayload:
 
     def to_json(self):
         if (source_plan(**self.plan) != self.plan or type(self.allow_uncertain) is not bool
-                or type(self.version) is not int or self.version not in {1, 2, 3, 4}):
+                or type(self.version) is not int or self.version not in {1, 2, 3, 4, 5}):
             raise ValidationError("Kaynak işi planı kanonik değil.")
         if self.version < 3 and (len(self.plan['sources']) > 2 or set(self.plan['sources']) - {'circl', 'urlscan', 'misp'}):
             raise ValidationError('Yeni kaynak seçenekleri iş modeli 3 gerektirir.')
         if self.version < 4 and (FLOW_FIELDS.intersection(self.plan) or set(self.plan['sources']).intersection({'report-capture', 'ripestat-whois'})):
             raise ValidationError('Esnek akış ve yeni kaynak seçenekleri iş modeli 4 gerektirir.')
+        if self.version < 5 and (({"publisher_documents", "notification_offset"} & self.plan.keys()) or set(self.plan["sources"]) & {"publisher", "relationship-notify"}):
+            raise ValidationError("Yayıncı ve ilişki bildirimi işleri model 5 gerektirir.")
         if self.retry_of is not None:
             history_uuid(self.retry_of)
         elif self.allow_uncertain or self.reused:
             raise ValidationError("İlk işte önceki çalışma veya belirsiz tekrar olamaz.")
         seen = set()
         for step in self.reused:
-            if not isinstance(step, dict) or set(step) != {"key", "receipt"} or step["key"] in seen or step["key"] not in self.plan["sources"]:
+            if not isinstance(step, dict) or set(step) != {"key", "receipt"} or step["key"] in seen or step["key"] not in step_keys(self.plan) or step["key"] in {"review", "relationship-notify"}:
                 raise ValidationError("Yeniden kullanılan adım geçersiz.")
             seen.add(step["key"])
             validate_receipt(step["key"], step["receipt"], self.plan)
@@ -229,7 +264,7 @@ class SourceJobPayload:
             if not isinstance(text, str) or len(text) > 65536:
                 raise ValueError("Size")
             value = json.loads(text)
-            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4} or not isinstance(value["reused"], list):
+            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5} or not isinstance(value["reused"], list):
                 raise ValueError("Shape")
             result = cls(value["plan"], value["retry_of"], value["allow_uncertain"], tuple(value["reused"]), value['version'])
             if result.to_json() != text:
@@ -252,12 +287,15 @@ def final_status(steps, cancelled=False):
     states = [row["status"] for row in steps]
     if all(state == "complete" for state in states):
         return "complete"
-    return "partial" if any(row['key'] != 'review' and row['status'] in {'complete', 'partial'} for row in steps) else "failed"
+    substantive = [row for row in steps if row['key'] not in {'review', 'relationship-notify'}]
+    if not substantive:
+        substantive = [row for row in steps if row['key'] != 'review']
+    return "partial" if any(row['status'] in {'complete', 'partial'} for row in substantive) else "failed"
 
 
 def source_result_json(value):
     try:
-        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4}:
+        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5}:
             raise ValueError("Shape")
         history_uuid(value["job_id"])
         if value["status"] not in {"complete", "partial", "failed", "cancelled"} or not isinstance(value["plan_sha256"], str) or len(value["plan_sha256"]) != 64:

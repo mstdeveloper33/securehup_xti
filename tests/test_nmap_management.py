@@ -180,6 +180,8 @@ class PersistenceTests(unittest.TestCase):
 
     def test_schema_70_migration_backs_up_and_accepts_only_empty_staged_tables(self):
         with closing(sqlite3.connect(self.path)) as connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=70")
             connection.commit()
         result = self.storage.migrate()

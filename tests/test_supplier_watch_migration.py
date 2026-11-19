@@ -33,7 +33,7 @@ def manifest(path):
         result["sqlite_sequence"] = connection.execute(
             "SELECT name,seq FROM sqlite_sequence ORDER BY name"
         ).fetchall()
-        for table in ("collection_session_steps", "collection_step_receipts"):
+        for table in ("collection_session_steps", "collection_step_receipts", "case_evidence"):
             if table in result:
                 result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
@@ -60,6 +60,8 @@ class SupplierWatchMigrationTests(unittest.TestCase):
             connection.execute("UPDATE notifications SET read_at=created_at")
             connection.execute("UPDATE case_evidence SET rowid=rowid+100")
             remove_supplier_watch_schema(connection)
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=63")
             self.assertEqual(validate_schema(connection, allow_legacy=True), 63)
         return SQLiteAssetRepository(self.path)
@@ -114,6 +116,8 @@ class SupplierWatchMigrationTests(unittest.TestCase):
 
     def test_old_version_number_cannot_hide_current_tables(self):
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=63")
         before = self.path.read_bytes()
         with self.assertRaises(StorageError):

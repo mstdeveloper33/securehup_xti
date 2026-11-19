@@ -32,7 +32,7 @@ def _configure(parser, operation):
 def register_evidence_parser(commands):
     for family, help_text, actions in (
         ('sightings', 'Sensörün bildirdiği gerçek görülmeler; kaynak listelerinden ayrı.', ('record', 'list', 'show', 'revoke')),
-        ('relationships', 'Kayıtlı kanıttan ilişki önerileri ve gerekçeli insan kararları.', ('candidates', 'review', 'show', 'queue')),
+        ('relationships', 'Kayıtlı kanıttan ilişki önerileri ve gerekçeli insan kararları.', ('candidates', 'review', 'show', 'queue', 'notify', 'notification-show')),
         ('identity', 'Kabul edilmiş kimlik bağlarını özgün kayıtlarla birlikte göster.', ('view',))):
         parser = commands.add_parser(family, help=help_text)
         subs = parser.add_subparsers(dest=family + '_action', required=True)
@@ -46,8 +46,15 @@ def register_comparison_parser(commands):
 
 def evidence_lines(data):
     lines = []
+    if 'created_count' in data:
+        lines.append(f"Yeni bildirim: {data['created_count']} | Daha önce bildirilen: {data['existing_count']} | Eksik kapsam: {data['skipped_incomplete_count']}")
+    if 'notification' in data:
+        data = {**data, 'records': [data['notification']]}
     rows = [data['record']] if 'record' in data else data.get('records', [])
     for row in rows:
+        if 'snapshot' in row and row['snapshot'].get('kind') == 'relationship_review_notification':
+            lines.append('Bildirim: ' + row['id'] + ' | kanıt: ' + row['snapshot_sha256'])
+            row = row['snapshot']['change']
         if row.get('kind') == 'relationship_re_review':
             lines.extend([f"Yeniden incele: {row['relationship_id']} | {safe_text(row['root'][1])} → {safe_text(row['target'][1])}",
                 '  ' + row['explanation'], f"  Önceki karar: {row['previous']['decision']} | sürüm {row['previous']['revision']}"])

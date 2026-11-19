@@ -137,6 +137,8 @@ class EvidenceTests(unittest.TestCase):
         rid = self.f.capture()['record']['id']
         with self.repo.storage._connection() as c, c:
             c.execute('DROP TABLE evidence_journal')
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(c)
             c.execute('PRAGMA user_version=77')
         before = self.f.path.read_bytes()
         result = self.repo.storage.migrate()

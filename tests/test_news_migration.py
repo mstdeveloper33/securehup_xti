@@ -35,7 +35,7 @@ def manifest(path):
             if table == 'global_saved_searches':
                 result[table] = legacy_search_manifest_entry(result[table])
         result['sqlite_sequence'] = connection.execute('SELECT name,seq FROM sqlite_sequence ORDER BY name').fetchall()
-        for table in ("collection_session_steps", "collection_step_receipts"):
+        for table in ("collection_session_steps", "collection_step_receipts", "case_evidence"):
             if table in result:
                 result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
@@ -64,6 +64,8 @@ class NewsMigrationTests(unittest.TestCase):
             connection.execute('UPDATE assets SET rowid=rowid+100')
             connection.execute('UPDATE global_saved_search_notifications SET read_at=created_at')
             remove_news_schema(connection)
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute('PRAGMA user_version=65')
             self.assertEqual(validate_schema(connection, allow_legacy=True), 65)
         return self.storage
@@ -139,6 +141,8 @@ class NewsMigrationTests(unittest.TestCase):
 
     def test_fake_legacy_version_cannot_hide_new_tables_or_trigger_backup(self):
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute('PRAGMA user_version=65')
         before = self.path.read_bytes()
         with self.assertRaises(StorageError):

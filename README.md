@@ -1,5 +1,9 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.170.0 seçilmiş HTML/PDF belgelerini kalıcı iş kuyruğunda ayrı ayrı işler;
+ilişki dayanağı değişikliklerini yerel kutuya bildirir ve insan seçimiyle
+vakaya bağlar. [Kullanım ve sınırlar](docs/PUBLISHER_JOB_DELIVERY.md).
+
 0.169.0 izinli CERT-FR/NCSC makale ve PDF metnini kaynak kanıtıyla kaydeder;
 `relationships queue` dayanağı değişen insan kararlarını gösterir;
 `journals` eski gövdeleri geçmişi silmeden, yedek alarak sıkıştırır ve geri
@@ -7,7 +11,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Sürüm:** 0.169.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 79 · **İş kuyruğu:** 3.
+**Sürüm:** 0.170.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 80 · **İş kuyruğu:** 3.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;

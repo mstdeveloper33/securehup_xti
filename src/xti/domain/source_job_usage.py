@@ -10,7 +10,11 @@ UNIT = 'http_open_attempt'
 
 
 def request_ceiling(key, plan):
-    return 2 + len(plan['warninglist_ids']) if key == 'misp' else 0 if key in {'review', 'reports', 'report-capture'} else 1
+    if key == 'publisher':
+        return 4 * len(plan['publisher_documents'])
+    if key.startswith('publisher:'):
+        return 4
+    return 2 + len(plan['warninglist_ids']) if key == 'misp' else 0 if key in {'review', 'reports', 'report-capture', 'relationship-notify'} else 1
 
 
 def validate_usage(value, maximum):

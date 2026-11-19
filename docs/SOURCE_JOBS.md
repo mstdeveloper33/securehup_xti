@@ -1,6 +1,11 @@
 # Kaynak güncelleme işleri
 
-19 Kasım 2026 · 0.168.0 · çekirdek şema 78 · iş kuyruğu şeması 3.
+19 Kasım 2026 · 0.170.0 · çekirdek şema 80 · iş kuyruğu şeması 3.
+
+İş modeli 5, açıkça seçilmiş en fazla beş yayıncı HTML/PDF belgesini
+ve ilişki bildirimi adımını ekler. Toplam altı yürütme adımı korunur.
+Önceki modeller 1–4 kendi kanıtlarıyla okunur.
+[Belge işleri, kesinti/tekrar ve bildirim kullanımı](PUBLISHER_JOB_DELIVERY.md).
 
 İş modeli 4, `ripestat-whois` ve `report-capture` adımlarını, açık adım
 sırasını ve hata sonrası devam/durdurma seçimini ekler. Önceki iş modeli
@@ -51,7 +56,7 @@ Uyumsuz sağlayıcı ve bilinmeyen kaynak reddedilir.
 | Seçim | Davranış |
 |---|---|
 | Kaynak | En fazla beş: türle uyumlu CIRCL/urlscan/RIPEstat/RIPEstat WHOIS, MISP, `news:cisa`, `news:ncsc`, `news:cert-fr`, `reports`, `report-capture` seçenekleri |
-| `--max-requests` | 1–7, varsayılan 7; planın en kötü istek sayısını karşılamalı |
+| `--max-requests` | Normal kaynak işinde 1–7; publisher içeren işte 1–32. Varsayılan 7; seçilmiş her belge için dört deneme ayrılır |
 | MISP istek hesabı | Commit + gerekirse koşul belgesi + seçilen her liste için bir istek |
 | RIPEstat / yayıncı | IP başına bir GET / yayıncı başına bir GET; haber isteğine firma domaini eklenmez |
 | `reports` | Sıfır dış istek; en yeni 20 saklı haberden aday çıkarımı, varsa `has_more` ve kısmi kapsam |

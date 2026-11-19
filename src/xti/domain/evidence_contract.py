@@ -6,8 +6,8 @@ from xti.domain.cti_knowledge import normalize_knowledge_id
 from xti.domain.cases import normalize_case_reason
 from xti.domain.reports import sha
 
-READS = ('sightings.list', 'sightings.show', 'relationships.candidates', 'relationships.show', 'relationships.queue', 'identity.view', 'ioc.compare')
-WRITES = ('sightings.record', 'sightings.revoke', 'relationships.review')
+READS = ('sightings.list', 'sightings.show', 'relationships.candidates', 'relationships.show', 'relationships.queue', 'relationships.notification-show', 'identity.view', 'ioc.compare')
+WRITES = ('sightings.record', 'sightings.revoke', 'relationships.review', 'relationships.notify')
 PAGE = {'offset', 'limit', 'expected_snapshot'}
 ROOT = {'indicator_type', 'value'}
 FIELDS = {
@@ -20,6 +20,8 @@ FIELDS = {
     'relationships.candidates': (ROOT | PAGE, ROOT),
     'relationships.show': ({'identifier'}, {'identifier'}),
     'relationships.queue': (ROOT | PAGE, set()),
+    'relationships.notify': (ROOT | PAGE, ROOT),
+    'relationships.notification-show': ({'identifier'}, {'identifier'}),
     'relationships.review': (ROOT | {'identifier', 'evidence_sha256', 'decision', 'reason', 'expected_revision', 'idempotency_key'},
                               ROOT | {'identifier', 'evidence_sha256', 'decision', 'reason', 'expected_revision', 'idempotency_key'}),
     'identity.view': ({'kind', 'identifier'}, {'kind', 'identifier'}),
@@ -50,7 +52,7 @@ def parameters(operation, options, *, scoped=False):
         result['value'] = normalize_indicator_value(result['indicator_type'], result['value'])
     for key in ('expected_workspace_id', 'identifier'):
         if key in result:
-            if key == 'identifier' and operation.startswith('relationships.'):
+            if key == 'identifier' and operation.startswith('relationships.') and operation != 'relationships.notification-show':
                 sha(result[key])
             else:
                 result[key] = normalize_knowledge_id(result[key])
@@ -74,7 +76,7 @@ def parameters(operation, options, *, scoped=False):
             text(result[key], limit)
         result['observed_at'] = normalize_cti_timestamp(result['observed_at'])
     if PAGE <= allowed:
-        for key, default, high in (('offset', 0, 1_000_000), ('limit', 20, 20 if operation == 'relationships.queue' else 100)):
+        for key, default, high in (('offset', 0, 1_000_000), ('limit', 20, 20 if operation in {'relationships.queue', 'relationships.notify'} else 100)):
             result.setdefault(key, default)
             if type(result[key]) is not int or not (0 if key == 'offset' else 1) <= result[key] <= high:
                 raise ValidationError('Kanıt sayfalama sınırı geçersiz.')

@@ -1,5 +1,9 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**0.170.0:** Kullanıcı aşağıdaki üç işi birlikte onayladı. Seçilmiş belge
+işleri, bildirim/vaka bağlantısı ve tekrarlanabilir kapasite kontrolü
+uygulandı; nihai test/Linux kabulü sürüyor. [Kullanım](../PUBLISHER_JOB_DELIVERY.md).
+
 **0.169.0 teslimi:** Kullanıcının seçtiği 2/3/4; izinli yayıncı HTML/PDF,
 ilişki yeniden inceleme ve kayıpsız günlük arşivi uygulandı.
 [Kapsam ve kabul tablosu](REPORT_REVIEW_RETENTION_DELIVERY.md).
@@ -13,8 +17,7 @@ LLM ve geniş STIX/TAXII bekler.
 Kullanıcı GitHub/Linux teslim adımıyla devam edilmesini istedi. Kod
 `071a076` olarak gönderildi ve Linux kabulü tamamlandı; çalışma sonuçları
 [kabul kaydında](../ACCEPTANCE_REVIEW.md) tutulur. Aşağıdaki üç genişletme
-henüz uygulanmadı; mevcut `reports.fetch`, yeniden inceleme listesi ve
-yerel kapasite testleriyle karıştırılmaz.
+0.170.0 içinde uygulandı; yeni dilimin kabul sonuçları ayrı kaydedilir.
 
 | Sonraki iş | Uygulama sınırı | Tamamlanma ölçütü |
 | --- | --- | --- |
@@ -26,7 +29,7 @@ PDF bağlantılarını otomatik izleyen genel tarayıcı, tüm internet taramas�
 LLM, geniş STIX/TAXII ve .NET/UI bu üç işle kendiliğinden açılmaz.
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.169.0 / çekirdek şema 79, ayrı platform iş şeması 3.
+**Mevcut sürüm:** 0.170.0 / çekirdek şema 80, ayrı platform iş şeması 3.
 
 **18 Kasım sonraki motor dilimi:** Kullanıcı IOC yaşam döngüsü geliştirmesini
 yetkilendirdi. 0.165.0 kaynak zamanı/kanıt yaşı/geçerlilik/toplama durumunu

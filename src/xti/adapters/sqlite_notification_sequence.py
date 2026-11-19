@@ -31,6 +31,7 @@ def next_notification_sequence(connection: sqlite3.Connection) -> int:
             "public_notice_watch_notifications",
             "supplier_watch_notifications",
             "global_saved_search_notifications",
+            "relationship_review_notifications",
         )
     )
     if any(type(value) is not int or not 0 <= value <= _MAX_SEQUENCE for value in maxima):

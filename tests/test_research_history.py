@@ -281,13 +281,16 @@ class ResearchHistoryTests(ResearchFixture, unittest.TestCase):
     def test_schema74_requires_explicit_backed_up_migration(self):
         asset, _ = SQLiteAssetRepository(self.path).add("example.com")
         self.sql("DROP TABLE research_reviews")
+        from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+        with closing(sqlite3.connect(self.path)) as c, c:
+            case_evidence_layout_v79(c)
         self.sql("PRAGMA user_version=74")
         before = self.files()
         with self.assertRaises(StorageError):
             self.record()
         self.assertEqual(before, self.files())
         migration = SQLiteAssetRepository(self.path).migrate()
-        self.assertEqual((migration["from_version"], migration["to_version"]), (74, 79))
+        self.assertEqual((migration["from_version"], migration["to_version"]), (74, 80))
         self.assertEqual(SQLiteAssetRepository(self.path).list(), [asset])
         with closing(sqlite3.connect(migration["backup"])) as connection:
             self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 74)
@@ -296,6 +299,9 @@ class ResearchHistoryTests(ResearchFixture, unittest.TestCase):
 
     def test_migration_interruption_preserves_old_schema_and_backup(self):
         self.sql("DROP TABLE research_reviews")
+        from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+        with closing(sqlite3.connect(self.path)) as c, c:
+            case_evidence_layout_v79(c)
         self.sql("PRAGMA user_version=74")
         with patch("xti.adapters.sqlite.create_research_history_schema", side_effect=KeyboardInterrupt):
             with self.assertRaises(KeyboardInterrupt):
@@ -307,6 +313,9 @@ class ResearchHistoryTests(ResearchFixture, unittest.TestCase):
 
     def test_populated_future_table_cannot_masquerade_as_schema74(self):
         self.record()
+        from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+        with closing(sqlite3.connect(self.path)) as c, c:
+            case_evidence_layout_v79(c)
         self.sql("PRAGMA user_version=74")
         with self.assertRaises(StorageError):
             SQLiteAssetRepository(self.path).migrate()

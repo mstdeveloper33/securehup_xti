@@ -348,6 +348,8 @@ class ManagedTests(unittest.TestCase):
     def test_migration_71_preserves_plans_and_creates_empty_job_history(self):
         before = canonical_managed_plan_json(self.plan.plan.definition)
         with closing(sqlite3.connect(self.database)) as connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=71")
             connection.commit()
         result = SQLiteAssetRepository(self.database).migrate()

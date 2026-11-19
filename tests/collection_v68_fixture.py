@@ -7,6 +7,8 @@ from xti.adapters.collection_public_notice_schema import COLLECTION_STEP_COLUMNS
 
 
 def collection_layout_v68(connection):
+    from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+    case_evidence_layout_v79(connection)
     columns = {row[1] for row in connection.execute('PRAGMA table_info(collection_step_receipts)')}
     if 'news_run_id' not in columns:
         return
@@ -35,6 +37,9 @@ def collection_layout_v68(connection):
 
 def legacy_collection_manifest_entry(table, entry):
     """Compare legacy rows while verifying the exact reviewed schema extension."""
+    if table == 'case_evidence':
+        from tests.case_evidence_v79_fixture import legacy_case_manifest_entry
+        return legacy_case_manifest_entry(entry)
     if table not in {'collection_session_steps', 'collection_step_receipts'}:
         return entry
     columns, rows, objects = entry

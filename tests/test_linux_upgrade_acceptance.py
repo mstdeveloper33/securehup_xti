@@ -163,6 +163,8 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
             with closing(sqlite3.connect(database)) as connection, connection:
                 connection.execute('CREATE TABLE "odd""name" (value TEXT)')
                 connection.execute('INSERT INTO "odd""name" (rowid,value) VALUES (99,?)', ("preserved",))
+                from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+                case_evidence_layout_v79(connection)
                 connection.execute("PRAGMA user_version=64")
             before = self.helper.database_manifest(database)
             self.assertEqual(before[0], 64)
@@ -192,6 +194,8 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
             storage.add("example.com")
             with closing(sqlite3.connect(database)) as connection, connection:
                 remove_global_saved_search_schema(connection)
+                from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+                case_evidence_layout_v79(connection)
                 connection.execute("PRAGMA user_version=64")
             # CLI mutators use this existing ownership lock; include it in the manifest.
             (data / "xti.db.worker.lock").touch(mode=0o600)

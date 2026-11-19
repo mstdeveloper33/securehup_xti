@@ -332,6 +332,8 @@ class PersistenceTests(unittest.TestCase):
             connection.execute("DROP INDEX surface_nmap_checks_execution_id")
             connection.execute("DROP INDEX surface_nmap_checks_asset_id")
             connection.execute("DROP TABLE surface_nmap_checks")
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=69")
             connection.commit()
         migrated = self.storage.migrate()

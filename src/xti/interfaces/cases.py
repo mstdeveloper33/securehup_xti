@@ -32,6 +32,7 @@ _EVIDENCE = {
     "supplier": "Tedarikçi inceleme kartı",
     "public_notice": "HIBP tarihî kamu olay kaydı",
     "public_notice_watch": "HIBP kuruluş izleme kanıtı",
+    "relationship_review": "İlişki dayanağı değişikliği",
 }
 _TASK = {"open": "Açık", "done": "Tamamlandı", "cancelled": "İptal edildi"}
 _ACTIVITY = {
@@ -278,7 +279,16 @@ def evidence_detail_lines(evidence: CaseEvidence) -> list[str]:
     if evidence.removed_reason:
         lines.append(f"Çıkarılma: {safe_text(evidence.removed_at)} | {safe_text(evidence.removed_reason)}")
     lines.extend(_public_notice_evidence_lines(evidence))
-    if evidence.evidence_type not in PUBLIC_NOTICE_CASE_TYPES:
+    if evidence.evidence_type == 'relationship_review':
+        import json
+        proof = json.loads(evidence.snapshot_json)
+        change = proof['change']
+        lines.extend([change['explanation'],
+            f"Önceki karar: {change['previous']['decision']} | sürüm {change['previous']['revision']}",
+            'Önceki dayanak: ' + change['previous']['evidence_sha256'],
+            'Yeni dayanak: ' + (change['current']['evidence_sha256'] if change['current'] else 'bildirim anındaki görünümde yok'),
+            'Bu donmuş bildirim kanıtıdır; güncel insan kararını değiştirmez.'])
+    elif evidence.evidence_type not in PUBLIC_NOTICE_CASE_TYPES:
         lines.append('Donmuş kaynak anlık görüntüsü:')
         lines.append(safe_text(evidence.snapshot_json))
     return lines

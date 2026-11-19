@@ -99,7 +99,7 @@ _EXISTING_NOTIFICATIONS = (
     "event_type, origin, created_at, read_at, NULL AS ransomlook_run_id, "
     "NULL AS public_notice_watch_run_id, run_id AS supplier_watch_run_id FROM supplier_watch_notifications"
 )
-_COMBINED_NOTIFICATIONS = (
+_PRE_RELATIONSHIP_NOTIFICATIONS = (
     "SELECT *, NULL AS global_search_run_id FROM (" + _EXISTING_NOTIFICATIONS + ") UNION ALL "
     "SELECT sequence, id, NULL AS finding_id, NULL AS candidate_id, NULL AS evidence_id, "
     "NULL AS evidence_type, NULL AS exposure_id, NULL AS cti_run_id, "
@@ -107,6 +107,13 @@ _COMBINED_NOTIFICATIONS = (
     "NULL AS ransomlook_run_id, NULL AS public_notice_watch_run_id, NULL AS supplier_watch_run_id, "
     "run_id AS global_search_run_id FROM global_saved_search_notifications"
 )
+_COMBINED_NOTIFICATIONS = (
+    "SELECT *, NULL AS relationship_review_id FROM (" + _PRE_RELATIONSHIP_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
+    "'relationship_review_required','new',created_at,read_at,NULL,NULL,NULL,NULL,id "
+    "FROM relationship_review_notifications"
+)
+from xti.adapters.sqlite_relationship_notifications import read_notifications as read_relationship_notifications
 _TIMESTAMP = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
     r"(?:\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})\Z"
@@ -145,13 +152,14 @@ class SQLiteInboxRepository:
         self._storage = SQLiteAssetRepository(path)
 
     @staticmethod
-    def _validate_sequences(connection: sqlite3.Connection) -> None:
+    def _validate_sequences(connection: sqlite3.Connection) -> dict:
         duplicate = connection.execute(
             "SELECT sequence FROM (" + _COMBINED_NOTIFICATIONS + ") "
             "GROUP BY sequence HAVING COUNT(*) > 1 LIMIT 1"
         ).fetchone()
         if duplicate is not None:
             raise StorageError("Bildirim sırası çakışıyor; işlem durduruldu.")
+        return read_relationship_notifications(connection)[0]
 
     @staticmethod
     def _notification(row) -> Notification:
@@ -160,7 +168,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, candidate_id,
                 evidence_id, evidence_type, exposure_id, cti_run_id, ransomware_run_id,
                 brand_candidate_id, event_type, origin, created, read_at, ransomlook_run_id,
-                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id,
+                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id,
             ) = row
             if type(sequence) is not int or not 1 <= sequence <= _MAX_SEQUENCE:
                 raise ValueError("Invalid notification sequence")
@@ -170,7 +178,7 @@ class SQLiteInboxRepository:
                 for value in (
                     finding_id, candidate_id, evidence_id, exposure_id,
                     cti_run_id, ransomware_run_id, brand_candidate_id, ransomlook_run_id,
-                    public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id,
+                    public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id,
                 )
             )
             if subjects != 1:
@@ -195,6 +203,8 @@ class SQLiteInboxRepository:
                 _identifier(supplier_watch_run_id)
             if global_search_run_id is not None:
                 _identifier(global_search_run_id)
+            if relationship_review_id is not None:
+                _identifier(relationship_review_id)
             if brand_candidate_id is not None:
                 _identifier(brand_candidate_id)
             if (
@@ -232,6 +242,9 @@ class SQLiteInboxRepository:
                 global_search_run_id is not None
                 and (event_type != "global_saved_search_changed" or origin != "new")
             ) or (
+                relationship_review_id is not None
+                and (event_type != "relationship_review_required" or origin != "new" or relationship_review_id != identifier)
+            ) or (
                 brand_candidate_id is not None
                 and (
                     event_type != "social_profile_possible_impersonation"
@@ -248,7 +261,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, event_type, origin, created, read_at,
                 candidate_id, evidence_id, evidence_type, exposure_id, cti_run_id,
                 ransomware_run_id, brand_candidate_id, ransomlook_run_id,
-                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id,
+                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id,
             )
         except (ValueError, TypeError, OverflowError) as error:
             raise StorageError(
@@ -331,7 +344,7 @@ class SQLiteInboxRepository:
         _validate_list(status, limit, before)
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
-            self._validate_sequences(connection)
+            relationship_evidence = self._validate_sequences(connection)
             finding_total, finding_unread = connection.execute(
                 "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) FROM notifications"
             ).fetchone()
@@ -375,17 +388,20 @@ class SQLiteInboxRepository:
                 "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
                 "FROM global_saved_search_notifications"
             ).fetchone()
+            relationship_total, relationship_unread = connection.execute(
+                "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL),0) FROM relationship_review_notifications"
+            ).fetchone()
             total = (
                 finding_total + candidate_total + change_total + vulnerability_total
                 + cti_total + ransomware_total + brand_total + ransomlook_total
                 + public_notice_total + supplier_total
-                + global_search_total
+                + global_search_total + relationship_total
             )
             unread = (
                 finding_unread + candidate_unread + change_unread
                 + vulnerability_unread + cti_unread + ransomware_unread
                 + brand_unread + ransomlook_unread + public_notice_unread + supplier_unread
-                + global_search_unread
+                + global_search_unread + relationship_unread
             )
             matching = (
                 total if status == "all"
@@ -429,7 +445,9 @@ class SQLiteInboxRepository:
             )
             items = []
             for notification in notifications:
-                if notification.finding_id is not None:
+                if notification.relationship_review_id is not None:
+                    items.append(InboxItem(notification, None, relationship_change=relationship_evidence[notification.id]))
+                elif notification.finding_id is not None:
                     items.append(InboxItem(
                         notification,
                         SQLiteFindingRepository._get(connection, notification.finding_id),
@@ -511,9 +529,11 @@ class SQLiteInboxRepository:
             raise ValidationError("Geçerli bir bildirim kimliği gerekli.") from error
         with self._storage._connection(readonly=True) as connection:
             connection.execute("BEGIN")
-            self._validate_sequences(connection)
+            relationship_evidence = self._validate_sequences(connection)
             notification = self._get(connection, notification_id)
-            if notification.finding_id is not None:
+            if notification.relationship_review_id is not None:
+                result = InboxDetails(notification, None, relationship_change=relationship_evidence[notification.id])
+            elif notification.finding_id is not None:
                 result = InboxDetails(
                     notification,
                     SQLiteFindingRepository._details(connection, notification.finding_id),
@@ -599,7 +619,8 @@ class SQLiteInboxRepository:
         for identifier in identifiers:
             notification = SQLiteInboxRepository._get(connection, identifier)
             table = (
-                "notifications" if notification.finding_id is not None
+                "relationship_review_notifications" if notification.relationship_review_id is not None
+                else "notifications" if notification.finding_id is not None
                 else "surface_candidate_notifications"
                 if notification.candidate_id is not None
                 else "surface_change_notifications"
@@ -648,7 +669,7 @@ class SQLiteInboxRepository:
         with self._storage._connection() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
-                self._validate_sequences(connection)
+                relationship_evidence = self._validate_sequences(connection)
                 # Validate the entire batch before changing even the first row.
                 selected = tuple(self._get(connection, identifier) for identifier in identifiers)
                 public_notice_ids = tuple(

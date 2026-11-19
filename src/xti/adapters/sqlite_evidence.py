@@ -69,7 +69,7 @@ def sightings_for(records, options):
         key=lambda row: (row['observation']['observed_at'], row['id']), reverse=True)
 
 
-def review_queue(connection, path, records, options, at):
+def review_queue(connection, path, records, options, at, *, proofs=None):
     from xti.domain.relationship_review_queue import review_item
     scope = [options['indicator_type'], options['value']] if 'indicator_type' in options else None
     reviewed = sorted((row for row in records.values() if row['kind'] == 'relationship' and row['decision'] != 'withdrawn'
@@ -91,6 +91,8 @@ def review_queue(connection, path, records, options, at):
         evidence_states.append([record['id'], current['evidence_sha256'] if current else None, sorted(limitations)])
         if item is not None:
             items.append(item)
+    if proofs is not None:
+        proofs.update(cache)
     more = start + len(window) < len(reviewed)
     return {'model_version': 1, 'records': items, 'pending_in_window': len(items), 'examined_count': len(window),
         'total_review_count': len(reviewed), 'offset': start, 'limit': limit, 'has_more': more,
@@ -110,6 +112,9 @@ class SQLiteEvidenceRepository:
     def read(self, operation, options, at):
         with self.storage._connection(readonly=True) as connection:
             connection.execute('BEGIN')
+            if operation == 'relationships.notification-show':
+                from xti.adapters.sqlite_relationship_notifications import get_notification
+                return {'notification': get_notification(connection, options['identifier'])}
             if operation == 'identity.view':
                 from xti.adapters.sqlite_identity_view import identity_view
                 return identity_view(connection, self.storage.path, options['kind'], options['identifier'])
@@ -147,6 +152,9 @@ class SQLiteEvidenceRepository:
     def mutate(self, operation, request, at):
         with self.storage._connection() as connection, connection:
             connection.execute('BEGIN IMMEDIATE')
+            if operation == 'relationships.notify':
+                from xti.adapters.sqlite_relationship_notifications import notify
+                return notify(connection, self.storage.path, request, at)
             records, entries, chain = read_evidence(connection)
             for index, entry in enumerate(entries):
                 if entry['request']['idempotency_key'] == request['idempotency_key']:

@@ -29,6 +29,10 @@ def case_link_evidence(link, activity):
 def case_subjects(link):
     """Only explicit typed scope in the frozen evidence; never text/name guessing."""
     payload = json.loads(link.snapshot_json)
+    if link.evidence_type == 'relationship_review':
+        from xti.domain.relationship_notifications import validate_snapshot
+        validate_snapshot(payload)
+        return tuple(sorted({tuple(payload['change'][key]) for key in ('root', 'target', 'via')}))
     if link.evidence_type == 'finding':
         finding = payload['finding']
         return tuple(sorted({('domain', normalize_domain(finding[name]))

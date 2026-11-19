@@ -37,7 +37,7 @@ def manifest(path):
             )
             result[table] = legacy_search_manifest_entry(entry) if table == "global_saved_searches" else entry
         result["sqlite_sequence"] = connection.execute("SELECT name,seq FROM sqlite_sequence ORDER BY name").fetchall()
-        for table in ("collection_session_steps", "collection_step_receipts"):
+        for table in ("collection_session_steps", "collection_step_receipts", "case_evidence"):
             if table in result:
                 result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
@@ -64,6 +64,8 @@ class MentionGroupMigrationTests(unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("UPDATE assets SET rowid=rowid+100")
             remove_mention_group_schema(connection)
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=67")
             self.assertEqual(validate_schema(connection, allow_legacy=True), 67)
 
@@ -127,6 +129,8 @@ class MentionGroupMigrationTests(unittest.TestCase):
 
     def test_false_legacy_version_cannot_hide_new_tables(self):
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=67")
         before = self.path.read_bytes()
         with self.assertRaises(StorageError):

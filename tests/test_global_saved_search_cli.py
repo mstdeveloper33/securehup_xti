@@ -146,6 +146,8 @@ class GlobalSavedSearchCLITests(unittest.TestCase):
                 self.assertEqual(list(missing.iterdir()), [])
         import sqlite3
         with closing(sqlite3.connect(self.database)) as connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=64")
             connection.commit()
         before = self.files()

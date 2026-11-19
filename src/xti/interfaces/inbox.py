@@ -46,7 +46,12 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
     for item in page.items:
         notice = item.notification
         read_state = "Okundu" if notice.read_at is not None else "Okunmadı"
-        if item.finding is not None:
+        if item.relationship_change is not None:
+            change = item.relationship_change['snapshot']['change']
+            lines.extend(['', f"{read_state} | İlişki dayanağı değişti | {safe_text(change['root'][1])}",
+                '  Bildirim: ' + notice.id, '  ' + change['explanation'],
+                f"  Önceki karar: {change['previous']['decision']} | sürüm {change['previous']['revision']}"])
+        elif item.finding is not None:
             finding = item.finding
             lines.extend([
                 "",
@@ -190,6 +195,23 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
 
 def detail_lines(item: InboxDetails, *, data_dir=None) -> list[str]:
     notice = item.notification
+    if item.relationship_change is not None:
+        from xti.interfaces.evidence import evidence_lines
+        from xti.interfaces.text import xti_command
+        proof = item.relationship_change['snapshot']
+        change = proof['change']
+        lines = [f"Bildirim: {notice.id} | İlişki dayanağı değişti",
+            f"Kutuda oluşturulma: {notice.created_at} | Okundu: {notice.read_at or 'hayır'}",
+            *evidence_lines({'notification': item.relationship_change}),
+            'Önceki dayanak: ' + change['previous']['evidence_sha256']]
+        for label, candidate in [('Önceki', proof['previous_review']['candidate']), ('Yeni', proof['current_candidate'])]:
+            if candidate is not None:
+                for edge in candidate['evidence']:
+                    for row in edge['evidence']:
+                        lines.append(f"  {label}: {safe_text(row['source'])} | {safe_text(row['source_reference'])} | {safe_text(row['record_id'])}")
+        lines.append('Vakaya ekle: ' + xti_command('cases', 'evidence-add', 'VAKA_KIMLIGI', '--type', 'relationship_review', '--evidence-id', notice.id, '--reason', 'İnceleme gerekçesi', data_dir=data_dir))
+        lines.append('Bildirim insan kararını değiştirmez; bu kanıt bildirim anındaki durumu korur.')
+        return lines
     if item.global_search_change is not None:
         return [
             f"Bildirim: {safe_text(notice.id)} | Genel arama eşleşmeleri değişti",

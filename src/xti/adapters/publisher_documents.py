@@ -146,9 +146,10 @@ def pdf_text(body):
 
 
 class PublisherDocumentSource:
-    def __init__(self, *, resolve=None, connect=None, clock=None):
+    def __init__(self, *, resolve=None, connect=None, clock=None, request_usage=None):
         self.resolve, self.connect = resolve or _resolve, connect or _Connection
         self.clock = clock or (lambda: datetime.now(timezone.utc))
+        self.request_usage = request_usage
 
     def fetch(self, provider, url):
         original = current = publisher_url(provider, url)
@@ -163,8 +164,17 @@ class PublisherDocumentSource:
                     raise TimeoutError()
                 connection = self.connect(parsed.hostname, address, min(20, remaining))
                 try:
-                    connection.request('GET', parsed.path, headers={'User-Agent': 'XTI-Publisher/1', 'Accept': 'text/html, application/pdf', 'Accept-Encoding': 'identity'})
-                    response = connection.getresponse()
+                    if self.request_usage is not None:
+                        self.request_usage.begin()
+                    try:
+                        connection.request('GET', parsed.path, headers={'User-Agent': 'XTI-Publisher/1', 'Accept': 'text/html, application/pdf', 'Accept-Encoding': 'identity'})
+                        response = connection.getresponse()
+                    except Exception:
+                        if self.request_usage is not None:
+                            self.request_usage.failed()
+                        raise
+                    if self.request_usage is not None:
+                        self.request_usage.received(response.status)
                     if response.status in (301, 302, 303, 307, 308):
                         location = response.getheader('Location')
                         if not location or len(redirects) >= 3:

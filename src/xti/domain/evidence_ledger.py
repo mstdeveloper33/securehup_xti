@@ -73,7 +73,7 @@ def project(entries):
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != {'version', 'id', 'subject_id', 'operation', 'request', 'recorded_at', 'candidate'}:
             raise ValidationError('Kanıt günlüğü olayı geçersiz.')
-        if type(entry['version']) is not int or entry['version'] != 1 or entry['operation'] not in WRITES:
+        if type(entry['version']) is not int or entry['version'] != 1 or entry['operation'] not in {'sightings.record', 'sightings.revoke', 'relationships.review'}:
             raise ValidationError('Kanıt günlüğü sürümü/işlemi geçersiz.')
         normalize_knowledge_id(entry['id'])
         operation, request, identifier, at = (entry[k] for k in ('operation', 'request', 'subject_id', 'recorded_at'))

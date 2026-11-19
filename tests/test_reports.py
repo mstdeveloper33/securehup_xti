@@ -260,13 +260,15 @@ class ReportTests(unittest.TestCase):
     def test_schema76_requires_explicit_backed_up_migration_and_preserves_sources(self):
         with closing(sqlite3.connect(self.path)) as c, c:
             c.execute('DROP TABLE report_journal')
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(c)
             c.execute('PRAGMA user_version=76')
         before = self.path.read_bytes()
         with self.assertRaises(StorageError):
             self.repo.read()
         self.assertEqual(self.path.read_bytes(), before)
         result = self.f.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (76, 79))
+        self.assertEqual((result['from_version'], result['to_version']), (76, 80))
         with closing(sqlite3.connect(result['backup'])) as c:
             self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0], 76)
             self.assertFalse(c.execute("SELECT 1 FROM sqlite_schema WHERE name='report_journal'").fetchone())

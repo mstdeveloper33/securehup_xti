@@ -1,5 +1,14 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.170.0:** Seçilmiş yayıncı belgeleri kaynak işi v5 içinde ayrı adımlar
+olarak çalışır. Başarılı belge tekrar indirilmez; commit sonrası kesinti
+kalıcı makbuzla toparlanır. İlişki değişikliği tekilleştirilmiş yerel bildirim
+ve donmuş vaka kanıtına taşınır; kısmi kapsam kesin kayıp sayılmaz.
+Çekirdek 80 açık/yedekli geçiş gerektirir; kuyruk 3, önceki iş modelleri
+1–4, araştırma 3, öncelik v8 ve dış JSON v1 korunur.
+[Kullanım](PUBLISHER_JOB_DELIVERY.md), [karar](decisions/0175-publisher-jobs-and-review-delivery.md).
+Kabul çalışması sürüyor; aşağıdaki 0.169.0 Linux sonuçları önceki sürüme aittir.
+
 **0.169.0 GitHub/Linux teslimi tamamlandı:** `071a076` kodu `main` dalına
 gönderildi; altı GitHub çalışması başarılı. Ubuntu 24.04 x86_64 üzerinde
 Python 3.13.18 tam paketi **3.187 test / 1.908,627 saniye**, Python 3.11
@@ -48,7 +57,7 @@ test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
 kabulü bu yerel teslimin sonucu değildir.
 
 
-**19 Kasım 2026 · 0.169.0 · Çekirdek şema 79 · İş kuyruğu şeması 3.**
+**19 Kasım 2026 · 0.170.0 · Çekirdek şema 80 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları

@@ -62,9 +62,24 @@ def make_source_runner(database):
         from xti.interfaces.investigation import make_investigation_service
         return make_investigation_service(database)
 
+    def publishers(request_usage=None):
+        from xti.adapters.source_job_publishers import PublisherDocumentStep
+        from xti.adapters.publisher_documents import PublisherDocumentSource
+        from xti.adapters.sqlite_reports import SQLiteReportRepository
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        return PublisherDocumentStep(SQLiteReportRepository(database),
+            SQLiteEngineJobRepository(database.parent / "engine-jobs.sqlite3"),
+            PublisherDocumentSource(request_usage=request_usage))
+
+    def relationship_notifications():
+        from xti.adapters.source_job_relationships import RelationshipNotificationStep
+        from xti.interfaces.evidence import make_evidence_service
+        return RelationshipNotificationStep(database, make_evidence_service(database))
+
     from xti.adapters.source_job_reports import VersionedReportStep
     operations = ExistingSourceJobOperations(enrichment, warninglists, history,
-        news=news, investigations=investigations, reports=lambda: VersionedReportStep(database))
+        news=news, investigations=investigations, reports=lambda: VersionedReportStep(database),
+        publishers=publishers, relationship_notifications=relationship_notifications)
     return CooperativeSourceJobRunner(operations, LocalExecutionLock(database))
 
 

@@ -67,6 +67,8 @@ class CollectionNewsMigrationTests(unittest.TestCase):
             connection.execute('UPDATE collection_session_steps SET rowid=rowid+100')
             connection.execute('UPDATE collection_step_receipts SET rowid=rowid+200')
             collection_layout_v68(connection)
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute('PRAGMA user_version=68')
             self.assertEqual(validate_schema(connection, allow_legacy=True), 68)
 

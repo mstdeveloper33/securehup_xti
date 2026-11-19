@@ -230,6 +230,8 @@ class WarninglistTests(unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as connection:
             connection.execute("DROP TABLE warninglist_runs")
             connection.execute("DROP TABLE warninglist_snapshots")
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=72")
             connection.commit()
         before = self.files()
@@ -248,6 +250,8 @@ class WarninglistTests(unittest.TestCase):
 
     def test_failed_migration_rolls_back_and_keeps_recovery_copy(self):
         with closing(sqlite3.connect(self.path)) as connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=72")
             connection.commit()
         with patch("xti.adapters.sqlite.create_warninglist_schema", side_effect=RuntimeError("Fixture interruption")):
@@ -260,6 +264,8 @@ class WarninglistTests(unittest.TestCase):
     def test_old_version_with_populated_future_tables_rejected(self):
         self.service.sync(["cloudflare"])
         with closing(sqlite3.connect(self.path)) as connection:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(connection)
             connection.execute("PRAGMA user_version=72")
             connection.commit()
         with self.assertRaises(StorageError):

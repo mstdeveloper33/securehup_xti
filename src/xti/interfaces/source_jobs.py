@@ -47,6 +47,9 @@ def register_source_jobs_parser(commands):
         action.add_argument('--failure-policy', choices=('continue', 'stop'))
         action.add_argument('--capture-source', choices=('news', 'mentions'))
         action.add_argument('--capture-limit', type=int)
+        action.add_argument('--document', dest='publisher_documents', action='append', nargs=2, metavar=('PROVIDER', 'URL'),
+                            help='publisher için seçilmiş belge; en fazla beş kez ver.')
+        action.add_argument('--notification-offset', type=int, help='relationship-notify karar penceresinin başlangıcı.')
         for flag, default in (('max-seconds', 180), ('max-requests', 7), ('max-hops', 2),
                               ('node-limit', 100), ('edge-limit', 200), ('stale-after-hours', 24)):
             action.add_argument('--' + flag, type=int, default=default)
@@ -103,11 +106,30 @@ def source_job_lines(data, *, data_dir=None):
             lines.append('İptal istendi; devam eden isteğin dönüşü bekleniyor.')
         for step in data.get('steps', []):
             lines.append('  ' + safe_text(step['key']) + ': ' + states[step['status']])
+            if step['key'].startswith('publisher:'):
+                from xti.domain.publisher_jobs import document_for
+                selected = document_for(step['key'], data['plan']['plan'])
+                lines.append('    ' + safe_text(selected['provider']) + ' | ' + safe_text(selected['url']))
             if step['reason']:
                 lines.append('    ' + {'cancelled': 'İptal nedeniyle atlandı.', 'budget_exhausted': 'Süre bütçesi doldu.', 'dependency_failed': 'Önceki adım tamamlanamadığı için atlandı.'}[step['reason']])
             if step['reused_from']:
                 lines.append('    Önceki tamamlanmış adım kullanıldı; yeniden sorgulanmadı.')
             receipt = step['receipt']
+            if receipt and step['key'].startswith('publisher:'):
+                lines.append('    ' + safe_text(receipt['url']))
+                lines.append('    Makbuz: ' + xti_command('reports', 'fetch-show', receipt['run_id'], data_dir=data_dir))
+                if receipt['document']:
+                    doc = receipt['document']
+                    lines.append('    Belge: ' + xti_command('reports', 'show', doc['id'], '--document-revision', str(doc['document_revision']), data_dir=data_dir))
+                continue
+            if receipt and step['key'] == 'relationship-notify':
+                for row in receipt['records']:
+                    lines.append('    Bildirim: ' + xti_command('inbox', 'show', row['id'], data_dir=data_dir))
+                if receipt['has_more']:
+                    lines.append(f"    Devam için yeni plan: --notification-offset {receipt['next_offset']}")
+                if receipt['skipped_incomplete_count']:
+                    lines.append('    Eksik kapsam nedeniyle bazı değişiklikler kesin bildirim sayılmadı.')
+                continue
             if receipt and step['key'] == 'report-capture':
                 for row in receipt['records']:
                     lines.append('    Belge: ' + xti_command('reports', 'show', row['id'], '--document-revision', str(row['document_revision']), data_dir=data_dir))
@@ -123,6 +145,7 @@ def source_job_lines(data, *, data_dir=None):
     if 'plan' in data:
         plan = data['plan']
         return ['Hedef: ' + safe_text(plan['value']), 'Adımlar: ' + ' → '.join(data['step_order']),
+                *[f"Belge {index}: {safe_text(row['provider'])} | {safe_text(row['url'])}" for index, row in enumerate(plan.get('publisher_documents', []), 1)],
                 f"En çok {data['maximum_external_requests']} dış istek; adımlar arasında {plan['max_seconds']} saniye bütçe.",
                 'İnceleme kaydı: ' + ('evet' if plan['record_review'] else 'hayır'),
                 'Plan özeti: ' + data['plan_sha256'], *data['notes']]
@@ -135,6 +158,8 @@ def execute_source_jobs(database, args):
     context = SimpleNamespace(data_dir=database.parent, database=database)
     service = make_source_job_service(context)
     action = args.source_job_action
+    if action in {"plan", "submit"} and args.publisher_documents is not None:
+        args.publisher_documents = [{"provider": provider, "url": url} for provider, url in args.publisher_documents]
     if action == 'plan':
         data = service.plan(**{key: getattr(args, key) for key in PLAN_FIELDS})
     else:

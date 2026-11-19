@@ -128,6 +128,11 @@ class SQLiteCaseRepository:
                 or record.active == (record.removed_reason is not None)
             ):
                 raise ValueError("invalid evidence")
+            if record.evidence_type == 'relationship_review':
+                from xti.domain.relationship_notifications import validate_snapshot
+                validate_snapshot(json.loads(snapshot_json))
+                if record.source_reference != 'relationships notification-show ' + record.evidence_id:
+                    raise ValueError('Relationship notification reference differs')
             if record.evidence_type in PUBLIC_NOTICE_CASE_TYPES:
                 payload = json.loads(snapshot_json)
                 validate_public_notice_case_payload(record.evidence_type, record.evidence_id, payload)
@@ -423,6 +428,10 @@ class SQLiteCaseRepository:
                 if case.status == "closed":
                     raise ValidationError("Kapalı vakaya kanıt eklemek için önce vakayı yeniden açın.")
                 read_case_evidence_links(connection)
+                if evidence_type == 'relationship_review':
+                    from xti.adapters.sqlite_relationship_notifications import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('İlişki vaka kanıtı seçili firma bildirimiyle uyuşmuyor.')
                 if evidence_type in PUBLIC_NOTICE_CASE_TYPES:
                     from xti.adapters.sqlite_case_evidence import read_public_notice_case_snapshot
                     expected = read_public_notice_case_snapshot(connection, evidence_type, evidence_id)

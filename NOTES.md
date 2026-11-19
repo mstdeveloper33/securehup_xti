@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.169.0 / çekirdek 79 / iş kuyruğu 3**.
+Güncel çalışma: **0.170.0 / çekirdek 80 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,18 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-030 — Yayın işleri, ilişki bildirimi ve birikimli kapasite kabulü
+
+- **Durum:** Açık; uygulama ve test sürüyor. **Güncellendi:** 19 Kasım 2026.
+- **Yetki:** Kullanıcı üç işi birlikte onayladı.
+- **Korunacaklar:** Mevcut kuyruk, firma ayrımı, eski belge/karar kanıtı,
+  açık insan kararı, yedekli geçiş ve yayıncı koşulları. Başarılı belgeler
+  tekrar işinde yeniden indirilmez; kısmi kapsam kesin kayıp sayılmaz.
+- **Bekleyen kabul:** Belge bazlı kesinti/iptal/tekrar, bildirim tekilleştirme,
+  vaka bağlantısı, eski şemadan geçiş, iki firmada birikimli HTML/PDF,
+  arşiv ve geri yükleme ölçümü. Sonuç alınmadan tamamlandı sayılmayacak.
+- **Dayanak:** [Uygulama kararı](docs/decisions/0175-publisher-jobs-and-review-delivery.md).
 
 ### N-029 — Tam yayın metni, yeniden inceleme ve günlük arşivi
 

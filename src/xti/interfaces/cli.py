@@ -2009,7 +2009,7 @@ def build_parser() -> Parser:
         "--type", required=True,
         choices=(
             "finding", "social_profile", "ransomware_threatcluster",
-            "ransomware_ransomlook", "supplier", "public_notice", "public_notice_watch",
+            "ransomware_ransomlook", "supplier", "public_notice", "public_notice_watch", "relationship_review",
         ),
     )
     case_evidence_add.add_argument("--evidence-id", required=True)

@@ -1,0 +1,47 @@
+name: XTI publisher delivery acceptance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xti-publisher-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Select Python
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install reviewed parser dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/news.txt -r requirements/reports.txt
+      - name: Verify queue, notification, case and migration boundaries
+        run: >-
+          ./scripts/python -m unittest
+          tests.test_publisher_jobs tests.test_relationship_notifications
+          tests.test_relationship_notification_migration tests.test_publisher_job_platform
+      - name: Measure accumulated HTML and PDF delivery and recovery
+        run: >-
+          ./scripts/python scripts/check-publisher-delivery.py
+          --documents-per-company 40 --output "$RUNNER_TEMP/xti-publisher-delivery.json"
+      - name: Preserve measured report in workflow log
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/xti-publisher-delivery.json" ]; then
+            cat "$RUNNER_TEMP/xti-publisher-delivery.json"
+          fi

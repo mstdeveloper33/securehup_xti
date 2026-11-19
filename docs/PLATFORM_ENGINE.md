@@ -1,5 +1,11 @@
 # Çok firmalı platform motoru
 
+0.170.0 `relationships.notification-show` firma kapsamlı salt okunur
+bildirim kanıtıdır. Platform `relationships.notify` yazması güncel
+workspace çitini ister. Kaynak işi v5 `publisher_documents` ve
+`relationship-notify` adımını mevcut kuyruk3 içinde yürütür; eski
+iş modelleri 1–4 okunur. [Sözleşme/kullanım](PUBLISHER_JOB_DELIVERY.md).
+
 0.169.0 `reports.publishers/fetches/fetch-show`, `relationships.queue`,
 `journals.status/archive-plan/show` okumalarını ekler. `reports.fetch`,
 `journals.archive-apply/restore` yalnız işletici veya firma yazma girişindedir;

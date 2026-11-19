@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from xti.adapters.public_notice_watch_schema import PUBLIC_NOTICE_WATCH_DDL
 from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_DDL, CASE_EVIDENCE_V62_DDL
+from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, SchemaError, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_collection_profiles import SQLiteCollectionProfileRepository
@@ -42,7 +43,7 @@ def legacy_snapshot(path):
             # Later schema63 intentionally widens only this existing CHECK.
             # Keep this schema62 test focused on every other legacy declaration.
             return [
-                (kind, name, CASE_EVIDENCE_V62_DDL if sql == CASE_EVIDENCE_DDL else sql)
+                (kind, name, CASE_EVIDENCE_V62_DDL if sql in {CASE_EVIDENCE_DDL, CURRENT_CASE_DDL} else sql)
                 for kind, name, sql in connection.execute(
                     "SELECT type, name, sql FROM sqlite_schema WHERE tbl_name=? ORDER BY name", (table,),
                 )
@@ -58,7 +59,7 @@ def legacy_snapshot(path):
             "SELECT name, seq FROM sqlite_sequence WHERE name NOT IN (?, ?) ORDER BY name",
             ("public_notice_watch_events", "public_notice_watch_runs"),
         ).fetchall()
-        for table in ("collection_session_steps", "collection_step_receipts"):
+        for table in ("collection_session_steps", "collection_step_receipts", "case_evidence"):
             if table in result:
                 result[table] = legacy_collection_manifest_entry(table, result[table])
         return result
