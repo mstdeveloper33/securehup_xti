@@ -14,11 +14,13 @@ from xti.domain.report_contract import READ_OPERATIONS as REPORT_READS, paramete
 from xti.domain.evidence_contract import READS as EVIDENCE_READS, parameters as evidence_parameters
 from xti.domain.journal_storage import READS as JOURNAL_READS, parameters as journal_parameters
 
+from xti.domain.social_discovery import READS as SOCIAL_READS, parameters as social_parameters
+
 ENGINE_CONTRACT_VERSION = 1
 ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show', 'research.priorities',
                      'research.history', 'research.review.get', 'company.review', 'ioc.lifecycle',
                      'warninglists.status', 'warninglists.lookup', 'warninglists.run.get',
-                     'enrichment.lookup', 'enrichment.history', 'enrichment.run.get') + INVESTIGATION_READS + REPORT_READS + EVIDENCE_READS + JOURNAL_READS
+                     'enrichment.lookup', 'enrichment.history', 'enrichment.run.get') + INVESTIGATION_READS + REPORT_READS + EVIDENCE_READS + JOURNAL_READS + SOCIAL_READS
 REQUEST_ID_PATTERN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', re.ASCII)
 # Deliberately versioned here: adding an internal record type does not silently
 # expose it on the external engine boundary.
@@ -124,7 +126,9 @@ def parse_engine_request(value: object) -> EngineRequest:
         raise EngineContractError('unsupported_operation', 'Bu motor işlemi desteklenmiyor.')
     parameters = value['parameters']
     try:
-        if operation in JOURNAL_READS:
+        if operation in SOCIAL_READS:
+            normalized = social_parameters(operation, parameters)
+        elif operation in JOURNAL_READS:
             normalized = journal_parameters(operation, parameters)
         elif operation in EVIDENCE_READS:
             normalized = evidence_parameters(operation, parameters)

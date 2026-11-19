@@ -1,5 +1,12 @@
 # XTI Motorunun Mimarisi
 
+0.171.0 `SocialDiscoveryService` keşif kaynakları, açık profil sayfaları ve
+kalıcı makbuz portlarını birleştirir. Karar kuralları domain katmanındadır;
+HTTP/DNS, araç süreçleri ve SQLite ayrı adaptörlerdir. Şema81 işlem anahtarını
+ağdan önce ayırır, tamamlanmış raporu atomik saklar; tekrar ağ çağırmaz.
+Engine okur; firma yazması workspace çiti ve ortak yazıcı kilidini kullanır.
+[0176 kararı](decisions/0176-company-social-discovery.md).
+
 0.170.0 kaynak işi v5, seçilen yayıncı listesini belge adımlarına açar.
 Planın toplam altı adım sınırı kuyruk3 ile korunur. PublisherDocumentStep
 mevcut ReportService/depo portu ile kalıcı makbuzu kullanır; aynı iş
@@ -18,7 +25,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**19 Kasım 2026 — 0.170.1, çekirdek şema 80, iş kuyruğu şeması 3.**
+**19 Kasım 2026 — 0.171.0, çekirdek şema 81, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

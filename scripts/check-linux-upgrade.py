@@ -27,7 +27,7 @@ from typing import NamedTuple
 
 PROJECT = Path(__file__).resolve().parents[1]
 BASELINE = "9cdf32c7981b87532952ec2c6b8a3fb5bb142ba8"
-MAX_REVIEWED_SCHEMA = 80
+MAX_REVIEWED_SCHEMA = 81
 OUTPUT_LIMIT = 8 * 1024 * 1024
 
 
@@ -296,7 +296,7 @@ def require_preserved_tables(before, after):
             and _preserved_collection_upgrade(name, expected, actual)
         )
         reviewed_case_upgrade = (
-            63 <= before[0] <= 79 and after[0] == 80 and name == "case_evidence"
+            63 <= before[0] <= 79 and 80 <= after[0] <= MAX_REVIEWED_SCHEMA and name == "case_evidence"
             and _preserved_case_upgrade(expected, actual)
         )
         COMMON.require(actual == expected or reviewed_upgrade or reviewed_case_upgrade,

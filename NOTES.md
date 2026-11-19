@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.170.1 / çekirdek 80 / iş kuyruğu 3**.
+Güncel çalışma: **0.171.0 / çekirdek 81 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,99 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-032 — Firecrawl değerlendirmesi ve birleşik sonuç doğruluğu
+
+- **Durum:** Kullanıcı kararıyla ertelendi; kurulum/entegrasyon veya canlı
+  Firecrawl testi yapılmadı. Öncelik mevcut kaynaklarla birleşik doğrulama.
+  **Güncellendi:** 19 Kasım 2026.
+- **Kullanıcı beklentisi:** Firma/domaininden yüksek doğrulukla birleşik
+  sonuç üretmek; tek kaynağın kaçırdığı hesabı diğer yöntemlerle bulmak.
+  Bilinen mevcut hesapları bulma, yanlış aday oranı ve erişilemeyen
+  platform kapsamı ayrı ölçülmeden yüzdeye dayalı başarı iddiası yapılmaz.
+- **Olası rol:** XTI'ın seçtiği açık web sayfalarından metin, metadata
+  ve bağlantı alma; başka kaynakların adaylarını kontrol etme. Arama
+  özelliği de var. Hesap keşfi, profil varlığı ve marka sahipliği kararları
+  XTI'da kalmalı. İlk tercih temel açık sayfa alımı; gerektiren sayfalarda
+  değiştirilebilir ek sağlayıcı olarak değerlendirme önerisidir.
+- **Açık kaynak / bulut farkı:** Resmî v2.11.162 self-host rehberindeki
+  temel stack scrape/crawl/map/search yollarını ve Fetch/Playwright
+  işlemesini içeriyor. Fire-engine dahil değil; ekran görüntüsü ve sayfa
+  aksiyonları varsayılan stack'te desteklenmiyor ve Fire-engine gerektiriyor.
+  Agent/Browser/Interact ve diğer bulut yüzeyleri tam ücretsiz yerel
+  eşdeğer sayılmaz. Temel sayfa alımı için LLM şart değil; LLM tabanlı
+  çıkarım ayrı sağlayıcı yapılandırması istiyor.
+- **Sosyal kaynak sınırı:** Desteklenmeyen siteler için `UNSUPPORTED_SITE`
+  var. LinkedIn profil/şirket sayfaları doğrudan scrape yerine seçilmiş
+  üçüncü taraf veri sağlayıcılarına yönlendiriliyor; kapsam, koşul ve
+  ücret ayrı. SecureHup Instagram/X profillerinin Firecrawl ile
+  bulunabildiği veya alınabildiği henüz doğrulanmadı. Genel web erişim
+  oranı, sosyal hesap keşif doğruluğu değildir.
+- **Maliyet:** 19 Kasım'da resmî fiyat sayfası bulutta aylık 1.000 ücretsiz
+  kredi bildiriyor; basic scrape/crawl sayfa başına 1 kredi, arama 10
+  sonuca 2 kredi. Ek formatlar/veri sağlayıcıları ayrıca ücretlenebilir.
+  Kendi sunucusunda altyapı/bakım ve isteğe bağlı sağlayıcı maliyetleri
+  kullanıcıya ait; sınırsız ücretsiz bulut hizmeti değildir.
+- **Lisans:** Ana depo AGPL-3.0; README SDK'lar ve bazı UI bileşenleri
+  için MIT ayrımını belirtiyor. Kapalı kaynak ticari hedefte seçilecek
+  sürüm, kullanılan bileşen, değişiklik ve hizmet sunma biçimine göre
+  kaynak sağlama yükümlülükleri ayrıca netleştirilmeli. AGPL madde 13
+  değiştirilmiş sürümle uzaktan etkileşen kullanıcılara kaynak sağlama
+  koşulu içeriyor; ayrı süreç/HTTP kullanımı otomatik lisans muafiyeti
+  diye yorumlanmayacak. Hiçbir sözleşme kabulü veya satın alma yapılmadı.
+- **Önerilen değerlendirme:** N-031'deki Instagram kaçırma ve Hacker
+  News çelişkisi dahil, sonucu bilinen açık profil/sayfa örneklerinde
+  temel alıcı ile Firecrawl'ı karşılaştırmak. API başarısının yanında
+  hedef sayfa durumunu ve gerçek profil kanıtını kontrol etmek; giriş
+  ekranını, engeli veya boş sonucu yokluk kararı saymamak.
+- **Dayanak:** [Ana repo](https://github.com/firecrawl/firecrawl),
+  [açık kaynak/bulut](https://docs.firecrawl.dev/contributing/open-source-or-cloud),
+  [self-host sınırları](https://docs.firecrawl.dev/contributing/self-host),
+  [scrape ve sağlayıcı yönlendirmesi](https://docs.firecrawl.dev/features/scrape),
+  [hatalar](https://docs.firecrawl.dev/api-reference/errors),
+  [fiyatlar](https://www.firecrawl.dev/pricing),
+  [lisans](https://github.com/firecrawl/firecrawl/blob/main/LICENSE).
+
+### N-031 — Firma adından sosyal hesap keşfi ve canlı kaynak doğruluğu
+
+- **Durum:** Birleşik keşif/doğrulama akışı 0.171.0 ile uygulandı; geniş
+  örneklemde doğruluk ölçümü sürekli değerlendirme konusu. **Güncellendi:** 19 Kasım 2026.
+- **Kullanıcı beklentisi:** Firma adı/domaini başlangıç girdisi olmalı;
+  hesap adaylarını bulmak için kullanıcıdan her sosyal hesap adını istemek
+  ön koşul yapılmayacak. Bilinen hesaplar sonradan doğrulama girdisi olabilir.
+- **Canlı kapsam:** 0.170.1 / `68812ce` üzerinde Maigret 30 ve Sherlock
+  26 platform seçimiyle çalıştı; birleşimde 41 farklı platform var.
+  Tavily'nin iki motor ve beş doğrudan tanı isteği 10 kredi bildirdi.
+  Sonuç sayısı veya HTTP başarısı tek başına ilgili hesap bulunduğunu göstermez.
+- **Gözlenen eksikler:** Maigret, aynı kullanıcı adındaki Instagram
+  profiline `Not found` dedi; açık profil sayfası HTTP 200 ile profil
+  türü, marka başlığı ve tam URL döndürdü. Sherlock'un Hacker News adayı
+  doğrudan kontrol edilince `No such user.` yanıtı alındı. X ise Maigret
+  ve alan filtreli gelişmiş Tavily sorgusunda bulundu.
+- **0.170.1 ayrımı:** Motor Maigret/Sherlock adaylarını `found_unverified`,
+  diğerlerini `unreported_platforms` olarak gösteriyor; sahiplik veya
+  kesin yokluk hükmü vermiyor. Ancak kaynakların bu örnekteki tespit
+  eksikleri çözülmüş değildir. Katalog/sürüm doğrulaması canlı doğruluk
+  garantisi değildir.
+- **0.171.0 uygulaması:** `brand discover` firma/domaininden adayları çıkarır;
+  Maigret/Sherlock, ana sayfa, aynı domainin saklı aramaları ve açık seçimle
+  Tavily advanced sorgularını birleştirir. Tekil sayfa kontrolleri, 4 eşzamanlı
+  alım, toplam süre/sayfa/gövde sınırları, DNS pinning ve firma kapsamlı
+  kalıcı/idempotent makbuz vardır. Yeni bağımlılık/Firecrawl yoktur.
+- **Yeni canlı kanıt:** SecureHup ücretsiz koşusunda Instagram, X, GitHub,
+  GitLab ve LinkedIn profil kimliği doğrulandı. LinkedIn company/showcase
+  tek hesaba birleşti. HackerNews HTTP419 nedeniyle aday kaldı; eski
+  `No such user.` yanıtı bugünün cevabı sayılmadı. 6,438 saniye toplam,
+  0,063 saniye ağsız replay. Sahiplik veya genel yüzde doğruluk iddiası yok.
+- **Sınır:** Eski `username-preview/watch-*` kaynak iddiası sözleşmesini
+  korur; birleşik doğrulama yeni komutta ve `brand.discovery.*` JSON
+  yüzeyindedir. Yeni advanced/alan filtreli Tavily orkestrasyonu kontrollü
+  testlerde doğrulandı; bu sürümde yeni canlı ücretli sorgu yapılmadı.
+  [Kullanım ve kabul](docs/SOCIAL_DISCOVERY.md), özel yeni kanıt alanı
+  `/private/tmp/xti-social-0171-acceptance-4ibp8wit`.
+- **Dayanak:** [Geniş canlı test](docs/TAVILY_LIVE_ACCEPTANCE.md#geniş-web-ve-sosyal-hesap-testi--19-kasım-2026),
+  özel kanıt klasörü `/private/tmp/xti-social-full-8pus8z4q`.
+  Ham yanıtlar, HTML ve test DB'si Git'e eklenmedi.
 
 ### N-029 — Tam yayın metni, yeniden inceleme ve günlük arşivi
 
@@ -607,6 +700,14 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   tekrarlanmadı. Ayrıntılar demetlerin örtüştüğünü belirtir.
 - **Kullanım:** Dört dış istek; tanı ve son iki yanıtta üç kredi bildirildi.
   İlk ayrıştırılamayan isteğin tüketimi bilinmiyor. Bu hesap bakiyesi değildir.
+- **Sonraki geniş test:** Aynı gün 0.170.1 / `68812ce` ile ayrı alanda
+  20 sonuç üst sınırı kullanıldı. İki motor sorgusu 21 kapsam/URL kaydı
+  sakladı; beş doğrudan sağlayıcı tanısıyla birlikte yedi yeni istekte
+  10 kredi bildirildi. Bu sayı önceki dört isteğin yerine geçmez.
+  X hedefli gelişmiş aramada bulundu; Instagram açık profil kontrolünde
+  bulundu fakat kaynak aramaları kaçırdı. Sosyal keşif eksikleri N-031'de
+  açık tutulur; ilk firma araması kabulü bütün sosyal hesapların bulunması
+  anlamına gelmez.
 - **Anahtar:** Gizli terminal girişinden yalnız süreç belleği/ortamına
   verildi; kalıcı yapılandırma yapılmadı. Sohbette paylaşılan anahtarın
   yenilenmesi ve yenisinin yerel `mentions configure` ile kaydedilmesi önerildi.
@@ -785,6 +886,16 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.171.0 teslim / doğruluk çalışması — 19 Kasım:** Kullanıcı son sosyal
+keşif paketinin GitHub/Linux teslimiyle ve farklı firmalarda daha geniş
+doğruluk ölçümüyle devam edilmesini onayladı. Yeni keşif/taşıma testleri
+her push için hızlı kontrol listesine eklendi. Gerçek hesap referansları
+resmî sitelerden, motor sonucu görülmeden önce kaydedilecek; bulunan,
+doğrulanan, erişilemeyen ve referans dışındaki adaylar ayrı ölçülecek.
+Varsayılan ücretsiz akış; yeni Tavily harcaması, Firecrawl, LLM, geniş
+STIX/TAXII veya firma izleme/vaka genişletmesi bu çalışmayla başlamaz.
+GitHub ve Linux sonuçları tamamlandıkça ayrı kabul kaydı eklenecek.
 
 **0.170.1:** Yeni özellik paketi açılmadı. Kullanıcının anahtarla denemesi
 sırasında bulunan Tavily sorgu yanıtı uyumsuzluğu giderildi; seçilmiş

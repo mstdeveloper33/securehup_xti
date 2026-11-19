@@ -8,6 +8,7 @@ from xti import __version__
 from xti.adapters.sqlite import StorageError
 from xti.application.engine import EngineReadService
 from xti.domain.assets import ValidationError
+from xti.domain.social_discovery import SocialDiscoveryError
 from xti.domain.reports import ReportError
 from xti.domain.engine import (
     ENGINE_CONTRACT_VERSION, ENGINE_OPERATIONS, RECORD_NAMESPACES,
@@ -35,6 +36,10 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
         return operation is None or operation in names
 
     services = {}
+    from xti.domain.social_discovery import READS as SOCIAL_READS
+    if selected(*SOCIAL_READS):
+        from xti.interfaces.social_discovery import make_social_discovery_service
+        services["social_discovery"] = make_social_discovery_service(database)
     from xti.domain.journal_storage import READS as JOURNAL_READS
     if selected(*JOURNAL_READS):
         from xti.interfaces.journal_storage import make_journal_service
@@ -165,6 +170,8 @@ def engine_manifest() -> dict:
         'request_max_bytes': MAX_REQUEST_BYTES, 'response_max_bytes': MAX_RESPONSE_BYTES,
         'max_json_depth': MAX_JSON_DEPTH, 'default_limit': 50, 'max_limit': 500,
         'max_offset': 1_000_000,
+        'social_discovery': {'policy': 'social-discovery-v1', 'write_via': 'brand.discovery.run',
+                             'max_limit': 100, 'profile_existence_is_not_ownership': True},
         'journals': {'policy': 'lossless-journal-bodies-v1', 'max_archive_window': 1000,
             'retention_days': [7, 3650], 'delete_logical_entries': False, 'backup_before_mutation': True},
         'evidence': {'model_version': 1, 'max_limit': 100, 'max_journal_entries': 20000,
@@ -233,7 +240,7 @@ def run_engine(database: Path, *, describe: bool = False, stream=None, output=No
     except Exception as error:
         if isinstance(error, EngineContractError):
             contract_error = error
-        elif isinstance(error, ReportError):
+        elif isinstance(error, (ReportError, SocialDiscoveryError)):
             contract_error = EngineContractError(error.code, str(error))
         elif isinstance(error, ValidationError):
             contract_error = EngineContractError('invalid_parameters', str(error))

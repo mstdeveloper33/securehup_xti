@@ -1,5 +1,12 @@
 # Çok firmalı platform motoru
 
+0.171.0 `brand.discovery.plan/list/show` ağsız okumalarını ve güncel workspace
+kimliği isteyen `brand.discovery.run` yazmasını ekler. Run eşzamanlı ağ çağrısı
+yapabilir; aynı anahtar/kapsam saklanan ilk sonucu döndürür. Manifestte
+`request_network_access=true`; ağ çağırabilen işlemler
+`request_network_operations=[reports.fetch, brand.discovery.run]` ile sınırlıdır.
+İş kabulü ve engine okumaları ağsız kalır. [Parametreler](SOCIAL_DISCOVERY.md).
+
 0.170.0 `relationships.notification-show` firma kapsamlı salt okunur
 bildirim kanıtıdır. Platform `relationships.notify` yazması güncel
 workspace çitini ister. Kaynak işi v5 `publisher_documents` ve

@@ -212,8 +212,16 @@ def _http_error(code):
 
 
 class TavilySearchSource:
-    def __init__(self, api_key: str, *, opener=None, monotonic=None):
+    def __init__(self, api_key: str, *, opener=None, monotonic=None, search_depth='basic',
+                 include_domains=(), budget_seconds=READ_DEADLINE_SECONDS):
         self._api_key = _validate_key(api_key)
+        from xti.domain.assets import normalize_domain
+        if (search_depth not in ('basic', 'advanced') or not isinstance(include_domains, tuple)
+                or len(include_domains) > 3 or any(normalize_domain(d) != d for d in include_domains)
+                or type(budget_seconds) not in (int,float) or not math.isfinite(budget_seconds)
+                or not 0 < budget_seconds <= READ_DEADLINE_SECONDS):
+            raise ValidationError('Tavily arama kapsamı veya süre bütçesi geçersiz.')
+        self._depth, self._domains, self._budget = search_depth, include_domains, budget_seconds
         self._open = opener or build_opener(ProxyHandler({}), _NoRedirects()).open
         self._monotonic = monotonic or time.monotonic
 
@@ -224,19 +232,21 @@ class TavilySearchSource:
             raise ValidationError("Tavily arama metni API anahtarı içeremez.")
         payload = {
             "query": query, "topic": request.topic, "max_results": request.max_results,
-            "search_depth": "basic", "auto_parameters": False,
+            "search_depth": self._depth, "auto_parameters": False,
             "include_answer": False, "include_raw_content": False, "include_images": False,
             "include_published_date": True, "include_usage": True,
         }
+        if self._domains:
+            payload['include_domains'] = list(self._domains)
         outgoing = Request(TAVILY_SEARCH_URL,
             data=json.dumps(payload, ensure_ascii=True, separators=(",", ":")).encode("ascii"),
             headers={"Authorization": "Bearer " + self._api_key,
                      "User-Agent": f"XTI/{__version__} (company content search)",
                      "Content-Type": "application/json", "Accept": "application/json",
                      "Accept-Encoding": "identity"}, method="POST")
-        deadline = self._monotonic() + READ_DEADLINE_SECONDS
+        deadline = self._monotonic() + self._budget
         try:
-            with self._open(outgoing, timeout=REQUEST_TIMEOUT) as response:
+            with self._open(outgoing, timeout=min(REQUEST_TIMEOUT, self._budget)) as response:
                 if response.getcode() != 200:
                     raise SourceError(_http_error(response.getcode()))
                 if response.geturl() != TAVILY_SEARCH_URL:
@@ -259,6 +269,10 @@ class TavilySearchSource:
                 while True:
                     if self._monotonic() > deadline:
                         raise SourceError("Tavily yanıtını okuma süresi doldu; otomatik tekrar yapılmadı.")
+                    # urllib's socket timeout is per read; clamp it to the total remaining budget.
+                    sock = getattr(getattr(getattr(response, 'fp', None), 'raw', None), '_sock', None)
+                    if sock is not None:
+                        sock.settimeout(max(0.001, min(REQUEST_TIMEOUT, deadline-self._monotonic())))
                     chunk = reader(min(65536, MAX_RESPONSE_BYTES + 1 - received))
                     if self._monotonic() > deadline:
                         raise SourceError("Tavily yanıtını okuma süresi doldu; otomatik tekrar yapılmadı.")

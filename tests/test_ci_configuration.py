@@ -118,6 +118,8 @@ class CiConfigurationTests(unittest.TestCase):
             "tests/test_engine_records.py",
             "tests/test_components.py",
             "tests/test_component_pins.py",
+            "tests/test_social_discovery.py",
+            "tests/test_public_profile_pages.py",
         ):
             with self.subTest(path=path):
                 self.assertEqual(selected.count(path), 1)

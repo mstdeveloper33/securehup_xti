@@ -1,5 +1,25 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.171.0:** Firma/domaininden birleşik sosyal keşif tamamlandı: Maigret,
+Sherlock, firma ana sayfası, saklı aramalar ve isteğe bağlı Tavily tek sonuçta
+birleşir. Açık profil kanıtı ile aday/erişim hatası/yokluk ayrılır. Kalıcı
+makbuz, ağsız tekrar okuma, firma kapsamı, 41 platform kapsam tablosu ve
+CLI/JSON yüzeyi vardır. Şema81 geçişi açık ve yedeklidir; Firecrawl ertelendi.
+SecureHup ücretsiz canlı denemesinde Instagram/X/GitHub/GitLab/LinkedIn
+profil varlığı doğrulandı; HackerNews 419 nedeniyle aday kaldı. Toplam
+6,438 saniye, ağsız replay 0,063 saniye; tek hedef ölçümüdür.
+[Davranış, sınırlar ve kabul](SOCIAL_DISCOVERY.md).
+
+**19 Kasım ek canlı test — önceki 0.170.1 kaydı:** `68812ce` üzerinde Tavily sorguları
+20 sonuç üst sınırıyla genişletildi; Maigret/Sherlock birleşiminde 41
+platform seçildi. X iki kaynakta, Instagram ek açık profil kontrolünde
+bulundu. Maigret Instagram'ı kaçırdı; Sherlock Hacker News adayı açık
+sayfanın yokluk yanıtıyla çelişti. Bu koşu sırasında otomatik sosyal keşif eksiği N-031'e kaydedildi;
+yardımcının bulduğu Instagram o sürümün motor özelliği değildi. Bu
+tarihî testte kod/sürüm değişmedi, tam paket tekrarlanmadı; yeni
+0.171.0 uygulaması yukarıda ayrı açıklanır.
+[Kapsam, sonuçlar ve ayrım](TAVILY_LIVE_ACCEPTANCE.md#geniş-web-ve-sosyal-hesap-testi--19-kasım-2026).
+
 **0.170.1:** Tavily'nin yanıtta sorgunun çift tırnaklarını kaldırması
 desteklenir; özgün sorgu ve firma kapsamı korunur. Seçilmiş SecureHup
 firması için canlı genel web/haber araması, 10 kayıt/9 URL saklama,
@@ -75,7 +95,7 @@ test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
 kabulü bu yerel teslimin sonucu değildir.
 
 
-**19 Kasım 2026 · 0.170.1 · Çekirdek şema 80 · İş kuyruğu şeması 3.**
+**19 Kasım 2026 · 0.171.0 · Çekirdek şema 81 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları

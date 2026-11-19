@@ -197,6 +197,7 @@ from xti.interfaces.global_search import register_global_search_parser, execute_
 from xti.interfaces.research import register_research_parser, execute_research
 from xti.interfaces.investigation import register_investigation_parser, execute_investigation
 from xti.interfaces.reports import register_report_parser, execute_report
+from xti.domain.social_discovery import SocialDiscoveryError
 from xti.domain.reports import ReportError
 from xti.interfaces.company_review import register_company_review_parser, execute_company_review
 from xti.interfaces.warninglists import register_warninglist_parser, execute_warninglists
@@ -840,6 +841,8 @@ def build_parser() -> Parser:
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
     )
     brand_actions = brand.add_subparsers(dest="brand_action", required=True)
+    from xti.interfaces.social_discovery import register_social_discovery_parser
+    register_social_discovery_parser(brand_actions)
     brand_actions.add_parser(
         "source-evaluation",
         help="Ücretsiz dış araçların kabul kararını ağsız ve kayıtsız göster.",
@@ -3828,7 +3831,11 @@ def run(args: argparse.Namespace) -> int | None:
         )
         emit(asdict(report), unified_analysis_lines(report), as_json=args.json)
     elif args.command == "brand":
-        if args.brand_action == "source-evaluation":
+        if args.brand_action in {"discover", "discovery-plan", "discoveries", "discovery-show"}:
+            from xti.interfaces.social_discovery import execute_social_discovery
+            data, lines = execute_social_discovery(settings.database, args)
+            emit(data, lines, as_json=args.json)
+        elif args.brand_action == "source-evaluation":
             report = BrandSourceEvaluationService().report()
             emit(
                 asdict(report), brand_source_evaluation_lines(report),
@@ -7007,7 +7014,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except EngineJobError as exc:
         report_error(exc.code, str(exc), as_json=args.json)
         return 3 if exc.code == 'not_found' else 1
-    except (ResearchHistoryError, ReportError) as exc:
+    except (ResearchHistoryError, ReportError, SocialDiscoveryError) as exc:
         report_error(exc.code, str(exc), as_json=as_json)
         return 3 if exc.code == "not_found" else 1
     except (WarninglistRunNotFound, EnrichmentRunNotFound) as exc:

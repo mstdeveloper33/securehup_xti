@@ -11,6 +11,7 @@ from xti.adapters.company_workspaces import (
 )
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.domain.assets import ValidationError
+from xti.domain.social_discovery import SocialDiscoveryError
 from xti.domain.reports import ReportError
 from xti.domain.company_workspace import CompanyWorkspaceError
 from xti.domain.engine import ENGINE_OPERATIONS, EngineContractError, valid_request_id
@@ -59,7 +60,11 @@ def platform_manifest():
         'scope_selected_by': 'trusted_launcher',
         'storage_isolation': 'dedicated_company_workspace',
         'authentication_owner': 'consuming_platform',
-        'request_network_access': False,
+        'request_network_access': True,
+        'request_network_operations': ['reports.fetch', 'brand.discovery.run'],
+        'social_discovery': {'policy': 'social-discovery-v1', 'max_budget_seconds': 300,
+                             'page_concurrency': 4, 'web_search_default': False,
+                             'idempotency': 'company_key_and_normalized_scope', 'automatic_retry': False},
         'job_type': 'saved_collection_profile',
         'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
         'source_jobs': {'schema_version': 3, 'plan_operation': 'sources.plan',
@@ -114,6 +119,10 @@ def execute_platform_request(context, request):
     if request.operation in EVIDENCE_WRITES:
         from xti.interfaces.evidence import execute_platform_evidence
         return execute_platform_evidence(context, request)
+    from xti.domain.social_discovery import WRITES as SOCIAL_WRITES
+    if request.operation in SOCIAL_WRITES:
+        from xti.interfaces.social_discovery import execute_platform_social_discovery
+        return execute_platform_social_discovery(context, request)
     from xti.domain.report_contract import WRITE_OPERATIONS as REPORT_WRITES
     if request.operation in REPORT_WRITES:
         from xti.interfaces.reports import execute_platform_report
@@ -261,7 +270,7 @@ def run_platform(args, *, stream=None, output=None):
         from xti.domain.engine_jobs import EngineJobError
         if isinstance(error, EngineContractError):
             problem = error
-        elif isinstance(error, ReportError):
+        elif isinstance(error, (ReportError, SocialDiscoveryError)):
             problem = EngineContractError(error.code, str(error))
         elif isinstance(error, EngineJobError):
             problem = EngineContractError(error.code, {

@@ -1,5 +1,6 @@
 """Company-scoped platform protocol; authentication remains with the trusted host."""
 
+from xti.domain.social_discovery import WRITES as SOCIAL_WRITES, parameters as social_parameters
 from xti.domain.engine import (
     ENGINE_OPERATIONS, EngineContractError, EngineRequest, parse_engine_request,
     valid_request_id,
@@ -22,7 +23,7 @@ PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
     'research.review.record',
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
-) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + INVESTIGATION_WRITES + REPORT_WRITES + EVIDENCE_WRITES + JOURNAL_WRITES
+) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + INVESTIGATION_WRITES + REPORT_WRITES + EVIDENCE_WRITES + JOURNAL_WRITES + SOCIAL_WRITES
 
 
 def _fields(value, allowed, required=()):
@@ -54,7 +55,9 @@ def parse_platform_request(value):
         return parse_engine_request(value)
     parameters = value['parameters']
     try:
-        if operation in JOURNAL_WRITES:
+        if operation in SOCIAL_WRITES:
+            normalized = social_parameters(operation, parameters, scoped=True)
+        elif operation in JOURNAL_WRITES:
             normalized = journal_parameters(operation, parameters, scoped=True)
         elif operation in EVIDENCE_WRITES:
             normalized = evidence_parameters(operation, parameters, scoped=True)

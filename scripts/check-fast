@@ -20,6 +20,8 @@ sh -n \
 "$XTI_PROJECT_DIR/scripts/python" -m compileall -q src
 exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_architecture.py \
+    tests/test_social_discovery.py \
+    tests/test_public_profile_pages.py \
     tests/test_publisher_jobs.py \
     tests/test_relationship_notifications.py \
     tests/test_relationship_notification_migration.py \

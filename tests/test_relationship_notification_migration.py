@@ -30,7 +30,7 @@ class RelationshipNotificationMigrationTests(unittest.TestCase):
         with self.assertRaises(StorageError):
             self.f.service.show(self.case.id)
         result = self.f.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (79, 80))
+        self.assertEqual((result['from_version'], result['to_version']), (79, 81))
         self.assertEqual(self.manifest(self.f.path), before)
         self.assertEqual(self.manifest(result['backup']), before)
         self.assertEqual(self.f.service.evidence_show(self.case.id, self.link.id), self.link)

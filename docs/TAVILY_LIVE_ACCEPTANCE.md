@@ -85,3 +85,79 @@ repoya alınmaz. N-004'ün seçilmiş firma kapsamı tamamlandı; tedarikçi can
 sorgusu, Linux zamanlayıcısı ve uzun süreli hizmet ölçülmedi.
 
 Protokol: [Tavily Search](https://docs.tavily.com/documentation/api-reference/endpoint/search).
+
+## Geniş web ve sosyal hesap testi — 19 Kasım 2026
+
+Önceki beş sonuçlu kabulden sonra kullanıcı daha geniş test istedi.
+Çalışan kod `68812ce23842d8f2c436f50eb9c8f0d07716114c` / 0.170.1;
+kod, sürüm ve şema değiştirilmedi. Ayrı veri alanında iki motor sorgusu
+20 sonuç üst sınırıyla çalıştı. Firma adı SecureHup ve domain
+securehup.com kullanıldı; kullanıcı ayrıca sosyal hesap adı vermedi.
+
+| Deneme | Dönen kayıt | İlgili görünür terim | Bildirilen kredi |
+| --- | ---: | ---: | ---: |
+| Motor genel / basic | 20 | 10 | 1 |
+| Motor haber / basic | 1 | 1 | 1 |
+| Doğrudan sağlayıcı genel / advanced | 20 | 8 | 2 |
+| Instagram alan filtresi / basic | 0 | 0 | 1 |
+| Instagram alan filtresi / advanced | 13 | 0 | 2 |
+| X/Twitter alan filtresi / basic | 0 | 0 | 1 |
+| X/Twitter alan filtresi / advanced | 11 | 1 | 2 |
+
+Yedi yeni Tavily isteği **10 kredi** bildirdi; toplam 65 yanıt satırı,
+58 benzersiz URL var. Yalnız ilk iki sorgu motor içinde çalıştı ve
+21 kapsam/URL kaydı sakladı; anahtarsız durum/liste tekrar okundu.
+Diğerleri aynı sorguyu kullanan tanı çağrılarıdır. Mevcut motor CLI'sına
+`advanced` veya domain filtresi eklenmiş sayılmaz. Tanı eşleşmeleri
+görünür metindeki firma terimidir; tehdit, marka sahipliği veya sayfanın
+esas konusuna ilişkin karar değildir. İlgisiz sonuçlar ayrıca ayrıldı.
+
+Haber konusu bu koşuda 1 sonuç döndürdü; önceki kabuldeki 5 sonuçla
+farklı zaman/veri kesitidir. 20 üst sınırdır, 20 ilgili sonuç garantisi değildir.
+
+### Sosyal araçlar ve açık sayfa karşılaştırması
+
+`./scripts/verify-brand` kurulu Maigret 0.6.6 / Sherlock 0.16.2 ve
+kataloglarını doğruladı; indirme yapılmadı. `extended` profili Maigret'te
+30, Sherlock'ta 26 platform seçti: birleşimde 41 farklı platform.
+Bu seçim sayısı, her platformda kesin varlık/yokluk kararı alınabildiği
+anlamına gelmez. Diğer platformlar `unreported_platforms` içinde kaldı.
+
+| Platform | Gözlenen |
+| --- | --- |
+| X / Twitter | Maigret aday bildirdi; X alan filtreli gelişmiş Tavily sorgusu da aynı profili ve marka/domain metnini döndürdü. Genel/basic sorgularında çıkmadı. |
+| Instagram | Tavily ve Maigret aday bildirmedi. Firma adından türetilen kullanıcı adının açık sayfası HTTP 200, `og:type=profile`, SecureHup başlığı ve tam profil URL'si döndürdü. |
+| GitHub / GitLab | Maigret profil adayları bildirdi; sahiplik kararı verilmedi. |
+| LinkedIn | Tavily marka sayfasını ve paylaşımları döndürdü. Maigret'in kişisel `/in/` yolu marka `/showcase/` sayfasıyla aynı kapsam değildir. |
+| Hacker News | Sherlock aday bildirdi; aynı açık profil adresi doğrudan kontrol edilince `No such user.` döndü. Doğrulanmış hesap olarak sayılmadı. |
+
+Instagram/X'e özel ikinci Maigret tanısında yalnız konsol hata/yokluk
+görünürlüğü açıldı; katalog, tespit kodu ve kapsam genişletilmedi.
+Instagram için `Not found!` yazdığı görüldü. Motor bunu kesin yokluk
+diye sunmuyor, ancak bu örnekteki gerçek profili kaynak kaçırıyor.
+Sherlock'un çelişen adayıyla birlikte N-031 açık tutulur.
+
+Firma ana sayfası HTTP 200 verdi; alınan HTML içinde sosyal profil
+bağlantısı yoktu. Twitter kart meta etiketleri profil bağlantısı değildir.
+Açık Instagram sayfası bu test yardımcısıyla kontrol edildi; standart
+motorun otomatik keşif özelliği olarak sunulamaz. Hesap adı kullanıcıdan
+ön koşul olarak istenmeden keşif yapılması beklentisi N-031'e kaydedildi.
+
+### Tekrar ve kanıt
+
+```sh
+./xti --data-dir /private/tmp/AYRI-TEST-ALANI init
+./xti --data-dir /private/tmp/AYRI-TEST-ALANI mentions search --name SecureHup --domain securehup.com --topic general --max-results 20
+./xti --data-dir /private/tmp/AYRI-TEST-ALANI mentions search --name SecureHup --domain securehup.com --topic news --max-results 20
+./xti brand username-preview securehup --source maigret --profile extended --timeout 30
+./xti brand username-preview securehup --source sherlock --profile extended --timeout 30
+```
+
+Tavily anahtarı yine yalnız gizli giriş/süreç belleği ve motor çağrı
+ortamında tutuldu; kalıcı anahtar ayarı yapılmadı. Yedi isteğin tamamı
+yanıt verdi; yeni kullanım önceki dört isteğe ektir. Bakiye okunmadı.
+Ham yanıtlar, HTML, test DB'si ve bütün bağlantı/platformları içeren
+`TAM_KAPSAM_RAPORU.md`, özel `/private/tmp/xti-social-full-8pus8z4q`
+klasöründedir. `summary.json` ve dosya SHA-256 manifesti üretilmiştir;
+toplanan ham kanıtlar Git'e eklenmez. Bu tur canlı davranış testidir;
+tam otomatik paket yeniden çalıştırılmadı.

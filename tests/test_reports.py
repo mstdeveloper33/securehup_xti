@@ -268,7 +268,7 @@ class ReportTests(unittest.TestCase):
             self.repo.read()
         self.assertEqual(self.path.read_bytes(), before)
         result = self.f.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (76, 80))
+        self.assertEqual((result['from_version'], result['to_version']), (76, 81))
         with closing(sqlite3.connect(result['backup'])) as c:
             self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0], 76)
             self.assertFalse(c.execute("SELECT 1 FROM sqlite_schema WHERE name='report_journal'").fetchone())

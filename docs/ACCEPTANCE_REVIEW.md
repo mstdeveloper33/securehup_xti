@@ -1,5 +1,56 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.171.0 — Birleşik sosyal profil doğrulaması
+
+19 Kasım 2026; macOS arm64 / Python 3.13.3. Çekirdek81, kuyruk3.
+Firecrawl ertelendi. Varsayılan ücretsiz `brand discover` tek hedef üzerinde
+canlı çalıştırıldı; yeni Tavily advanced orkestrasyonu kontrollü testtedir.
+
+| Kontrol | Sonuç |
+|---|---|
+| Ücretsiz gerçek CLI: SecureHup | 5 profil doğrulandı: Instagram, X, GitHub, GitLab, LinkedIn. HackerNews HTTP419 nedeniyle aday; otomatik sahiplik kararı yok. |
+| Yinelenen bağlantı | LinkedIn company/showcase bir profil ve bir alias olarak saklandı. |
+| Süre | Son CLI 6,438 sn; toplama/doğrulama 6,329 sn. Tek hedef ölçümü. |
+| Tekrar | Aynı anahtarın CLI tekrarı 0,063 sn; toplama metodunu hata veren kancayla kapatarak aynı rapor doğrulandı. Yeni ağ/kredi yok. |
+| Güvenlik/iş mantığı | Özel IP/DNS rebinding/yabancı yönlendirme retleri, yavaş yanıt bütçesi, eksik/çelişkili HTTP, sahte `found` kararı, eksilmiş makbuz, kesinti/replay, firma ayrımı doğrulandı. |
+| Geçiş/kurtarma | 80→81 açık yedekli migration, eski satır/rowid koruma, kesinti rollback'i ve yedekten dönüş geçti. |
+| Geniş seçilmiş demet | 84 modül / 513 test: 509 başarılı, 2 macOS'ta Linux özelliği gerektiren atlama, 2 eski kabul betiği sürüm sınırı hatası. |
+| Son düzeltme doğrulaması | Kabul betiğinin incelenmiş üst sınırı 81'e yükseltildi; eski case DDL/satır koruma şartı gevşetilmedi. İlgili 84 test yeniden çalıştı: 82 başarılı, aynı 2 atlama, hata yok; 7,807 sn. Gizli HTML içindeki kimlik işaretlerini dışlayan son kontrolün 16 taşıma/kaynak testi de geçti. |
+| Derleme / diff | `compileall` ve `git diff --check` geçti. Tam proje test paketi tekrarlanmadı. |
+
+Önceden alınmış dört gerçek HTML de son ayrıştırıcıyla ağsız tekrar işlendi:
+Instagram/GitLab/LinkedIn bulundu, HackerNews eski açık yokluk yanıtı elendi.
+Bu tekrar güncel canlı kontrol olarak sayılmadı.
+Yeni keşif/taşıma testleri bilinen pozitif/negatif sayfalarla çalışır; genel
+internet doğruluk yüzdesi hesaplanmadı. Eski `No such user.` davranışı regresyon
+testidir; bugünün HTTP419 cevabı yokluk kanıtı sayılmadı. Önceki 0.170.1 kaynak
+iddiası komutları kendi sözleşmelerini korur; birleşik doğrulama yeni akıştadır.
+Yeni kod için GitHub CI veya ayrı Linux VM kabulü burada yapılmış sayılmaz.
+
+Özel kanıt alanı `/private/tmp/xti-social-0171-acceptance-4ibp8wit`;
+son CLI makbuzu `free-live-final.json`, ölçümü `final-summary.json`.
+[Kullanım, sınırlar ve platform sözleşmesi](SOCIAL_DISCOVERY.md).
+
+## 0.170.1 — Geniş web ve sosyal hesap canlı testi
+
+19 Kasım 2026; değişmemiş `68812ce` çalışma kodu. Genel/haber üst sınırı
+20: motor 20 genel + 1 haber sonucu sakladı. Beş ek doğrudan Tavily tanısı
+ile toplam 7 yeni API isteği, 10 bildirilen kredi, 65 yanıt satırı / 58
+benzersiz URL alındı. Bu sonuçların hepsi SecureHup ile ilgili değildir;
+genel motor aramasında 20 kaydın 10'unda mevcut kurallarla terim eşleşti.
+
+Maigret 30, Sherlock 26 platform seçimiyle çalıştı (41 farklı platform).
+X, Maigret ve alan filtreli gelişmiş Tavily sorgusunda bulundu. Instagram
+arama kaynaklarında çıkmadı; ek açık profil kontrolü HTTP 200 ve doğru
+profil meta bilgilerini döndürdü. Maigret tanısı `Not found` yazdı.
+Sherlock Hacker News adayı doğrudan `No such user.` yanıtıyla çelişti.
+Bu iki sonuç kaynak doğruluğu eksiğidir; çözüldü sayılmaz (N-031).
+
+Gelişmiş/domain filtreli sorgular ve açık profil kontrolü bu testin
+yardımcısındadır; mevcut motor arayüzüne yeni seçenek eklenmedi. Kod,
+şema veya sürüm değişmedi; tam otomatik test paketi tekrarlanmadı.
+[Sonuç ayrıntıları](TAVILY_LIVE_ACCEPTANCE.md#geniş-web-ve-sosyal-hesap-testi--19-kasım-2026).
+
 ## 0.170.1 — Tavily canlı firma araması ve sorgu yanıtı uyumu
 
 19 Kasım 2026; macOS arm64 / Python 3.13.3. Kullanıcının verdiği anahtarla

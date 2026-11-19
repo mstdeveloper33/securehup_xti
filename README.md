@@ -1,5 +1,11 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.171.0 `brand discover DOMAIN --name FIRMA` ile sosyal hesap adaylarını tek
+sonuçta birleştirir ve profil sayfalarıyla doğrular. Instagram kaçırmaları,
+yanlış hesap iddiaları ve erişilemeyen sayfalar ayrı görünür; sonuç kalıcıdır.
+Varsayılan ücretsiz, Tavily isteğe bağlıdır. Mevcut kurulumda önce `./xti migrate`.
+[Kullanım, JSON sözleşmesi ve canlı sonuçlar](docs/SOCIAL_DISCOVERY.md).
+
 0.170.1 Tavily'nin sorgu yanıtındaki tırnak normalizasyonunu destekler;
 özgün sorgu ve firma kapsamı korunur. SecureHup için canlı web/haber
 araması, kayıt okuma, tekrar ve firma ayrımı doğrulandı.
@@ -16,7 +22,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Sürüm:** 0.170.1 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 80 · **İş kuyruğu:** 3.
+**Sürüm:** 0.171.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 81 · **İş kuyruğu:** 3.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
