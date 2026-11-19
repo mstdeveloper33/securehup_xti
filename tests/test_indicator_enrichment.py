@@ -275,6 +275,8 @@ class IndicatorEnrichmentTests(unittest.TestCase):
         with closing(sqlite3.connect(self.path)) as db:
             db.execute('DROP TABLE enrichment_runs')
             db.execute('DROP TABLE enrichment_snapshots')
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(db)
             db.execute('PRAGMA user_version=73')
             db.commit()
         before = self.files()
@@ -292,6 +294,8 @@ class IndicatorEnrichmentTests(unittest.TestCase):
 
     def test_interrupted_migration_rolls_back_and_retains_backup(self):
         with closing(sqlite3.connect(self.path)) as db:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(db)
             db.execute('PRAGMA user_version=73')
             db.commit()
         with patch('xti.adapters.sqlite.create_enrichment_schema', side_effect=RuntimeError('Interrupted')):
@@ -318,6 +322,8 @@ class IndicatorEnrichmentTests(unittest.TestCase):
     def test_populated_future_schema_is_not_accepted_as_schema73(self):
         self.refresh()
         with closing(sqlite3.connect(self.path)) as db:
+            from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+            case_evidence_layout_v79(db)
             db.execute('PRAGMA user_version=73')
             db.commit()
         with self.assertRaises(StorageError):

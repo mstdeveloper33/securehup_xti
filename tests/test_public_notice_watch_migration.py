@@ -59,7 +59,8 @@ def legacy_snapshot(path):
             "SELECT name, seq FROM sqlite_sequence WHERE name NOT IN (?, ?) ORDER BY name",
             ("public_notice_watch_events", "public_notice_watch_runs"),
         ).fetchall()
-        for table in ("collection_session_steps", "collection_step_receipts", "case_evidence"):
+        # Case declarations were already normalized above to the exact v62 DDL.
+        for table in ("collection_session_steps", "collection_step_receipts"):
             if table in result:
                 result[table] = legacy_collection_manifest_entry(table, result[table])
         return result

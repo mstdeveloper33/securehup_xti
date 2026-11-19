@@ -4,6 +4,9 @@
 
 19 Kasım 2026. Uygulama ve Linux kabul kodu:
 [`53a2eaf0d7eae81f18870680b87710ee16bcddce`](https://github.com/mstdeveloper33/securehup_xti/commit/53a2eaf0d7eae81f18870680b87710ee16bcddce).
+Son kabul/test betiği commit'i
+[`9925b5e15c189a3b033514efeaa6a38e2445a1fe`](https://github.com/mstdeveloper33/securehup_xti/commit/9925b5e15c189a3b033514efeaa6a38e2445a1fe);
+motor kaynakları, bağımlılıklar ve kapasite betiği ilk commit ile aynıdır.
 Çekirdek 80, kuyruk 3, kaynak işi modeli 5. Önceki iş modelleri 1–4
 ve dış JSON sözleşmesi 1 korunur. İstenen üç işin
 [kullanımı ve sınırları](PUBLISHER_JOB_DELIVERY.md) ayrı belgelenmiştir.
@@ -17,8 +20,9 @@ ve dış JSON sözleşmesi 1 korunur. İstenen üç işin
 | Daha eski gerçek kodla geçiş | `dbee4ab18349656177fc90aee65e8c7ddffdb10d`: çekirdek **75 → 80**, kuyruk **2 → 3**; v2 iş ve kimlikler korundu. Eski kodla özgün yedeğe dönüş geçti; **1,577572 s**. |
 | Normal kurulum ve theHarvester | Başarılı. [Marka/PDF/RSS kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401780), [theHarvester kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401635). |
 | Firma izolasyonu ve gerçek süreç kurtarması | Python 3.11 / 3.13 kolları başarılı. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401541). |
-| Hızlı Linux regresyonu | Güncel koşu bekleniyor; ilk koşu eski kabul betiği nedeniyle durduruldu. |
-| Tam Linux paketi | Güncel koşu bekleniyor; ilk koşu eski kabul betiği nedeniyle durduruldu. |
+| Gerçek Linux kurulumundan 64 → 80 geçiş ve kurtarma | Güncel `9925b5e` ile marka araçları ve theHarvester kolları başarılı. Eski satır/rowid/kanıtlar, özgün yedek ve kesilmiş kurulumdan dönüş doğrulandı. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487521778). |
+| Hızlı Linux regresyonu | Sonuç bekleniyor. [Güncel çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487464281). |
+| Tam Linux paketi | Sonuç bekleniyor. [Güncel çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487512527). |
 
 Test demetleri örtüşür; sayıları toplanmaz. Yerelde geliştirme sırasında
 başlatılan bir tam koşu, altı adım sınırı kesinleştirilirken durduruldu;
@@ -37,6 +41,20 @@ Son betik/migration/CI demeti **34 test / 13,154 s**: hata yok, iki
 Linux `/proc` kontrolü macOS'ta atlandı. Son belge/bildirim/platform demeti
 **21 test / 10,962 s**, hata/atlama yok. Motorun `src` kodu, bağımlılıklar
 ve kapasite betiği `53a2eaf` ile aynıdır.
+Güncel yükseltme çalışması iki kolda da geçti; önceki başarısızlık ve
+durdurulan koşular yukarıda korunur. Yükseltme workflow'unda yalnız
+`upgrade` seçildi; ikinci tam paket ve genel işletim işi çalıştırılmadı.
+
+**Son test verisi uyumu:** Şema73 geçişini hazırlayan enrichment
+testleri yeni vaka CHECK'iyle eski sürüm etiketi kullanıyordu. Tarihî
+tablo düzeni açıkça hazırlandı. Şema61 bildirim manifestinde daha önce
+v62'ye dönüştürülmüş vaka DDL'sine ikinci kez v79 dönüşümü yapılması
+kaldırıldı; eski satır/hash/DDL denetimleri korunur. İlk toplu 328 testte
+yalnız bu manifestte iki hata vardı; düzeltme sonrası **328 test /
+100,212 s**, hata yok, macOS'ta iki Linux atlaması. Bu kapsam test kimliğinde
+`migrat`, `schema`, `legacy` veya `upgrade` geçen bütün testlerdir.
+Çalışma kodu/bağımlılıklar/kapasite betiği değişmedi. Son tam ve hızlı
+Linux sonucu bu test düzeneklerini de içeren commit için ayrıca kaydedilir.
 
 **Canlı yayın işi:** Ayrı `/tmp` alanında seçilmiş CERT-FR CTI-010 HTML ve
 PDF, gerçek `./xti source-jobs` plan → submit → worker → result yoluyla

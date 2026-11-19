@@ -47,7 +47,13 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   verecek şekilde güncellendi; eski satır/rowid denetimi korunur. İlgili
   34 test geçti (iki Linux kontrolü macOS'ta atlandı); son 21 belge/
   bildirim/platform testi de geçti. Eski hızlı/tam koşular durduruldu;
-  güncel kodla yeniden çalıştırılacak.
+  güncel `9925b5e` ile yeniden başlatıldı. Gerçek Linux 64 → 80 yükseltme
+  ve kurulum kurtarması marka/theHarvester kollarında geçti.
+- **Eski test verilerinin toplu kontrolü:** Şema73 etiketli iki geçiş testi
+  ve şema61 manifest karşılaştırması gerçek tarihî düzene uyarlandı.
+  `migrat/schema/legacy/upgrade` kapsamındaki **328 test / 100,212 s**
+  hata vermedi; iki Linux denetimi macOS'ta atlandı. Motor kodu değişmedi.
+  Önceki koşular bu test düzeneği düzeltmelerinin sonucu sayılmaz.
 - **Bekleyen kabul:** Tam ve hızlı Linux regresyonunun sonucu. Sonuç
   alınmadan bu madde kapatılmayacak.
 - **Dayanak:** [Uygulama kararı](docs/decisions/0175-publisher-jobs-and-review-delivery.md).
