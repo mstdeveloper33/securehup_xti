@@ -31,7 +31,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 ### N-035 — Sosyal inceleme, vaka ve düzenli takip teslimi
 
 - **Durum:** Uygulandı; 53 ilgili test ve gerçek eski koddan yükseltme/
-  geri dönüş geçti. Genel doğrulama sürüyor. **Güncellendi:** 19 Kasım 2026.
+  geri dönüş geçti. Genel koşu 3.327 test / 1.639,841 sn: iki yükseltme
+  denetimi hatası düzeltildi, dört Linux kontrolü macOS'ta atlandı;
+  başka hata yok. Tam paket tekrar edilmedi; düzeltme kontrolü aşağıda
+  ayrı verilir. **Güncellendi:** 19 Kasım 2026.
 - **Yükseltme denetimi düzeltmesi:** Genel koşuda Linux kabul betiğinin
   eski vaka DDL'sini beklemesi iki hata verdi. Betik 79/80/82 → 83
   geçişlerinde kaynak/hedef sürüme ait tam tablo biçimini ve bütün eski
@@ -59,6 +62,14 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   169 eski tablonun bütün satır/rowid'leri korunarak CLI geçişi yapıldı.
   Yedek eski kodda okunabildi; yeniden geçişte keşif/sağlayıcı makbuzları
   korundu. Kontrollü kaynaklar; yeni canlı doğruluk ölçümü değildir.
+- **GitHub teslimi:** `8c74030` motor kodunda Linux kurulumu, marka
+  kurulumu ve firma izolasyonu geçti. Yükseltme denetimi düzeltmesi
+  `64e5d86` ile gönderildi; motor kodu aynı,
+  [son hızlı Linux kontrolü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44547804883)
+  başarılı tamamlandı. Son kapanış uygulama kodunu değiştirmeyen belge güncellemesidir.
+  Önceki hızlı koşu yeni gönderimle otomatik iptal edildi.
+  Tam Linux ve kurulum/yükseltme kabulünün elle başlatılması normal
+  GitHub CLI oturumu bekler; bunlar tamamlandı diye gösterilmez.
 - **Dayanak:** [Kullanım](docs/SOCIAL_TRACKING.md),
   [mimari karar](docs/decisions/0178-social-review-tracking-and-cases.md),
   [kabul kaydı](docs/ACCEPTANCE_REVIEW.md).

@@ -16,12 +16,16 @@
   pending → complete sağlayıcı ayrımı, firma kapsamı, CLI/JSON ve açık
   yedekli 82 → 83 geçiş/rollback/restore geçti. Kaynaklar kontrollüdür;
   yeni canlı sosyal doğruluk ölçümü veya Bright Data canlı kabulü değildir.
-- Genel test koşusu sürüyor. Yükseltme kabul betiğinin yalnız eski vaka
-  DDL'sini kabul etmesi iki hata verdi; betik 80/83 uzantılarında tam
-  kaynak/hedef tablo biçimi ve eski satır/rowid korumasıyla düzeltildi.
-  İlgili modülün tamamı **19 test / 4,120 sn**, hata yok; Linux `/proc`
-  gerektiren iki test macOS'ta atlandı. Bu tekrar genel koşudan ayrıdır;
-  motorun geçiş kodu değişmedi. Genel günlük: `/private/tmp/xti-0173-full-20261119.log`.
+- Genel koşu **3.327 test / 1.639,841 sn**: 3.321 başarı, iki yükseltme
+  denetimi hatası, dört Linux kontrolü için macOS atlaması. Yükseltme
+  kabul betiği yalnız eski vaka DDL'sini kabul ediyordu; betik 80/83
+  uzantılarında tam kaynak/hedef tablo biçimi ve eski satır/rowid
+  korumasıyla düzeltildi. İlgili modülün tamamı **19 test / 4,120 sn**,
+  hata yok; Linux `/proc` gerektiren iki test macOS'ta atlandı.
+  Genel koşu bu modülü düzeltmeden önce yükledi; tam paket tekrar edilmedi.
+  Motorun geçiş kodu değişmedi. Bu iki koşu ayrı sonuçlardır; sayıları
+  benzersiz test toplamı olarak toplanmaz.
+  Genel günlük: `/private/tmp/xti-0173-full-20261119.log`.
   Düzeltme günlüğü: `/private/tmp/xti-0173-upgrade-check-fix-20261119.log`.
 - Gerçek eski kod kabulü: `74356f7` / 0.172.0 ayrı geçici checkout'ta
   şema82 verisi oluşturdu. Domain, sosyal keşif, tamamlanmış kontrollü
@@ -38,7 +42,13 @@ main'e gönderildi. Bu kodun otomatik
 [marka araçları kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44546153307) ve
 [firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44546153144)
 kontrolleri geçti. [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44546153172)
-devam ediyor; henüz başarılı sayılmaz.
+bu kodun ardından düzeltme gönderildiği için otomatik iptal edildi;
+başarı veya test hatası sonucu değildir. Yalnız yükseltme denetimi,
+testleri ve kabul belgelerini değiştiren
+[`64e5d8627a28b007f63563781481f0a3b8ce5332`](https://github.com/mstdeveloper33/securehup_xti/commit/64e5d8627a28b007f63563781481f0a3b8ce5332)
+main'e gönderildi; [son hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44547804883)
+başarılı tamamlandı. Motor kodu iki commit arasında aynıdır. Son belge
+güncellemesi uygulama, kurulum veya kontrol kodunu değiştirmez.
 
 Elle başlatılan tam Linux ve kurulum/yükseltme kontrolü için normal
 `gh auth login` oturumu bekleniyor. Git'in mevcut kimlik bilgisini CLI'ya
@@ -66,7 +76,8 @@ Bright Data testi açık kalır.
 19 Kasım 2026; macOS / Python 3.13.3, çekirdek şema82, iş kuyruğu3.
 Kullanıcı API anahtarını sonra ekleyecek; bu kayıt canlı Bright Data
 erişimini, ücretsiz kotayı veya gerçek hedefte doğruluk katkısını doğrulamaz.
-Yeni sürüm için GitHub/Linux çalışması bu turda başlatılmadı.
+Bu yerel kayıt hazırlanırken GitHub/Linux çalışması başlatılmamıştı;
+sonraki 0.172.0 tesliminin dört başarılı koşusu yukarıda ayrı kaydedilmiştir.
 
 | Kontrol | Sonuç |
 |---|---|

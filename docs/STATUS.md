@@ -7,10 +7,18 @@ kullanır; ilk sonuç sessiz, sonraki anlamlı farklar tekil inbox bildirimidir.
 Erişim hataları son doğrulanabilir gözlemi korur. Kalıcı tur anahtarıyla
 keşif commit'i sonrası teslim toparlanır. Çekirdek 83 açık/yedekli geçiş;
 kuyruk 3 ve dış JSON v1 korunur. [Kullanım](SOCIAL_TRACKING.md).
-Yerel son özellik paketi 53 testle geçti. Genel doğrulamada yükseltme
-kabul betiğinin iki eski DDL beklentisi düzeltildi; ilgili 19 test hatasız
-(iki Linux kontrolü macOS'ta atlandı). Motor kodu değişmedi; genel koşu
-ve son teslim sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) ayrı tutulur.
+Yerel son özellik paketi 53 testle geçti. Genel koşu 3.327 test /
+1.639,841 sn: iki yükseltme denetimi hatası ve dört Linux/macOS atlaması;
+başka hata yok. Denetim betiğinin eski DDL beklentisi düzeltildi; ilgili
+19 test hatasız (iki Linux kontrolü macOS'ta atlandı). Motor kodu değişmedi,
+tam paket tekrar edilmedi. Koşular [kabul kaydında](ACCEPTANCE_REVIEW.md)
+ayrı tutulur.
+**GitHub teslimi:** `8c74030` motor kodunda Linux kurulumu, marka kurulumu
+ve firma izolasyonu başarılı. Yükseltme denetimi düzeltmesinin bulunduğu
+`64e5d86` son hızlı Linux kontrolünden geçti; motor kodu aynıdır.
+Son belge güncellemesi kodu değiştirmez. Elle başlatılan tam Linux/
+kurulum-yükseltme kabulü GitHub CLI oturumu, Bright Data canlı kabulü
+anahtar bekler. Yerel veri geçişi ayrıca doğrulanmıştır.
 
 **0.172.0:** Bright Data LinkedIn şirket kanıtı isteğe bağlı eklendi.
 `brand enrichment-plan/enrich/enrichment-refresh/enrichment-show/enrichments`

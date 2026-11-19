@@ -3,9 +3,14 @@
 **0.173.0:** Sosyal keşif/ek kanıt firma incelemesine ve vakaya bağlandı;
 gerekçeli kararlar, ücretsiz kalıcı takip ve ortak inbox değişiklik bildirimi
 uygulandı. Terminal monitor ve firma JSON aynı servisleri kullanır.
-[Teslim kapsamı](../SOCIAL_TRACKING.md). 0.172.0 `74356f7` GitHub tesliminin
-dört otomatik Linux çalışması geçti; elle başlatılan tam Linux/yükseltme
-kontrolü CLI oturumu, Bright Data canlı kabulü anahtar bekler.
+[Teslim kapsamı](../SOCIAL_TRACKING.md). 0.173.0 `8c74030` motor kodunun
+Linux kurulumu, marka kurulumu ve firma izolasyonu geçti. Yükseltme
+denetimi düzeltmesi `64e5d86` ile gönderildi; son hızlı Linux kontrolü geçti.
+Yerel genel koşudaki iki kabul betiği hatası düzeltildi; ilgili modül
+yeniden doğrulandı. Tam koşu/düzeltme/atlamalar [kabul kaydında](../ACCEPTANCE_REVIEW.md)
+ayrı tutulur; tam paket tekrar edilmedi.
+Elle başlatılan tam Linux/yükseltme kontrolü CLI oturumu,
+Bright Data canlı kabulü anahtar bekler.
 
 **0.172.0:** İsteğe bağlı Bright Data LinkedIn şirket kanıtı yerel olarak
 uygulandı. Anahtar kullanıcı kararıyla sonra eklenecek; canlı sağlayıcı
