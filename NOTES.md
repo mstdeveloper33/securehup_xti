@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.170.0 / çekirdek 80 / iş kuyruğu 3**.
+Güncel çalışma: **0.170.1 / çekirdek 80 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -109,18 +109,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   güncellemeyi açmak için hash'i incelemeden değiştirmemek.
 - **Dayanak:** [CIRCL ve URL kaydı](docs/INDICATOR_ENRICHMENT.md),
   [MISP koşulları ve denetimi](docs/WARNINGLISTS.md#kaynak-maliyet-ve-işletim-sınırları).
-
-### N-004 — Tavily canlı kabulü
-
-- **Durum:** Beklemede; kullanıcı anahtarı daha sonra ekleyecek.
-  **Güncellendi:** 17 Kasım 2026.
-- **Not:** Anahtar yokken doğru hata verilmesi, gerçek firma aramasının
-  tamamlandığı anlamına gelmiyor.
-- **Kapanma koşulu:** Anahtar hazır olduğunda seçilmiş firma/tedarikçiyle
-  gerçek arama, içerik saklama, firma ayrımı ve sorgu bütçesi davranışını
-  doğrulamak. Anahtar sohbet veya repoya konmayacak; beklerken diğer işler sürecek.
-- **Dayanak:** [Kabul incelemesi](docs/ACCEPTANCE_REVIEW.md),
-  [firma izleme grupları](docs/MENTION_GROUPS.md).
 
 ### N-005 — Gelişmiş Nmap ve platform üzerinden canlı kabul
 
@@ -602,6 +590,31 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Kapanan notlar ve kanıtları
 
+### N-004 — Tavily canlı kabulü
+
+- **Durum:** Kapandı; seçilmiş SecureHup firma kapsamı. **Güncellendi:** 19 Kasım 2026.
+- **Önceki durum:** 17 Kasım'da anahtar bekleniyordu; anahtarsız ret
+  kontrolü canlı hizmet kabulü sayılmamıştı. Kullanıcı 19 Kasım'da anahtarla
+  deneme istedi; değer bu nota veya repoya alınmadı.
+- **Bulunan hata:** Tavily yanıttaki sorgunun çift tırnaklarını kaldırdı;
+  motor aynı terimleri yanlışlıkla farklı sorgu sayıyordu. 0.170.1 yalnız
+  bu gösterim farkını kabul eder; özgün sorgu saklanır, diğer kapsam
+  değişiklikleri reddedilir. Eski kayıt ve şema değişmedi.
+- **Doğrulanan:** Gerçek genel/haber araması; 10 kayıt, 9 benzersiz URL;
+  anahtarsız okuma, aynı istek tekrarı, aralık sınırı ve firma ayrımı.
+  Günlük bütçe gerçek rezervasyon üzerinden kontrollü saat/kapalı ağ ile
+  sınandı. İlgili 148 test ve son 43 testlik demet geçti; tam paket
+  tekrarlanmadı. Ayrıntılar demetlerin örtüştüğünü belirtir.
+- **Kullanım:** Dört dış istek; tanı ve son iki yanıtta üç kredi bildirildi.
+  İlk ayrıştırılamayan isteğin tüketimi bilinmiyor. Bu hesap bakiyesi değildir.
+- **Anahtar:** Gizli terminal girişinden yalnız süreç belleği/ortamına
+  verildi; kalıcı yapılandırma yapılmadı. Sohbette paylaşılan anahtarın
+  yenilenmesi ve yenisinin yerel `mentions configure` ile kaydedilmesi önerildi.
+- **Sınır:** Tedarikçi canlı sorgusu, Linux zamanlayıcısı veya uzun süreli
+  işletim doğrulanmadı. Anahtar çalışması ticari yeniden dağıtım izni sayılmaz.
+- **Dayanak:** [Canlı kabul ve tüm bağlantılar](docs/TAVILY_LIVE_ACCEPTANCE.md),
+  [test kaydı](docs/ACCEPTANCE_REVIEW.md), [izleme grupları](docs/MENTION_GROUPS.md).
+
 ### N-030 — Yayın işleri, ilişki bildirimi ve birikimli kapasite kabulü
 
 - **Durum:** Kapandı; aşağıdaki tanımlı kapsamda Linux teslimi tamamlandı. **Güncellendi:** 19 Kasım 2026.
@@ -772,6 +785,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.170.1:** Yeni özellik paketi açılmadı. Kullanıcının anahtarla denemesi
+sırasında bulunan Tavily sorgu yanıtı uyumsuzluğu giderildi; seçilmiş
+firma canlı kabulü N-004 ile kapandı. Nmap hedef/port girdisi N-005 ve
+diğer bağımsız ticari/işletim koşulları kendi notlarında kalır.
 
 **0.170.0 teslimi tamamlandı:** Kullanıcının birlikte istediği yayın
 işleri, ilişki bildirimi/vaka bağlantısı ve iki firmalı birikimli kapasite

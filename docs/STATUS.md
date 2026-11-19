@@ -1,5 +1,15 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.170.1:** Tavily'nin yanıtta sorgunun çift tırnaklarını kaldırması
+desteklenir; özgün sorgu ve firma kapsamı korunur. Seçilmiş SecureHup
+firması için canlı genel web/haber araması, 10 kayıt/9 URL saklama,
+anahtarsız okuma, aynı istek tekrarı ve firma ayrımı geçti. Günlük bütçe
+kontrollü saatle ayrıca sınandı. N-004 bu kapsamda kapandı.
+İlgili 148 test / 49,239 saniye; son sürüm/engine/mimari demeti 43 test /
+6,421 saniye, hata/atlama yok. Demetler örtüşür; tam paket tekrarlanmadı.
+Çekirdek 80, kuyruk 3 ve bağımlılıklar değişmedi; yeni migration yoktur.
+[Canlı sonuçlar ve sınırlar](TAVILY_LIVE_ACCEPTANCE.md).
+
 **0.170.0:** Seçilmiş yayıncı belgeleri kaynak işi v5 içinde ayrı adımlar
 olarak çalışır. Başarılı belge tekrar indirilmez; commit sonrası kesinti
 kalıcı makbuzla toparlanır. İlişki değişikliği tekilleştirilmiş yerel bildirim
@@ -65,7 +75,7 @@ test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
 kabulü bu yerel teslimin sonucu değildir.
 
 
-**19 Kasım 2026 · 0.170.0 · Çekirdek şema 80 · İş kuyruğu şeması 3.**
+**19 Kasım 2026 · 0.170.1 · Çekirdek şema 80 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları

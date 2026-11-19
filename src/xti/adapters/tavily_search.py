@@ -152,7 +152,10 @@ def _optional_text(value, *, maximum):
 def _parse_response(content, *, request, query, api_key):
     try:
         raw = json.loads(content.decode("utf-8"), object_pairs_hook=_object, parse_constant=_constant)
-        if not isinstance(raw, dict) or raw.get("query") != query:
+        # Tavily may remove the phrase quotes from its query echo. Accept only
+        # that observed representation; the request and saved evidence retain
+        # the original quoted scope. Other term/operator changes still fail.
+        if not isinstance(raw, dict) or raw.get("query") not in (query, query.replace('"', '')):
             raise ValueError("Response does not match query")
         results = raw.get("results")
         if not isinstance(results, list) or len(results) > request.max_results:

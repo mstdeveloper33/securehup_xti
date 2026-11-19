@@ -1,5 +1,10 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.170.1 Tavily'nin sorgu yanıtındaki tırnak normalizasyonunu destekler;
+özgün sorgu ve firma kapsamı korunur. SecureHup için canlı web/haber
+araması, kayıt okuma, tekrar ve firma ayrımı doğrulandı.
+[Sonuçlar ve bulunan bağlantılar](docs/TAVILY_LIVE_ACCEPTANCE.md).
+
 0.170.0 seçilmiş HTML/PDF belgelerini kalıcı iş kuyruğunda ayrı ayrı işler;
 ilişki dayanağı değişikliklerini yerel kutuya bildirir ve insan seçimiyle
 vakaya bağlar. [Kullanım ve sınırlar](docs/PUBLISHER_JOB_DELIVERY.md).
@@ -11,7 +16,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Sürüm:** 0.170.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 80 · **İş kuyruğu:** 3.
+**Sürüm:** 0.170.1 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 80 · **İş kuyruğu:** 3.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;

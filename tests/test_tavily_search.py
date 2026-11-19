@@ -90,6 +90,29 @@ class TavilyHttpTests(unittest.TestCase):
         self.assertEqual(opener.call_count, 1)
         self.assertNotIn("Ignored", repr(result))
 
+    def test_unquoted_provider_echo_preserves_the_exact_requested_scope(self):
+        query = build_query(REQUEST.target)
+        opener = Mock(return_value=Response(reply(query=query.replace('"', ''))))
+        result = TavilySearchSource(KEY, opener=opener).fetch(REQUEST)
+        self.assertEqual(opener.call_count, 1)
+        self.assertEqual(json.loads(opener.call_args.args[0].data)["query"], query)
+        self.assertEqual(result.query, query)
+        self.assertEqual(result.credits, 1)
+        self.assertEqual(len(result.hits), 1)
+
+    def test_provider_echo_cannot_change_terms_operators_or_only_some_quotes(self):
+        for query in (
+            'Example Company AND example.com',
+            'Example Company OR other.example',
+            'Example Company',
+            'example company OR example.com',
+            'Example Company OR example.com OR another.example',
+            '"Example Company" OR example.com',
+            None, 123,
+        ):
+            with self.subTest(query=query), self.assertRaises(SourceError):
+                TavilySearchSource(KEY, opener=Mock(return_value=Response(reply(query=query)))).fetch(REQUEST)
+
     def test_empty_valid_results_preserve_unknown_usage_and_dates(self):
         empty = reply(results=[], usage=None, request_id=None)
         result = TavilySearchSource(KEY, opener=Mock(return_value=Response(empty))).fetch(REQUEST)

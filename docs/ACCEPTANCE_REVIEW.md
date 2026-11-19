@@ -1,5 +1,35 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.170.1 — Tavily canlı firma araması ve sorgu yanıtı uyumu
+
+19 Kasım 2026; macOS arm64 / Python 3.13.3. Kullanıcının verdiği anahtarla
+seçilmiş SecureHup firmasında genel web ve haber sorguları çalıştırıldı.
+İlk 0.170.0 denemesinde Tavily'nin tırnakları kaldırdığı sorgu alanı
+reddedildi. Tek tanı isteği kök nedeni doğruladı; adaptör yalnız bu
+gösterim farkını kabul edecek şekilde düzeltildi. Özgün sorgu saklanır;
+başka terim/domain/bağlaç veya kısmi tırnak değişimi kabul edilmez.
+
+| Kontrol | Sonuç |
+| --- | --- |
+| İlgili adaptör/saklama/grup/terminal/içerik testleri | 148 test / 49,239 saniye; hata/atlama yok. Yeni canlı biçim testi düzeltmeden önce hatayı üretti. |
+| Son 0.170.1 adaptör/engine/mimari demeti | 43 test / 6,421 saniye; hata/atlama yok. |
+| Gerçek genel ve haber araması | İkisi başarılı; 10 kapsam/URL kaydı, 9 benzersiz bağlantı. Başarılı iki aramada bildirilen toplam 2 kredi. |
+| Tekrar, okuma ve firma ayrımı | Anahtarsız liste/ayrıntı/`record.get`, aynı istek kimliğiyle tekrar ve erken tur reddi geçti. Diğer firma 10 kaydı okuyamadı; araması boş kaldı. |
+| Günlük bütçe | Gerçek çalışmada iki grubun birer hakkı tüketildi. Aynı UTC gününde kontrollü saat +2 saat ve kapalı ağ altında yeni tur `daily_budget` ile durdu; DB değişmedi. |
+
+Test demetleri örtüşür; sayılar toplanmaz. Tam paket/kurulum/Linux tekrar
+çalıştırılmadı; aşağıdaki 3.211 testlik Linux sonucu 0.170.0'a aittir.
+Şema 80, kuyruk 3, eski kayıtlar ve bağımlılıklar değişmez.
+
+Tanı dahil dört dış istek vardır: üç yanıtta toplam üç kredi bildirildi;
+ilk ayrıştırılamayan isteğin tüketimi bilinmiyor, sıfır sayılmadı. Anahtar
+dosyaya, komut argümanına veya repoya eklenmedi; yalnız gizli giriş/süreç
+belleği/çağrı ortamı kullanıldı. Sohbetteki anahtarın yenilenmesi önerildi.
+N-004 seçilmiş firma kabulüyle kapandı. Tedarikçi canlı sorgusu, Linux
+zamanlayıcısı, ticari veri hakları ve sürekli hizmet bu kabulün sonucu değildir.
+
+[Tam sonuç listesi, kök neden ve kanıt konumları](TAVILY_LIVE_ACCEPTANCE.md).
+
 ## 0.170.0 — Yayın işleri, ilişki bildirimi ve birikimli kapasite
 
 19 Kasım 2026. Uygulama ve Linux kabul kodu:

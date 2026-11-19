@@ -18,7 +18,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**19 Kasım 2026 — 0.170.0, çekirdek şema 80, iş kuyruğu şeması 3.**
+**19 Kasım 2026 — 0.170.1, çekirdek şema 80, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

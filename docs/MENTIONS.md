@@ -1,5 +1,11 @@
 # Firma ve tedarikçi hakkında internette içerik arama
 
+**0.170.1 canlı kabul:** SecureHup genel web/haber sorguları, saklama,
+anahtarsız okuma, tekrar ve firma ayrımı doğrulandı. Tavily'nin yanıtta
+yalnız çift tırnakları kaldırması kabul edilir; özgün sorgu saklanır,
+farklı terim/domain/bağlaç reddedilir. Yeni migration veya bağımlılık yoktur.
+[Bütün sonuçlar ve kullanım sınırları](TAVILY_LIVE_ACCEPTANCE.md).
+
 0.145.0 / şema 68; tekil arama 0.144.0'da eklendi. `mentions search`, seçtiğin firma için Tavily üzerinden
 gerçek web veya haber araması yapar. `mentions list/show/run-show/status`
 kaydedilen sonuçları internet ve API anahtarı olmadan okur.
