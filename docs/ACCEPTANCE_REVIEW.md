@@ -1,5 +1,114 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.170.0 — Yayın işleri, ilişki bildirimi ve birikimli kapasite
+
+19 Kasım 2026. Uygulama ve Linux kabul kodu:
+[`53a2eaf0d7eae81f18870680b87710ee16bcddce`](https://github.com/mstdeveloper33/securehup_xti/commit/53a2eaf0d7eae81f18870680b87710ee16bcddce).
+Çekirdek 80, kuyruk 3, kaynak işi modeli 5. Önceki iş modelleri 1–4
+ve dış JSON sözleşmesi 1 korunur. İstenen üç işin
+[kullanımı ve sınırları](PUBLISHER_JOB_DELIVERY.md) ayrı belgelenmiştir.
+
+| Kontrol | Sonuç ve kanıt |
+| --- | --- |
+| Yeni davranışlar, mimari ve engine sözleşmesi | İlk kodda yerelde **46 test / 17,587 s**, hata/atlama yok. Yeni dört modül ilk commit'te 22, ek çok pencereli bildirim kontrolüyle 23 test içerir. |
+| Linux yayın işi kabulü | **Başarılı.** Ubuntu 24.04 x86_64 / Python 3.13.18 / SQLite 3.45.1; 22 yeni test **11,553 s**. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485446767). |
+| İki firmalı HTML/PDF kapasite ve kurtarma | Aynı Linux çalışmasında **135,909267 s**, 118 ölçülen komut, 80 belge / 160 sürüm. Ölçümler aşağıdadır. |
+| Gerçek 0.169.0 koduyla geçiş ve geri dönüş | `484976bd92eb54cec39c077e495022f49ba3d71a` ile üretilmiş veri: **79 → 80**, 167 eski tablonun 17 satırı ve rowid'leri aynı; iki belge sürümü, insan kararı, eski vaka kanıtı ve v4 iş payload'u korundu. Yeni bildirim eski vakaya bağlandı. Eski kod yeni şemayı reddetti; eski yedekten yeni workspace kimliğiyle dönüldü. **3,056007 s**, macOS/Python 3.13.3. |
+| Daha eski gerçek kodla geçiş | `dbee4ab18349656177fc90aee65e8c7ddffdb10d`: çekirdek **75 → 80**, kuyruk **2 → 3**; v2 iş ve kimlikler korundu. Eski kodla özgün yedeğe dönüş geçti; **1,577572 s**. |
+| Normal kurulum ve theHarvester | Başarılı. [Marka/PDF/RSS kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401780), [theHarvester kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401635). |
+| Firma izolasyonu ve gerçek süreç kurtarması | Python 3.11 / 3.13 kolları başarılı. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401541). |
+| Hızlı Linux regresyonu | Güncel koşu bekleniyor; ilk koşu eski kabul betiği nedeniyle durduruldu. |
+| Tam Linux paketi | Güncel koşu bekleniyor; ilk koşu eski kabul betiği nedeniyle durduruldu. |
+
+Test demetleri örtüşür; sayıları toplanmaz. Yerelde geliştirme sırasında
+başlatılan bir tam koşu, altı adım sınırı kesinleştirilirken durduruldu;
+tamamlanmış veya başarılı paket sayılmaz. Teslimin tam sonucu yukarıdaki
+Linux çalışmasıdır; bitmeden başarılı kabul edilmez.
+
+**Kabul betiği düzeltmesi:** İlk [Linux yükseltme çalışması](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44486436950)
+iki araçta da aday şema kontrolünde durdu: test betiği yalnız 64–79'u
+tanıyordu. Yeni 80 açıkça eklenir; yalnız tanımlı `case_evidence` CHECK
+genişlemesi kabul edilir, eski bütün satır/rowid/diğer DDL denetimi korunur.
+Bozuk satır ve beklenmeyen CHECK değişikliği yeni testte reddedilir.
+Eski betiği içeren [hızlı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401533)
+ve [tam](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485435285)
+koşular tamamlanmadan durduruldu; başarılı paket sayılmaz.
+Son betik/migration/CI demeti **34 test / 13,154 s**: hata yok, iki
+Linux `/proc` kontrolü macOS'ta atlandı. Son belge/bildirim/platform demeti
+**21 test / 10,962 s**, hata/atlama yok. Motorun `src` kodu, bağımlılıklar
+ve kapasite betiği `53a2eaf` ile aynıdır.
+
+**Canlı yayın işi:** Ayrı `/tmp` alanında seçilmiş CERT-FR CTI-010 HTML ve
+PDF, gerçek `./xti source-jobs` plan → submit → worker → result yoluyla
+alındı. **7,867149 s / iki HTTP denemesi**; aynı anahtarlı submit aynı
+işi döndürdü, tamamlanmış worker tekrarında yeni alım yapılmadı.
+İş `89ff513f-3d0e-4d26-8779-509fcaa29ec1`; HTML makbuzu
+`a679df84-165e-45ea-92a6-fb0e4d12fbc2`, PDF makbuzu
+`7da9988b-bc8d-4337-999c-45161402021a`. Bu tek yayıncıdaki iki belgeyi
+doğrular; genel firma web araması veya tüm kaynakların canlı kabulü değildir.
+Geçici kanıt `/tmp/xti-01700-live-publisher.json`.
+
+### Ölçülen yük ve sonuç
+
+İki firma; firma başına 40 seçilmiş belge, belge başına iki sürüm.
+HTML ve gerçek pypdf ile ayrıştırılan PDF sayıları eşittir. Belgeler
+kontrollü ve sıkıştırılabilir; HTML yaklaşık 128 KB dolgu ve 4 KB metin,
+PDF yaklaşık 4 KB metin içerir. Kaynak yanıtı kontrollüdür; ayrıştırıcı,
+terminal/platform süreçleri, kuyruk, veri tabanı, arşiv ve yedek gerçek
+uygulamadır. Dış ağ kapalıdır; internetteki sağlayıcı kapasitesi ölçülmez.
+
+| Ölçüm | Linux x86_64 | macOS arm64 |
+| --- | --- | --- |
+| Python / SQLite | 3.13.18 / 3.45.1 | 3.13.3 / 3.53.2 |
+| Mantıksal CPU | 4 | 10 |
+| Kabul süresi | 135,909267 s | 127,767968 s |
+| Ölçülen komut | 118 | 118 |
+| Seçilmiş okumaların p95 süresi | 0,486813 s | 0,444293 s |
+| Beş belgeli worker p95 süresi | 4,877962 s | 4,561898 s |
+| En yüksek tek süreç RSS | 55.951.360 bayt | 67.256.320 bayt |
+| Yedekler/geri yüklemeler dahil geçici alan | 29.665.906 bayt | 29.665.895 bayt |
+| Kontrollü HTTP denemesi / dış ağ isteği | 161 / 0 | 161 / 0 |
+
+Önceden tanımlı kabul eşikleri: okuma p95 ≤ 5 s, worker p95 ≤ 60 s,
+tek komut ≤ 90 s, tek süreç RSS ≤ 512 MiB, yedekler dahil alan ≤ 512 MiB.
+RSS aynı anda çalışan süreçlerin toplamı değildir. Okuma p95 yalnız
+bu senaryonun `reports.list`, `relationships.candidates` ve
+`sources.jobs.result` çağrılarını kapsar; bütün motor işlemlerine genellenmez.
+
+İki koşunun başlangıç ve son kaynak/betik özeti aynıdır:
+`c35e3b22999c2550f8314f0bd88066a850dcf598eec8372e04709252b238f386`.
+Bu özet `src/**/*.py`, `pyproject.toml` ve kapasite betiğini kapsar.
+
+### Doğrulanan davranış ve kalan sınırlar
+
+- Plan/kabul ağ kullanmaz; seçilmiş URL ve belge adımı terminalde görünür.
+  HTML/PDF, yönlendirme, 429/503, kısmi tekrar, süre ve iptal sınandı.
+  En fazla beş belge / altı toplam adım plan aşamasında doğrulanır.
+  Altıncı adım sonundaki iptal mevcut kuyruk 3 olay sınırına sığar.
+- Belge core commit'inden sonra, ilerleme makbuzu öncesi **gerçek SIGKILL**
+  uygulandı. Açık recover/retry başarılı belgeyi yeniden indirmeden buldu;
+  eski kesilmiş işin bilinmeyen tüketimi sıfır olarak gösterilmedi.
+- Bildirim aynı karar sürümü/kanıt değişiminde tekilleşti; okundu durumu
+  korundu. Eksik kapsam kesin kayıp sayılmadı. Bozuk/silinmiş makbuz başarı
+  gibi sunulmadı. Başka firmanın bildirimi okunamadı veya vakaya bağlanamadı.
+- Eski/yeni kanıt vaka içinde donduruldu. Yeni insan kararı ve günlük
+  arşivi eski vaka kanıtını değiştirmedi. İki firma için çekirdek+kuyruk
+  yedeğinden belge sürümleri, bildirimler ve iş sonuçları geri geldi.
+- Gerçek **64 MiB özgün nesne sınırı**, sekiz adet 8 MiB kontrollü nesneyle
+  ayrıca sınandı: dokuzuncu kayıt reddedildi; mevcut nesne ve makbuzlar
+  değişmedi. Normal hacim ölçümü sınırın üstüne çıkma denemesi değildir.
+- Bu yaklaşık iki dakikalık birikimli kabul, uzun süreli 7/24 hizmet veya
+  bütün kaynaklarda başarı garantisi değildir. Yayıncı allowlist'i, atıf,
+  32 MiB rapor günlüğü ve 32 MiB/10.000 bildirim sınırları korunur.
+  Tavily, yetkili Nmap, geniş STIX/TAXII ve LLM ayrı notlarında kalır.
+
+Geçici kanıtlar: `/tmp/xti-01700-publisher-capacity-final.json`,
+`/tmp/xti-01700-linux-publisher.json`,
+`/tmp/xti-01700-real79-upgrade-final.json`,
+`/tmp/xti-01700-engine-upgrade.json` ve ilgili test logları.
+Kalıcı kanıt bu kayıt, sürümlü test/betikler ve GitHub çalışma loglarıdır;
+test veri tabanları ve ham yayın metinleri repoya eklenmez.
+
 ## 0.169.0 — GitHub ve Linux teslimi
 
 19 Kasım 2026. Teslim edilen kod:

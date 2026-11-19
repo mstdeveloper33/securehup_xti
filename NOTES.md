@@ -30,14 +30,26 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-030 — Yayın işleri, ilişki bildirimi ve birikimli kapasite kabulü
 
-- **Durum:** Açık; uygulama ve test sürüyor. **Güncellendi:** 19 Kasım 2026.
+- **Durum:** Uygulandı; Linux kapasite kabulü geçti, tam regresyon sürüyor. **Güncellendi:** 19 Kasım 2026.
 - **Yetki:** Kullanıcı üç işi birlikte onayladı.
 - **Korunacaklar:** Mevcut kuyruk, firma ayrımı, eski belge/karar kanıtı,
   açık insan kararı, yedekli geçiş ve yayıncı koşulları. Başarılı belgeler
   tekrar işinde yeniden indirilmez; kısmi kapsam kesin kayıp sayılmaz.
-- **Bekleyen kabul:** Belge bazlı kesinti/iptal/tekrar, bildirim tekilleştirme,
-  vaka bağlantısı, eski şemadan geçiş, iki firmada birikimli HTML/PDF,
-  arşiv ve geri yükleme ölçümü. Sonuç alınmadan tamamlandı sayılmayacak.
+- **Alınan kanıt:** Linux'ta 22 yeni test; iki firmada 80 belge/160 sürüm,
+  118 komut, gerçek SIGKILL sonrası indirmeden toparlanma, bildirim/vaka,
+  arşiv ve birlikte geri yükleme geçti. Yerelde gerçek eski kodla 79 → 80
+  ve 75 → 80 geçiş/geri dönüş tamamlandı.
+- **Canlı kuyruk:** CERT-FR CTI-010 HTML/PDF iki HTTP denemesiyle alındı;
+  aynı iş tekrarında yeni indirme/makbuz oluşmadı. 22 kararın 20+2
+  bildirim penceresi ve tekrar tekilleştirmesi de doğrulandı.
+- **Kabul betiği düzeltmesi:** İlk Linux yükseltme koşusu eski 79 sınırında
+  durdu. Betik şema 80'in yalnız beklenen vaka CHECK genişlemesine izin
+  verecek şekilde güncellendi; eski satır/rowid denetimi korunur. İlgili
+  34 test geçti (iki Linux kontrolü macOS'ta atlandı); son 21 belge/
+  bildirim/platform testi de geçti. Eski hızlı/tam koşular durduruldu;
+  güncel kodla yeniden çalıştırılacak.
+- **Bekleyen kabul:** Tam ve hızlı Linux regresyonunun sonucu. Sonuç
+  alınmadan bu madde kapatılmayacak.
 - **Dayanak:** [Uygulama kararı](docs/decisions/0175-publisher-jobs-and-review-delivery.md).
 
 ### N-029 — Tam yayın metni, yeniden inceleme ve günlük arşivi

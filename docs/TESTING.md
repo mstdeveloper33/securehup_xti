@@ -107,3 +107,22 @@ PDF testleri gerçek pypdf alt sürecini kullanır; CI öncesi incelenen
 `./setup` aynı sabit sürümü kurar. Arşiv testi gerçek SIGKILL + aynı planla
 tekrar ve standart SQLite/platform yedeğinden dönüş içerir. Canlı yayıncı
 kabulü ayrı izole veri alanında yapılır; otomatik testler internet istemez.
+
+## Yayın işleri ve ilişki bildirimi
+
+```sh
+./scripts/python -m unittest -v \
+  tests.test_publisher_jobs tests.test_relationship_notifications \
+  tests.test_relationship_notification_migration tests.test_publisher_job_platform
+./scripts/python scripts/check-publisher-delivery.py \
+  --documents-per-company 40 --output /tmp/YENI_YAYIN_KABULU.json
+```
+
+Dört test modülü push demetine dahildir. Kapasite betiği iki firmada
+gerçek HTML/PDF ayrıştırması ve ayrı platform süreçleri kullanır; yalnız
+HTTP yanıtları kontrollüdür. Belge commit'i sonrası gerçek SIGKILL,
+yeniden indirmeden toparlanma, bildirim/vaka, arşiv ve birlikte yedekten
+dönüşü ölçer. Sabit eşikler, kaynak kodu özeti ve örneklem büyüklüğü
+JSON sonucunda yer alır. Bu kontrol elle başlatılan
+`XTI publisher delivery acceptance` workflow'unda Linux'ta da çalışır.
+Her küçük değişiklikte kapasite veya bütün test paketi tekrarlanmaz.

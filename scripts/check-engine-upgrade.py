@@ -47,10 +47,11 @@ from xti.adapters.sqlite import SQLiteAssetRepository
 from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
 from xti.application.source_jobs import SourceJobService
 from xti.interfaces.company_review import make_company_review_service
+from xti.adapters.schema import SCHEMA_VERSION
 old = json.loads(sys.argv[1])
 storage = SQLiteAssetRepository(Path(old['database']))
 migration = storage.migrate()
-assert (migration['from_version'], migration['to_version']) == (75, 79)
+assert (migration['from_version'], migration['to_version']) == (75, SCHEMA_VERSION)
 assert migration['backup'] and storage.list()[0].id == old['asset_id']
 queue = SQLiteEngineJobRepository(Path(old['database']).parent / 'engine-jobs.sqlite3')
 queue_migration = queue.migrate()
@@ -59,7 +60,7 @@ assert queue_migration['backup']
 job = SourceJobService(queue).status(old['job_id'])
 assert job.payload.version == 2 and job.status == 'queued'
 assert make_company_review_service(Path(old['database'])).show()['root_total_count'] == 1
-print(json.dumps({'from_schema': 75, 'to_schema': 79, 'queue_from_schema': 2,
+print(json.dumps({'from_schema': 75, 'to_schema': SCHEMA_VERSION, 'queue_from_schema': 2,
                   'queue_to_schema': 3, 'pre_upgrade_job_readable': True}))
 '''
 

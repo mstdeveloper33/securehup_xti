@@ -146,3 +146,34 @@ class RelationshipNotificationTests(unittest.TestCase):
         self.f.review(current, expected_revision=1, decision='uncertain', idempotency_key='new-decision')
         with self.assertRaises(ReportError):
             self.notify(expected_snapshot=first['snapshot_id'])
+
+    def test_job_reports_twenty_then_two_changed_decisions_and_repeat_deduplicates(self):
+        from xti.interfaces.platform_jobs import initialize_jobs, make_job_service
+        from xti.interfaces.source_jobs import make_source_job_service
+        text = '192.0.2.10 and ' + ' '.join(f'extra-{i}[.]example' for i in range(21))
+        self.f.f.f.apply(replace(self.f.f.item, summary=text))
+        self.f.f.capture('window-initial')
+        candidates = self.service.execute('relationships.candidates', **base.ROOT, limit=100)['records']
+        selected = [row for row in candidates if row['target'][1].startswith('extra-')]
+        self.assertEqual(len(selected), 21)
+        for index, row in enumerate(selected):
+            self.f.review(row, idempotency_key=f'window-review-{index}')
+        self.f.f.f.apply(replace(self.f.f.item, summary='Changed revision. ' + text))
+        self.f.f.capture('window-change')
+        context = SimpleNamespace(database=self.path, data_dir=self.path.parent)
+        initialize_jobs(context)
+        jobs, worker = make_source_job_service(context), make_job_service(context)
+        def deliver(offset, key):
+            plan = jobs.plan(**base.ROOT, sources=['relationship-notify'], notification_offset=offset)
+            job = jobs.submit(**plan['plan'], plan_sha256=plan['plan_sha256'], idempotency_key=key)
+            return worker.work_one(job.id)
+        first = deliver(0, 'first-window')
+        receipt = first.steps[0]['receipt']
+        self.assertEqual((first.status, receipt['has_more'], receipt['next_offset']), ('partial', True, 20))
+        self.assertEqual(len(receipt['records']), 20)
+        second = deliver(20, 'last-window')
+        self.assertEqual((second.status, len(second.steps[0]['receipt']['records'])), ('complete', 2))
+        again = deliver(0, 'repeat-window')
+        self.assertEqual(again.steps[0]['receipt']['records'], receipt['records'])
+        self.assertEqual(self.inbox.list().total_count, 22)
+        self.assertTrue(all(job.to_dict()['execution']['requests']['attempts'] == 0 for job in (first, second, again)))

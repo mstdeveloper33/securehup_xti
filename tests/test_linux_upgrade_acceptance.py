@@ -223,6 +223,29 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
             self.assertEqual(self.helper.COMMON.snapshot(data), after_files)
             self.assertEqual((data / "upgrade-evidence.bin").read_bytes(), b"preserved external evidence")
 
+    def test_schema80_case_extension_requires_exact_old_rows_and_reviewed_ddl(self):
+        from tests.test_cases import CaseTests
+        from tests.case_evidence_v79_fixture import case_evidence_layout_v79
+        fixture = CaseTests(); fixture.setUp(); self.addCleanup(fixture.doCleanups)
+        case = fixture.create_case()
+        fixture.service.add_evidence(case.id, 'finding', fixture.insert_finding(), reason='Preserve this evidence')
+        with closing(sqlite3.connect(fixture.path)) as connection, connection:
+            connection.execute('UPDATE case_evidence SET rowid=rowid+100')
+            case_evidence_layout_v79(connection)
+            connection.execute('PRAGMA user_version=79')
+        before = self.helper.database_manifest(fixture.path)
+        fixture.storage.migrate()
+        after = self.helper.database_manifest(fixture.path)
+        self.helper.require_preserved_tables(before, after)
+        with closing(sqlite3.connect(fixture.path)) as connection, connection:
+            connection.execute("UPDATE case_evidence SET display_value=display_value || ' changed'")
+        with self.assertRaisesRegex(RuntimeError, 'case_evidence'):
+            self.helper.require_preserved_tables(before, self.helper.database_manifest(fixture.path))
+        columns, rows, objects = after[1]['case_evidence']
+        unexpected = (columns, rows, [(kind, name, sql.replace("'relationship_review'", "'unexpected_kind'") if sql else sql)
+                                     for kind, name, sql in objects])
+        self.assertFalse(self.helper._preserved_case_upgrade(before[1]['case_evidence'], unexpected))
+
     def test_news_environment_upgrade_requires_one_exact_preserved_baseline(self):
         with tempfile.TemporaryDirectory() as temporary:
             project = Path(temporary)
