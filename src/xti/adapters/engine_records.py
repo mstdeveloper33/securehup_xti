@@ -40,6 +40,7 @@ from xti.domain.ransomware_claims import RANSOMWARE_SOURCE_NAME, RANSOMWARE_SOUR
 
 MAX_DETAIL_ROWS = 50_000
 _LOCAL_TYPES = {
+    ('report', 'report_document'): 'local-reports',
     ('domain', 'registered_domain'): 'local-assets',
     ('domain', 'surface_candidate'): 'passive-discovery',
     ('finding', 'brand_finding'): 'local-match',
@@ -183,6 +184,8 @@ class SQLiteEngineRecordRepository:
                     record, sections, provenance, notes = self._news(connection, reference)
                 elif reference.kind == 'mention':
                     record, sections, provenance, notes = self._mention(connection, reference)
+                elif reference.kind == 'report':
+                    record, sections, provenance, notes = self._report(connection, reference)
                 else:
                     handlers = {'registered_domain': self._asset, 'surface_candidate': self._candidate,
                                 'brand_finding': self._finding, 'username_watch': self._watch,
@@ -196,6 +199,29 @@ class SQLiteEngineRecordRepository:
             raise
         except (TypeError, ValueError, KeyError, IndexError, AttributeError, OverflowError) as error:
             raise StorageError('Engine kayıt ayrıntısı veya kaynak bağlantıları bozuk; kısmi sonuç üretilmedi.') from error
+
+    @staticmethod
+    def _report(connection, reference):
+        from xti.adapters.sqlite_reports import read_reports
+        from xti.domain.reports import report_view
+        from xti.domain.research_reports import parse_document_id
+        try:
+            rid, revision = parse_document_id(reference.record_id)
+        except ValidationError:
+            _not_found()
+        records, _, _ = read_reports(connection)
+        stored = records.get(rid)
+        if stored is None or revision > len(stored['documents']):
+            _not_found()
+        view = report_view(stored, revision)
+        return {key: value for key, value in view.items() if key not in ('links', 'history')}, {
+            'links': view['links'], 'history': view['history']}, {
+            'source_run_id': view['document']['source_run_id'],
+            'source_reference': view['document']['source_reference'],
+            'observed_at': None, 'collected_at': view['document']['collected_at'],
+            'publication': view['document']['publication'],
+        }, ('Yalnız saklı başlık/özet; metin adayları ve insan bağlantıları saldırı atfı değildir.',
+            'Belge sürümü sabittir; bağlantılar ve geçmiş seçili çalışma alanının güncel kararlarını gösterir.')
 
     @staticmethod
     def _news(connection, reference):

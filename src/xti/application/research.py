@@ -104,6 +104,7 @@ def priority_data(review) -> dict:
         } for item in review.items],
         "notes": [
             "Öncelik analistin inceleme sırasıdır; risk skoru, ihlal veya güvenli kararı değildir.",
+            "Rapor sürümleri, metindeki adaylar ve insan bağlantıları ayrı bağlamdır; aynı yayın veya eski aday kaydı bağımsız doğrulama sayılmaz.",
             "Kaynak güveni, kanıt türü, güncellik ve etkinlik ayrı kalır; kaynak sayısı veya güven puanı sıralamayı oylamaz.",
             "Kaynak durumları farklı olabilir; metinlerden anlamsal çelişki veya aynı aktör sonucu çıkarılmaz.",
             "Sıra yalnız seçilen kökün sınırlı araştırmasını kapsar; bütün firma veya internet envanteri değildir.",
@@ -159,6 +160,9 @@ def research_data(report) -> dict:
         "paths": [{"node_ids": list(nodes), "edge_ids": list(edges), "hops": len(edges)}
                   for nodes, edges in report.paths],
         "notes": [
+            "Rapor belge sürümleri ayrı düğümlerdir. report_text_mention metinde geçmeyi, report_search_scope özgün arama kapsamını, report_reviewed_link insan bağlantısını gösterir; doğrudan aktör–IOC atfı oluşturulmaz.",
+            "Rapor kanıtında observed_at yalnız time_basis=response_received_at ile kaynak alınma zamanıdır; olay zamanı bilinmiyor. Yayın zamanı ve metin aralığı reports.show / record.get ayrıntısında korunur.",
+            "Raporlarda current_document yalnız son kaydedilmiş belge demektir; canlı kaynağın bugün aynı olduğu iddiası değildir. İnsan kararında current son karar anlamındadır; linked/withdrawn ayrıca okunmalıdır. Eski ve yeni kayıtlar bağımsız doğrulama oyu değildir.",
             "Yalnız seçili çalışma alanının kayıtlı yüzey, IOC/CTI, tedarikçi, vaka, sosyal profil, firma içeriği, kimlik/rapor adayı ve IP/URL/dosya kanıtları okunur; kaynaklar yeniden sorgulanmaz.",
             "Yollar iki yönde araştırılabilir; ilişkinin özgün yönü source_id/target_id alanlarında korunur.",
             "Ortak IP, CNAME hedefi, aynı sertifika veya kaynak iddiası sahiplik, aynı saldırgan, kötü niyet veya doğrulanmış ihlal sonucu değildir.",

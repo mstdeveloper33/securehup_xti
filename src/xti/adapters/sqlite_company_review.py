@@ -20,6 +20,13 @@ class SQLiteCompanyReviewRepository:
                    "UNION SELECT 'entity',id FROM cti_entities")
             total = reader.connection.execute('SELECT COUNT(*) FROM (' + sql + ')').fetchone()[0]
             context_roots = sorted(set(reader.case_context.nodes) | set(reader.content_context.nodes) | set(reader.investigation_context.nodes))
+            reader.sightings.evidence(('domain', ''))  # Audited once; no external query.
+            sighting_roots = []
+            for kind, value in reader.sightings.index:
+                if not (reader.connection.execute('SELECT 1 FROM cti_indicators WHERE indicator_type=? AND value=?', (kind, value)).fetchone() or
+                        kind == 'domain' and reader.connection.execute('SELECT 1 FROM assets WHERE value=?', (value,)).fetchone()):
+                    sighting_roots.append((kind, value))
+            context_roots = sorted(set(context_roots) | set(sighting_roots))
             # Stable order: inventory/IOC roots, then independent local review
             # records so cases without a domain are not silently excluded.
             roots = reader.connection.execute(sql + ' ORDER BY kind,value LIMIT ? OFFSET ?',

@@ -17,6 +17,7 @@ from xti.adapters.sqlite_research_discovery import StoredDiscoveryLinks
 from xti.adapters.sqlite_research_discovery_status import StoredDiscoveryStatuses
 from xti.adapters.sqlite_research_cases import StoredCaseContext
 from xti.adapters.sqlite_research_investigation import StoredInvestigationContext
+from xti.adapters.sqlite_research_reports import StoredReportContext
 from xti.adapters.sqlite_research_content import StoredContentContext
 from xti.domain.research_discovery_status import status_evidence
 from xti.adapters.sqlite_warninglists import read_warninglists
@@ -92,6 +93,9 @@ class _Reader:
         self.discovery_status = StoredDiscoveryStatuses(connection,
             limitations=self.limitations, coverage=self.coverage)
         self.investigation_context = StoredInvestigationContext(connection, limitations=self.limitations, coverage=self.coverage)
+        from xti.adapters.sqlite_research_sightings import StoredSightingContext
+        self.sightings = StoredSightingContext(connection, limitations=self.limitations, coverage=self.coverage)
+        self.report_context = StoredReportContext(connection, limitations=self.limitations, coverage=self.coverage)
         self.case_context = StoredCaseContext(connection, limitations=self.limitations, coverage=self.coverage)
         self.content_context = StoredContentContext(connection, limitations=self.limitations, coverage=self.coverage)
 
@@ -216,7 +220,7 @@ class _Reader:
         if key in self.nodes:
             return self.nodes[key]
         kind, value = key
-        for context in (self.case_context, self.content_context, self.investigation_context):
+        for context in (self.case_context, self.content_context, self.investigation_context, self.report_context):
             if key in context.nodes:
                 self.nodes[key] = context.nodes[key]
                 return self.nodes[key]
@@ -281,27 +285,34 @@ class _Reader:
         enrichment = None
         if kind in {"url", "md5", "sha1", "sha256", "ipv4", "ipv6"}:
             enrichment = read_enrichment(self.connection, enrichment_query(indicator_type=kind, value=value))
-            latest, good, snapshot = enrichment.latest_run, enrichment.successful_run, enrichment.snapshot
-            if latest:
-                evidence.append(ResearchEvidence("enrichment_run", latest.id, latest.provider,
-                    request_url(enrichment.query), "source_context", latest.status, latest.finished_at,
-                    latest.finished_at, latest.error or "Kaynak sorgusu yanıtı; alınma tarihi kaynak gözlem tarihi değildir.",
-                    state_sha256=latest.snapshot_sha256, source_run_id=latest.id, time_basis="response_received_at"))
-                evidence_total += 1
-            if snapshot:
-                if snapshot.has_more:
-                    self.limitations.add("enrichment_result_window")
-                for record in snapshot.records:
-                    claim = ResearchEvidence("enrichment_run", good.id, good.provider, record["reference"],
-                        "source_context", "matched", record["observed_at"] or good.finished_at, good.finished_at,
-                        record["description"], state_sha256=good.snapshot_sha256, source_run_id=good.id,
-                        time_basis="source_observation" if record["observed_at"] else "response_received_at")
-                    for link in record["relationships"]:
-                        source = (link["source_type"], link["source_value"])
-                        target = (link["target_type"], link["target_value"])
-                        edge_id = "enrich:" + identity(good.id, record["id"], link)
-                        self.enrichment_edges[edge_id] = ResearchEdge(edge_id, source, target,
-                            link["relationship_type"], "source_context", (claim,), 1)
+            states = [enrichment]
+            if kind in {'ipv4', 'ipv6'}:
+                states.append(read_enrichment(self.connection, enrichment_query(indicator_type=kind, value=value, provider='ripestat-whois')))
+            for state in states:
+                latest, good, snapshot = state.latest_run, state.successful_run, state.snapshot
+                if latest:
+                    evidence.append(ResearchEvidence("enrichment_run", latest.id, latest.provider,
+                        request_url(state.query), "source_context", latest.status, latest.finished_at,
+                        latest.finished_at, latest.error or "Kaynak sorgusu yanıtı; alınma tarihi kaynak gözlem tarihi değildir.",
+                        state_sha256=latest.snapshot_sha256, source_run_id=latest.id, time_basis="response_received_at"))
+                    evidence_total += 1
+                if snapshot:
+                    if snapshot.has_more:
+                        self.limitations.add("enrichment_result_window")
+                    for record in snapshot.records:
+                        claim = ResearchEvidence("enrichment_run", good.id, good.provider, record["reference"],
+                            "source_context", "matched", record["observed_at"] or good.finished_at, good.finished_at,
+                            record["description"], state_sha256=good.snapshot_sha256, source_run_id=good.id,
+                            time_basis="source_observation" if record["observed_at"] else "response_received_at")
+                        for link in record["relationships"]:
+                            source = (link["source_type"], link["source_value"])
+                            target = (link["target_type"], link["target_value"])
+                            edge_id = "enrich:" + identity(good.id, record["id"], link)
+                            self.enrichment_edges[edge_id] = ResearchEdge(edge_id, source, target,
+                                link["relationship_type"], "source_context", (claim,), 1)
+        sighting_evidence, sighting_count = self.sightings.evidence(key)
+        evidence.extend(sighting_evidence)
+        evidence_total += sighting_count
         # Frozen review v1 permits 52 evidence rows per item. Preserve latest
         # check states first; expose omitted claims with their true total.
         if len(evidence) > 52:
@@ -349,6 +360,7 @@ class _Reader:
         edges.extend(self.content_context.neighbors(key))
         edges.extend(self.case_context.neighbors(key))
         edges.extend(self.investigation_context.neighbors(key))
+        edges.extend(self.report_context.neighbors(key))
         edges.extend(edge for edge in self.enrichment_edges.values() if key in (edge.source, edge.target))
         if key[0] == "entity":
             where, values = "source_entity_id=? OR target_entity_id=?", (key[1], key[1])

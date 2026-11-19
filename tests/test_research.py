@@ -205,7 +205,10 @@ class ResearchTests(ResearchFixture, unittest.TestCase):
             data = self.graph(IP, "ip")
         self.assertEqual(data["status"], "partial")
         self.assertIn("dns_history_window", data["limitations"])
-        self.assertFalse(data["coverage"][0]["complete"])
+        dns_coverage = next(row for row in data["coverage"]
+                            if row["kind"] == "dns" and row["scope"] == "workspace_recent_checks")
+        self.assertEqual((dns_coverage["examined_count"], dns_coverage["window_limit"]), (1, 1))
+        self.assertFalse(dns_coverage["complete"])
 
     def test_multiple_observations_one_edge_and_repeated_claim_no_duplicate_path(self):
         first, second = self.dns(), self.dns()

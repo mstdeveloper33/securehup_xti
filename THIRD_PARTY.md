@@ -13,6 +13,35 @@ Gelecekte düşünülen paketler kurulu bağımlılık listesine eklenmez.
 seçildi. Bileşen ve veri hakları bu kullanım biçimiyle değerlendirilecek;
 müşteriye kurulum paketi dağıtımı ilk teslimin kapsamında değildir.
 
+## pypdf ve izinli yayıncı metinleri — 0.169.0
+
+PDF metni için [pypdf 7.1.1](https://pypi.org/project/pypdf/7.1.1/),
+[BSD-3-Clause lisansıyla](https://github.com/py-pdf/pypdf/blob/7.1.1/LICENSE)
+kullanılır. Paket kodu kopyalanmaz; `reports` extra'sı ve yönetilen
+kurulumda sürüm sabittir. İncelenen evrensel wheel SHA-256:
+`04c5680d4b4cfa04ab505b09393fc949860c34a4dad6565284d11a2f5c3ce8b1`.
+CI `requirements/reports.txt` ile bu hash'i doğrular. Kurulu paketin lisans
+ve telif bildirimleri korunmalıdır; OCR/kriptografi extra'ları alınmaz.
+
+HTML ana metni stdlib ile, PDF metni sınırlı ayrı süreçte çıkarılır.
+pypdf'nin kod lisansı yayıncı içerik hakkını sağlamaz. İlk veri kapsamı:
+
+- [CERT-FR](https://cert.cyber.gouv.fr/mentions-legales/): belirtilen
+  istisnalar dışında Licence Ouverte 2.0; kaynak/atıf ve lisans bağlantısı
+  belgenin metaverisinde korunur.
+- [NCSC](https://www.ncsc.gov.uk/section/about-this-website/terms-and-conditions):
+  belirtilen istisnalar ve üçüncü taraf içerikleri dışında Open Government
+  Licence v3.0. Kaynak/atıf ve lisans bağlantısı korunur.
+
+Bu genel politikalar özel kısıtlı/üçüncü taraf içeriği, marka veya logoları
+otomatik lisanslamaz. Logo/görseller ayrı indirilmez veya marka varlığı
+olarak kullanılmaz; özgün PDF'nin bunları içerebileceği unutulmamalıdır.
+Ham belge ve çıkarılmış metin firma alanında saklanır. Yeni yayıncı/URL
+kapsamı ayrıca incelenmeden allowlist'e eklenmez. Sağlayıcı erişilebilirliği
+ve gelecekteki şart değişiklikleri izlenir; sınırsız erişim taahhüdü yoktur.
+[Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md),
+[takip notu N-029](NOTES.md#n-029--tam-yayın-metni-yeniden-inceleme-ve-günlük-arşivi).
+
 ## Nmap sistem aracı
 
 0.148.0'dan itibaren isteğe bağlıdır; 0.150.0 yönetilen TCP/SYN/UDP,
@@ -49,6 +78,18 @@ tam sayfa istenmez. Anahtar kanıt veya loglara girmez.
 [hizmet şartları](https://www.tavily.com/terms).
 Sağlayıcının saklama açıklaması yayıncı içeriğine ait hakları devretmez.
 [Entegrasyon kararı](docs/decisions/0149-tavily-company-mentions.md).
+
+## RIPEstat ve internet kayıt kaynakları
+
+0.164.0 `network-info`, 0.168.0 `whois` uçlarını küçük HTTP adaptörüyle
+kullanır; RIPEstat yazılımı veya SDK'sı repoya kopyalanmaz. Yanıtta kaynak,
+atıf ve kullanım koşulu başvuruları korunur. WHOIS görünümünde yalnız
+seçilmiş alanlar sunulur; saklı ham kaynak yanıtı ayrıca korunur.
+[Kaynak kapsamı](docs/INDICATOR_ENRICHMENT.md),
+[RIPEstat hizmet koşulları](https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/).
+Ticari hizmette kullanım için izin ve alttaki kayıt kaynaklarının koşulları
+[N-022](NOTES.md#n-022--ripestat-ticari-kullanım-izni) kapsamında açık tutulur.
+Anahtarsız canlı sorgunun çalışması bu iznin tamamlandığı anlamına gelmez.
 
 ## RSS/Atom ayrıştırıcısı ve haber kaynakları
 

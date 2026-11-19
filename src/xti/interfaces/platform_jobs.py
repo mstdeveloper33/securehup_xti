@@ -62,8 +62,9 @@ def make_source_runner(database):
         from xti.interfaces.investigation import make_investigation_service
         return make_investigation_service(database)
 
+    from xti.adapters.source_job_reports import VersionedReportStep
     operations = ExistingSourceJobOperations(enrichment, warninglists, history,
-                                            news=news, investigations=investigations)
+        news=news, investigations=investigations, reports=lambda: VersionedReportStep(database))
     return CooperativeSourceJobRunner(operations, LocalExecutionLock(database))
 
 

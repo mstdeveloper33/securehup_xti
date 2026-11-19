@@ -64,8 +64,8 @@ class SourceJobService:
             raise EngineJobError('invalid_job_state', 'Yalnız tamamlanamamış ve sona ermiş kaynak işi yeniden denenebilir.')
         if parent.status == 'interrupted' and not allow_uncertain:
             raise EngineJobError('uncertain_outcome', 'Kesilen isteğin dış sonucu belirsiz; yeniden gönderme için allow_uncertain açıkça seçilmeli.')
-        reused = tuple({'key': step['key'], 'receipt': step['receipt']} for step in parent.steps
-                       if step['key'] != 'review' and step['status'] == 'complete')
+        from xti.domain.source_jobs import reusable_steps
+        reused = reusable_steps(parent)
         return self._submit(SourceJobPayload(parent.payload.plan, parent.id, allow_uncertain, reused), idempotency_key)
 
     def list(self, *, offset=0, limit=20):
@@ -91,6 +91,9 @@ class CooperativeSourceJobRunner:
                     continue
                 key = initial['key']
                 latest = current()
+                if job.payload.plan.get('failure_policy') == 'stop' and any(s['status'] in {'failed', 'partial'} for s in latest.steps):
+                    progress(key, action='skip', reason='dependency_failed')
+                    continue
                 if latest.cancel_requested or self.monotonic() >= deadline:
                     progress(key, action='skip', reason='cancelled' if latest.cancel_requested else 'budget_exhausted')
                     continue

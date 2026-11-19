@@ -1,7 +1,28 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**0.169.0 teslimi:** Kullanıcının seçtiği 2/3/4; izinli yayıncı HTML/PDF,
+ilişki yeniden inceleme ve kayıpsız günlük arşivi uygulandı.
+[Kapsam ve kabul tablosu](REPORT_REVIEW_RETENTION_DELIVERY.md).
+GitHub/Linux teslimi ayrı sırada; LLM ve geniş STIX/TAXII bekler.
+
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.162.0 / çekirdek şema 75, ayrı platform iş şeması 2.
+**Mevcut sürüm:** 0.169.0 / çekirdek şema 79, ayrı platform iş şeması 3.
+
+**18 Kasım sonraki motor dilimi:** Kullanıcı IOC yaşam döngüsü geliştirmesini
+yetkilendirdi. 0.165.0 kaynak zamanı/kanıt yaşı/geçerlilik/toplama durumunu
+ayıran salt okunur değerlendirmeyi uygular; yeni sighting günlüğü veya
+otomatik güven azaltma henüz yoktur. [Kapsam](../IOC_LIFECYCLE.md).
+0.166.0 ilk sürümlü rapor/gözlem dilimini uygular; belge sürümüne bağlı
+insan CTI bağlantıları ve kaynak/gözlem zaman ayrımı vardır.
+[Kapsam ve açık sınırlar](../REPORTS_OBSERVATIONS.md).
+0.167.0 rapor sürümlerini ve insan bağlantılarını ortak araştırma/öncelik/
+inceleme geçmişine taşır. 0.168.0 kullanıcının birlikte istediği sekiz maddeyi uygular: otomatik
+rapor işi, kanıtlı ilişki adayı/kararı, birleşik kimlik görünümü, WHOIS
+kayıt bağlamı, sensör görülmesi, açık iş sırası/hata davranışı ve kaynak
+karşılaştırması. Hacim/yedek, eski kodla geçiş ve tanımlı yerel kabul tamam;
+tam koşudaki iki eski test beklentisi düzeltmesi ilgili demetlerle doğrulandı.
+[Teslim ve kabul tablosu](ENGINE_EIGHT_DELIVERY.md).
+Geniş STIX/TAXII ve LLM ayrı beklemeye devam eder.
 
 **Ürün kararı:** XTI kendi ticari platformumuzun kapalı kaynak motoru olarak
 geliştirilecek. Açık kaynak bileşenlerden görev ve lisans koşullarına göre
@@ -344,7 +365,7 @@ kurallarını veri okuma, yazma ve iş yürütmede uygulamaktan sorumludur.
 | **MTR-01 — Ortak istihbarat ve kanıt modeli** | Domain/IP, aktör, kampanya, malware, rapor ve altyapı bilgilerini aynı araştırmada kullanma | Mevcut kayıtlara kararlı başvurular; kaynak iddiası ve gerçek gözlemin ayrımı; tarih, güncellik, güven, ilişki türü, firma ve paylaşım kapsamı; yeni türler ihtiyaç sırasıyla | Eski kimlikler ve kaynak geçmişi korunur. Aynı gözlem tekrar gelince çoğalmaz. Çelişen iddialar ayrı görünür. Yeni kayıt türünün terminal, platform ve yedek kabulü birlikte geçer. |
 | **MTR-02 — İlişki araştırması ve kimlik incelemesi** | “Bu IP hangi kayıtlarla ilişkili ve bu bağlantı nereden geliyor?” sorusunu yanıtlama | Kayıtlı doğrudan ilişkiler ve sınırlı iki adımlı yollar mevcut. 0.164.0 kayıtlı ad/alternatif ad adaylarını ve kanıtlı, geri alınabilir insan eşleştirmesini ekler; fiziksel kayıt birleştirme yapmaz. Daha geniş kural çıkarımı ihtiyaçla değerlendirilir. | Her bağlantıda özgün kanıt, tarih ve ilişki türü bulunur. Kaynak iddiası, gözlem, insan kararı ve kural çıkarımı ayrılır. Ortak IP veya benzer ad otomatik aktör/olay eşitliği yaratmaz. Kaynak geri çekilince çıkarım yeniden değerlendirilir; eski kanıt korunur. |
 | **MTR-03 — Kaynak ve zenginleştirme kapsamı** | Domain/IP/URL/hash araştırmasında daha fazla kaynaklı bağlam görme | MISP warninglist 0.153.0, CIRCL/urlscan URL/hash 0.154.0; RIPEstat IP/prefix/ASN ve saklı haber/firma başlığı-özetinden gösterge adayları 0.164.0'da uygulandı. Ek sağlayıcılar ve tam makale/PDF kapsamı ayrıca değerlendirilir. | Her kaynak için erişim, maliyet, ticari saklama/paylaşma, pin, zaman/sorgu sınırı, hata ve tekrar davranışı kaydedilir. Eski veri kesintide korunur. Kaynak bağlamı otomatik “temiz” kararı değildir. Paket lisansı ile veri hakkı ayrı doğrulanır. |
-| **MTR-04 — Kalite, öncelik ve değişim** | Hangi kaydın yeni, eski, çelişkili veya öncelikli olduğunu gerekçeleriyle görme | 0.155.0 sürümlü inceleme sırası; 0.156.0 kalıcı inceleme/fark geçmişi; 0.164.0 pencereli firma geneli inceleme listesi ve kaynak durumlarını ayrı gösterme mevcut. Daha geniş IOC yaşam döngüsü ve anlamsal çelişki değerlendirmesi ayrı genişlemelerdir. | Öncelik değişiminin gerekçesi ve kural sürümü tekrar üretilebilir. Kaynak yokluğu sıfır risk olmaz. Zamanla eskiyen kayıt silinmez. İnsan kararı otomatik ezilmez; aynı kanıt yeni alarm üretmez. |
+| **MTR-04 — Kalite, öncelik ve değişim** | Hangi kaydın yeni, eski, çelişkili veya öncelikli olduğunu gerekçeleriyle görme | 0.155.0 sürümlü inceleme sırası; 0.156.0 kalıcı inceleme/fark geçmişi; 0.164.0 pencereli firma listesi mevcut. 0.165.0 ayrı `ioc.lifecycle` değerlendirmesi kaynak zamanı, geçerlilik ve toplama durumunu sürümlü eşiklerle ayırır. Gerçek sighting günlüğü, otomatik güven azaltma ve anlamsal çelişki değerlendirmesi ayrı genişlemelerdir. | Öncelik değişiminin gerekçesi ve kural sürümü tekrar üretilebilir. Kaynak yokluğu sıfır risk olmaz. Zamanla eskiyen kayıt silinmez. İnsan kararı otomatik ezilmez; aynı kanıt yeni alarm üretmez. |
 | **MTR-05 — Yönetilebilir motor akışları** | Seçtiği kaynaklarla toplama → ilişkilendirme → değerlendirme → sonuç akışını çalıştırma | 0.157.0 seçili URL/hash/MISP → isteğe bağlı inceleme, bütçe, ilerleme, iptal/kurtarma/tekrar; 0.164.0 RIPEstat, üç yayıncı ve yerel metin adayları aynı akışta. Genel akış kurucusu somut ihtiyaçla ayrıca ele alınır. | Akış adımları ve kaynak maliyeti başlamadan görülebilir. Aynı istek tekrar iş yaratmaz. Belirsiz dış istek otomatik tekrar edilmez. Ücretli kaynak açık seçim gerektirir. Adımlar genel komut/kod çalıştıramaz. |
 | **MTR-06 — Üretim ve kapasite** | Ölçülmüş yük altında sürekli çalışan, kurtarılabilir hizmet | 0.164.0 iki firmada 6.000 kayıtla 30 dakikalık Linux süreç/iş/iptal kabulü, disk/bellek ölçümü, arşiv, yedekten ve gerçek eski sürüme dönüş geçti. Daha büyük depo, arama veya çoklu worker tasarımı yeni yük ölçümüne bağlıdır. | Test makinesi ve yük profiliyle sonuç yayımlanır. İki firmanın yük/kapsam ayrımı, veri kaybı ve tekrar davranışı sınanır. Kapasite sınırı veri sessizce kesilerek gizlenmez. Ölçülmemiş SLA veya OpenCTI eşdeğerliği ilan edilmez. |
 | **MTR-07 — Standart paylaşım, ertelendi** | İhtiyaç olduğunda istihbaratı diğer güvenlik sistemleriyle alışveriş yapma | Kullanıcı kararıyla somut dış sistem ihtiyacına bırakıldı (N-024). Gelecek kapsam: geniş STIX nesne/ilişki aktarımı, içe alma, TAXII, değişiklik/geri çekme ve paylaşım kısıtları | Yeniden ele alındığında kimlik, ilişki, kaynak ve kısıtlar korunur; karşı sistemle kabul yapılır. Kaynak veya firma kapsamının izin vermediği bilgi dışarı çıkmaz. |

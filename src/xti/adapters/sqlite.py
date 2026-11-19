@@ -14,6 +14,9 @@ from xti.adapters.warninglist_schema import create as create_warninglist_schema
 from xti.adapters.enrichment_schema import create as create_enrichment_schema
 from xti.adapters.research_history_schema import create as create_research_history_schema
 from xti.adapters.investigation_schema import create as create_investigation_schema
+from xti.adapters.report_schema import create as create_report_schema
+from xti.adapters.evidence_schema import create as create_evidence_schema
+from xti.adapters.document_storage_schema import create as create_document_storage_schema
 
 from xti.domain.assets import Asset
 from xti.adapters.schema import (
@@ -189,6 +192,9 @@ class SQLiteAssetRepository:
                 create_enrichment_schema(connection)
                 create_research_history_schema(connection)
                 create_investigation_schema(connection)
+                create_report_schema(connection)
+                create_evidence_schema(connection)
+                create_document_storage_schema(connection)
                 create_surface_cname_schema(connection)
                 create_supplier_candidate_schema(connection)
                 create_case_schema(connection)
@@ -1081,6 +1087,12 @@ class SQLiteAssetRepository:
                     create_research_history_schema(connection)
                 if version < 76:
                     create_investigation_schema(connection)
+                if version < 77:
+                    create_report_schema(connection)
+                if version < 78:
+                    create_evidence_schema(connection)
+                if version < 79:
+                    create_document_storage_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

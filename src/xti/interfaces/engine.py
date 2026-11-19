@@ -8,6 +8,7 @@ from xti import __version__
 from xti.adapters.sqlite import StorageError
 from xti.application.engine import EngineReadService
 from xti.domain.assets import ValidationError
+from xti.domain.reports import ReportError
 from xti.domain.engine import (
     ENGINE_CONTRACT_VERSION, ENGINE_OPERATIONS, RECORD_NAMESPACES,
     EngineContractError, parse_engine_request, valid_request_id,
@@ -34,6 +35,18 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
         return operation is None or operation in names
 
     services = {}
+    from xti.domain.journal_storage import READS as JOURNAL_READS
+    if selected(*JOURNAL_READS):
+        from xti.interfaces.journal_storage import make_journal_service
+        services['journals'] = make_journal_service(database)
+    from xti.domain.evidence_contract import READS
+    if selected(*READS):
+        from xti.interfaces.evidence import make_evidence_service
+        services["evidence"] = make_evidence_service(database)
+    from xti.domain.report_contract import READ_OPERATIONS as REPORT_READS
+    if selected(*REPORT_READS):
+        from xti.interfaces.reports import make_report_service
+        services['reports'] = make_report_service(database)
     if selected('search'):
         from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
         from xti.application.global_search import GlobalSearchService
@@ -66,6 +79,9 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
     if selected('company.review'):
         from xti.interfaces.company_review import make_company_review_service
         services['company_review'] = make_company_review_service(database)
+    if selected('ioc.lifecycle'):
+        from xti.interfaces.ioc_lifecycle import make_ioc_lifecycle_service
+        services['ioc_lifecycle'] = make_ioc_lifecycle_service(database)
     return EngineReadService(**services)
 
 
@@ -149,6 +165,17 @@ def engine_manifest() -> dict:
         'request_max_bytes': MAX_REQUEST_BYTES, 'response_max_bytes': MAX_RESPONSE_BYTES,
         'max_json_depth': MAX_JSON_DEPTH, 'default_limit': 50, 'max_limit': 500,
         'max_offset': 1_000_000,
+        'journals': {'policy': 'lossless-journal-bodies-v1', 'max_archive_window': 1000,
+            'retention_days': [7, 3650], 'delete_logical_entries': False, 'backup_before_mutation': True},
+        'evidence': {'model_version': 1, 'max_limit': 100, 'max_journal_entries': 20000,
+                     'write_via': 'operator_cli_or_company_platform', 'raw_log_ingestion': False,
+                     'sighting_identity': ['source', 'sensor', 'source_event_id'],
+                     'relationship_rules': ['shared_report', 'report_review_context', 'shared_dns_address', 'shared_certificate'],
+                     'automatic_cti_relationships': False, 'identity_member_limit': 100, 'physical_merge': False},
+        'reports': {'model_version': 1, 'document_model_versions': [1, 2], 'sources': ['news', 'mentions', 'publisher'], 'max_limit': 100,
+                    'capture_via': 'operator_cli_or_company_platform', 'full_article_fetch': True,
+                    'publishers': ['cert-fr', 'ncsc'], 'pdf_pages_limit': 80, 'full_text_bytes_limit': 65536,
+                    'pagination_guard': 'expected_snapshot', 'links_bound_to': 'document_revision'},
         'research': {'model_version': RESEARCH_MODEL_VERSION, 'max_hops': 2, 'max_nodes': 100,
                      'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6', 'url', 'md5', 'sha1', 'sha256'],
                      'max_edges': 200, 'max_limit': 100, 'pagination_guard': 'expected_snapshot',
@@ -158,10 +185,17 @@ def engine_manifest() -> dict:
                              'readable_model_versions': list(READABLE_RESEARCH_MODELS),
                              'max_limit': 100, 'list_pagination_guard': 'expected_snapshot',
                              'immutable_record_views': ['changes', 'items']},
+        'ioc_lifecycle': {'model_version': 1, 'policy_version': 'ioc-lifecycle-v1',
+                          'parameters': ['indicator_type', 'value', 'fresh_days', 'stale_days',
+                                         'source_stale_hours', 'offset', 'limit', 'expected_snapshot'],
+                          'max_limit': 100, 'max_assertions': 500, 'max_events': 10000,
+                          'default_days': {'network_indicators': [7, 30], 'hashes': [30, 180]},
+                          'default_source_stale_hours': 24, 'automatic_revocation': False,
+                          'pagination_guard': 'expected_snapshot'},
         'warninglists': {'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6'],
                          'default_stale_after_hours': 168, 'refresh_via': 'operator_cli'},
         'enrichment': {'indicator_types': ['url', 'md5', 'sha1', 'sha256', 'ipv4', 'ipv6'],
-                       'providers': ['circl', 'urlscan', 'ripestat'], 'refresh_via': 'operator_cli_or_company_source_job', 'max_history_limit': 100},
+                       'providers': ['circl', 'urlscan', 'ripestat', 'ripestat-whois'], 'refresh_via': 'operator_cli_or_company_source_job', 'max_history_limit': 100},
         'record_types': [{'kind': kind, 'record_type': record_type, 'namespaces': list(namespaces)}
                          for (kind, record_type), namespaces in RECORD_NAMESPACES.items()],
         'request_id_semantics': 'correlation_only',
@@ -199,6 +233,8 @@ def run_engine(database: Path, *, describe: bool = False, stream=None, output=No
     except Exception as error:
         if isinstance(error, EngineContractError):
             contract_error = error
+        elif isinstance(error, ReportError):
+            contract_error = EngineContractError(error.code, str(error))
         elif isinstance(error, ValidationError):
             contract_error = EngineContractError('invalid_parameters', str(error))
         elif isinstance(error, StorageError):

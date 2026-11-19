@@ -1,6 +1,18 @@
 # XTI hızlı başlangıç
 
-**Sürüm 0.164.0 · çekirdek şema 76.** Aşağıdaki numaralı adımlar kişisel
+0.169.0 için `./setup` PDF bağımlılığını da kurar/doğrular; `./xti migrate`
+eski veriyi yedekleyerek çekirdek 79'a geçirir. Tam metin/PDF, yeniden
+inceleme ve kayıpsız arşiv [bu rehberde](PUBLISHER_REVIEW_RETENTION.md).
+Yeni ücretli API veya anahtar gerekmez.
+
+0.168.0 güncellemesinde mevcut kişisel veri alanında `./xti migrate`
+çalıştır: eski veri önce ayrı dosyaya yedeklenir, çekirdek 78'e geçer.
+Yeni rapor akışı, ilişki/kimlik/görülme ve kaynak karşılaştırması
+[bu rehberde](EVIDENCE_WORKFLOWS.md) örneklenir. Ücretli API veya yeni
+Python paketi gerekmez; RIPEstat ticari veri koşulu ayrı bekler.
+
+
+**Sürüm 0.169.0 · çekirdek şema 79.** Aşağıdaki numaralı adımlar kişisel
 terminal kullanımını başlatır. Aynı motoru ayrı firma kayıt alanlarıyla
 çalıştırmak için [platform adımlarını](#çok-firmalı-platform-kullanımı) kullan.
 
@@ -12,7 +24,7 @@ doğrulanan kod/sürüm kapsamını gösterir. Güncel platform kabulünün duru
 [durum kaydında](STATUS.md) ayrıdır. Diğer Python/işletim sistemi sürümleri için
 aynı kurulum sonucu varsayılmaz.
 
-Global Python ortamına paket kurulmaz; Maigret, Sherlock ve haber ayrıştırıcısı
+Global Python ortamına paket kurulmaz; Maigret, Sherlock, haber ve PDF ayrıştırıcısı
 proje içindeki `.venv` ortamında tutulur. İsteğe bağlı theHarvester ayrı
 `.tools/theharvester` ortamını kullanır; kurulumu ve kaynakları
 [günlük kullanım rehberinde](DAILY_USE.md) anlatılır.
@@ -27,7 +39,7 @@ cd securehup_xti
 
 `./setup`, sağlıklı mevcut ortamı tekrar indirmez. Kurulum gerektiğinde
 `.venv` ortamını benzersiz geri dönüş kopyası olarak koruyup sabitlenmiş
-Maigret, Sherlock ve `news` paketlerinin ortamını aynı kararlı yolda kurar. Eski ve başarısız
+Maigret, Sherlock, `news` ve `reports` paketlerinin ortamını aynı kararlı yolda kurar. Eski ve başarısız
 kopyalar otomatik silinmez. Normal hatada önceki ortam geri getirilir;
 ani veya durumu belirsiz kesintide `./scripts/setup-brand --recover`
 kullanılır. Ardından `.xti-data` içindeki yerel
@@ -39,6 +51,9 @@ kendiliğinden taşımaz. Eski sürüm uyarısı görürsen önce:
 ```
 
 Komut, değişiklikten önce doğrulanmış bir kurtarma yedeği alır.
+0.166.0 rapor günlüğünü şema 77 ile ekler; mevcut haber/IOC/karar kayıtları
+korunur. Yeni alan doğrudan güncel şemayla oluşturulur.
+[Rapor sürümleri ve gözlemler](REPORTS_OBSERVATIONS.md).
 0.156.0'ın inceleme geçmişi, 0.154.0'ın URL/hash kaynak tabloları ve
 0.153.0'ın warninglist tabloları bu açık geçişle eklenir.
 [İnceleme geçmişi](RESEARCH_HISTORY.md), [URL/hash kullanımı](INDICATOR_ENRICHMENT.md). Liste
@@ -47,7 +62,7 @@ kendi başına kaynak toplamaz. [Liste kullanımı](WARNINGLISTS.md).
 
 Kaynakları kuyruktan çalıştırmak istersen ilk kez `./xti source-jobs init`
 ile yerel kuyruğu oluştur. Eski kuyrukta `./xti source-jobs migrate`
-yedek alarak sürüm 2'ye geçirir. Yeni firma alanı kuyruğu hazır kurar;
+yedek alarak sürüm 3'e geçirir. Yeni firma alanı kuyruğu hazır kurar;
 mevcut firma için `platform jobs-migrate` kullanılır. [Adım adım kaynak işleri](SOURCE_JOBS.md).
 
 ## 2. İlk domainini izle

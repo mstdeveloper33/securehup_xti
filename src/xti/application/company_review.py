@@ -30,6 +30,10 @@ class CompanyReviewService:
             item['roots'] = roots_by_item[identifier]
             item['source_states'] = [{'source': row['source'], 'status': row['status'], 'current': row['current'],
                 'freshness': row['freshness'], 'evidence_id': row['id']} for row in item['evidence'] if row['kind'] == 'source_claim']
+            states = sorted({row['status'] for row in item['source_states']})
+            item['source_comparison'] = {'claim_states': states, 'different_claim_states': len(states) > 1,
+                'local_sighting_count_in_view': sum(row['record_type'] == 'local_sighting' and row['current'] is True for row in item['evidence']),
+                'meaning': 'recorded_state_difference_not_semantic_contradiction'}
         rows = sorted(items.values(), key=lambda item: (PRIORITIES.index(item['priority']), item['id']))
         def stable(value):
             if isinstance(value, dict):

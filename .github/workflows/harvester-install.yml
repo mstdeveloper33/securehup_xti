@@ -7,6 +7,7 @@ on:
       - ".github/workflows/harvester-install.yml"
       - "pyproject.toml"
       - "requirements/news.txt"
+      - "requirements/reports.txt"
       - "tests/test_news_installation.py"
       - "setup"
       - "xti"
@@ -38,6 +39,7 @@ on:
       - ".github/workflows/harvester-install.yml"
       - "pyproject.toml"
       - "requirements/news.txt"
+      - "requirements/reports.txt"
       - "tests/test_news_installation.py"
       - "setup"
       - "xti"
@@ -90,11 +92,11 @@ jobs:
         run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
       - name: Install the pinned uv installer
         run: python -m pip install --disable-pip-version-check --no-input uv==0.13.8
-      - name: Install the reviewed RSS/Atom test dependencies
+      - name: Install the reviewed RSS/Atom and PDF test dependencies
         run: >-
           python -m pip --isolated install --disable-pip-version-check --no-input
           --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
-          -r requirements/news.txt
+          -r requirements/news.txt -r requirements/reports.txt
       - name: Verify Linux installation, locking and recovery regressions offline
         id: offline
         run: |

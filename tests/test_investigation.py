@@ -140,6 +140,6 @@ class InvestigationTests(ResearchFixture, unittest.TestCase):
             connection.execute('DROP TABLE investigation_events')
             connection.execute('PRAGMA user_version=75')
         migration = self.repository.storage.migrate()
-        self.assertEqual((migration['from_version'], migration['to_version']), (75, 76))
+        self.assertEqual((migration['from_version'], migration['to_version']), (75, 79))
         self.assertTrue(migration['backup'])
         self.assertTrue(self.graph()['nodes'])

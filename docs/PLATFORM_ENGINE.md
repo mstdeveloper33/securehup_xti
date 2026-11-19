@@ -1,5 +1,39 @@
 # Çok firmalı platform motoru
 
+0.169.0 `reports.publishers/fetches/fetch-show`, `relationships.queue`,
+`journals.status/archive-plan/show` okumalarını ekler. `reports.fetch`,
+`journals.archive-apply/restore` yalnız işletici veya firma yazma girişindedir;
+engine okumaları ağa çıkmaz. Belge modeli 1 ve 2 birlikte okunur. Firma
+workspace çiti ve ortak yazıcı kilidi korunur.
+[Tam parametreler ve sonuçlar](PUBLISHER_REVIEW_RETENTION.md#json-sözleşmesi).
+
+0.168.0 `sightings.list/show`, `relationships.candidates/show`, `identity.view`
+ve `ioc.compare` okuma işlemlerini ekler. `sightings.record/revoke` ve
+`relationships.review` yalnız firma yazma girişindedir; kapsam çiti,
+tekrar anahtarı ve beklenen sürüm kuralları uygulanır. Kaynak işi v4 açık
+sıra/hata politikası ile `report-capture` ve `ripestat-whois` adımlarını
+sunar. [Alanlar, örnekler, hata ve sınırlar](EVIDENCE_WORKFLOWS.md#json-sözleşmesi).
+
+
+0.167.0 rapor sürümlerini `research.show` / `research.priorities` ve
+kayıtlı incelemelerde gösterir. Rapor `references` alanı `record.get`
+ile aynı firmada seçilen belge sürümünü açar; başka firmanın belge
+kimliği `not_found` verir. Öncelik v8, model 3, zarf v1; ek migration
+yoktur. .NET/UI ekibinin yeni bir tarama veya ayrı rapor motoru yazması
+gerekmez. [İlişkiler ve örnek JSON](REPORTS_OBSERVATIONS.md).
+
+0.166.0 rapor/gözlem okumalarını ve `reports.capture` / `reports.link`
+yazmalarını ekler. Yazmalar `expected_workspace_id` ve `idempotency_key`
+ister; insan bağlantısı ayrıca `expected_revision` ile korunur. Bağlantı
+başka firma kaydına gidemez. Restore sonrası eski workspace isteği
+reddedilir. Yeni kaynak sorgusu yoktur; saklı başlık/özet kullanılır.
+[Parametreler, sürüm ve hata kodları](REPORTS_OBSERVATIONS.md#json-sözleşmesi).
+
+0.165.0 `ioc.lifecycle` işlemi seçili firma alanındaki IOC kanıtını ve
+kaynak toplama geçmişini birlikte değerlendirir. Yeni ağ isteği veya
+yazma yapmaz; firma/path seçimi JSON parametresi değildir. Aynı gösterge
+iki firmada farklı kayıtlarla değerlendirilir. [İstek ve sonuç](IOC_LIFECYCLE.md).
+
 0.163.0 `research.show` / `research.priorities` ve kayıtlı incelemelerde
 `supplier_event`, `supplier_watch`, `supplier_risk` düğüm/ilişki türleri
 mevcut model 3 alanlarıyla döner. Öncelik `research-priority-v6`;
@@ -9,7 +43,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama 0.164.0 · protokol `xti-platform` v1 · çekirdek şema 76 · kuyruk 3.**
+**Uygulama 0.168.0 · protokol `xti-platform` v1 · çekirdek şema 78 · kuyruk 3.**
 
 0.164.0 firma kapsamlı `company.review` ve `investigation` okuma/yazma
 işlemleri ekler. Kimlik/rapor önerisi ve kararları mevcut workspace kimliği,
@@ -39,8 +73,8 @@ Kök üst klasörü mevcut olmalı. Firma kimliği küçük ASCII harf/rakam,
 tire ve alt çizgi kullanan sabit kimliktir; görünen kuruluş adı değildir.
 Kök, kayıt listesi ve firma dizinleri özel izinlerle oluşturulur. Var olan
 kişisel klasör otomatik benimsenmez. Eski veriler taşınmaz veya silinmez.
-Çekirdek veritabanının yanında sürüm 2 `engine-jobs.sqlite3` iş kuyruğu vardır.
-Eski sürüm 1 profil kuyruğu okunabilir; yeni kaynak işi için açık yedekli
+Çekirdek veritabanının yanında sürüm 3 `engine-jobs.sqlite3` iş kuyruğu vardır.
+Eski sürüm 1/2 kuyruk okunabilir; yeni kaynak işi için açık yedekli
 `platform jobs-migrate --root ... --company ...` geçişi gerekir.
 Kurulum yarıda kalırsa eksik alan erişim için reddedilir; üzerine otomatik
 kurulum yapılmaz. İşletici alanı inceleyip kapatabilir ve yeni alan kurabilir.

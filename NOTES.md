@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
-Son güncelleme: **18 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.164.0 / çekirdek 76 / iş kuyruğu 3**.
+Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
+Güncel çalışma: **0.169.0 / çekirdek 79 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,40 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-029 — Tam yayın metni, yeniden inceleme ve günlük arşivi
+
+- **Durum:** Uygulandı; lisans koşulları sürekli, Linux teslimi ayrı. **Güncellendi:** 19 Kasım 2026.
+- **Yetki:** Kullanıcı önceki sıranın 2, 3 ve 4. maddelerini istedi.
+  Sonraki 19 Kasım yönlendirmesinde GitHub/Linux teslim adımıyla devam
+  edilmesini onayladı; gönderim ve Linux sonuçları ayrıca kaydedilecek.
+- **Kaynak seçimi:** CERT-FR metinleri açık lisans 2.0; NCSC metinleri
+  belirtilen istisnalar dışında OGL v3 koşullarıyla sunuluyor. Kaynak,
+  lisans ve özgün bağlantı korunur; üçüncü taraf/özel kısıt istisnaları
+  genel yayıncı lisansı ile onaylanmış sayılmaz. Logo/görseller ayrı indirilmez
+  veya işlenmez; özgün PDF bunları içerebilir, logo hakları otomatik verilmiş sayılmaz.
+- **Ayrıştırıcı:** PDF için BSD-3-Clause lisanslı pypdf 7.1.1 eklendi;
+  PyPI wheel SHA-256 `04c5680d4b4cfa04ab505b09393fc949860c34a4dad6565284d11a2f5c3ce8b1`.
+  HTML ana metni ayrı adaptör; PDF sınırlı alt süreç. OCR, şifre çözme,
+  etkin içerik ve üçüncü taraf bağlantılarını izleme kapsamda değildir.
+- **Arşiv anlamı:** Özgün günlük kimliği/hash/sıra ve tekrar anahtarları
+  korunur. Önizleme + yedekli açık işlem; eski gövde sıkıştırılır ve aynı
+  SQLite yedeğinde saklanır. Mantıksal kayıt/okuma sınırları kaldırılmaz;
+  sıkıştırma sınırsız büyüme iddiası değildir.
+- **Canlı kabul:** CERT-FR CTI-010 HTML (2.807 UTF-8 bayt), aynı raporun
+  PDF'si (9 sayfa / 15.968 UTF-8 bayt) ve NCSC rehber HTML'si (2.290 UTF-8
+  bayt) ayrı izole alanda alındı. Ham nesne hash'i, metin ve kaynak makbuzu
+  doğrulandı. Gerçek SIGKILL öncesi commit kesintisi sonrası tekrar, firma
+  ayrımı, arşiv/restore ve 78 → 79 geçiş testleri geçti. Tam paket 3.186
+  testte bir eski kurulum testi hatası ve dört Linux atlamasıyla bitti;
+  test düzeltildi, ilgili 56 kontrol yeniden geçti. Son kod için odaklı
+  test sonuçları ve tam koşudan sonraki değişiklikler
+  [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) ayrı tutulur.
+- **Dayanak:** [Teslim planı](docs/roadmap/REPORT_REVIEW_RETENTION_DELIVERY.md),
+  [CERT-FR koşulları](https://cert.cyber.gouv.fr/mentions-legales/),
+  [NCSC koşulları](https://www.ncsc.gov.uk/section/about-this-website/terms-and-conditions),
+  [pypdf sürümü](https://pypi.org/project/pypdf/7.1.1/),
+  [ayrıştırma sınırları](https://pypdf.readthedocs.io/en/stable/user/extract-text.html).
 
 ### N-001 — urlscan verisinin ticari üründe kullanımı
 
@@ -322,6 +356,13 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-022 — RIPEstat ticari kullanım izni
 
+- **19 Kasım ek kapsam:** 0.168.0 aynı hizmetin WHOIS kayıt bağlamını ekler.
+  Anahtarsız canlı kişisel sorgu HTTP200 ile doğrulandı; ilk sandbox denemesi
+  ağ erişiminde başarısızdı, sınırlama dışında aynı istek başarılı oldu.
+  Bu sonuç yazılı ticari izin/yeniden dağıtım koşulunu kapatmaz.
+  [Resmî WHOIS API](https://stat.ripe.net/docs/data-api/api-endpoints/whois),
+  [paket kapsamı](docs/EVIDENCE_WORKFLOWS.md).
+
 - **Durum:** Ticari ürün öncesi açık. **Güncellendi:** 18 Kasım 2026.
 - **Not:** 0.164.0 `network-info` ile IP → BGP ağ bloğu → origin ASN bağlamı
   alır. Anahtarsız erişim ticari saklama/yeniden sunma izni değildir.
@@ -388,6 +429,143 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   ihtiyacı oluştuğunda, karşı uç ve gerekli nesne/işlem kapsamı kullanıcıyla
   belirlenir. LLM ayrı bekleyen başlıktır; bu karar LLM'yi başlatmaz.
 - **Dayanak plan:** [Motor yol haritası](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md).
+
+### N-025 — IOC yaşam döngüsünün anlamı ve test kapsamı
+
+- **Durum:** Uygulandı; sınırlı anlam korunacak. **Güncellendi:** 18 Kasım 2026.
+- **Kapsam:** 0.165.0 `ioc lifecycle` / `ioc.lifecycle` kayıtlı iddiayı,
+  tarihini ve son toplama durumunu ayrı değerlendirir. Feodo sağlayıcı
+  gözlemi; CERT Polska liste sürümü; eski elle girişte belirsiz olay/giriş
+  zamanı. Yeniden indirme yeni saldırı kanıtı sayılmaz. Kaynak kesintisi,
+  listeden kaldırma ve yerel geri çekme ayrı görünür.
+- **Politika:** `ioc-lifecycle-v1` yerel inceleme eşiklerini açık taşır:
+  ağ göstergeleri 7/30, hashler 30/180 gün; kaynak toplaması 24 saat.
+  Eşikler değiştirilebilir. Bilimsel risk/zararlılık puanı değildir;
+  özgün güven ve insan kararları değişmez, otomatik geri çekme yoktur.
+- **Sınır:** Tek IOC'de 500 iddia/10.000 olay/20.000 makbuz/16 MiB okuma;
+  aşımda eksik başarı yerine ret. 100 iddia/sayfa; veri, politika veya
+  zaman sınıfı değişince sayfa kesiti reddedilir. Kaynak adları bağımsız
+  doğrulama sayısı değildir. Gerçek sighting günlüğü henüz eklenmedi.
+- **Uyum:** Şema 76, kuyruk 3, araştırma/frozen model 3 ve öncelik v7
+  değişmez. Yeni değerlendirme model 1; engine/platform dış zarf v1.
+  Yeni migration, paket, ağ isteği ve ücretli kaynak yoktur.
+- **Kabul:** Son kodun 110 farklı hedefli testi / 31,616 saniye geçti;
+  33 yeni senaryo içerir. Gerçek terminal/JSON/engine süreç kabulü geçti.
+  Tek kesit, firma ayrımı, bozuk kanıt, yeniden toplama ve birlikte
+  yedekten dönüş sınandı. İlk uygulamanın tam regresyonu 3.069 test /
+  1.338,055 saniye ile bitti: 3.065 başarılı, hata yok; dört Linux süreç/
+  systemd testi macOS'ta atlandı. Son makbuz kontrolü 110 testlik demetle
+  ayrıca doğrulandı; yeni Linux kabulü yapılmadı.
+  [Kullanım](docs/IOC_LIFECYCLE.md), [kanıt](docs/ACCEPTANCE_REVIEW.md).
+- **Test düzeni:** Kullanıcının her değişiklikte tam paket gerekip
+  gerekmediği sorusu üzerine çalışma düzeni açıklaştırıldı: geliştirmede
+  etkilenen davranış/bağlantılar, teslimde son kod için bir tam paket;
+  yalnız belge düzeltmesi ardından gereksiz tekrar yok. CI kapatılmadı.
+  [Test seçimi](docs/TESTING.md).
+
+### N-026 — Rapor sürümleri, gözlem anlamı ve geçiş sınırı
+
+- **Durum:** Uygulandı; aşağıdaki sınırlarla korunacak. **Güncellendi:** 18 Kasım 2026.
+- **Kapsam:** 0.166.0 saklı news/mentions başlık-özeti açık capture ile
+  rapora alır. Aynı içerik belge/gözlem çoğaltmaz; değişen metin sürümlenir.
+  Yeni tekrar anahtarı için işlem makbuzu ayrıdır. İnsan `reports-on` bağı
+  mevcut aktör/kampanya/malware/IOC'ye ve belirli belge sürümüne bağlıdır;
+  metin değişince yeni belgeye taşınmaz. Eski karar da geri çekilebilir.
+- **Anlam:** Metinde geçme, Feodo sağlayıcı gözlemi, CERT Polska liste
+  üyeliği ve belirsiz elle kaynak iddiası ayrıdır. Yayın/toplama/kayıt
+  zamanları karışmaz; müşteri ağında olay veya saldırı kanıtı sayılmaz.
+  Mevcut IOC geçmişi kopyalanmaz; denetlenmiş kayıtlardan tek kesitte okunur.
+- **Geçiş:** Şema 77 yeni rapor journal tablosunu açık yedekli migration
+  ile ekler. Eski kimlikler/tablolar/kararlar korunur. Geri dönüş eski kod
+  ve geçiş öncesi yedeğin boş alana restore edilmesidir. Kuyruk 3 kalır.
+- **Sınır:** Journal 10.000 makbuz/32 MiB; tek rapor 1.000 değişiklik/2 MiB;
+  sayfa en fazla 100. Hacim aşımı geçmiş silmez veya eksik başarı üretmez.
+  Tam makale/PDF yoktur. Üçüncü taraf metin hakları mevcut N-003 ve ilgili
+  kaynak notlarıyla izlenir; bu yerel işlem ticari yeniden dağıtım izni değildir.
+- **Çıkarım uyumu:** Yeni belgelerde cümle sonundaki IP noktası
+  `report-document-candidates-v2` ile ayrılır. Eski investigation v1
+  önerilerinin aday listesi ve doğrulaması değiştirilmez.
+- **Ayrı kalan:** 0.166.0 tesliminde kaynak işi/ortak araştırma bağlantısı
+  sonraki dilimdi; araştırma kısmı 0.167.0/N-027 ile tamamlandı. Otomatik
+  kaynak işi bağlantısı bekler; mevcut `reports` adımı eski investigation
+  aday modelini korur. Gerçek müşteri sighting toplama, genel çıkarım,
+  geniş STIX/TAXII ve LLM bu paketle tamamlanmış sayılmaz.
+- **Kabul:** Firma JSON/terminal, tekrar/değişim, eski belge kararı, kaynak
+  hata/bozulması, tek kesit, eşzamanlı yazma ve yedekten dönüş senaryoları
+  [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) ayrı belirtilir.
+  194 testlik geniş demet, son ayrıştırma farkının 96 testi ve 13 gerçek
+  süreç geçti. İlk tam paket 3.104 testte bir kabul-betiği hatası ve dört
+  Linux atlaması verdi; hata düzeltildi, betiğin 18 testlik tekrarında
+  16 başarı/iki ortam atlaması var. İlk hata sonucu korunur; düzeltme
+  sonrası ikinci tam tur yoktur. Yeni Linux/7×24 kabulü yapılmadı.
+  [Kullanım](docs/REPORTS_OBSERVATIONS.md),
+  [mimari karar](docs/decisions/0171-report-revisions-and-observations.md).
+
+### N-027 — Raporların ortak araştırma bağlamı
+
+- **Tarih/durum:** 19 Kasım 2026; 0.167.0 uygulandı, kapsam sınırlı.
+- **İşlev:** Belge sürümleri ortak araştırma/öncelik/kayıtlı incelemelerde
+  görünür. Metin adayı, özgün arama kapsamı ve insan bağlantısı ayrıdır.
+  `record.get` belge sürümüne gider; firma ayrımı korunur. Eski metin ve
+  geri çekilmiş insan kararı silinmez veya yeni metne aktarılmaz.
+- **Anlam:** Son kayıtlı belge canlı kaynak doğrulaması değildir.
+  Raporun `observed_at` alanı `response_received_at` ile alınma zamanıdır;
+  gerçek olay zamanı bilinmiyor. Aynı yayın/özetin eski aday ve yeni rapor
+  kaydı bağımsız doğrulama oyu değildir. Aktör–IOC saldırı atfı üretilmez.
+- **Uyum:** Model 3/zarf v1, şema 77/kuyruk 3; yeni migration/paket/API
+  yoktur. Öncelik v8 ilk karşılaştırmada yeni başlangıç oluşturur; eski
+  model 1–3/v7 değerlendirmelerin içeriği yeniden yazılmaz.
+- **Kapasite:** Araştırmada 10.000 makbuz/16 MiB, düğüm başına 200 ilişki,
+  istek boyunca 50.000 bağlantı incelemesi; tek ilişkide 52 kanıt ve gerçek
+  toplam. Sınırlar açık kısmi kapsam üretir; bozuk geçmiş hata verir.
+- **Açık kalan:** N-026'daki otomatik kaynak işi bağlantısı, gerçek müşteri
+  sighting toplama, genel çıkarım ve tam makale/PDF bu teslimde yoktur.
+  N-024 geniş STIX/TAXII ertelemesi ve LLM kararı sürer. Kaynak kullanım
+  koşulları ve Tavily/Nmap canlı kabulleri bu yerel değişiklikle kapanmaz.
+- **Dayanak:** [Kullanım](docs/REPORTS_OBSERVATIONS.md),
+  [mimari karar](docs/decisions/0172-report-research-context.md),
+  [tam test kapsamı ve sonuç](docs/ACCEPTANCE_REVIEW.md).
+  Son kodda 252 ilgili test ve 11 gerçek CLI/JSON süreci geçti; yeni
+  özelliğin 15 testi dahildir. Bu turda tam paket, CI veya Linux/canlı
+  kaynak kabulü tekrarlanmadı. Önceki sürümün tam sonucu N-026'da korunur.
+
+### N-028 — Sekiz maddelik paket, görülme anlamı ve ölçülen kapasite
+
+- **Durum:** Bilinen sınır; sekiz maddelik uygulama ve tanımlı yerel kabul tamam.
+  **Güncellendi:** 19 Kasım 2026.
+- **Kapsam:** N-026/N-027'de bekleyen otomatik rapor işi, ilişki önerileri,
+  birleşik kimlik görünümü ve gerçek görülme günlüğü bu pakette uygulandı.
+  Rapor adımı global haberleri firmanın eşleşmesi saymaz. Sensör görülmesi
+  müşteri tarafından iletilen olaydır; otomatik log/EDR bağlantısı değildir.
+  Yeni ilişki kararı CTI atfı, kimlik görünümü fiziksel merge oluşturmaz.
+- **Sınır:** Kaynak işi v4; önceki v1/2/3 okunur. Çekirdek 78 yedekli geçiş;
+  kuyruk 3 korunur. Görülme/ilişki günlüğü 20.000 olay / 64 MiB, kayıt başına
+  1.000 olay / 2 MiB; kimlik 100 üye, grafik 100 düğüm/200 kenar; aşım açık bildirilir.
+  Bu sınırlar milyonlarca olay veya 7/24 SLA kabulü değildir.
+- **İlgili testler:** Son kodda 31 yeni test / 8,394 saniye; tekrar/kuyruk
+  bağlantıları 145, günlük/araştırma 104 testle geçti. Kaynak demeti 111
+  test: 109 başarılı, iki Linux atlaması. Demetler örtüşür, toplamları
+  benzersiz test sayısı olarak sunulmaz. Tam koşu: 3.151 test /
+  1.472,761 saniye, 3.145 başarılı, iki eski test beklentisi hatası ve dört
+  Linux atlaması. Beklentiler düzeltildi; 23 araştırma + 7 katalog testi
+  yeniden geçti. Çalışma kodu değişmedi; test düzeltmelerinden sonra tam
+  koşu tekrar edilmedi. Başlangıç/son dosya özetleri kabul kaydında korunur.
+- **Son hacim kanıtı:** İki firma, toplam 2.000 başlangıç görülmesi +
+  1.000 varlık, 120 saniye eşzamanlı çalışma, 922 ölçülen süreç ve 304 yeni
+  görülme. Okuma p95 0,428108 saniye, RSS 56.967.168 bayt, disk 22.599.281
+  bayt; iki firma yedek/restore geçti. Ölçüm macOS arm64 / Python 3.13.3 /
+  SQLite 3.53.2 üzerinde; tam test paketi eşzamanlı çalışıyordu.
+- **Geçiş ve girişler:** Gerçek eski kodla çekirdek 75 → 78 / kuyruk 2 → 3
+  yükseltme ve yedekten dönüş geçti (2,712 saniye). Yeni komutların 15
+  gerçek CLI/engine süreci geçti (11,679 saniye). Ortak platform worker
+  SIGTERM/kurtarma kabulü 31,586 saniyede geçti; yeni rapor yakalama
+  kesintisi kontrollü istisna testiyle doğrulandı.
+- **Dış girdiler:** Tavily N-004, yetkili Nmap N-005, ticari kaynak hakları
+  N-001/N-022 ayrı bekler. Geniş STIX/TAXII ve LLM açılmadı. Gerçek müşteri
+  sensör verisi kullanılmadı; kabul olayları kontrollü fixture'dır.
+- **Dayanak:** [Sekiz madde](docs/roadmap/ENGINE_EIGHT_DELIVERY.md),
+  [kullanım](docs/EVIDENCE_WORKFLOWS.md), [mimari karar](docs/decisions/0173-evidence-workflows-and-local-sightings.md),
+  [kabul kanıtları](docs/ACCEPTANCE_REVIEW.md).
 
 ## Korunacak kararlar
 
@@ -545,6 +723,13 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.168.0:** Kullanıcının birlikte istediği sekiz madde uygulandı; tanımlı
+yerel kabul, eski kodla geçiş ve iki test beklentisinin düzeltilmesiyle
+tamamlandı (N-028). Yeni Linux/CI veya canlı müşteri kabulü sayılmaz.
+Güncel teslim durumu [sekiz maddelik tabloda](docs/roadmap/ENGINE_EIGHT_DELIVERY.md).
+N-026/N-027'de önceki sürüm için yazılan bekleyen motor başlıkları artık
+bu paketin kapsamındadır; ticari izin ve gerçek müşteri bağlantısı ayrı kalır.
 
 **18 Kasım 2026 kullanıcı kararı:** Geniş STIX/TAXII, 1–7 sonrasında
 otomatik sıradaki geliştirme olmayacak; dış sistem alışverişi ihtiyacına

@@ -396,6 +396,7 @@ class BrandRuntimeTests(unittest.TestCase):
              patch.object(VERIFIER.sys, "prefix", str(prefix)), \
              patch.object(VERIFIER, "_verify_constraints"), \
              patch.object(VERIFIER, "_verify_news_runtime"), \
+             patch.object(VERIFIER, "_verify_pdf_runtime"), \
              patch.object(VERIFIER, "_verify_distribution"), \
              patch.object(VERIFIER, "files", return_value=self.root), \
              patch.object(VERIFIER, "write_maigret_database"), \

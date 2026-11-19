@@ -75,7 +75,7 @@ class EngineReadService:
     def __init__(self, search: GlobalSearchService | None = None, records: EngineRecordRepository | None = None,
                  sources: SourceReadinessService | None = None, components: ComponentCatalogService | None = None,
                  research: ResearchService | None = None, warninglists: WarninglistService | None = None,
-                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None, investigation=None, company_review=None):
+                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None, investigation=None, company_review=None, ioc_lifecycle=None, reports=None, evidence=None, journals=None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
         self.research = research
@@ -84,8 +84,26 @@ class EngineReadService:
         self.history = history
         self.investigation = investigation
         self.company_review = company_review
+        self.ioc_lifecycle = ioc_lifecycle
+        self.reports = reports
+        self.evidence = evidence
+        self.journals = journals
 
     def execute(self, request: EngineRequest) -> dict:
+        from xti.domain.journal_storage import READS as JOURNAL_READS
+        if request.operation in JOURNAL_READS and self.journals is not None:
+            return self.journals.execute(request.operation, **request.parameters)
+        from xti.domain.evidence_contract import READS
+        if request.operation in READS and self.evidence is not None:
+            return self.evidence.execute(request.operation, **request.parameters)
+        from xti.domain.report_contract import READ_OPERATIONS as REPORT_READS
+        if request.operation in REPORT_READS and self.reports is not None:
+            return self.reports.execute(request.operation, **request.parameters)
+        if request.operation == 'ioc.lifecycle' and self.ioc_lifecycle is not None:
+            try:
+                return self.ioc_lifecycle.show(**request.parameters)
+            except ResearchSnapshotChanged as error:
+                raise EngineContractError('snapshot_changed', str(error)) from error
         if request.operation == 'company.review' and self.company_review is not None:
             try:
                 return self.company_review.show(**request.parameters)

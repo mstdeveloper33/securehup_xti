@@ -1,6 +1,58 @@
 # XTI Motorunun Mimarisi
 
-**18 Kasım 2026 — 0.164.0, çekirdek şema 76, iş kuyruğu şeması 3.**
+0.169.0 yayıncı alımı küçük port + HTTPS/HTML/PDF adaptörleriyle ayrıldı.
+Özgün nesne, belge ve alım makbuzu atomik saklanır; model 1 korunur,
+model 2 alım/atıf bilgisi ekler. İlişki yeniden incelemesi aynı okuma
+kesitinde türetilir, eski karar değiştirilmez. Eski günlük gövdeleri aynı
+SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün hash zincirini
+kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
+[0174 kararı](decisions/0174-publisher-review-retention.md).
+
+**19 Kasım 2026 — 0.169.0, çekirdek şema 79, iş kuyruğu şeması 3.**
+
+0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
+kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını
+ayırır. SQLite adaptörü tek transaction içinde güncel dayanağı doğrular;
+firma yazması workspace çitini ve mevcut yazıcı kilidini kullanır. Şema78
+eski kayıtları değiştirmeyen ek günlük + açık yedekli geçiştir. Birleşik
+kimlik ve kaynak karşılaştırması salt okunur görünümlerdir. Kaynak işi v4
+belge sürümü makbuzunu, açık sıra ve hata davranışını korur; kuyruk3 değişmez.
+RIPEstat WHOIS mevcut pasif kaynak adaptörü ve cooldown'u paylaşır.
+[0173 kararı](decisions/0173-evidence-workflows-and-local-sightings.md),
+[kullanım](EVIDENCE_WORKFLOWS.md).
+
+`StoredReportContext` mevcut araştırma okuma transaction'ında rapor
+günlüğünü doğrular. Saf `research_reports` projeksiyonu her belge sürümünü
+ayrı düğüme, metin/kapsam/insan bağlantılarını ayrı ilişkilere dönüştürür.
+Grafın tamamı önceden genişletilmez; byte/satır, komşuluk ve toplam bağlantı
+inceleme bütçesi aşımı kısmi kapsamdır. `record.get` aynı günlüğün seçilmiş
+belge sürümünü açar. Öncelik v8 bağlam gerekçeleri ekler; model 3 ve eski
+dondurulmuş incelemeler korunur. Yeni şema, port veya dış bağımlılık yoktur.
+[0172 kararı](decisions/0172-report-research-context.md).
+
+`ReportService` küçük depo portuna bağlıdır; belge/karar replay, içerik
+kimliği, yayın hassasiyeti ve gözlem türleri saf domain kurallarıdır.
+`SQLiteReportRepository` mevcut kaynak denetimlerini kullanarak aynı
+transaction içinde belge yakalar ve eklemeli `report_journal` makbuzunu
+yazar. Şema 77 açıktır ve geçiş öncesi yedek alır. Aynı içeriğin tekrarında
+yalnız makbuz tutulur; belge/karar değişiklik sayacı artmaz. İnsan bağlantısı
+belge sürümüne bağlıdır. IOC gözlemleri mevcut denetlenmiş olaylardan
+türetilir; rapor ve IOC kanıtı aynı SQLite read transaction içindedir.
+`SQLiteIocLifecycleRepository.read_in` bu birleşik kesit için tekrar
+kullanılır. JSON okuma/yazma sınırları, workspace fence ve writer kilidi
+arayüz bileşimindedir. Yeni bağımlılık, HTTP veya kaynak işi biçimi yoktur.
+[0171 kararı](decisions/0171-report-revisions-and-observations.md).
+
+`IocLifecycleService` küçük snapshot okuma portundan kanıt alır; saf
+`ioc_lifecycle` kuralları iddia geçerliliği, kanıt yaşı ve kaynak toplama
+durumunu ayrı değerlendirir. SQLite adaptörü yalnız seçilen IOC geçmişini
+boyut/satır ön kontrolünden geçirir; mevcut eklemeli geçmiş denetimini ve
+tam kaynak makbuzlarını tek read transaction içinde doğrular. Terminal ve
+engine/platform aynı servisi kullanır; politika v1, sonuç modeli 1 ve zarf
+v1. Yeni persistence veya migration yoktur. Araştırma öncelik v7/frozen
+model 3 ayrı kalır. [0170 kararı](decisions/0170-ioc-lifecycle-assessment.md).
+
+**0.164.0:**
 Küçük investigation/company-review portları, saf aday/karar/çıkarım kuralları
 ve mevcut araştırma transaction'ına bağlı depo okuyucuları eklendi. Şema 76
 eklemeli karar günlüğüdür; eski tablolar/kimlikler korunur. Platform yazmaları

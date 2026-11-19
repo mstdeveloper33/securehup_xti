@@ -1,6 +1,18 @@
 # İlişkili kanıt araştırması
 
-18 Kasım 2026 · 0.164.0 · araştırma modeli 3 · engine/platform zarfı v1 · çekirdek şema 76.
+0.168.0 yerel sensör görülmelerini `local_sighting` kanıtı olarak, WHOIS
+kayıt bağlarını ayrı kaynak bağlamı olarak ekler. İlişki adayı/insan kararı
+`relationships`, birleşik kimlik `identity view`, kaynak farkı `ioc compare`
+komutlarındadır. [Anlamı ve kullanım](EVIDENCE_WORKFLOWS.md).
+
+
+19 Kasım 2026 · 0.168.0 · araştırma modeli 3 · öncelik v8 · engine/platform zarfı v1 · çekirdek şema 78.
+
+0.167.0 raporun her belge sürümünü ayrı düğüm olarak gösterir. Metinde
+geçme, özgün arama domaini ve insan CTI/IOC bağlantısı ayrı ilişkilerdir.
+Örnek: IP → saklı rapor sürümü → insanın bağladığı kampanya. Eski sürüm
+ve geri çekilmiş karar korunur; `record.get` / terminal ayrıntısı doğru
+belgeyi açar. [Kullanım, zaman anlamları ve sınırlar](REPORTS_OBSERVATIONS.md).
 
 0.164.0 mevcut vaka/insan kararları, sosyal profil, saklı firma içeriği,
 kimlik eşleştirme ve rapor adayları ile RIPEstat IP/ağ/ASN kanıtını ekler.

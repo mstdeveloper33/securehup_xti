@@ -1,5 +1,39 @@
 # Engine okuma sözleşmesi v1
 
+0.169.0 `reports.publishers/fetches/fetch-show`, `relationships.queue`,
+`journals.status/archive-plan/show` okumalarını ekler. `reports.fetch`,
+`journals.archive-apply/restore` yalnız işletici veya firma yazma girişindedir;
+engine okumaları ağa çıkmaz. Belge modeli 1 ve 2 birlikte okunur. Firma
+workspace çiti ve ortak yazıcı kilidi korunur.
+[Tam parametreler ve sonuçlar](PUBLISHER_REVIEW_RETENTION.md#json-sözleşmesi).
+
+0.168.0 `sightings.list/show`, `relationships.candidates/show`, `identity.view`
+ve `ioc.compare` okuma işlemlerini ekler. `sightings.record/revoke` ve
+`relationships.review` yalnız firma yazma girişindedir; kapsam çiti,
+tekrar anahtarı ve beklenen sürüm kuralları uygulanır. Kaynak işi v4 açık
+sıra/hata politikası ile `report-capture` ve `ripestat-whois` adımlarını
+sunar. [Alanlar, örnekler, hata ve sınırlar](EVIDENCE_WORKFLOWS.md#json-sözleşmesi).
+
+
+0.167.0 `research.show` / `research.priorities` ve kayıtlı incelemelere
+`report_document` düğümlerini ve `report_text_mention`, `report_search_scope`,
+`report_reviewed_link` ilişkilerini ekler. Model 3, dış zarf v1; öncelik v8.
+Rapor başvurusu `report/report_document/local-reports`, kimliği
+`RAPOR_UUID:SURUM` biçimindedir; yanıttaki başvuru aynen `record.get` ile
+açılır. Eski belge/geri çekilmiş insan bağlantısı korunur; kayıtlı metin
+olay gözlemi veya aktör–IOC saldırı atfı sayılmaz.
+[Alanların anlamı ve sınırlar](REPORTS_OBSERVATIONS.md).
+
+0.166.0 `reports.list`, `reports.show`, `observations.list` salt okunur
+işlemlerini ekler. Rapor belge sürümü, insan kararı ve gözlem anlamı ayrı
+alanlardır. Bu giriş kaynak toplamaz veya rapora yazmaz; yazmalar platform
+girişinde tanımlıdır. [Tam alanlar ve örnekler](REPORTS_OBSERVATIONS.md#json-sözleşmesi).
+
+0.165.0 `ioc.lifecycle` salt okuma işlemini ekler. `indicator_type` ve
+`value` zorunludur; yaş/kaynak eşikleri ve korumalı iddia sayfalaması
+isteğe bağlıdır. Sonuç modeli 1, politika `ioc-lifecycle-v1`; kaynak
+puanı ve araştırma önceliği değiştirilmez. [Alanlar, örnek ve sınırlar](IOC_LIFECYCLE.md).
+
 0.164.0 `company.review`, `investigation.candidates`, `investigation.list`
 ve `investigation.show` salt okuma işlemlerini ekler. Yeni kanıt türleri
 mevcut model 3 alanlarıyla döner; öncelik v7. Yeni parametreler, kök/sonuç
@@ -16,7 +50,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama:** 0.164.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 76.
+**Uygulama:** 0.168.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 78.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,

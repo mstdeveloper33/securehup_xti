@@ -11,6 +11,7 @@ from xti.adapters.company_workspaces import (
 )
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.domain.assets import ValidationError
+from xti.domain.reports import ReportError
 from xti.domain.company_workspace import CompanyWorkspaceError
 from xti.domain.engine import ENGINE_OPERATIONS, EngineContractError, valid_request_id
 from xti.domain.platform_engine import PLATFORM_OPERATIONS, parse_platform_request
@@ -62,10 +63,12 @@ def platform_manifest():
         'job_type': 'saved_collection_profile',
         'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
         'source_jobs': {'schema_version': 3, 'plan_operation': 'sources.plan',
-                        'execution_version': 3, 'readable_execution_versions': [1, 2, 3],
+                        'execution_version': 4, 'readable_execution_versions': [1, 2, 3, 4],
                         'usage_unit': 'http_open_attempt', 'shared_quota_owner': 'consuming_platform',
-                        'sources': ['circl', 'urlscan', 'misp', 'ripestat', 'news:cisa', 'news:ncsc', 'news:cert-fr', 'reports'], 'review_opt_in': True,
+                        'sources': ['circl', 'urlscan', 'misp', 'ripestat', 'ripestat-whois', 'report-capture', 'news:cisa', 'news:ncsc', 'news:cert-fr', 'reports'], 'review_opt_in': True,
                         'cancellation': 'between_steps', 'retry': 'explicit_new_job',
+                        'ordering': 'source_order', 'failure_policies': ['continue', 'stop'],
+                        'capture_sources': ['news', 'mentions'], 'max_capture_documents': 20,
                         'uncertain_retry_requires_acknowledgement': True},
         'worker': 'explicit_one_job',
         'idempotency': 'company_and_key_bound_to_profile_revision',
@@ -101,6 +104,18 @@ def _data(value):
 
 
 def execute_platform_request(context, request):
+    from xti.domain.evidence_contract import WRITES as EVIDENCE_WRITES
+    from xti.domain.journal_storage import WRITES as JOURNAL_WRITES
+    if request.operation in JOURNAL_WRITES:
+        from xti.interfaces.journal_storage import execute_platform_journal
+        return execute_platform_journal(context, request)
+    if request.operation in EVIDENCE_WRITES:
+        from xti.interfaces.evidence import execute_platform_evidence
+        return execute_platform_evidence(context, request)
+    from xti.domain.report_contract import WRITE_OPERATIONS as REPORT_WRITES
+    if request.operation in REPORT_WRITES:
+        from xti.interfaces.reports import execute_platform_report
+        return execute_platform_report(context, request)
     from xti.domain.source_job_contract import SOURCE_JOB_OPERATIONS
     if request.operation in SOURCE_JOB_OPERATIONS:
         from xti.interfaces.source_jobs import execute_platform_source_job
@@ -244,6 +259,8 @@ def run_platform(args, *, stream=None, output=None):
         from xti.domain.engine_jobs import EngineJobError
         if isinstance(error, EngineContractError):
             problem = error
+        elif isinstance(error, ReportError):
+            problem = EngineContractError(error.code, str(error))
         elif isinstance(error, EngineJobError):
             problem = EngineContractError(error.code, {
                 'not_found': 'Bu firma kapsamında iş bulunamadı.',

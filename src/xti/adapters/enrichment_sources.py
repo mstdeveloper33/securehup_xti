@@ -30,7 +30,7 @@ class PublicEnrichmentSource:
         self.wall_clock = wall_clock or (lambda: datetime.now(timezone.utc))
 
     def fetch(self, query):
-        gate = SourceCooldownGate(query.provider, self.cooldowns, clock=self.clock,
+        gate = SourceCooldownGate('ripestat' if query.provider == 'ripestat-whois' else query.provider, self.cooldowns, clock=self.clock,
             wall_clock=self.wall_clock, sleep=self.sleep)
         gate.before_request(2.0)
         req = Request(request_url(query), headers={"Accept": "application/json",

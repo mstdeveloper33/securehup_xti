@@ -162,7 +162,7 @@ elif stage == "verify":
         command = calls[1]["args"]
         self.assertIn("--isolated", command)
         self.assertEqual(command[command.index("--constraint") + 1], str(self.root / "constraints/brand.txt"))
-        self.assertEqual(command[-1], str(self.root) + "[brand,news]")
+        self.assertEqual(command[-1], str(self.root) + "[brand,news,reports]")
         self.assertIn(str(self.venv / "bin"), (self.venv / "bin/maigret").read_text())
 
     def test_force_preserves_exact_previous_environment_and_old_backups(self):

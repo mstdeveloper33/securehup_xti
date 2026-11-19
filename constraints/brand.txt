@@ -79,3 +79,6 @@ urllib3==2.8.0
 wcwidth==0.9.4
 webencodings==0.6.1
 yarl==1.25.1
+
+# Publisher PDF text extraction (BSD-3-Clause).
+pypdf==7.1.1

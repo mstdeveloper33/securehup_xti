@@ -68,8 +68,11 @@ def replay_source_job(job, events):
                             raise ValueError('Step start')
                         step.update(status='running', started_at=at)
                     elif event['receipt'] is None:
-                        if step['status'] != 'pending' or event['reason'] not in {'cancelled', 'budget_exhausted'} or (event['reason'] == 'cancelled' and not job.cancel_requested):
+                        reasons = {'cancelled', 'budget_exhausted'} | ({'dependency_failed'} if job.payload.version >= 4 else set())
+                        if step['status'] != 'pending' or event['reason'] not in reasons or (event['reason'] == 'cancelled' and not job.cancel_requested):
                             raise ValueError('Step skip')
+                        if event['reason'] == 'dependency_failed' and (job.payload.plan.get('failure_policy') != 'stop' or not any(s['status'] in {'failed', 'partial'} for s in steps[:index])):
+                            raise ValueError('Missing failed dependency')
                         step.update(status='skipped', finished_at=at, reason=event['reason'])
                     else:
                         if step['status'] != 'running' or event['reason'] is not None:

@@ -1,6 +1,12 @@
 # Kaynak güncelleme işleri
 
-18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · iş kuyruğu şeması 3.
+19 Kasım 2026 · 0.168.0 · çekirdek şema 78 · iş kuyruğu şeması 3.
+
+İş modeli 4, `ripestat-whois` ve `report-capture` adımlarını, açık adım
+sırasını ve hata sonrası devam/durdurma seçimini ekler. Önceki iş modeli
+1/2/3 kendi makbuzlarıyla okunur. `reports` önceki metin çıkarımı adımıdır;
+`report-capture` belge sürümü saklar. Yeni seçeneklerin örnekleri ve tekrar
+kuralları [kanıt akışları belgesindedir](EVIDENCE_WORKFLOWS.md).
 
 IP/URL/hash kaynaklarını, seçilmiş MISP listelerini, yayıncı akışlarını ve
 saklı rapor çıkarımını bir işe bağlayabilirsin.
@@ -44,11 +50,14 @@ Uyumsuz sağlayıcı ve bilinmeyen kaynak reddedilir.
 
 | Seçim | Davranış |
 |---|---|
-| Kaynak | En fazla beş: türle uyumlu CIRCL/urlscan/RIPEstat, MISP, `news:cisa`, `news:ncsc`, `news:cert-fr`, `reports` seçenekleri |
+| Kaynak | En fazla beş: türle uyumlu CIRCL/urlscan/RIPEstat/RIPEstat WHOIS, MISP, `news:cisa`, `news:ncsc`, `news:cert-fr`, `reports`, `report-capture` seçenekleri |
 | `--max-requests` | 1–7, varsayılan 7; planın en kötü istek sayısını karşılamalı |
 | MISP istek hesabı | Commit + gerekirse koşul belgesi + seçilen her liste için bir istek |
 | RIPEstat / yayıncı | IP başına bir GET / yayıncı başına bir GET; haber isteğine firma domaini eklenmez |
 | `reports` | Sıfır dış istek; en yeni 20 saklı haberden aday çıkarımı, varsa `has_more` ve kısmi kapsam |
+| `report-capture` | Sıfır dış istek; `--capture-source news\|mentions`, `--capture-limit` 1–20; sürümlü belge makbuzu |
+| `--step` | Her seçilmiş kaynağı tam bir kez içeren adım sırası; haber yenilemesi ilgili rapor yakalamasından önce |
+| `--failure-policy` | `continue` (varsayılan) veya `stop`; durdurmada sonraki adımlar açık gerekçeyle atlanır |
 | `--max-seconds` | 1–600, varsayılan 180; adımlar arasında yeni işe başlama sınırı |
 | `--record-review` | Varsayılan kapalı; kaynakların ardından aynı kapsamın incelemesini saklar |
 | Araştırma | `--max-hops`, `--node-limit`, `--edge-limit`, `--stale-after-hours`; mevcut araştırma sınırları |

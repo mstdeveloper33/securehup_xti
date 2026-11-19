@@ -15,6 +15,10 @@ from xti.domain.cti_indicators import normalize_indicator_value, normalize_cti_t
 MAX_BYTES = 2 * 1024 * 1024
 URL_RESULT_LIMIT = 20
 PROVIDERS = {
+    'ripestat-whois': {'types': ('ipv4', 'ipv6'), 'label': 'RIPEstat / RIR kayıt bağlamı',
+        'terms': 'https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/',
+        'license': 'Provider and underlying registry terms; retain RIPE NCC attribution',
+        'commercial_use': 'written_permission_required', 'api_key': 'not_required'},
     'ripestat': {'types': ('ipv4', 'ipv6'), 'label': 'RIPEstat / RIPE RIS ağ bağlamı',
         'terms': 'https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/',
         'license': 'Provider terms; retain RIPE NCC / RIPE RIS attribution',
@@ -57,6 +61,8 @@ def enrichment_query(*, indicator_type, value, provider=None):
 
 
 def request_url(query):
+    if query.provider == 'ripestat-whois':
+        return 'https://stat.ripe.net/data/whois/data.json?' + urlencode({'resource': query.value, 'preferred_version': '4.1'})
     if query.provider == 'ripestat':
         return 'https://stat.ripe.net/data/network-info/data.json?' + urlencode({'resource': query.value, 'preferred_version': '1.1'})
     if query.provider == "circl":
@@ -124,6 +130,9 @@ def parse_enrichment(query, http_status, content):
         if not isinstance(data, dict):
             raise ValueError("Object required")
         digest = hashlib.sha256(content).hexdigest()
+        if query.provider == 'ripestat-whois':
+            from xti.domain.registry_context import registry_snapshot
+            return registry_snapshot(query, http_status, data, digest)
         if query.provider == "circl":
             return _circl(query, http_status, data, digest)
         if query.provider == 'ripestat':

@@ -12,13 +12,17 @@ from xti.domain.source_job_contract import SOURCE_JOB_OPERATIONS, parse_source_j
 
 
 from xti.domain.investigation_contract import WRITE_OPERATIONS as INVESTIGATION_WRITES, parse_parameters as parse_investigation_parameters
+from xti.domain.report_contract import WRITE_OPERATIONS as REPORT_WRITES, parameters as report_parameters
+
+from xti.domain.evidence_contract import WRITES as EVIDENCE_WRITES, parameters as evidence_parameters
+from xti.domain.journal_storage import WRITES as JOURNAL_WRITES, parameters as journal_parameters
 
 PLATFORM_CONTRACT_VERSION = 1
 PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
     'research.review.record',
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
-) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + INVESTIGATION_WRITES
+) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + INVESTIGATION_WRITES + REPORT_WRITES + EVIDENCE_WRITES + JOURNAL_WRITES
 
 
 def _fields(value, allowed, required=()):
@@ -50,12 +54,18 @@ def parse_platform_request(value):
         return parse_engine_request(value)
     parameters = value['parameters']
     try:
-        if operation in SOURCE_JOB_OPERATIONS:
+        if operation in JOURNAL_WRITES:
+            normalized = journal_parameters(operation, parameters, scoped=True)
+        elif operation in EVIDENCE_WRITES:
+            normalized = evidence_parameters(operation, parameters, scoped=True)
+        elif operation in SOURCE_JOB_OPERATIONS:
             normalized = parse_source_job_parameters(operation, parameters)
         elif operation in NMAP_OPERATIONS:
             normalized = parse_nmap_parameters(operation, parameters)
         elif operation in INVESTIGATION_WRITES:
             normalized = parse_investigation_parameters(operation, parameters)
+        elif operation in REPORT_WRITES:
+            normalized = report_parameters(operation, parameters)
         elif operation == 'research.review.record':
             from xti.domain.research_history import capture_scope, history_key, SCOPE_FIELDS
             _fields(parameters, {*SCOPE_FIELDS, 'idempotency_key', 'expected_workspace_id'},

@@ -1,6 +1,30 @@
 # XTI Platformu — Uçtan Uca Ana Yol Haritası
 
-**Plan güncellemesi:** 18 Kasım 2026 · **Mevcut uygulama:** 0.164.0 / çekirdek şema 76 / iş kuyruğu 3.
+19 Kasım 2026 / 0.169.0: izinli yayıncı tam metni, değişen ilişki dayanağı
+incelemesi ve geçmişi silmeyen günlük arşivi uygulandı.
+[Teslim kapsamı](REPORT_REVIEW_RETENTION_DELIVERY.md); canlı/yerel kabul
+ayrı kaydedilir. Geniş STIX/TAXII, LLM ve Linux/push teslimi bu işlerle
+kendiliğinden tamamlanmış sayılmaz.
+
+**19 Kasım 2026 / 0.168.0:** Kullanıcının yetkilendirdiği sekiz maddelik
+rapor/ilişki/kimlik/WHOIS/görülme/akış/karşılaştırma/kapasite paketi
+uygulandı ve tanımlı yerel kabul tamamlandı. Kapsam, iki test beklentisi
+düzeltmesi ve Linux atlamaları [bu tabloda](ENGINE_EIGHT_DELIVERY.md).
+Bu güncelleme önceki sürümlerin aşağıdaki tarihî plan notlarından sonradır.
+Geniş STIX/TAXII ve LLM kullanıcı kararıyla bekler.
+
+
+**Plan güncellemesi:** 19 Kasım 2026 · **Mevcut uygulama:** 0.169.0 / çekirdek şema 79 / iş kuyruğu 3.
+
+0.165.0 ilk IOC yaşam döngüsü değerlendirmesini ekler: kanıt yaşı,
+geçerlilik ve kaynak toplama ayrı, yerel eşikler sürümlü/değiştirilebilir.
+[Kapsam ve sınırlar](../IOC_LIFECYCLE.md). 0.166.0 ilk sürümlü rapor ve
+ayrıştırılmış gözlem modelini uygular: [kapsam](../REPORTS_OBSERVATIONS.md).
+0.167.0 rapor sürümlerini ve insan bağlarını ortak araştırmaya taşır.
+0.168.0 yönetilen kaynak işlerini sürümlü rapor yakalamaya bağlar;
+tanımlı dört kanıt kuralıyla ilişki adayları, birleşik kimlik görünümü
+ve ayarlanabilir adım sırası/hata davranışını ekler. Kapsam sınırları
+[kullanım belgesinde](../EVIDENCE_WORKFLOWS.md) ayrı belirtilir.
 
 **Son ürün netleştirmesi:** Kendi ticari platformumuz için kapalı kaynak
 motor geliştiriliyor. Yeni motor yeteneklerinin güncel sırası

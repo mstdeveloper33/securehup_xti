@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xti-local"
-version = "0.164.0"
+version = "0.169.0"
 description = "Terminal-first external threat intelligence engine"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
+reports = ["pypdf==7.1.1"]
 news = [
     "feedparser==6.0.14",
     "feedparser-sgmllib==2.1.0",

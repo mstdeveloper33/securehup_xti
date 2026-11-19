@@ -1,6 +1,12 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
-**Sürüm:** 0.164.0 · **Tarih:** 18 Kasım 2026 · **Çekirdek şema:** 76 · **İş kuyruğu:** 3.
+0.169.0 izinli CERT-FR/NCSC makale ve PDF metnini kaynak kanıtıyla kaydeder;
+`relationships queue` dayanağı değişen insan kararlarını gösterir;
+`journals` eski gövdeleri geçmişi silmeden, yedek alarak sıkıştırır ve geri
+alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
+`./setup`, ardından `./xti migrate`. [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
+
+**Sürüm:** 0.169.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 79 · **İş kuyruğu:** 3.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -12,6 +18,36 @@ kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
 
 Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
 [NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
+
+0.168.0 sekiz maddelik motor paketini ekler: otomatik sürümlü rapor,
+kanıtlı ilişki adayları ve insan kararı, birleşik kimlik görünümü, RIPEstat
+WHOIS, sensör görülmeleri, seçilebilir kaynak sırası/hata davranışı ve IOC
+kaynak karşılaştırması. Yeni kayıtlar firma kapsamlıdır; terminal ve JSON
+aynı servisleri kullanır. Mevcut veri alanı için yedekli `./xti migrate`
+gerekir. Yeni ücretli API/Python paketi yoktur.
+[Kullanım ve sınırlar](docs/EVIDENCE_WORKFLOWS.md),
+[sekiz maddelik teslim](docs/roadmap/ENGINE_EIGHT_DELIVERY.md).
+
+0.167.0 rapor sürümlerini ortak araştırmaya bağlar: IP/domain → metinde
+geçtiği rapor sürümü → insanın bağladığı aktör/kampanya yolu kaynaklarıyla
+görünür. Eski metinler ve geri çekilmiş bağlantılar ayrılır; doğrudan
+saldırı atfı üretilmez. Aynı sonuç terminal ve firma JSON işlemlerinden
+alınır; rapor ayrıntısı `record.get` ile açılır. 0.166.0'dan yeni migration,
+paket veya ücretli API gerekmez. [Kullanım](docs/REPORTS_OBSERVATIONS.md).
+
+0.166.0 `reports` ve `observations` ile kaynak raporlarının belge sürümlerini,
+belirli sürüme bağlı insan bağlantılarını ve farklı gözlem türlerini sunar.
+Aynı içerik yeni belge üretmez; değişen metnin geçmişi korunur. Haber/firma
+özetinden alınır; tam makale/PDF indirilmez. Terminal ve firma JSON aynı
+servisi kullanır. Mevcut veri alanı için yedekli `./xti migrate` gerekir;
+yeni paket veya ücretli API gerekmez. [Kullanım](docs/REPORTS_OBSERVATIONS.md).
+
+0.165.0 `ioc lifecycle` ve engine/platform `ioc.lifecycle` ile kayıtlı
+IOC'nin kanıt yaşını, geçerliliğini ve son kaynak toplamasını gerekçeleriyle
+değerlendirir. Yeniden indirme yeni gözlem sayılmaz; belirsiz olay tarihi
+açık gösterilir. Eşikler değiştirilebilir; özgün güven ve insan kararları
+korunur. Yeni migration, paket veya ücretli API gerekmez.
+[Kullanım](docs/IOC_LIFECYCLE.md), [test çalışma düzeni](docs/TESTING.md).
 
 0.164.0 mevcut vaka, sosyal profil ve firma içeriklerini ortak araştırmaya
 bağlar. `investigate` kanıtlı kimlik eşleştirmeleri ve saklı metinden gösterge

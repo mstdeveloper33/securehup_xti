@@ -10,7 +10,7 @@ from xti.domain.research import (
 from xti.domain.surface_discovery_status import StoredDiscoveryStatus
 
 
-POLICY_VERSION = "research-priority-v7"
+POLICY_VERSION = "research-priority-v8"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
@@ -21,6 +21,10 @@ RULES = {
     'social_impersonation_review': ('review_first', 'Bu profil kesiti insan tarafından olası taklit olarak işaretlenmiş; özgün incelemeyi doğrulayın.'),
     'content_candidate': ('verify', 'Saklı firma aramasında içerik adayı var; kaynak metnini ve arama kapsamını inceleyin.'),
     'investigation_pending': ('verify', 'Kimlik veya metin adayı insan incelemesi bekliyor; özgün kanıtı ve önceki kararları inceleyin.'),
+    'report_text_context': ('context', 'Saklı rapor metninde geçiyor; metin ve kaynak sürümünü inceleyin. Zararlılık veya bağımsız doğrulama değildir.'),
+    'report_document_historical': ('context', 'Bu kanıt önceki belge sürümüne bağlı; yeni metin eski bağlantıları kendiliğinden devralmaz.'),
+    'report_linked': ('context', 'İnsan bu rapor sürümünü hedef kayda bağlamış; bu doğrudan aktör–IOC saldırı ilişkisi oluşturmaz.'),
+    'report_link_withdrawn': ('context', 'Bu belge bağlantısı insan tarafından geri çekilmiş; önceki karar yalnız geçmiş olarak korunur.'),
     "supplier_priority_review": ("review_first", "İnsan tarafından önemli tanımlanan tedarikçide kaynak iddiası adayı var; kimliği ve iddiayı doğrulayın. Müşteri etkisi kanıtlanmış değildir."),
     "supplier_claim_review": ("verify", "Tedarikçiyle eşleşen kaynak iddiası var; özgün kaydı ve eşleşme dayanağını inceleyin."),
     "supplier_identity_ambiguous": ("verify", "Kaynak adı birden fazla etkin tedarikçiyle eşleşiyor; kuruluş kimliği belirsiz."),
@@ -147,6 +151,10 @@ def _reasons(rows, total, matches, related, checked_at, hours, discovery=()):
         ('social_impersonation_review', [row for row in rows if row.record_type == 'social_decision' and row.current and row.status == 'possible_impersonation']),
         ('content_candidate', [row for row in rows if row.record_type == 'company_content']),
         ('investigation_pending', [row for row in rows if row.record_type in {'identity_proposal', 'report_candidate'} and row.status in {'pending', 'uncertain'}]),
+        ('report_text_context', [row for row in rows if row.record_type == 'report_text_mention']),
+        ('report_document_historical', [row for row in rows if row.record_type in {'report_document', 'report_text_mention', 'report_search_scope'} and row.status == 'historical_document']),
+        ('report_linked', [row for row in rows if row.record_type == 'report_link_decision' and row.current and row.status == 'linked']),
+        ('report_link_withdrawn', [row for row in rows if row.record_type == 'report_link_decision' and row.current and row.status == 'withdrawn']),
     ):
         if selected:
             add(code, selected)

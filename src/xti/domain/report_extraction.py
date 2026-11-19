@@ -8,6 +8,7 @@ from xti.domain.research import identity
 
 
 POLICY = 'report-candidates-v1'
+DOCUMENT_POLICY = 'report-document-candidates-v2'
 PATTERNS = (
     ('url', re.compile(r'(?i)\b(?:https?|hxxps?)://[^\s<>"\x00-\x1f]{1,2048}')),
     ('sha1', re.compile(r'(?i)(?<![a-z0-9])[a-f0-9]{40}(?![a-z0-9])')),
@@ -20,10 +21,24 @@ PATTERNS = (
 
 
 def extract(text):
+    # Existing immutable investigation proposals must keep their v1 spans.
+    return _extract(text, PATTERNS)
+
+
+def extract_document(text):
+    # A sentence-final period is punctuation, while another dotted label or
+    # numeric segment still disqualifies an IPv4 prefix. Do not reinterpret
+    # old investigation proposals with this new document extraction policy.
+    patterns = tuple((kind, re.compile(r'(?<![\w.])(?:\d{1,3}(?:\.|\[\.\])){3}\d{1,3}(?!\w|\.[\w.])'))
+                     if kind == 'ipv4' else (kind, pattern) for kind, pattern in PATTERNS)
+    return _extract(text, patterns)
+
+
+def _extract(text, patterns):
     if not isinstance(text, str) or len(text.encode('utf-8')) > 65536:
         raise ValidationError('Rapor metni en fazla 64 KiB olmalı.')
     found = {}
-    for kind, pattern in PATTERNS:
+    for kind, pattern in patterns:
         for match in pattern.finditer(text):
             original = match.group().rstrip('.,;!)')
             value = original.replace('[.]', '.')

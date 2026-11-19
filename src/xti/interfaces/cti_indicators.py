@@ -103,6 +103,7 @@ def detail_lines(details: CtiIndicatorDetails) -> list[str]:
         )
     lines.extend([
         "",
+        "Güncellik ve kaynak gerekçeleri: ./xti ioc lifecycle TUR DEGER",
         "Kaynak iddiaları birbirini ezmez; geri çekme geçmişi silmez.",
         "Güven puanı kaynak bağlamıdır; otomatik zararlılık veya etkilenme kararı değildir.",
     ])

@@ -42,6 +42,11 @@ def register_source_jobs_parser(commands):
         action.add_argument('--source', dest='sources', action='append', required=True, choices=SOURCE_KEYS)
         action.add_argument('--list', dest='warninglist_ids', action='append', choices=tuple(POLICIES), default=[])
         action.add_argument('--record-review', action='store_true')
+        action.add_argument('--step', dest='source_order', action='append', choices=SOURCE_KEYS,
+                            help='İstenen kaynak sırası; seçili her kaynak için bir kez ver.')
+        action.add_argument('--failure-policy', choices=('continue', 'stop'))
+        action.add_argument('--capture-source', choices=('news', 'mentions'))
+        action.add_argument('--capture-limit', type=int)
         for flag, default in (('max-seconds', 180), ('max-requests', 7), ('max-hops', 2),
                               ('node-limit', 100), ('edge-limit', 200), ('stale-after-hours', 24)):
             action.add_argument('--' + flag, type=int, default=default)
@@ -99,10 +104,16 @@ def source_job_lines(data, *, data_dir=None):
         for step in data.get('steps', []):
             lines.append('  ' + safe_text(step['key']) + ': ' + states[step['status']])
             if step['reason']:
-                lines.append('    ' + {'cancelled': 'İptal nedeniyle atlandı.', 'budget_exhausted': 'Süre bütçesi doldu.'}[step['reason']])
+                lines.append('    ' + {'cancelled': 'İptal nedeniyle atlandı.', 'budget_exhausted': 'Süre bütçesi doldu.', 'dependency_failed': 'Önceki adım tamamlanamadığı için atlandı.'}[step['reason']])
             if step['reused_from']:
                 lines.append('    Önceki tamamlanmış adım kullanıldı; yeniden sorgulanmadı.')
             receipt = step['receipt']
+            if receipt and step['key'] == 'report-capture':
+                for row in receipt['records']:
+                    lines.append('    Belge: ' + xti_command('reports', 'show', row['id'], '--document-revision', str(row['document_revision']), data_dir=data_dir))
+                if receipt['has_more']:
+                    lines.append('    Kaynak penceresinde ek içerik var; tüm kayıtlar rapora alınmış sayılmaz.')
+                continue
             if receipt:
                 refs = [('investigate', row['id']) for row in receipt['records']] if step['key'] == 'reports' else [('news', receipt['run_id'])] if step['key'].startswith('news:') else [('warninglists', row['run_id']) for row in receipt['runs']] if step['key'] == 'misp' else [
                     ('research-history', receipt['review_id']) if step['key'] == 'review' else ('enrich', receipt['run_id'])]

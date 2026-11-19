@@ -30,6 +30,9 @@ def _discovery_lines(states, value, data_dir):
 def _surface_detail_commands(rows, data_dir):
     commands = set()
     for row in rows:
+        if row['record_type'] in {'report_document', 'report_text_mention', 'report_search_scope', 'report_link_decision'}:
+            rid, revision = row['record_id'].split(':')
+            commands.add(xti_command('reports', 'show', rid, '--document-revision', revision, data_dir=data_dir))
         if row['record_type'] in {'investigation_decision', 'identity_proposal', 'report_candidate'}:
             commands.add(xti_command('investigate', 'show', row['record_id'], data_dir=data_dir))
         if row['record_type'] in {'case_activity', 'case_evidence'}:
@@ -75,6 +78,9 @@ def _surface_detail_commands(rows, data_dir):
 
 
 def _record_detail_command(ref, value, data_dir):
+    if ref['record_type'] == 'report_document':
+        rid, revision = ref['record_id'].split(':')
+        return xti_command('reports', 'show', rid, '--document-revision', revision, data_dir=data_dir)
     if ref["record_type"] == "surface_candidate":
         return xti_command("surface", "candidate", "show", ref["record_id"], data_dir=data_dir)
     args = (("ioc", "show", ref["record_id"]) if ref["kind"] == "indicator" else
@@ -129,6 +135,9 @@ def priority_lines(data, *, data_dir=None):
         "cti_adjacency_limit": "Bazı kayıtların CTI bağlantıları gösterim sınırını aşıyor.",
         "source_evidence_limit": "Bazı kayıtların kaynak kanıtları bu görünüme sığmadı.",
         "enrichment_result_window": "URL kaynağının sonuç penceresi sınırlı; bütün arşiv kapsanmıyor.",
+        "report_read_budget": "Rapor geçmişi araştırmanın okuma sınırına sığmadı; bu boş sonuç değildir.",
+        "report_adjacency_limit": "Rapor bağlantılarının bir bölümü bu görünümün sınırına sığmadı.",
+        "report_work_budget": "Rapor bağlantılarını inceleme bütçesi doldu; kalan kapsam doğrulanmadı.",
     }
     for limitation in data["limitations"]:
         lines.append("Kapsam eksik: " + limits.get(limitation, safe_text(limitation)))
@@ -190,8 +199,13 @@ def research_lines(data, *, data_dir=None):
               "available": "başarılı kaynak yanıtı kayıtlı", "not_evaluated": "henüz karşılaştırılmadı",
               "historical_scope": "önceki kimlik veya izleme kapsamı", "baseline": "sessiz başlangıç",
               "changes": "yerel karşılaştırmada değişim", "domain_match": "domain dayanaklı aday",
-              "name_match": "yalnız tam adla aday", "ambiguous_name": "aynı ad nedeniyle belirsiz aday"}
-    relations = {"cname_alias": "CNAME yönlendirmesi", "cname_target_address": "CNAME son hedefi → IP",
+              "name_match": "yalnız tam adla aday", "ambiguous_name": "aynı ad nedeniyle belirsiz aday",
+              "current_document": "son kayıtlı belge sürümü", "historical_document": "önceki belge sürümü",
+              "linked": "insan tarafından bu belge sürümüne bağlanmış"}
+    relations = {"report_text_mention": "Rapor sürümü → metinde geçen aday",
+                 "report_search_scope": "Rapor sürümü → özgün aramanın domain kapsamı",
+                 "report_reviewed_link": "Rapor sürümü → insan bağlantısı (geri çekilenler dahil)",
+                 "cname_alias": "CNAME yönlendirmesi", "cname_target_address": "CNAME son hedefi → IP",
                  "certificate_presented": "Domain → gözlenmiş TLS sertifikası",
                  "supplier_candidate": "Domain → teknik tedarikçi adayı",
                  "supplier_candidate_domain": "Aday → olası hizmet domaini",

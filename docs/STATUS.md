@@ -1,6 +1,44 @@
 # XTI — Güncel Uygulama Durumu
 
-**18 Kasım 2026 · 0.164.0 · Çekirdek şema 76 · İş kuyruğu şeması 3.**
+**0.169.0:** CERT-FR/NCSC HTML/PDF alımı ve model 2 tam metin belgesi,
+değişen ilişki dayanakları için `relationships.queue`, rapor/görülme
+geçmişini silmeden yedekli sıkıştırma/geri alma uygulandı. Kaynak hata
+makbuzu, tekrar anahtarı, firma çiti ve özgün kaynak nesnesi korunur.
+Çekirdek 79 açık yedekli geçiştir; pypdf 7.1.1 normal kuruluma eklenir.
+Kuyruk 3, kaynak işi 4, araştırma 3, öncelik v8 ve dış JSON v1 korunur.
+[Kullanım](PUBLISHER_REVIEW_RETENTION.md),
+[karar](decisions/0174-publisher-review-retention.md).
+
+Yerel odaklı doğrulama ve üç canlı yayıncı alımı geçti. Tam paket 3.186
+testte 3.181 başarı, bir eski test düzeneği hatası ve dört Linux atlamasıyla
+bitti. Hata düzeltildi; ilgili 56 kurulum testi yeniden geçti. Son kodun
+44 sınır ve 80 rapor testi de başarılı; tam paket yeniden çalıştırılmadı.
+[Kabul kaydı](ACCEPTANCE_REVIEW.md) kapsamı ayırır; Linux/push bu paketin
+kabulü sayılmaz.
+
+**0.168.0:** Sekiz maddelik paket; otomatik sürümlü rapor adımı, sınırlı iki
+adımlı kanıttan ilişki önerileri ve ayrı insan kararları, kabul edilmiş
+bağlarla birleşik kimlik görünümü, RIPEstat WHOIS, gerçek sensör görülme
+günlüğü, kaynak adım sırası/hata politikası ve IOC kaynak karşılaştırması
+uygulandı. Firma incelemesine görülme kökleri ve kaynak farkı özeti eklenir.
+Çekirdek 78 açık yedekli geçiş gerektirir; kuyruk 3, iş modeli 4 (1/2/3 okunur),
+araştırma 3, öncelik v8 ve dış JSON v1 korunur. Görülme sayısı kaynak liste
+üyeliği değildir; ilişki kararı CTI atfı veya fiziksel kimlik merge yaratmaz.
+[Kullanım](EVIDENCE_WORKFLOWS.md), [mimari karar](decisions/0173-evidence-workflows-and-local-sightings.md).
+
+**0.168.0 yerel kabul tamamlandı:** 31 yeni test, eski kodla geçiş/geri
+dönüş, 15 gerçek CLI/engine süreci ve canlı RIPEstat WHOIS geçti. İki
+firmada 2.000 başlangıç görülmesi / 1.000 varlıkla 120 saniye eşzamanlı
+okuma/yazma, 922 ölçülen süreç, p95 0,428108 saniye ve yedekten dönüş geçti.
+Tam koşu 3.151 test / 1.472,761 saniye: 3.145 başarılı, iki eski test
+beklentisi hatası, dört Linux atlaması. İki beklenti düzeltildi; ilgili
+23 araştırma ve 7 katalog testi yeniden geçti. Çalışma kodu değişmedi;
+test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
+[kabul kaydındadır](ACCEPTANCE_REVIEW.md). GitHub push/CI ve yeni Linux
+kabulü bu yerel teslimin sonucu değildir.
+
+
+**19 Kasım 2026 · 0.169.0 · Çekirdek şema 79 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
@@ -10,6 +48,72 @@ Kullanım koşulları, bekleyen doğrulamalar ve takip kararları
 ihtiyaç oluşana kadar kullanıcı kararıyla ertelendi (NOTES.md, N-024).
 Kendi platformu için JSON işlem sözleşmesi, mevcut kaynak/araç adaptörleri ve temel
 STIX çıktısı korunur. LLM ayrı bekler; bu karar kod veya şema değişikliği değildir.
+
+**0.167.0:** Rapor sürümleri, metin adayları, özgün arama domaini ve insan
+CTI/IOC bağlantıları mevcut `research` / `research.show` içinde görünür.
+IP → rapor sürümü → aktör/kampanya yolu kaynaklıdır; doğrudan saldırı
+atfı değildir. Eski sürüm/geri çekme korunur; kaynak alınma ve insan karar
+zamanı ayrıdır. `record.get` aynı firma alanındaki tam belge sürümünü açar.
+Öncelik v8 bağlam gerekçeleri ekler; eski model 1–3 incelemeler değişmez,
+v7'den ilk v8 inceleme yeni başlangıçtır. Şema 77, kuyruk 3 ve model 3
+korunur; ek migration, ağ isteği, bağımlılık veya ücretli API yoktur.
+10.000 makbuz/16 MiB, düğüm başına 200 ilişki ve istek boyunca 50.000
+bağlantı incelemesi sınırları kısmi kapsamı açık gösterir.
+[Kullanım](REPORTS_OBSERVATIONS.md),
+[mimari karar](decisions/0172-report-research-context.md),
+[test kapsamı ve sonuçlar](ACCEPTANCE_REVIEW.md).
+
+**0.167.0 doğrulama:** Son kodda 252 ilgili test ve gerçek `./xti` ile
+11 süreç geçti; yeni özelliğin 15 testi bu demete dahildir. İlk araştırma/
+engine/mimari demetinde ayrıca 129 test geçti. Tam paket bu turda tekrar
+çalıştırılmadı; önceki tam sonuç aşağıda korunur. Canlı kaynak veya yeni
+Linux kabulü değildir. Ayrıntılar [kabul kaydında](ACCEPTANCE_REVIEW.md).
+
+**0.166.0:** `reports capture/list/show/link` ve `observations` eklendi.
+Saklı haber/firma başlık-özetleri sürümlü rapora açıkça alınır; aynı içerik
+yeni belge/gözlem üretmez. Kaynak metni değişirse önceki sürüm korunur.
+Aktör/kampanya/malware veya mevcut IOC bağlantısı insan kararıdır; belge
+sürümüne bağlı ve geri alınabilirdir. Yayın/toplama/kayıt zamanı ayrılır;
+metinde geçme, liste üyeliği, sağlayıcı gözlemi ve belirsiz elle iddia ayrı
+gösterilir. JSON: `reports.list/show/capture/link`, `observations.list`.
+Platform yazmaları workspace fence, tekrar anahtarı ve writer kilidi taşır.
+Şema 77 açık yedekli migration gerektirir; kuyruk 3, araştırma model 3,
+öncelik v7 ve eski kaynak işi `reports` adımı korunur. Bu sürümde yeni rapor modelinin
+otomatik kaynak işi/araştırma grafiği bağlantısı, gerçek müşteri sighting
+toplaması, tam makale/PDF, geniş STIX/TAXII ve LLM bu kapsamda değildir.
+[Kullanım](REPORTS_OBSERVATIONS.md),
+[mimari karar](decisions/0171-report-revisions-and-observations.md),
+[kabul kaydı](ACCEPTANCE_REVIEW.md).
+
+**0.166.0 doğrulama:** 194 testlik geniş demet geçti. Son ayrıştırma farkı
+96 testle doğrulandı; 33 yeni rapor/gözlem testi vardır. Gerçek 13 terminal/
+firma JSON süreci ve eski kodla yedekli yükseltme/geri dönüş geçti. İlk tam
+paket 3.104 test / 1.333,225 saniye: 3.099 başarılı, bir kabul-betiği hatası,
+dört Linux atlaması. Betik şema 77 için düzeltildi; ilgili 18 testte 16
+başarı, macOS'ta iki Linux atlaması. Bu düzeltmelerden sonra tam paket
+yeniden çalıştırılmadı; ayrıntı [kabul kaydında](ACCEPTANCE_REVIEW.md).
+
+**0.165.0:** `ioc lifecycle` ve engine/platform `ioc.lifecycle` aynı salt
+okunur değerlendirmeyi sunar. Kaynak iddiasının geçerliliği, kayıtlı kanıt
+yaşı ve son toplama ayrı gösterilir. Feodo sağlayıcı gözlemi, CERT Polska
+liste sürümü ve eski elle kayıt zamanı ayrılır. Yeniden indirme yeni olay
+sayılmaz; kaynak kesintisi eski kanıtı silmez. Yerel güncellik eşikleri
+açıkça değiştirilebilir; gerekçeler ve politika `ioc-lifecycle-v1` döner.
+Tek IOC geçmişi/makbuzları tek read transaction içinde sınırlı okunur;
+sayfalama veri/politika/zaman sınıfı değişimini reddeder. Kaynak puanı,
+analist kararı, araştırma öncelik v7 ve eski incelemeler değişmez.
+Yeni DB/iş şeması, migration, ağ veya paket yoktur.
+[Kullanım ve sınırlar](IOC_LIFECYCLE.md),
+[mimari karar](decisions/0170-ioc-lifecycle-assessment.md).
+
+**0.165.0 doğrulama:** Son makbuz kontrolü dahil ilgili **110 test /
+31,616 saniye** geçti; 33 yeni senaryo içerir. Gerçek `./xti` süreçlerinde
+terminal, JSON ve engine çıktıları aynı kesiti verdi; veri dosyası değişmedi.
+İlk uygulamanın tam paketi **3.069 test / 1.338,055 saniye** ile tamamlandı:
+3.065 başarılı, hata yok; macOS'ta dört Linux süreç/systemd kontrolü atlandı.
+Son makbuz kontrolü ve üç ek senaryo yukarıdaki 110 testlik demetle ayrıca
+doğrulandı. Yeni Linux kabulü yapılmadı.
+[Test seçimi](TESTING.md), [kabul kaydı](ACCEPTANCE_REVIEW.md).
 
 **0.164.0:** Roadmap 1–7'nin tanımlanan motor ve ölçümlü kabul paketi tamamlandı:
 mevcut vakalar/kararlar,

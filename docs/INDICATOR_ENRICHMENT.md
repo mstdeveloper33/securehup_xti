@@ -1,6 +1,6 @@
 # IP, URL ve dosya kimliği araştırması
 
-18 Kasım 2026 · 0.164.0 · çekirdek şema 76 · engine/platform v1.
+19 Kasım 2026 · 0.168.0 · çekirdek şema 78 · engine/platform v1.
 
 RIPEstat için `./xti enrich fetch 1.1.1.1 --type ipv4 --provider ripestat`
 ve `./xti research 1.1.1.1 --type ip` kullanılır. IPv6 da desteklenir.
@@ -8,6 +8,12 @@ ve `./xti research 1.1.1.1 --type ip` kullanılır. IPv6 da desteklenir.
 Sonuç BGP ağ bloğu ve origin ASN bağlamıdır; sahiplik, konum, açık servis
 veya zararlılık doğrulamaz. Özgün yanıt ve zaman makbuzu diğer sağlayıcılarla
 aynı depoda tutulur; kaynak kesilince önceki başarılı yanıt korunur.
+
+`--provider ripestat-whois` seçimi aynı IP için ayrı RIR kayıt bağlamı
+alır: ağ aralığı, kayıtlı kuruluş ve ülke etiketi gibi seçilmiş alanlar.
+Her iki RIPEstat seçeneği aynı sağlayıcı bekleme kaydını paylaşır.
+Kayıt ülkesi fiziksel konum, kayıtlı kuruluş müşteri sahipliği doğrulaması
+değildir. [WHOIS kapsamı ve örnekleri](EVIDENCE_WORKFLOWS.md).
 
 Bir URL'nin geçmişte nasıl gözlendiğini veya bir dosya kimliğinin hangi
 bilinen dosya kaydında bulunduğunu gösterir. Dosyanın kendisi gerekmez;
@@ -47,10 +53,13 @@ yalnız saklı kayıtları okur; API veya anahtar gerektirmez.
 | CIRCL hashlookup | Bilinen dosya adı/boyutu, veri kaynağı, diğer dosya kimlikleri, varsa sağlayıcı güveni | Anahtarsız public HTTP API; best effort | Veriler CC-BY; CIRCL hizmet sayfasına atıf gerekir. Sayfa lisans sürümü belirtmiyor. |
 | urlscan | Mevcut public tarama tarihi, başlangıç/son URL, son sayfanın IP'si, başlığı | Kimliksiz public aramada sağlayıcı kotası | Ticari ürüne veri dahil etmeden önce sağlayıcı anlaşması netleştirilmeli. |
 | RIPEstat / RIPE NCC RIS | IPv4/IPv6 adresini içeren BGP ağ bloğu ve origin ASN'ler | Anahtarsız `network-info` GET; sağlayıcı sınırları geçerli | Ticari kullanım için yazılı izin gereksinimi N-022'de takip edilir; ücretsiz erişim ticari izin sayılmaz. |
+| RIPEstat / ilgili RIR | IPv4/IPv6 kayıt aralığı ve seçilmiş kuruluş alanları | Anahtarsız `whois` GET; yanıt kapsamı doğrulanır | RIPEstat ve alttaki kayıt kaynağının koşulları; N-022 takibi ve atıf korunur. |
 
 RIPEstat [uç belgesi](https://stat.ripe.net/docs/data-api/api-endpoints/network-info)
 ve [hizmet şartları](https://www.ripe.net/about-us/legal/ripestat-service-terms-and-conditions/)
 18 Kasım 2026'da incelendi. Şirket ürünü için bu koşul ayrıca tamamlanmalıdır.
+WHOIS için [resmî uç belgesi](https://stat.ripe.net/docs/data-api/api-endpoints/whois)
+19 Kasım 2026'da incelendi; aynı hizmetin ticari izin takibi açıktır.
 
 Koşullar 17 Kasım 2026'da resmî [CIRCL hizmet sayfasından](https://www.circl.lu/services/hashlookup/),
 [urlscan şartlarından](https://urlscan.io/terms/) ve
@@ -107,6 +116,8 @@ korunan yanıt, kaynak koşulları ve kayıt ayrıntılarını içerir.
 | `provider_file_hash` | CIRCL aynı dosya kaydında bu kimlikleri bildirmiş. Alt paket/parent kimlikleri eşdeğer sayılmaz. |
 | `archived_navigation` | urlscan kaydının başlangıç ve son URL'si farklı. Ara yönlendirme zinciri veya nedenine dair iddia yok. |
 | `archived_page_ip` | Kaynak, son sayfa için o IP'yi bildirmiş. Başlangıç URL'sine yanlış atanmaz. |
+| `registry_reports_range` | Kayıt kaynağı sorgulanan IP'yi içeren ağ aralığını/prefix'i bildirmiş. |
+| `registry_references_entity` | Ağ kaydı bir kuruluş kimliğine başvuruyor; doğrulanmış müşteri sahipliği değildir. |
 
 Bu bağlantılar `source_context` türündedir. Tarihî kaynak iddiasını doğrulanmış
 gözleme, IOC'ye, allowlist kararına veya otomatik alarma dönüştürmez.
@@ -135,7 +146,8 @@ seçilemez; diğer firmanın çalışma kimliği `not_found` döndürür.
 | `enrichment.history` | `indicator_type`, `value`; isteğe bağlı `provider`, `offset` (0–1.000.000), `limit` (1–100; engine varsayılanı 50, CLI 20) |
 | `enrichment.run.get` | `run_id` |
 
-`provider` URL için `urlscan`, hash için `circl`; uyumsuz seçim reddedilir.
+`provider` URL için `urlscan`, hash için `circl`, IPv4/IPv6 için
+`ripestat` veya `ripestat-whois`; uyumsuz seçim reddedilir.
 Engine okumasının `status=complete` olması canlı kaynağın başarılı olduğu
 anlamına gelmez; `data.status` ve kaynak çalışması ayrıca incelenir.
 0.157.0 [kaynak işleri](SOURCE_JOBS.md) ayrıca firma platformundan açık

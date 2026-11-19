@@ -196,6 +196,8 @@ from xti.adapters.sqlite_global_search import SQLiteGlobalSearchRepository
 from xti.interfaces.global_search import register_global_search_parser, execute_global_search_command
 from xti.interfaces.research import register_research_parser, execute_research
 from xti.interfaces.investigation import register_investigation_parser, execute_investigation
+from xti.interfaces.reports import register_report_parser, execute_report
+from xti.domain.reports import ReportError
 from xti.interfaces.company_review import register_company_review_parser, execute_company_review
 from xti.interfaces.warninglists import register_warninglist_parser, execute_warninglists
 from xti.domain.warninglists import WarninglistRunNotFound
@@ -816,6 +818,11 @@ def build_parser() -> Parser:
     register_global_search_parser(commands)
     register_research_parser(commands)
     register_investigation_parser(commands)
+    register_report_parser(commands)
+    from xti.interfaces.journal_storage import register_journal_parser
+    register_journal_parser(commands)
+    from xti.interfaces.evidence import register_evidence_parser
+    register_evidence_parser(commands)
     register_company_review_parser(commands)
     register_research_history_parser(commands)
     register_source_jobs_parser(commands)
@@ -2202,6 +2209,10 @@ def build_parser() -> Parser:
         "ioc", help="Domain, IP, URL ve hash göstergelerini kaynaklarıyla yönet.",
     )
     ioc_actions = ioc.add_subparsers(dest="ioc_action", required=True)
+    from xti.interfaces.ioc_lifecycle import register_ioc_lifecycle_parser
+    register_ioc_lifecycle_parser(ioc_actions)
+    from xti.interfaces.evidence import register_comparison_parser
+    register_comparison_parser(ioc_actions)
     ioc_add = ioc_actions.add_parser(
         "add", help="Kanonik bir IOC'ye bağımsız kaynak iddiası ekle veya gözlemi yenile.",
     )
@@ -3659,6 +3670,17 @@ def run(args: argparse.Namespace) -> int | None:
         emit(data, lines, as_json=args.json)
     elif args.command == "review-queue":
         data, lines = execute_company_review(settings.database, args)
+        emit(data, lines, as_json=args.json)
+    elif hasattr(args, "evidence_operation"):
+        from xti.interfaces.evidence import execute_evidence
+        data, lines = execute_evidence(settings.database, args)
+        emit(data, lines, as_json=args.json)
+    elif args.command == 'journals':
+        from xti.interfaces.journal_storage import execute_journal
+        data, lines = execute_journal(settings.database, args)
+        emit(data, lines, as_json=args.json)
+    elif args.command in {"reports", "observations"}:
+        data, lines = execute_report(settings.database, args)
         emit(data, lines, as_json=args.json)
     elif args.command == "investigate":
         data, lines = execute_investigation(settings.database, args)
@@ -6159,6 +6181,11 @@ def run(args: argparse.Namespace) -> int | None:
             result = product_service.revoke(args.product_id, reason=args.reason)
             emit(asdict(result), product_mutation_lines(result), as_json=args.json)
     elif args.command == "ioc":
+        if args.ioc_action == "lifecycle":
+            from xti.interfaces.ioc_lifecycle import execute_ioc_lifecycle
+            data, lines = execute_ioc_lifecycle(settings.database, args)
+            emit(data, lines, as_json=args.json)
+            return None
         if args.ioc_action in {"sync", "status"}:
             feed_repository, feed_source = make_cti_feed(settings, args.source)
             if args.ioc_action == "status":
@@ -6980,7 +7007,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except EngineJobError as exc:
         report_error(exc.code, str(exc), as_json=args.json)
         return 3 if exc.code == 'not_found' else 1
-    except ResearchHistoryError as exc:
+    except (ResearchHistoryError, ReportError) as exc:
         report_error(exc.code, str(exc), as_json=as_json)
         return 3 if exc.code == "not_found" else 1
     except (WarninglistRunNotFound, EnrichmentRunNotFound) as exc:

@@ -1,5 +1,371 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.169.0 — Yayıncı metni, yeniden inceleme ve günlük arşivi
+
+19 Kasım 2026; macOS arm64 / Python 3.13.3. Çalışma ağacı yereldir;
+önceki 0.165–0.168 değişiklikleri korunmuştur. Bu turda commit/push veya
+Linux teslimi yapılmadı. Çekirdek 79, kuyruk 3, kaynak işi 4.
+
+| Kontrol | Sonuç |
+| --- | --- |
+| İlgili geniş regresyon | 191 test / 58,846 s; başarılı, iki Linux ortamına özgü atlama. |
+| Son yayıncı/rapor/araştırma/karar/arşiv demeti | 80 test / 28,465 s; hata/atlama yok. |
+| Son kodla sınırlar ve kurulum sözleşmesi | 44 test / 16,408 s; hata/atlama yok. |
+| Kurulum kilidi ve paket doğrulaması | 56 test / 26,408 s; hata/atlama yok. |
+| Kurulu gerçek ortam doğrulayıcısı | Mutlak `.venv` yoluyla Maigret 0.6.6, Sherlock 0.16.2, feedparser 6.0.14 ve pypdf 7.1.1 birlikte doğrulandı; dış kaynak taranmadı. |
+| Gerçek terminal kabulü | 17 ayrı CLI/engine süreci / 12,346056 s; değişen dayanak → yeni karar → arşiv → restore → eski belge/ilk makbuz aynı. Kontrollü yerel belge, ağ yok. |
+| Gerçek süreç kesintisi | Arşiv gövdeleri taşındıktan sonra, commit öncesi SIGKILL; aynı planla tekrar ve iki ayrı kurtarma yedeği doğrulandı. |
+| Çekirdek 78 → 79 | Önceki günlük satırları/hash'leri korunuyor; geçiş öncesi yedek ve yeni arşiv işlemi geçti. |
+| Gerçek eski kodla geçiş/geri dönüş | `dbee4ab18349656177fc90aee65e8c7ddffdb10d` ile oluşturulmuş alan; çekirdek 75 → 79, kuyruk 2 → 3, eski iş ve kimlikler korundu; eski kod yeni şemayı reddetti ve özgün yedekten yeni alana döndü. 1,654699 s. |
+| Çok firmalı kabul | Aynı yayıncı URL/tekrar anahtarı ayrı kayıtlar; yanlış workspace ağ çağırmadan reddedilir. Soğuk gövde ve kaynak nesnesi platform yedeğiyle döner, eski workspace reddedilir. |
+
+Test demetleri örtüşür; sayıları toplanıp tek test sayısı olarak sunulmaz.
+Saklı belgeler yeni kurulum pin'i veya aktif yayıncı kapsamı değiştiğinde
+eski `publisher-text-v1` politikasıyla okunur; bu tarihî kapsam yeni ağ
+isteğine izin vermez. PDF eksik/bozuk/şifreli/boş/süre sınırı, URL/DNS/
+yönlendirme, kaynak hatası, idempotency çatışması, atomik geri alma,
+arşiv hash/boyut/olay zinciri ve salt okuma sınırları ayrıca sınandı.
+
+**Tam paket:** `./scripts/check` tamamlandı: **3.186 test / 1.429,020 s;
+3.181 başarılı, bir eski test düzeneği hatası, dört Linux atlaması**.
+Koşu exit 1 ile bitti; başarılı tam koşu diye sunulmaz. Tek hata
+`test_verifier_passes_install_lock_to_its_child_without_unlocking` içindeydi:
+sahte kurulum dizini kullanan kilit testi, yeni PDF doğrulayıcısını
+taklit etmiyordu. Testin odağı korunarak bu bağımlılık da taklit edildi;
+kurulumla ilgili 56 test yeniden geçti. Gerçek kurulu ortam doğrulayıcısı
+da ayrıca geçti. Atlamalar Linux `/proc` ve systemd gerektirir.
+
+Tam koşu başladıktan sonra saklı yayınların eski politika/sürümle okunması
+güçlendirildi ve buna bir test eklendi. Son kodun 44 testlik sınır demeti,
+80 testlik rapor demeti ve 56 kurulum testi yukarıda ayrı kayıtlıdır;
+sayıları toplanmaz. Yeni dört test modülü toplam 36 test içerir; bunların
+35'i tam koşu başlangıcında vardı. Ayrıca yükseltme betiğinin sonuç şema
+alanı ve kurulum hata önerisindeki komut düzeltildi. Son çalışma ağacı
+için ikinci tam koşu başlatılmadı.
+
+Tam koşu logu `/tmp/xti-01690-full.log`; başlangıç/son girdiler ve
+değişen sekiz dosya `/tmp/xti-01690-full-input.json` ile
+`/tmp/xti-01690-current-input.json` içindedir. 1.135 dosyalık başlangıç
+manifest SHA-256:
+`1c5957a2b3e0447ffe194a0cfcc49f19e4d34a40840f9d01761feaf318010192`.
+Son kod manifest SHA-256:
+`00bcfd387ae8fc38a35290b94bf67b5e013a09a7b6092f10f4a1f693a4dd7e03`.
+Son ilgili testlerden sonra çalışma/test/betik kodunun değişmediği
+doğrulandı. Toplu yerel kanıt kaydı `/tmp/xti-01690-verification.json`.
+
+### Canlı yayıncı kabulü
+
+Gerçek müşteriye tarama yapılmadı. Yayıncıların açık içerikleri yalnız
+`/tmp/xti-01690-live` alanında alındı; ham içerik repoya konmadı.
+
+| Kaynak | Özgün gövde | Çıkarılmış UTF-8 metin | Kanıt |
+| --- | --- | --- | --- |
+| [CERT-FR CTI-010 HTML](https://cert.cyber.gouv.fr/cti/CERTFR-2026-CTI-010/) | 22.365 bayt | 2.807 bayt | Çalışma `01da7399-dfc0-46c7-b3c4-aa8ff6fa9123`; HTML ana metni. |
+| [Aynı CERT-FR raporunun PDF'si](https://cert.cyber.gouv.fr/uploads/CERTFR-2026-CTI-010.pdf) | 1.192.133 bayt | 15.968 bayt | Çalışma `df0bc212-e455-46e9-8116-7b672051ef34`; pypdf 7.1.1, 9 sayfa. |
+| [NCSC rehber HTML'si](https://www.ncsc.gov.uk/collection/top-tips-for-staying-secure-online) | 230.787 bayt | 2.290 bayt | Son çalışma `78c7ce49-943c-4c88-bcab-9b8e40d03f9b`; SVG ikon başlığı ana başlığa karışmıyor. |
+
+PDF özgün SHA-256:
+`a6cf6915cec82d65b1e2f91595a39ebc749b40c4fcd2b01c3c16561aeb94bb19`.
+Metin SHA-256:
+`7eb3a992a48eb7098f794e8069e19cf2cdd70188da1ee0785a08fb7e4d45dce9`.
+Bütün alım zamanları, gövde/metin hash'leri ve çalışma kimlikleri
+`/tmp/xti-01690-live-evidence.json` içindedir. NCSC PDF'si ayrıca canlı
+sınanmadı; PDF ayrıştırması CERT-FR gerçek dosyası ve kontrollü gerçek
+PDF alt süreciyle sınandı. Her yayıncı içeriği veya gelecekteki erişim
+kesintisi için başarı garantisi verilmez.
+
+Diğer yerel artefaktlar: `/tmp/xti-01690-regression.log`,
+`/tmp/xti-01690-final-reports.log`, `/tmp/xti-01690-final-current.log`,
+`/tmp/xti-01690-install-final.log`, `/tmp/xti-01690-cli-acceptance.json`,
+`/tmp/xti-01690-upgrade.json`, `/tmp/xti-01690-installed-runtime-final.log`. Bunlar geçici çalışma dosyalarıdır; kalıcı
+repo kanıtı bu özet, ilgili testler ve kaynak kodudur.
+
+### Bu teslimin sınırı
+
+Arşiv aynı SQLite yedeğine dahildir, mantıksal kayıtları silmez veya
+mevcut okuma/kapasite sınırlarını kaldırmaz. Yedekler ek disk kullanır;
+SQLite dosyasının anında küçülmesi iddia edilmez. PDF OCR değildir;
+Linux adres alanı sınırı macOS'a genellenmez. Genel kaynak iş kuyruğuna
+otomatik tam URL çalıştırması eklenmedi. Geniş STIX/TAXII, LLM, .NET/UI,
+Tavily canlı kabulü ve yetkili Nmap canlı denemesi ayrı bekler.
+[Kullanım ve sözleşme](PUBLISHER_REVIEW_RETENTION.md).
+
+## 0.168.0 — Sekiz maddelik motor paketi
+
+19 Kasım 2026; macOS 26.6.2 arm64 / Python 3.13.3 / SQLite 3.53.2.
+Çekirdek 78, kuyruk 3, kaynak işi 4; eski iş 1/2/3 okuyucusu korunur.
+Bu kayıt yerel çalışma ağacının kabulüdür; GitHub push/CI veya yeni Linux
+kabulü değildir. Kullanıcı veri alanları değiştirilmedi. Testler geçici
+firma alanlarında ve kontrollü fixture ile çalıştı; aşağıdaki RIPEstat
+isteği canlı sağlayıcı denemesi olarak ayrıca belirtilir.
+
+| Kontrol | Sonuç |
+| --- | --- |
+| `umask 002; ./scripts/check` tam koşu | **3.151 test / 1.472,761 saniye: 3.145 başarılı, iki eski test beklentisi hatası, dört Linux atlaması; düzeltmeler aşağıda** |
+| Yeni iki modül: `test_evidence_delivery`, `test_source_workflows_v4` | **31 test / 8,394 saniye; OK** |
+| Kaynak işi tekrarları, kuyruk ve platform bağlantıları | **145 test / 50,484 saniye; OK** |
+| Kanıt/rapor/araştırma/kimlik/mimari demeti | **104 test / 35,109 saniye; OK** |
+| Kaynak kataloğu/adaptör/sağlayıcı/upgrade demeti | **111 test / 31,349 saniye; 109 başarılı, iki Linux atlaması** |
+| Tam koşuda görülen eski kapsam-sırası test varsayımı düzeltildikten sonra araştırma demeti | **23 test / 8,943 saniye; OK** |
+| Tam koşuda görülen ikinci eski kaynak listesi düzeltildikten sonra katalog demeti | **7 test / 0,001 saniye; OK** |
+| Son kodda gerçek terminal ve engine JSON girişi | **15 süreç / 11,679 saniye; OK** |
+| İki firma hacim, eşzamanlı okuma/yazma, rapor işi ve yedekten dönüş | **922 ölçülen süreç / 130,053 saniye toplam; OK** |
+| Gerçek eski kodla yükseltme/geri dönüş | **2,712 saniye; OK** |
+| Ortak platform worker'ında gerçek SIGTERM, izolasyon ve kurtarma | **31,586 saniye; OK** |
+| RIPEstat WHOIS, tek kamu IP'si için pasif kayıt sorgusu | **HTTP 200, bir kapsamı doğrulanmış kayıt; PASS** |
+
+Demetler örtüşür; sayıları benzersiz test sayısı gibi toplanmaz.
+Testler sırasında bulunan haber-yenileme/rapor-tekrar sınır durumu
+düzeltildi: başarısız haber adımı tekrar çalışacaksa önceki rapor yakalama
+başarısı yeniden kullanılmıyor. Değişen haber yeni belge sürümü oluşturur;
+önceki rapor makbuzu korunur. Aynı haber sağlayıcısına ait olmayan belge
+makbuzu reddedilir. Kayıt başına 2 MiB sınırı commit öncesinde denetlenir.
+
+**Tam koşu kaydı:** İlk tam koşu yeni `ripestat-whois` kaynak girdisini
+beklemeyen eski katalog testinde hata gösterdi; koşu kesildi (exit 130).
+Bu tamamlanmış veya başarılı tam test değildir. Katalog beklentisi
+güncellendi, ilgili 111 testlik demet geçti. Son üretim/test/betik kodu
+sabitlendikten sonra yukarıdaki ikinci tam koşu başlatıldı. Başlangıç
+dosya özetleri `/tmp/xti-01680-full-final-input.json` içindedir.
+
+İkinci tam koşuda `test_dns_window_does_not_claim_exhaustive_reverse_lookup`
+ilk kapsam satırının daima DNS olduğunu varsaydığı için başarısız oldu.
+Yeni `local_sightings` satırı öne gelmişti; gerçek DNS satırının
+`kind=dns`, `scope=workspace_recent_checks`, `complete=false` olduğu ve
+sonucun `partial` / `dns_history_window` taşıdığı ayrıca doğrulandı.
+Test, satırı tür/kapsamla seçip okunan kayıt/sınır sayılarını da denetleyecek
+şekilde düzeltildi. İlgili 23 testin tamamı yeniden geçti; uygulama kodu
+değişmedi. `test_source_catalog` içindeki ikinci eski kaynak listesi de
+`enrichment:ripestat-whois` girdisini beklemediği için başarısız oldu;
+kesin liste beklentisine yeni girdi eklendi ve katalog demeti geçti.
+Tam koşunun dosya özetine göre fark yalnız bu iki test dosyasındadır.
+Bu dar test düzeltmeleri için üçüncü tam koşu başlatılmadı; ilk/ikinci koşu
+logları başarılıymış gibi yeniden adlandırılmaz.
+Atlanan dört kontrol Linux `/proc` süreç sahipliği veya systemd ortamı
+gerektirir. Son kodda düzeltilmiş iki test demeti geçti; açık test hatası
+kalmadı. Üçüncü tam koşu veya yeni Linux/CI sonucu varmış gibi sunulmaz.
+Python 3.11 sözdizimi 76 değişen Python dosyasında, 626 yerel belge bağlantısı
+ve `git diff --check` doğrulandı. Başlangıç/son dosya manifestleri ile çıktı
+özetleri `/tmp/xti-01680-verification.json` içindedir; çalışma kodunun tam
+koşu boyunca değişmediği doğrulandı. Başlangıç manifest SHA-256:
+`7cc884d9d5d2cd400ecc77fccac5c9375fca8c63e681b43c1ddde41647ad5ced`;
+iki test düzeltmesinden sonraki manifest:
+`0687d680ac7932ba417b475ae607b521bcb58471fc392733e4814ae122743273`.
+
+**Yeni davranışların kabulü:** Kaynak olayının aynı kimlikle tekrarında
+tek görülme; çelişen olayda ret; geri çekme/sürüm/idempotency geçmişi;
+gelecek ve geçmiş gözlem zamanlarının ayrılması; kaynak iddiası sayısı ile
+sensör görülmesinin ayrılığı; firma dışı kayıt için `not_found` ve yanlış
+workspace için ret doğrulandı. İlişki adayının dört kuralı, eski dayanakla
+karar reddi, kimlik çevrimi/alternatif yol/geri çekme, kuruluş kimliği,
+salt okunur kesit, bozuk günlük ve kapasite aşımı da test edildi.
+Rapor işinin `news` ve saklı `mentions` seçimi, kaynak sırası/hata politikası,
+belge kaydından sonra kontrollü kesinti ve açık tekrarda sürüm çoğalmaması
+test edildi. Bu kesinti testi kontrollü istisnadır; aşağıdaki gerçek
+SIGTERM testi ortak platform worker'ına aittir.
+
+**Ölçülen hacim:** İki firmada başlangıçta toplam 2.000 sensör görülmesi
+ve 1.000 varlık. Fixture üretimi domain doğrulamasından geçen toplu
+hazırlıktır; ölçülen okumalar/yazmalar gerçek platform girişli ayrı
+süreçlerdir. 120 saniyelik eşzamanlı çalışma 152 tur, 304 yeni görülme,
+922 ölçülen süreç üretti. Okuma p50 **0,371781**, p95 **0,428108 saniye**;
+en yüksek ölçülen alt süreç RSS **56.967.168 bayt**, disk **22.599.281
+bayt**. Süreç başlatma okuma süresine dahildir. Tam test paketi aynı
+makinede eşzamanlı çalışıyordu. 5 saniye p95 / 256 MiB RSS / 512 MiB disk
+eşikleri değiştirilmedi. Her iki firma yedek/restore, görülme sayıları,
+rapor ve inceleme korunması, yeni workspace kimliği ve SQLite bütünlüğü
+kontrollerini geçti. Bu sonuç 7/24 SLA, milyonlarca olay veya PostgreSQL
+kapasite kanıtı değildir.
+
+**Geçiş ve kurtarma:** `dbee4ab18349656177fc90aee65e8c7ddffdb10d` gerçek
+eski checkout'u ile çekirdek 75/kuyruk 2 hazırlandı; yeni kodla çekirdek
+78/kuyruk 3'e yükseltildi. Eski işler/kimlikler korundu, eski kod yeni
+DB'yi reddetti; eski yedek boş hedefe geri yüklendi ve eski kodla okundu.
+Workspace kimliği yenilendi, korunmuş iş iptal edilebildi. 77 → 78'in
+yalnız yeni kanıt günlüğünü eklemesi ayrıca migration testindedir.
+Ortak platform worker'ı kaynak çağrısından önce ve kalıcı makbuzdan sonra
+SIGTERM ile kesildi; ikinci worker/kurtarma canlı süreçte `busy` döndü,
+diğer firma çalıştı. Kurtarma aynı kesilmiş işi korudu; 0/1 kaynak çağrısı
+ve 0/1 kalıcı makbuz beklenen biçimde sayıldı. Yeni rapor adımında ayrıca
+gerçek SIGTERM testi yapıldığı iddia edilmez.
+
+**Canlı kaynak:** `ripestat-whois` ile `1.1.1.1` yalnız RIPEstat'a
+sorgulandı; hedef IP'ye bağlantı/tarama yapılmadı. İlk sandbox denemesi
+ağ hatası verdi. İzinli ağ erişimiyle UTC **18 Kasım 22:01:17.006715–
+22:01:17.629209** aralığında HTTP 200 alındı; çalışma
+`c861b7d7-9453-4994-88b8-d436c626c419`, ham yanıt SHA-256
+`b4313d2e7fc5826fb2fa42ba42ac968a11ae805c694f2792e328f433c3c4716b`.
+Geçersiz IPv4/IPv6 kapsamı ve hatada eski başarının korunması kontrollü
+testlerle doğrulandı. Bu canlı kayıt sorgusu N-022 ticari iznini kapatmaz.
+
+Tekrarlanabilir komutlar:
+
+```sh
+umask 002
+./scripts/check
+./scripts/python scripts/check-evidence-acceptance.py \
+  --duration 120 --events-per-company 1000 --output /tmp/YENI_HACIM.json
+./scripts/python scripts/check-engine-upgrade.py --output /tmp/YENI_GECIS.json
+./scripts/python scripts/check-platform-acceptance.py --output /tmp/YENI_PLATFORM.json
+```
+
+Yerel kanıtlar: `/tmp/xti-01680-full-final.log`,
+`/tmp/xti-01680-full-final-input.json`,
+`/tmp/xti-01680-evidence-final.json`, `/tmp/xti-01680-upgrade-final.json`,
+`/tmp/xti-01680-platform.json`, `/tmp/xti-01680-cli-acceptance.json`,
+`/tmp/xti-01680-ripe-live-retry.json`, `/tmp/xti-01680-verification.json`
+ve ilgili demet logları. Bunlar geçici
+yerel çıktılardır; kalıcı sonuç özeti bu belgede tutulur, ham runtime
+verileri repoya girmez. Tavily anahtarı, yetkili Nmap hedefi, ticari
+izinler ve gerçek müşteri sensör bağlantısı ayrı takip edilir. Geniş
+STIX/TAXII ve LLM bu paketle açılmadı.
+
+## 0.167.0 — Raporların ortak araştırma ve inceleme geçmişine bağlanması
+
+19 Kasım 2026; macOS / Python 3.13.3. Çekirdek 77, kuyruk 3,
+rapor modeli 1, araştırma modeli 3 ve dış zarf v1 korunur; öncelik v8.
+Kullanıcı veri alanı değiştirilmedi; ağ/sırlar yerine geçici, kontrollü
+kaynak kayıtları kullanıldı. Bu canlı sağlayıcı kabulü değildir.
+
+| Kontrol | Sonuç |
+| --- | --- |
+| İlk araştırma/öncelik/geçmiş, engine kayıt/sözleşme ve mimari demeti | **129 test / 47,717 saniye; OK** |
+| Son kodda rapor/araştırma, yüzey/tedarikçi/keşif/vaka/içerik bağlantıları, investigation, platform ayrımı/yedek ve CI demeti | **252 test / 109,566 saniye; OK, atlama yok** |
+| Yeni özelliğin 15 testi, son bağlantı inceleme bütçesi dahil | **15 test / 8,744 saniye; OK**; yukarıdaki 252'nin alt kümesidir |
+| Gerçek `./xti` süreçleri: yakalama, bağlama, araştırma, öncelik, engine ayrıntısı, tekrar, yeni/eski belge | **11 süreç / 8,767 saniye; tamamı exit 0** |
+| Sözdizimi ve belgeler | Python 3.11 sözdizimi, compileall, yerel belge hedefleri ve `git diff --check` geçti |
+
+**Doğrulanan davranış:** İki adımlı IP → belge sürümü → kampanya/aktör
+yolu, türü korunmuş URL/hash/IPv6/domain adayları, metinde geçmeden insan
+tarafından bağlanan mevcut IOC, özgün arama domaininin metin eşleşmesinden
+ayrılması, farklı firmaların aynı IP'si, firma dışı belge ayrıntısının
+`not_found` olması ve salt okumada dosyanın değişmemesi. Eski belgeye yeni
+bağın taşınmaması, geri çekme geçmişi, no-op yakalama/başarısız yenilemede
+aynı kesitin korunması, değişimde sayfa reddi, v7 → v8 başlangıcı, eski
+incelemenin aynen kalması ve yedekten dönüşte kimliklerin korunması sınandı.
+
+Okuma/komşuluk/toplam bağlantı inceleme bütçelerinde açık kısmi kapsam,
+52 kanıt sınırında son karar ve gerçek toplam, bozuk günlükte ret ve
+eşzamanlı kaynak yazılırken tek SQLite okuma kesiti ayrıca doğrulandı.
+Yeni testler `test_research_reports.py` ve
+`test_research_report_contract.py`; hızlı CI demetine eklendi.
+
+**Test seçimi:** Bu turda tam paket tekrarlanmadı; önceki tam sonuç bir
+önceki sürümün aşağıdaki kaydında tutulur. Yeni okuma adaptörü/ilişki
+modeli için ilgili demetler seçildi; şema/iş kuyruğu değişmedi. İlk geniş
+komut listesinde mevcut olmayan `tests.test_company_review` adı nedeniyle
+bir loader hatası oluştu; 252 gerçek test geçti. Yanlış modül kaldırılarak
+son kodda temiz 252 testlik koşu tamamlandı; bu ürün arızası sayılmadı.
+Örtüşen demet sayıları benzersiz test sayısı olarak toplanmaz.
+
+Yerel kanıtlar: `/tmp/xti-01670-research-tests.log`,
+`/tmp/xti-01670-integration-final.log`, `/tmp/xti-01670-report-final.log`,
+`/tmp/xti-01670-process-acceptance.json`,
+`/tmp/xti-01670-verification.json`. Bunlar geçici yerel çıktılardır;
+repo veya müşteri verisi değildir. CI/Linux ve canlı kaynak kabulü bu
+turda yapılmadı. Tavily, yetkili Nmap, kullanım koşulları, 7/24 işletim ve
+geniş ölçek doğrulamaları kendi takip notlarında açık kalır.
+
+## 0.166.0 — Rapor sürümleri, insan bağlantıları ve gözlem anlamları
+
+18 Kasım 2026; macOS arm64, Python 3.13.3. Çekirdek şema 77, kuyruk 3;
+araştırma/frozen model 3 ve öncelik v7 korunur. Kullanıcı `.xti-data`
+alanı değiştirilmedi; bütün denemeler geçici fixture alanlarındadır.
+
+- Geniş ilgili demet: **194 test / 62,818 saniye**, hata/atlama yok.
+  Migration, eski investigation/araştırma geçmişi, IOC lifecycle, engine,
+  firma ayrımı, backup/restore ve mimari bağımlılıklar dahil.
+- İlk tam regresyon: **3.104 test / 1.333,225 saniye**; 3.099 başarılı,
+  bir kabul-betiği hatası, dört Linux `/proc`/systemd atlaması. Hata ve
+  düzeltme sonrası ilgili tekrar aşağıda ayrı korunur; ilk turun sonucu
+  sonradan başarılı olarak yeniden adlandırılmaz.
+- Gerçek terminal denemesinde cümle sonundaki noktanın IP adayını
+  atlatması görüldü. Yeni rapor çıkarımı v2 ile düzeltildi; eski
+  investigation v1 kayıtları yeniden yorumlanmadı. Son dar fark üç
+  dosyadır: `report_extraction.py`, `reports.py`, `test_reports.py`.
+- Son ayrıştırma ve eski sürüme bağlı karar geri çekme dahil **96 test /
+  22,925 saniye** geçti. Yeni rapor/gözlem dosyaları toplam **33** test
+  içerir; örtüşen test demetleri farklı testler gibi toplanmaz.
+- Gerçek `./xti` süreç kabulü: **13 süreç / 7,469 saniye**, başarılı.
+  Aynı içerik unchanged; değişen metin belge 2; belge 1 korunuyor;
+  terminal/engine aynı kayıt; cümle sonundaki IP metin adayı; olay zamanı
+  null; okuma DB özetini değiştirmiyor. Firma capture/show, başka firma
+  kaydında not_found ve yanlış workspace'te scope_mismatch doğrulandı.
+  Kaynak fixture'dır; yeni canlı internet sorgusu değildir.
+- Gerçek eski kodla yükseltme/geri dönüş: **1,465 saniye**, başarılı.
+  `dbee4ab18349656177fc90aee65e8c7ddffdb10d` ile hazırlanan çekirdek
+  75/kuyruk 2 → çekirdek 77/kuyruk 3. Özgün varlık/iş kimlikleri korundu;
+  eski kod yeni DB'yi reddetti. Eski yedek boş hedefe restore edildi;
+  eski kodla okuma ve korunan işi iptal başarılı, workspace kimliği yeni.
+  76 → 77'nin yalnız yeni journal eklemesi ayrıca migration testinde geçti.
+- Tam pakette eski Linux yükseltme kabul betiğinin, incelenmiş eski
+  collection tablo dönüşümünü yalnız şema 76'ya kadar kabul ettiği görüldü.
+  Şema 77 sınırı eklendi; özgün satır/rowid ve beklenen DDL denetimleri
+  korunur. Betiğin **18 testi / 2,300 saniye** yeniden çalıştırıldı:
+  16 başarılı, iki gerçek Linux `/proc` kontrolü macOS'ta atlandı.
+  İlk tam turdaki hata silinmez; düzeltme sonrası bu demet ayrı kanıttır.
+
+Denetlenen sınırlar: aynı anahtarın özgün sonuç tekrarı; aynı içerikte yeni
+anahtarın yalnız makbuz olması; A→B→A metin geçmişi; eski belge insan
+bağının geri çekilmesi; yayın günü/saat dilimi belirsizliği; kaynak hatası
+ve bozulmasında donmuş belge; CTI hedef türü/aktif kaynak/firma sınırı;
+bozuk payload/hash/zincir/silinen journal sonu; commit öncesi kapasite
+reddi; iki eşzamanlı yazar; WAL sırasında aynı kesitte rapor+IOC okuması.
+
+Yerel geçici kanıtlar: `/tmp/xti-01660-targeted-final.log`,
+`/tmp/xti-01660-parser-final.log`, `/tmp/xti-01660-process-acceptance.json`,
+`/tmp/xti-01660-upgrade-rollback.json`, `/tmp/xti-01660-upgrade-final.log`,
+`/tmp/xti-01660-full.log`. Tam koşu son dar ayrıştırma farkını içermez;
+bu fark 96 testle, kabul betiğinin düzeltmesi 18 testle ayrıca doğrulandı.
+Ortak şema kodu tam koşu sırasında değişmedi. Son dar farklar sonrasında
+ikinci tam paket çalıştırılmadı. İlk ve son dosya özetleri
+`/tmp/xti-01660-verification.json` içinde kayıtlıdır. Bu yerel çalışma
+henüz GitHub'a gönderilmiş bir commit veya yeni Linux CI kabulü değildir.
+Yeni Linux, canlı Tavily/Nmap veya 7×24/hacim kabulü iddia edilmez.
+[Kapsam ve kullanım](REPORTS_OBSERVATIONS.md).
+
+## 0.165.0 — IOC yaşam döngüsü değerlendirmesi
+
+18 Kasım 2026, yerel Python 3.13.3. Çekirdek 76, kuyruk 3; veri geçişi yok.
+
+- Son kodun hedefli demeti: **110 test / 31,616 saniye / OK**; 33 yeni
+  senaryo içerir. Günlük `/tmp/xti-01650-targeted-final.log`.
+- İlk geliştirme demeti 105 test / 29,317 saniye ve sonrasında iki
+  kapsam/yedekten dönüş testi 0,883 saniye ile geçmişti; bunlar son demetle
+  örtüşür, farklı test sayısı gibi toplanmaz.
+- `umask 002` altında `./scripts/check`: ilk uygulamanın tam regresyonu
+  **3.069 test / 1.338,055 saniye / OK (skipped=4)**. 3.065 test başarılı,
+  0 hata/başarısızlık. macOS'ta iki Linux `/proc` süreç sahipliği ve iki
+  `systemd-analyze` kontrolü ortam gerekçesiyle atlandı; başarılı sayılmadı.
+  Günlük `/tmp/xti-01650-full.log`.
+- Tam koşu başladıktan sonra yalnız yeni IOC okuyucusuna bozuk geri çekme
+  makbuzunu yerel karar saymama ve değişmeyen makbuzun önceki durumunu
+  denetleme eklendi; aynı zaman damgalı tekrarlar korunur. Bu son değişiklik
+  ve üç ek senaryo 110 testlik son demetle doğrulandı. Son kod için ikinci
+  bir tam paket çalıştırılmadı; doğrulamanın bu ayrımı korunur.
+- Son hedefli kabulden sonra runtime/test kodları değişmedi. Dosya özetleri
+  `/tmp/xti-01650-final-code.json` içinde; belge güncellemeleri bu kapsamın
+  dışındadır. Bu kabul çalışma alanındaki 0.165.0 içindir, yeni bir Linux CI
+  koşusu veya yayımlanmış sürüm etiketi değildir.
+- Gerçek üç `./xti` süreci (terminal, `--json`, engine): **0/0/0 çıkış**,
+  aynı kesit, değişmeyen DB özeti. Kontrollü eski IP kanıtı + son kaynak
+  hatası birlikte gösterildi, önceki başarı korundu. Yeni internet çağrısı
+  yok. Kanıt `/tmp/xti-01650-acceptance.json`; çalışma alanı geçicidir.
+
+Doğrulananlar: tekrar indirmede gözlem tarihi sabit; yeni sağlayıcı gözlemi
+ayrı; başarısız toplamada önceki başarı korunur; listeden kaldırma ve yerel
+geri çekme ayrılır; CERT Polska liste sürümü gerçek olay tarihi olmaz.
+Güncellik/geçerlilik eşikleri, belirsiz elle kayıt zamanı, saat tutarsızlığı,
+geçmiş/makbuz bozulması, okuma bütçesi, sayfa kesiti, terminal/JSON uyumu,
+iki firma ve aynı gösterge, bilinmeyen firma, birlikte backup/restore ile
+özgün kanıt kimlikleri test edildi. WAL üzerinde okuma sürerken yeni kaynak
+sonucu yazılması eski kesite karışmadı. Testler izole geçici alanlardadır.
+
+Bu pakette yeni canlı kaynak çağrısı yok; kontrollü snapshot'lar gerçek
+parser/depo üzerinden işlendi. Yeni Linux/30 dakika hacim/7×24 kabulü
+iddia edilmez; 0.164.0 ölçümleri aşağıda kendi kodlarıyla korunur.
+[Test düzeni](TESTING.md), [kapsam](IOC_LIFECYCLE.md).
+
 ## 0.164.0 — Roadmap 1–7 motor paketi
 
 18 Kasım 2026; kod commit'i `432f530c64c64614c6c4418eaa05e959d06c65ab`.

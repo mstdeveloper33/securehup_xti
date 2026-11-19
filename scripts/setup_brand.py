@@ -117,7 +117,7 @@ def install(project, bootstrap, lock_fd):
                 [python, "-m", "pip", "--isolated", "--disable-pip-version-check", "--no-input",
                  "--cache-dir", str(Path(temporary) / "pip-cache"), "install",
                  "--index-url", "https://pypi.org/simple",
-                 "--constraint", project / "constraints/brand.txt", f"{project}[brand,news]"],
+                 "--constraint", project / "constraints/brand.txt", f"{project}[brand,news,reports]"],
                 cwd=project, lock_fd=lock_fd, timeout=INSTALL_TIMEOUT, environment=environment,
                 stage="Paket kurulumu",
             )

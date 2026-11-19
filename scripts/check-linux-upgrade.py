@@ -290,7 +290,7 @@ def require_preserved_tables(before, after):
     for name, expected in before[1].items():
         actual = after[1].get(name)
         reviewed_upgrade = (
-            before[0] <= 68 and 69 <= after[0] <= 76
+            before[0] <= 68 and 69 <= after[0] <= 79
             and name in ("collection_session_steps", "collection_step_receipts")
             and _preserved_collection_upgrade(name, expected, actual)
         )
@@ -325,9 +325,9 @@ def _preserved_collection_upgrade(name, expected, actual):
     )
 
 
-def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=76):
+def migrate_acceptance_data(environment, before_files, before_database, *, target_schema=79):
     """Exercise a reviewed explicit schema64 upgrade, retaining its original backup."""
-    COMMON.require(target_schema in (65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76), "Unsupported migration target.")
+    COMMON.require(target_schema in (65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79), "Unsupported migration target.")
     data = Path(environment["XTI_DATA_DIR"])
     error = command(["./setup", "--core-only"], environment, expected=None)
     COMMON.require("migrate" in error, "Old data was not rejected with explicit migration guidance.")
@@ -353,7 +353,7 @@ def migrate_acceptance_data(environment, before_files, before_database, *, targe
     COMMON.require(repeated.get("changed") is False and repeated.get("backup") is None,
                    "Repeated migration was not a no-op.")
     COMMON.require(COMMON.snapshot(data) == after_files, "Repeated migration changed database or backup bytes.")
-    COMMON.summary(f"- PASS: schema64 setup refused without writes; explicit schema{target_schema} migration preserved all old rows/rowids/evidence, applied reviewed schema additions through the investigation journal and created an unchanged schema64 backup.")
+    COMMON.summary(f"- PASS: schema64 setup refused without writes; explicit schema{target_schema} migration preserved all old rows/rowids/evidence, applied reviewed schema additions through the report journal and created an unchanged schema64 backup.")
     return backup, after_files
 
 
@@ -524,7 +524,7 @@ def main(arguments=None):
             stage = "candidate schema compatibility"
             command(["git", "checkout", "--detach", checked_commit(target)], environment)
             target_schema = int(command(["./scripts/python", "-c", "from xti.adapters.schema import SCHEMA_VERSION; print(SCHEMA_VERSION)"], environment))
-            COMMON.require(target_schema in (64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76), "Only reviewed schema64–76 candidates are supported by this acceptance.")
+            COMMON.require(target_schema in (64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79), "Only reviewed schema64–79 candidates are supported by this acceptance.")
             backup, current_files = None, before
             if target_schema > 64:
                 stage = f"explicit schema64 to schema{target_schema} migration"
@@ -583,7 +583,7 @@ def main(arguments=None):
 
             stage = "real package subprocess interruption and recovery"
             interrupt_real_install(project, options.tool, environment)
-        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit migration through schema76 with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
+        COMMON.summary("- RESULT: PASS. Scope: schema64 same-schema or explicit migration through schema79 with new-path backup recovery; pinned tools and preserved environment during reader installation; process crash, not hardware power loss; no target scan or source collection.")
         return 0
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
         COMMON.summary(f"- RESULT: FAIL at {stage}: {error}")

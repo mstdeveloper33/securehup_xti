@@ -266,6 +266,24 @@ def _validate_installation_lock(descriptor: int) -> None:
         raise VerificationError("Kurulum kilidi descriptor'ı doğrulanamadı.") from error
 
 
+def _verify_pdf_runtime(prefix: Path) -> None:
+    try:
+        installed = distribution('pypdf')
+        if installed.version != '7.1.1' or not _inside(Path(installed.locate_file('')), prefix):
+            raise VerificationError('PDF paketi sürümü veya kurulum konumu uyuşmuyor.')
+        module = importlib.import_module('pypdf')
+        if not _inside(Path(module.__file__), prefix):
+            raise VerificationError('PDF modülü proje sanal ortamının dışında.')
+        stream = BytesIO()
+        writer = module.PdfWriter()
+        writer.add_blank_page(width=72, height=72)
+        writer.write(stream); stream.seek(0)
+        if len(module.PdfReader(stream, strict=True).pages) != 1:
+            raise VerificationError('PDF okuyucusu yerel dosyayı doğrulayamadı.')
+    except (PackageNotFoundError, ImportError, AttributeError, TypeError, ValueError) as error:
+        raise VerificationError('PDF okuyucusu eksik veya bozuk; ./scripts/setup-brand çalıştır.') from error
+
+
 def _verify_locked(prefix: Path, descriptor: int) -> None:
     if sys.version_info < (3, 11):
         raise VerificationError("Python 3.11 veya daha yeni bir sürüm gerekiyor")
@@ -273,6 +291,7 @@ def _verify_locked(prefix: Path, descriptor: int) -> None:
         raise VerificationError("doğrulayıcı hedef sanal ortamdan çalıştırılmadı")
     _verify_constraints(CONSTRAINTS)
     _verify_news_runtime(prefix)
+    _verify_pdf_runtime(prefix)
     for tool in TOOLS:
         _verify_distribution(tool, prefix)
 
@@ -335,7 +354,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(
         f"Marka araçları doğrulandı: Maigret {MAIGRET_VERSION}, "
-        f"Sherlock {SHERLOCK_VERSION}; RSS/Atom okuyucusu feedparser {NEWS_PACKAGES[0][1]}."
+        f"Sherlock {SHERLOCK_VERSION}; RSS/Atom feedparser {NEWS_PACKAGES[0][1]}; PDF pypdf 7.1.1."
     )
     return 0
 

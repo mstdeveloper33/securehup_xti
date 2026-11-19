@@ -12,7 +12,7 @@ def make_enrichment_service(database, *, refresh=False, request_usage=None):
 
 
 def register_enrichment_parser(commands):
-    parser = commands.add_parser("enrich", help="URL ve dosya kimliği için kaynaklı bağlam araştırması.")
+    parser = commands.add_parser("enrich", help="IP, URL ve dosya kimliği için kaynaklı bağlam araştırması.")
     actions = parser.add_subparsers(dest="enrichment_action", required=True)
     for name, help_text in (("fetch", "URL/hash değerini resmî kaynağa sorgula ve yanıtı sakla."),
                             ("lookup", "Kayıtlı yanıtı ağ kullanmadan göster."),
@@ -20,7 +20,7 @@ def register_enrichment_parser(commands):
         sub = actions.add_parser(name, help=help_text)
         sub.add_argument("value")
         sub.add_argument("--type", dest="indicator_type", choices=("url", "md5", "sha1", "sha256", "ipv4", "ipv6"), required=True)
-        sub.add_argument("--provider", choices=("circl", "urlscan", "ripestat"))
+        sub.add_argument("--provider", choices=("circl", "urlscan", "ripestat", "ripestat-whois"))
         if name == "lookup":
             sub.add_argument("--stale-after-hours", type=int, default=24)
         if name == "history":
@@ -64,7 +64,7 @@ def enrichment_lines(data, *, data_dir=None):
         else:
             lines.append("Kaynakta ek sonuç var; bu sorgu ilk 20 arşiv kaydıyla sınırlıdır.")
     if data.get("excluded_count"):
-        lines.append(f"Tam URL eşleşmesi olmadığı için dışarıda kalan kayıt: {data['excluded_count']}")
+        lines.append(f"Seçilen gösterge kapsamına alınmayan kaynak kaydı: {data['excluded_count']}")
     if data.get("search_date_limit_days"):
         lines.append(f"Kaynağın arama penceresi: son {data['search_date_limit_days']} gün.")
     lines.append("Kaynak / kullanım koşulları: " + data["source"]["terms_url"])

@@ -178,8 +178,8 @@ class SQLiteEngineJobRepository:
                             or datetime.fromisoformat(job.created_at) < datetime.fromisoformat(parent.finished_at)
                             or (parent.status == 'interrupted' and not payload.allow_uncertain)):
                         raise ValueError('Retry parent binding')
-                    reusable = tuple({'key': step['key'], 'receipt': step['receipt']} for step in parent.steps
-                                     if step['key'] != 'review' and step['status'] == 'complete')
+                    from xti.domain.source_jobs import reusable_steps
+                    reusable = reusable_steps(parent, version=payload.version)
                     if payload.reused != reusable:
                         raise ValueError('Retry receipt binding')
                 return replay_source_job(job, events)

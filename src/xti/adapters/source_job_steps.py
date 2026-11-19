@@ -7,9 +7,10 @@ from xti.domain.source_job_usage import RequestUsageMeter, request_ceiling
 
 
 class ExistingSourceJobOperations:
-    def __init__(self, enrichment, warninglists, research, *, news=None, investigations=None):
+    def __init__(self, enrichment, warninglists, research, *, news=None, investigations=None, reports=None):
         self.enrichment, self.warninglists, self.research = enrichment, warninglists, research
         self.news, self.investigations = news, investigations
+        self.reports = reports
 
     @staticmethod
     def _enrichment_receipt(data):
@@ -27,7 +28,7 @@ class ExistingSourceJobOperations:
 
     def _execute(self, key, plan, job_id, meter):
         options = {'refresh': True, **({'request_usage': meter} if meter is not None else {})}
-        if key in {'circl', 'urlscan', 'ripestat'}:
+        if key in {'circl', 'urlscan', 'ripestat', 'ripestat-whois'}:
             service = self.enrichment(**options)
             data = service.refresh(provider=key, indicator_type=plan['indicator_type'], value=plan['value'])
             return self._enrichment_receipt(service.show(data['run']['id']))
@@ -49,6 +50,8 @@ class ExistingSourceJobOperations:
                 record = result['record']
                 records.append({'id': record['id'], 'proposal_sha256': identity(record['proposal'])})
             return {'kind': 'report_extractions', 'records': records, 'has_more': page.has_more}
+        if key == 'report-capture':
+            return self.reports().execute(plan, job_id)
         data = self.research().record(**{name: plan[name] for name in SCOPE_FIELDS},
                                      idempotency_key='source-job-review:' + job_id)
         return {'kind': 'research_review', 'review_id': data['review']['id']}
@@ -56,7 +59,7 @@ class ExistingSourceJobOperations:
     def verify(self, key, receipt, plan):
         validate_receipt(key, receipt, plan)
         receipt = {name: value for name, value in receipt.items() if name != 'usage'}
-        if key in {'circl', 'urlscan', 'ripestat'}:
+        if key in {'circl', 'urlscan', 'ripestat', 'ripestat-whois'}:
             actual = self._enrichment_receipt(self.enrichment().show(receipt['run_id']))
             if receipt != actual:
                 raise StorageError('İş başvurusu özgün kaynak kanıtıyla uyuşmuyor.')
@@ -64,6 +67,8 @@ class ExistingSourceJobOperations:
             run = self.news().run_show(receipt['run_id'], limit=1).run
             if run.source_key != receipt['source'] or run.status != receipt['source_status']:
                 raise StorageError('Haber iş başvurusu özgün kaynakla uyuşmuyor.')
+        elif key == 'report-capture':
+            self.reports().verify(receipt, plan)
         elif key == 'reports':
             from xti.domain.research import identity
             for row in receipt['records']:
