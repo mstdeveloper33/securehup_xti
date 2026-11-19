@@ -30,10 +30,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-029 — Tam yayın metni, yeniden inceleme ve günlük arşivi
 
-- **Durum:** Uygulandı; lisans koşulları sürekli, Linux teslimi ayrı. **Güncellendi:** 19 Kasım 2026.
+- **Durum:** Uygulandı ve GitHub/Linux teslimi tamamlandı; lisans koşulları sürekli. **Güncellendi:** 19 Kasım 2026.
 - **Yetki:** Kullanıcı önceki sıranın 2, 3 ve 4. maddelerini istedi.
   Sonraki 19 Kasım yönlendirmesinde GitHub/Linux teslim adımıyla devam
-  edilmesini onayladı; gönderim ve Linux sonuçları ayrıca kaydedilecek.
+  edilmesini onayladı; `071a076` kodu `main` dalına gönderildi.
 - **Kaynak seçimi:** CERT-FR metinleri açık lisans 2.0; NCSC metinleri
   belirtilen istisnalar dışında OGL v3 koşullarıyla sunuluyor. Kaynak,
   lisans ve özgün bağlantı korunur; üçüncü taraf/özel kısıt istisnaları
@@ -56,6 +56,14 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   test düzeltildi, ilgili 56 kontrol yeniden geçti. Son kod için odaklı
   test sonuçları ve tam koşudan sonraki değişiklikler
   [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) ayrı tutulur.
+- **Sonraki Linux teslimi:** Aynı `071a076` commit'inde altı workflow
+  başarılı. Tam paket 3.187 test / 1.908,627 saniye; hızlı paket 1.890 test /
+  1.264,694 saniye; hata/atlama yok. Gerçek marka/PDF/RSS ve theHarvester
+  kurulumu, firma izolasyonu, 64 → 79 geçişi ve kesilen kurulumdan dönüş
+  doğrulandı. Önceki macOS test düzeltmesi bu tam koşuya dahildir.
+  Bu sonuç kaynakların sürekli erişilebilirliği veya 7/24 kapasite
+  garantisi değildir; sonraki toplu metin işleri/bildirim/kapasite
+  genişletmeleri [yol haritasında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md) henüz plan olarak durur.
 - **Dayanak:** [Teslim planı](docs/roadmap/REPORT_REVIEW_RETENTION_DELIVERY.md),
   [CERT-FR koşulları](https://cert.cyber.gouv.fr/mentions-legales/),
   [NCSC koşulları](https://www.ncsc.gov.uk/section/about-this-website/terms-and-conditions),

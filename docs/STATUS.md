@@ -1,5 +1,15 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.169.0 GitHub/Linux teslimi tamamlandı:** `071a076` kodu `main` dalına
+gönderildi; altı GitHub çalışması başarılı. Ubuntu 24.04 x86_64 üzerinde
+Python 3.13.18 tam paketi **3.187 test / 1.908,627 saniye**, Python 3.11
+hızlı paketi **1.890 test / 1.264,694 saniye**; ikisinde de hata/atlama yok.
+Python 3.11/3.12 gerçek normal kurulum, theHarvester kurulumu, iki firma
+izolasyonu ve 64 → 79 yükseltme/kurulum kesintisi/geri dönüş kabulü geçti.
+Son belge güncellemesi çalışma kodunu değiştirmez.
+[Linux sonuçları](ACCEPTANCE_REVIEW.md#01690--github-ve-linux-teslimi),
+[güncelleme adımları](GETTING_STARTED.md#güncelleme).
+
 **0.169.0:** CERT-FR/NCSC HTML/PDF alımı ve model 2 tam metin belgesi,
 değişen ilişki dayanakları için `relationships.queue`, rapor/görülme
 geçmişini silmeden yedekli sıkıştırma/geri alma uygulandı. Kaynak hata
@@ -9,12 +19,12 @@ Kuyruk 3, kaynak işi 4, araştırma 3, öncelik v8 ve dış JSON v1 korunur.
 [Kullanım](PUBLISHER_REVIEW_RETENTION.md),
 [karar](decisions/0174-publisher-review-retention.md).
 
-Yerel odaklı doğrulama ve üç canlı yayıncı alımı geçti. Tam paket 3.186
+**Önceki yerel doğrulama:** Odaklı testler ve üç canlı yayıncı alımı geçti. Tam paket 3.186
 testte 3.181 başarı, bir eski test düzeneği hatası ve dört Linux atlamasıyla
 bitti. Hata düzeltildi; ilgili 56 kurulum testi yeniden geçti. Son kodun
 44 sınır ve 80 rapor testi de başarılı; tam paket yeniden çalıştırılmadı.
-[Kabul kaydı](ACCEPTANCE_REVIEW.md) kapsamı ayırır; Linux/push bu paketin
-kabulü sayılmaz.
+[Kabul kaydı](ACCEPTANCE_REVIEW.md) bu yerel koşuyla sonraki Linux
+teslimini ayrı tutar; tamamlanan Linux sonucu yukarıdadır.
 
 **0.168.0:** Sekiz maddelik paket; otomatik sürümlü rapor adımı, sınırlı iki
 adımlı kanıttan ilişki önerileri ve ayrı insan kararları, kabul edilmiş

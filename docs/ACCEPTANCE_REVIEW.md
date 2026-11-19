@@ -1,8 +1,45 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.169.0 — GitHub ve Linux teslimi
+
+19 Kasım 2026. Teslim edilen kod:
+[`071a076778c0f1f6e297c91e76dbc918cda21d92`](https://github.com/mstdeveloper33/securehup_xti/commit/071a076778c0f1f6e297c91e76dbc918cda21d92).
+Önceki 0.165–0.169 yerel değişiklikleri birlikte `main` dalına gönderildi.
+Çekirdek 79, kuyruk 3; aşağıdaki sonuçlar bu kesin commit'e aittir.
+Kaynak kodundan sonraki güncelleme komutları/belge düzeltmeleri ayrı tutulur.
+
+| Linux kontrolü | Sonuç ve kanıt |
+| --- | --- |
+| Normal kurulum; Python 3.11.18 / 3.12.16 | **Başarılı.** Her Python sürümünde 125 kurulum testi; gerçek `./setup`, tekrar kurulumda aynı ortam/veri, engine okuması ve yeni dizine yedekten dönüş. Maigret, Sherlock, feedparser ve pypdf kurulum doğrulayıcısından geçti. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44475782480). |
+| theHarvester temiz kurulumu; Python 3.11.18 | **Başarılı.** 104 ilgili test; sabit araç kurulumu, indirme engellenmiş tekrar, mevcut veri hash'lerinin korunması ve yedekten dönüş. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44475782382). |
+| Firma izolasyonu; Python 3.11 / 3.13 | **Başarılı.** İki firma, 100/1.000 kayıt ve Python başına 36 okuma; kuyruk çekişmesi ve gerçek SIGTERM sonrası kurtarma. p95 süreç süresi sırasıyla 0,827677 / 0,967448 saniye. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44475782373). |
+| Eski sürümden yükseltme ve kurulum kesintisi | **Başarılı.** Marka araçları ve theHarvester için eski gerçek kurulumdan 64 → 79 yedekli geçiş; eski satır/kimlik/kanıtların korunması, eski kodun yeni şemayı reddetmesi, ayrı dizine eski yedekten dönüş ve gerçek kurulum alt süreci kesintisinden kurtarma. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44475855410). |
+| Hızlı regresyon; Python 3.11 | **Başarılı.** 1.890 test / 1.264,694 saniye; hata ve atlama yok. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44475782389). |
+| Tam paket; Python 3.13.18 | **Başarılı.** 3.187 test / 1.908,627 saniye; hata ve atlama yok. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44475846163). |
+
+Bunlar Ubuntu 24.04 x86_64 üzerindeki tanımlı kurulum/yerel veri
+senaryolarıdır. Gerçek müşteri taraması, Tavily canlı sorgusu, gelişmiş
+Nmap canlı kabulü veya uzun süreli 7/24 hizmet ölçümü olarak sunulmaz.
+Tam paket tek işte çalıştırılır; yükseltme workflow'unda yalnız `upgrade`
+seçildiği için oradaki ikinci tam paket ve işletim işi bilerek çalıştırılmaz.
+Örtüşen demet sayıları toplanmaz.
+
+Altı workflow'un tamamı aynı `071a076` koduyla başarılı tamamlandı.
+Yeni yayıncı/yeniden inceleme/arşiv modüllerinin 36 testi hızlı Linux
+paketinde de geçti. Aşağıdaki önceki macOS koşusunda görülen test düzeneği
+hatasının düzeltmesi, bu tamamlanmış Linux tam koşusunda yer alır.
+Belge kapanışında kaynak, test, kurulum ve CI dosyalarının test edilen
+commit ile aynı olduğu ayrıca doğrulanır; yalnız Markdown belgeleri değişir.
+
+Yerel kanıtlar `/tmp/xti-01690-linux-delivery.json`,
+`/tmp/xti-01690-linux-runs.json` ve ilgili `linux-*.log` dosyalarıdır.
+Kalıcı kanıt, yukarıdaki GitHub çalışma bağlantıları ve bu kabul kaydıdır;
+geçici loglar, sırlar ve test veritabanları repoya eklenmez.
+
 ## 0.169.0 — Yayıncı metni, yeniden inceleme ve günlük arşivi
 
-19 Kasım 2026; macOS arm64 / Python 3.13.3. Çalışma ağacı yereldir;
+İlk uygulama turunun yerel kaydı: 19 Kasım 2026; macOS arm64 / Python 3.13.3.
+Bu aşamada çalışma ağacı yereldi;
 önceki 0.165–0.168 değişiklikleri korunmuştur. Bu turda commit/push veya
 Linux teslimi yapılmadı. Çekirdek 79, kuyruk 3, kaynak işi 4.
 

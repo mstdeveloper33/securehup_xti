@@ -3,7 +3,27 @@
 **0.169.0 teslimi:** Kullanıcının seçtiği 2/3/4; izinli yayıncı HTML/PDF,
 ilişki yeniden inceleme ve kayıpsız günlük arşivi uygulandı.
 [Kapsam ve kabul tablosu](REPORT_REVIEW_RETENTION_DELIVERY.md).
-GitHub/Linux teslimi ayrı sırada; LLM ve geniş STIX/TAXII bekler.
+GitHub/Linux teslimi `071a076` koduyla tamamlandı: altı workflow başarılı,
+3.187 testlik tam Linux paketi hatasız/atlamasız geçti.
+[Kabul kaydı](../ACCEPTANCE_REVIEW.md#01690--github-ve-linux-teslimi).
+LLM ve geniş STIX/TAXII bekler.
+
+### 19 Kasım — 0.169.0 tesliminden sonraki önerilen sıra
+
+Kullanıcı GitHub/Linux teslim adımıyla devam edilmesini istedi. Kod
+`071a076` olarak gönderildi ve Linux kabulü tamamlandı; çalışma sonuçları
+[kabul kaydında](../ACCEPTANCE_REVIEW.md) tutulur. Aşağıdaki üç genişletme
+henüz uygulanmadı; mevcut `reports.fetch`, yeniden inceleme listesi ve
+yerel kapasite testleriyle karıştırılmaz.
+
+| Sonraki iş | Uygulama sınırı | Tamamlanma ölçütü |
+| --- | --- | --- |
+| Tam metni yönetilen işlere katma | Önce açıkça seçilmiş, izinli yayıncı URL'leri. Mevcut plan/iş/worker, firma kapsamı, bütçe ve iptal düzeni kullanılır; yeni uygulama backend'i kurulmaz. | Plan ağ kullanmadan URL ve sınırları gösterir. Gerçek yönlendirme/istek tüketimi sayılır. Belge kaydından sonra süreç kesilirse aynı sonuç çoğalmadan bulunur. Başarısız makbuzla açık tekrar ayrılır; önceki iş sürümleri okunur. Terminal ve firma JSON aynı davranır. |
+| Yeniden incelemeyi bildirim ve vakaya bağlama | Değişen karar dayanağı mevcut yerel kutuya bağlanır; vakaya ekleme insan seçimidir. | Aynı kanıt değişimi tekrar bildirim üretmez; önceki/güncel dayanak ve karar ayrı görünür. Kısmi görünüm kaybolmuş kanıt sayılmaz. Firma sınırı, eski karar ve geri alma korunur; otomatik tehdit/ihlal kararı veya dış aksiyon oluşmaz. |
+| HTML/PDF birikimiyle Linux kapasite ölçümü | Bu sürümün kurulum kabulünden ayrı, yeni içerik türleriyle uzun çalışma. | Önceden tanımlı iki firma/yük profilinde disk, bellek, gecikme, kuyruk, arşiv ve yedekten dönüş ölçülür. Makine/süre/yük raporda yer alır; mevcut 64 MiB özgün nesne ve okuma sınırları saklanmaz veya ölçmeden kaldırılmaz. |
+
+PDF bağlantılarını otomatik izleyen genel tarayıcı, tüm internet taraması,
+LLM, geniş STIX/TAXII ve .NET/UI bu üç işle kendiliğinden açılmaz.
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
 **Mevcut sürüm:** 0.169.0 / çekirdek şema 79, ayrı platform iş şeması 3.

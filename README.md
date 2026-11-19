@@ -4,7 +4,8 @@
 `relationships queue` dayanağı değişen insan kararlarını gösterir;
 `journals` eski gövdeleri geçmişi silmeden, yedek alarak sıkıştırır ve geri
 alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
-`./setup`, ardından `./xti migrate`. [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
+`git pull --ff-only`, `./xti migrate`, ardından `./setup`.
+[Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
 **Sürüm:** 0.169.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 79 · **İş kuyruğu:** 3.
 

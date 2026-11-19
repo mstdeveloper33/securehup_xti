@@ -10,11 +10,20 @@ JSON aynı uygulama servislerini kullanır.
 
 ## Kurulum ve güncelleme
 
+Yeni klonda `./setup` yeterlidir. Mevcut veri alanını güncellerken önce
+açık toplama/worker süreçlerini bitir, sonra repo klasöründe:
+
 ```sh
-./setup
+git pull --ff-only
 ./xti migrate
+./setup
 ./xti reports publishers
 ```
+
+`migrate` geçiş öncesi yedeği alır; mevcut şema zaten 79 ise değişiklik
+yapmaz. Bu sıra, eski şemanın `./setup` sonundaki `init` adımında ret
+vermesini önler. Farklı veri dizini kullanıyorsan aynı `XTI_DATA_DIR`
+ayarı veya `--data-dir` seçimi korunmalıdır.
 
 Normal kurulum artık `brand,news,reports` paketlerini birlikte doğrular.
 PDF için **pypdf 7.1.1** sabittir; ücretli API/anahtar gerekmez. Çekirdek
@@ -207,7 +216,10 @@ izolasyonu, yedek/restore, şema 78 → 79, eski makbuz tekrarı ve bozuk
 arşiv için testler vardır. Sayılar ve tam paket sonucu
 [kabul kaydındadır](ACCEPTANCE_REVIEW.md).
 
-LLM, geniş STIX/TAXII, UI/.NET, OCR, dağıtık arşiv, toplu tam metin
-iş kuyruğu ve GitHub/Linux teslimi bu paketin tamamlanma iddiası değildir.
+GitHub/Linux teslimi ayrıca tamamlandı: aynı `071a076` kodunun altı
+workflow'u başarılı, 3.187 testlik tam paketi hatasız/atlamasız geçti.
+[Linux kabulü](ACCEPTANCE_REVIEW.md#01690--github-ve-linux-teslimi).
+LLM, geniş STIX/TAXII, UI/.NET, OCR, dağıtık arşiv ve toplu tam metin
+iş kuyruğu bu paketin tamamlanma iddiası değildir.
 Kaynak koşulları [NOTES N-029](../NOTES.md#n-029--tam-yayın-metni-yeniden-inceleme-ve-günlük-arşivi)
 ve [üçüncü taraf bildiriminde](../THIRD_PARTY.md) takip edilir.

@@ -23,7 +23,10 @@ ayrı kaydedilir. PDF ayrıştırıcısı bağımsız adaptör ve sınırlı sü
 
 Terminal ve mevcut firma JSON sözleşmesi birlikte sunulur. Geniş
 STIX/TAXII, LLM, .NET/UI, Tavily anahtarı ve yetkili Nmap testi bu pakette
-açılmıyor. Bu turda push istenmedi; çalışma yerel repoda sürüyor.
+açılmıyor. İlk uygulama turunda push kapsam dışındaydı; sonraki kullanıcı
+yönlendirmesiyle `071a076` kodu GitHub'a gönderildi. Altı Linux workflow'u
+ve 3.187 testlik tam paket başarılı; hata/atlama yok.
+[Linux teslimi](../ACCEPTANCE_REVIEW.md#01690--github-ve-linux-teslimi).
 
 Güncel sürüm **0.169.0 / çekirdek 79**. [Kullanım](../PUBLISHER_REVIEW_RETENTION.md),
 [mimari karar](../decisions/0174-publisher-review-retention.md),

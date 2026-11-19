@@ -221,26 +221,28 @@ aynı komutta kullanılamaz.
 Yeni geliştirmeleri aldıktan sonra:
 
 ```sh
-git pull
+git pull --ff-only
+./xti migrate
 ./setup
 ```
 
-`./setup` eski şemayı otomatik değiştirmez. Bir geçiş gerekiyorsa açıkça
-`./xti migrate` çalıştırmanı ister; böylece yerel verin sessizce değiştirilmez.
-
-0.147.0 çekirdek şema 69'u korur; şema 69'daki kişisel veritabanı için
-yeni geçiş gerekmez. Şema 68'deysen 0.146.0'ın haber toplama/arama
-bağlarını ekleyen 68→69 geçişi gerekir. Güncel kodla `./xti migrate`
-çalıştırıldığında önce benzersiz kurtarma yedeği alınır; eski kayıtlar,
-tanım/kanıt JSON'u ve hash'leri korunur. Daha eski şemalarda önceki gerekli
-adımlar da uygulanır. Eski kod yeni şemayı açmayabilir.
+0.169.0 çekirdek şema 79'u kullanır. `./xti migrate` gerektiğinde önce
+benzersiz kurtarma yedeği alır; eski kayıtlar, tanım/kanıt JSON'u ve hash'leri
+korunarak gerekli geçişler uygulanır. Zaten güncelse işlem değişiklik yapmaz.
+`./setup` PDF ve RSS/Atom paketleriyle marka araçlarını kurar/doğrular;
+veritabanını kendiliğinden yükseltmez. Farklı bir veri klasörü kullanıyorsan
+aynı `XTI_DATA_DIR` ayarını koru veya `migrate` için `--data-dir` belirt.
+Eski kod yeni şemayı açmayabilir.
 Eski sürüme dönmek gerekiyorsa geçiş öncesi yedeği aşağıdaki geri yükleme
 akışıyla ayrı, yeni bir veri dizinine aç; çalışan veritabanının üzerine
 yazma. Tavily için ek paket kurulmaz; `./xti mentions configure` ile özel
 anahtarını tanımla. [Tekil arama](MENTIONS.md), [bütçeli firma/tedarikçi izleme](MENTION_GROUPS.md).
 
-Platform alanının sürüm 1 iş kuyruğu `platform provision` ile ayrı dosyada
-açıkça kurulur; kişisel `migrate` mevcut veriyi platform alanına taşımaz.
+İş kuyruğu şeması ayrıdır ve güncel sürümü 3'tür. Eski kişisel kuyruğu
+kullanıyorsan `./xti source-jobs migrate`, firma kuyruğunda
+`platform jobs-migrate --root ... --company ...` gerekir. Kuyruğu olmayan
+kurulumda bu geçişe gerek yoktur. Firma veri alanının çekirdek geçişi de
+kendi dizininde yapılır; kişisel `migrate` mevcut veriyi platform alanına taşımaz.
 
 0.143.0'daki RSS/Atom haber bağımlılıkları henüz yoksa `./scripts/setup-brand`
 çalıştır. Mevcut ortamda paketler yoksa kurucu eski ortamı yedekleyip yeni

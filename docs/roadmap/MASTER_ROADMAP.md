@@ -3,8 +3,10 @@
 19 Kasım 2026 / 0.169.0: izinli yayıncı tam metni, değişen ilişki dayanağı
 incelemesi ve geçmişi silmeyen günlük arşivi uygulandı.
 [Teslim kapsamı](REPORT_REVIEW_RETENTION_DELIVERY.md); canlı/yerel kabul
-ayrı kaydedilir. Geniş STIX/TAXII, LLM ve Linux/push teslimi bu işlerle
-kendiliğinden tamamlanmış sayılmaz.
+ayrı kaydedilir. Sonraki GitHub/Linux teslimi `071a076` ile tamamlandı;
+altı workflow ve 3.187 testlik tam Linux paketi geçti.
+[Kanıt](../ACCEPTANCE_REVIEW.md#01690--github-ve-linux-teslimi).
+Geniş STIX/TAXII ve LLM bekler.
 
 **19 Kasım 2026 / 0.168.0:** Kullanıcının yetkilendirdiği sekiz maddelik
 rapor/ilişki/kimlik/WHOIS/görülme/akış/karşılaştırma/kapasite paketi
