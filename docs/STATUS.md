@@ -4,8 +4,16 @@
 aynı domainin `about` ana sayfa yönlendirmesi desteklendi. Aktarılan ve açılmış
 gövde ayrı ayrı 2 MiB ile sınırlı; bozuk gzip, başka host ve özel IP reddedilir.
 Şema81 ve karar politikası v1 korunur; eski sosyal keşif makbuzları değişmez.
-İlgili 62 test / 13,449 sn geçti. Yeni canlı karşılaştırma ve son Linux
-sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) ayrıca takip edilir.
+İlgili 62 test / 13,449 sn ve 40 sınır testi geçti. On firmada önceden
+belirlenmiş 26 hesabın tamamı keşfedildi: 23 doğrulanan, üç LinkedIn adayı.
+Medyan 11,139 sn; yeni ücretli arama yok. Bu örneklem genel doğruluk oranı değildir.
+[Bütün hesaplar ve yöntem](SOCIAL_DISCOVERY_ACCEPTANCE.md),
+[Linux kabul kaydı](ACCEPTANCE_REVIEW.md).
+**GitHub/Linux teslimi tamamlandı:** `1ead830` kodunda beş çalışma başarılı;
+tam paket **3.262 test / 1.394,267 sn**, hızlı paket **1.965 test / 1.151,643 sn**,
+hata/atlama yok. Temiz kurulum, marka araçları ve firma ayrımı geçti.
+64→81 yükseltme/kurtarma, aynı migration kodunun `a5672d7` sürümünde doğrulandı.
+Son belge güncellemesi uygulama kodunu değiştirmez.
 
 **0.171.0:** Firma/domaininden birleşik sosyal keşif tamamlandı: Maigret,
 Sherlock, firma ana sayfası, saklı aramalar ve isteğe bağlı Tavily tek sonuçta

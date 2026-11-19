@@ -1,5 +1,38 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.171.1 — GitHub ve Linux teslimi
+
+19 Kasım 2026. Son uygulama kodu
+[`1ead8300a25b72369f741fac66e26d94e88c5544`](https://github.com/mstdeveloper33/securehup_xti/commit/1ead8300a25b72369f741fac66e26d94e88c5544)
+`main` dalına gönderildi. Bu commit'teki beş GitHub çalışması başarılıdır.
+
+| Kontrol | Ortam ve sonuç | GitHub kanıtı |
+|---|---|---|
+| Tam otomatik paket | Ubuntu 26.04 x86_64 / Python 3.13.18; **3.262 test / 1.394,267 sn**, hata/atlama yok. | [Tam kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44518784036) |
+| Hızlı paket | Ubuntu 26.04 x86_64 / Python 3.11.18; **1.965 test / 1.151,643 sn**, hata/atlama yok. Yeni sosyal keşif/taşıma testleri her push kontrolüne dahil. | [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44518732821) |
+| Marka araçları kurulumu | Python 3.11.18 ve 3.12.16; her birinde 125 kurulum/kurtarma testi ve gerçek temiz kurulum zinciri geçti. | [Marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44518732752) |
+| Normal Linux kurulumu | Python 3.11.18; 104 kurulum/kilit/kurtarma testi, gerçek normal kurulum ve geçici yerel veri kabulü geçti. | [Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44518732724) |
+| Firma kapsamı | Ubuntu 24.04 / Python 3.11 ve 3.13; izole firma iş akışı kabulü geçti. | [Firma kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44518732736) |
+
+Test demetleri örtüşür; toplamları ayrı benzersiz test sayısı değildir.
+Tam kontrol elle başlatıldı; etiket verilmediği için release işi beklenen
+şekilde atlandı, yeni GitHub Release yayımlanmadı. Bu, test atlaması değildir.
+
+Şema64 → 81 yükseltme, eski satır/rowid/kanıt koruma, yedekten yeni dizine
+dönüş ve kesilen marka/theHarvester kurulumunu kurtarma, önceki
+`a5672d7` kodunda [ayrı Linux kabulüyle](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44517487672)
+geçti. 0.171.1 bu migration ve kurulum kodunu değiştirmez; yükseltme kabulü
+son commit üzerinde yeniden çalıştırılmış gibi sunulmaz. Önceki `a5672d7`
+tam test çalışması, canlı ölçümden çıkan düzeltmeler sonrası son kodda
+çalıştırmak için iptal edildi; başarılı sayılmadı.
+
+Sosyal kaynakların on firma canlı kabulü macOS'taki ayrı çalışmadır;
+GitHub otomatik testleri kaynak erişilebilirliğini veya 7/24 işletimi kanıtlamaz.
+23 doğrulanan / üç aday / sıfır kaçan referans sonucu, tüm internet veya
+hesap sahipliği garantisi değildir. [Bütün referanslar](SOCIAL_DISCOVERY_ACCEPTANCE.md).
+Son teslim kaydı yalnız belgeleri değiştirir; çalışma kodu yukarıdaki commit'tir.
+Ham günlükler/HTML/DB özel test alanında kalır, repoya eklenmez.
+
 ## 0.171.1 — On firma karşılaştırmasından çıkan keşif düzeltmeleri
 
 19 Kasım 2026; ücretsiz akış. `a5672d7` / 0.171.0 üzerinde motor sonuçları
@@ -24,9 +57,16 @@ bozuk/taşan gzip ve diğer host/özel IP retleri ayrıca sınanır.
 `tests.test_ci_configuration`: **62 test / 13,449 sn**, hata/atlama yok.
 Engine/platform/CLI/mimari demeti ayrıca **40 test / 25,380 sn** geçti.
 Önceki sürümün on gerçek makbuzu `_collect` çağrısını hata veren kancayla
-kapatarak tekrar okundu: aynı kayıt, yeni ağ yok. Bu yerel sonuçlar,
-düzeltme sonrası canlı karşılaştırma veya son Linux tam
-paketi değildir; onların sonuçları tamamlandığında ayrıca kaydedilir.
+kapatarak tekrar okundu: aynı kayıt, yeni ağ yok. Yeni Proton kaydı gerçek
+CLI yedeğinden yeni alana döndürüldü; kayıt/kanıt korundu ve ağsız replay geçti.
+Bu yerel sonuçlar,
+düzeltme sonrası canlı karşılaştırma veya son Linux tam paketi değildir.
+Sonraki canlı tur `1ead830` üzerinde tamamlandı: aynı 26 referansın 23'ü
+doğrulandı, üç LinkedIn adayı kaldı; kaçan referans yok. Medyan 11,139 sn,
+en yakın sıra p95 15,296 sn; ücretli arama yok. On örnekte p95 en yüksek
+süredir; iki tur performans garantisi veya kör doğruluk ölçümü değildir.
+[Bütün referanslar, süreler ve yöntem](SOCIAL_DISCOVERY_ACCEPTANCE.md).
+Tam/hızlı Linux sonuçları yukarıdaki ayrı teslim kaydındadır.
 Şema81 ve karar politikası v1 değişmedi. Ham HTML/DB repoya alınmadı.
 Özel ilk ölçüm: `/private/tmp/xti-social-multicompany-n4woysv3`.
 
@@ -55,7 +95,8 @@ Yeni keşif/taşıma testleri bilinen pozitif/negatif sayfalarla çalışır; ge
 internet doğruluk yüzdesi hesaplanmadı. Eski `No such user.` davranışı regresyon
 testidir; bugünün HTTP419 cevabı yokluk kanıtı sayılmadı. Önceki 0.170.1 kaynak
 iddiası komutları kendi sözleşmelerini korur; birleşik doğrulama yeni akıştadır.
-Yeni kod için GitHub CI veya ayrı Linux VM kabulü burada yapılmış sayılmaz.
+Bu ilk yerel kayıt GitHub/Linux sonucunu içermez; sonraki teslim sonucu
+bu belgenin başında ayrı verilmiştir.
 
 Özel kanıt alanı `/private/tmp/xti-social-0171-acceptance-4ibp8wit`;
 son CLI makbuzu `free-live-final.json`, ölçümü `final-summary.json`.

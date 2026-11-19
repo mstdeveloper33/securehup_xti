@@ -114,9 +114,18 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - **On firma ölçümü:** `a5672d7` / 0.171.0'da motor çalışmadan önce resmî
   sitelerden dondurulan 26 referansın 21'i doğrulandı, 2'si aday kaldı,
   3'ü keşfedilemedi. Proton gzip yanıtı ve GitLab `about` yönlendirmesi
-  0.171.1'de düzeltildi; 62 ilgili test geçti. Aynı referansla yeni canlı
-  doğrulama ve son Linux kontrolü henüz bu satırda tamamlanmış sayılmaz.
-  Özel kanıt: `/private/tmp/xti-social-multicompany-n4woysv3`.
+  0.171.1 / `1ead830` ile düzeltildi. Aynı referanslı yeni veri alanlarında
+  26 bağlantı da sonuçta var: 23 sayfayla doğrulandı, üç LinkedIn adayı kaldı.
+  Medyan 11,139 sn; ücretli arama yok. Bu sınırlı örneklem genel internet
+  doğruluk yüzdesi değildir; diğer 222 satırın sahipliği/yanlış pozitif oranı
+  bağımsız doğrulanmadı. 62 ilgili + 40 sınır testi ve eski on makbuzun
+  ağsız/değişmeden okunması geçti. [Ölçüm ve bütün referanslar](docs/SOCIAL_DISCOVERY_ACCEPTANCE.md).
+  Özel ilk/son kanıt: `/private/tmp/xti-social-multicompany-n4woysv3`,
+  `/private/tmp/xti-social-multicompany-0171p1-av6225h2`.
+- **Teslim kanıtı:** `1ead830` GitHub'a gönderildi; beş Linux çalışması
+  başarılı. Tam paket 3.262 / hızlı paket 1.965 test, hata/atlama yok.
+  Gerçek yeni keşif kaydının CLI yedeğinden dönüşü ve ağsız tekrar okuması da
+  doğrulandı. [Linux sonuçları ve farklı commit'teki yükseltme ayrımı](docs/ACCEPTANCE_REVIEW.md).
 - **Sınır:** Eski `username-preview/watch-*` kaynak iddiası sözleşmesini
   korur; birleşik doğrulama yeni komutta ve `brand.discovery.*` JSON
   yüzeyindedir. Yeni advanced/alan filtreli Tavily orkestrasyonu kontrollü
@@ -893,15 +902,21 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Sıradaki çalışma
 
-**0.171.0 teslim / doğruluk çalışması — 19 Kasım:** Kullanıcı son sosyal
+**0.171.1 teslim / doğruluk çalışması — 19 Kasım:** Kullanıcı son sosyal
 keşif paketinin GitHub/Linux teslimiyle ve farklı firmalarda daha geniş
 doğruluk ölçümüyle devam edilmesini onayladı. Yeni keşif/taşıma testleri
-her push için hızlı kontrol listesine eklendi. Gerçek hesap referansları
-resmî sitelerden, motor sonucu görülmeden önce kaydedilecek; bulunan,
-doğrulanan, erişilemeyen ve referans dışındaki adaylar ayrı ölçülecek.
+her push için hızlı kontrol listesine eklendi. On firmalık ölçüm ve iki
+keşif düzeltmesi tamamlandı; 26 referansın 23'ü doğrulandı, üçü aday kaldı.
+GitHub'a `a5672d7` ve ardından `1ead830` gönderildi. Son kodda Linux temiz
+kurulum, marka araçları, firma ayrımı ve tam/hızlı testler geçti: 3.262 ve
+1.965 test, hata/atlama yok. Bu teslim ve on firma kabulü tamamlandı.
+Eski kodda devam eden tam test yeni nihai kod için iptal edildi; başarılı
+sayılmadı. 64→81 yükseltme/kurtarma aynı şemalı `a5672d7` üzerinde geçti.
 Varsayılan ücretsiz akış; yeni Tavily harcaması, Firecrawl, LLM, geniş
 STIX/TAXII veya firma izleme/vaka genişletmesi bu çalışmayla başlamaz.
-GitHub ve Linux sonuçları tamamlandıkça ayrı kabul kaydı eklenecek.
+GitHub ve Linux sonuçları [kabul kaydına](docs/ACCEPTANCE_REVIEW.md)
+eklendi. Sonraki kapsam, birleşik sosyal sonucu firma inceleme/vaka ve
+periyodik izlemeye bağlamaktır; bu teslimde henüz uygulanmadı.
 
 **0.170.1:** Yeni özellik paketi açılmadı. Kullanıcının anahtarla denemesi
 sırasında bulunan Tavily sorgu yanıtı uyumsuzluğu giderildi; seçilmiş

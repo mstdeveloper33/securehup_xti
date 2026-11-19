@@ -191,3 +191,11 @@ eksik anahtar ve kısmi hata davranışları kontrollü testtedir. Bu sürümün
 kabulü ücretsiz akış içindir; önceki Tavily canlı kabulü [ayrı kayıttadır](TAVILY_LIVE_ACCEPTANCE.md).
 Özel kanıt alanı: `/private/tmp/xti-social-0171-acceptance-4ibp8wit`;
 ham kanıtlar ve veritabanları Git'e eklenmez.
+
+## Farklı firmalarda sonraki kabul
+
+0.171.1 ile on firmanın önceden seçilmiş 26 profil referansı karşılaştırıldı.
+Tümü sonuçta yer alıyor: 23 profil doğrulandı, üç LinkedIn profili aday kaldı.
+Farklı kullanıcı adlarını kaçıran gzip/ana sayfa yönlendirme eksikleri bu
+çalışmada düzeltildi. Bütün referans bağlantıları, iki turun karşılaştırması
+ve genelleme sınırları [ayrı rapordadır](SOCIAL_DISCOVERY_ACCEPTANCE.md).

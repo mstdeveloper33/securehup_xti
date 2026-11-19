@@ -1,5 +1,20 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**0.171.1 — sosyal keşif teslimi ve doğruluk kabulü:** Kullanıcı öncelikle
+GitHub/Linux teslimi ve farklı firmalarda ölçüm istedi. Birleşik keşif,
+kanıt doğrulaması ve kalıcı sonuç 0.171.0'da; gzip ve firma `about` yönlendirme
+düzeltmesi 0.171.1'de uygulandı. On firma/26 referansın 23'ü doğrulandı,
+üçü aday kaldı, hiçbiri keşif sonucunun dışında kalmadı. Örneklem genel
+doğruluk yüzdesi değildir. `1ead830` son kodunda beş GitHub/Linux çalışması
+başarılı; tam paket 3.262, hızlı paket 1.965 testle hatasız/atlamasız geçti.
+[Ölçüm](../SOCIAL_DISCOVERY_ACCEPTANCE.md),
+[Linux teslim durumu](../ACCEPTANCE_REVIEW.md).
+
+Sosyal keşfin sonraki işleri: kalıcı sonuçların firma inceleme/vaka akışına
+bağlanması, ardından periyodik keşif ve değişim bildirimi. Bunlar henüz bu
+akışa uygulanmadı; eski kullanıcı adı izleme komutları kendi sözleşmesini
+korur. Firecrawl, LLM ve geniş STIX/TAXII kullanıcı kararıyla bekler.
+
 **0.170.0:** Kullanıcı aşağıdaki üç işi birlikte onayladı. Seçilmiş belge
 işleri, bildirim/vaka bağlantısı ve tekrarlanabilir kapasite kontrolü
 uygulandı ve tanımlı Linux kabulü tamamlandı. Son tam paket 3.211 test,
@@ -38,7 +53,7 @@ PDF bağlantılarını otomatik izleyen genel tarayıcı, tüm internet taramas�
 LLM, geniş STIX/TAXII ve .NET/UI bu üç işle kendiliğinden açılmaz.
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.170.0 / çekirdek şema 80, ayrı platform iş şeması 3.
+**Mevcut sürüm:** 0.171.1 / çekirdek şema 81, ayrı platform iş şeması 3.
 
 **18 Kasım sonraki motor dilimi:** Kullanıcı IOC yaşam döngüsü geliştirmesini
 yetkilendirdi. 0.165.0 kaynak zamanı/kanıt yaşı/geçerlilik/toplama durumunu

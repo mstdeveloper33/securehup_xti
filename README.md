@@ -2,8 +2,11 @@
 
 0.171.1 sosyal keşifte sınırlı gzip yanıtını ve firma ana sayfasının aynı
 domain altındaki `about` adresine yönlendirilmesini destekler. İlk on firmalık
-ölçümde ortaya çıkan iki keşif eksiği giderildi; karşılaştırma ve doğrulama
-kaydı [kabul belgesindedir](docs/ACCEPTANCE_REVIEW.md).
+ölçümde ortaya çıkan iki keşif eksiği giderildi. Son turda 26 referansın
+23'ü sayfayla doğrulandı, üçü aday kaldı; keşfedilemeyen referans yok.
+[Örneklem, bütün hesaplar ve sınırlar](docs/SOCIAL_DISCOVERY_ACCEPTANCE.md).
+GitHub/Linux teslimi tamamlandı; son kodda 3.262 testlik tam paket ve
+kurulum/firma kabulü geçti. [Kabul kaydı](docs/ACCEPTANCE_REVIEW.md).
 
 0.171.0 `brand discover DOMAIN --name FIRMA` ile sosyal hesap adaylarını tek
 sonuçta birleştirir ve profil sayfalarıyla doğrular. Instagram kaçırmaları,
