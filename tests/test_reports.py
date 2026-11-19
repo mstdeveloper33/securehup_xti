@@ -10,6 +10,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite_reports import SQLiteReportRepository
 from xti.adapters.sqlite_cti_knowledge import SQLiteCtiKnowledgeRepository
 from xti.application.cti_knowledge import CtiKnowledgeService
@@ -268,7 +269,7 @@ class ReportTests(unittest.TestCase):
             self.repo.read()
         self.assertEqual(self.path.read_bytes(), before)
         result = self.f.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (76, 81))
+        self.assertEqual((result['from_version'], result['to_version']), (76, SCHEMA_VERSION))
         with closing(sqlite3.connect(result['backup'])) as c:
             self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0], 76)
             self.assertFalse(c.execute("SELECT 1 FROM sqlite_schema WHERE name='report_journal'").fetchone())

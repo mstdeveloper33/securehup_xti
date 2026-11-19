@@ -843,6 +843,8 @@ def build_parser() -> Parser:
     brand_actions = brand.add_subparsers(dest="brand_action", required=True)
     from xti.interfaces.social_discovery import register_social_discovery_parser
     register_social_discovery_parser(brand_actions)
+    from xti.interfaces.social_enrichment import register_social_enrichment_parser
+    register_social_enrichment_parser(brand_actions)
     brand_actions.add_parser(
         "source-evaluation",
         help="Ücretsiz dış araçların kabul kararını ağsız ve kayıtsız göster.",
@@ -3831,7 +3833,11 @@ def run(args: argparse.Namespace) -> int | None:
         )
         emit(asdict(report), unified_analysis_lines(report), as_json=args.json)
     elif args.command == "brand":
-        if args.brand_action in {"discover", "discovery-plan", "discoveries", "discovery-show"}:
+        if args.brand_action in {'brightdata', 'enrichment-plan', 'enrich', 'enrichment-refresh', 'enrichment-show', 'enrichments'}:
+            from xti.interfaces.social_enrichment import execute_social_enrichment
+            data, lines = execute_social_enrichment(settings.database, args)
+            emit(data, lines, as_json=args.json)
+        elif args.brand_action in {"discover", "discovery-plan", "discoveries", "discovery-show"}:
             from xti.interfaces.social_discovery import execute_social_discovery
             data, lines = execute_social_discovery(settings.database, args)
             emit(data, lines, as_json=args.json)

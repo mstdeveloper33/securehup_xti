@@ -1,5 +1,11 @@
 # Engine okuma sözleşmesi v1
 
+0.172.0 `brand.enrichment.plan/list/show` salt okunur Bright Data ek kanıt
+yüzeyidir. Provider sonucuna erişmek için `.run` ve `.refresh` firma yazma
+girişindedir. Sağlayıcı kayıt durumu `data.record.state.status` içindedir;
+zarfın `ok` alanı sağlayıcı işinin tamamlandığı anlamına gelmez.
+[Alanlar ve kullanım](BRIGHTDATA_SOCIAL.md#engine-ve-platform).
+
 0.170.0 `relationships.notification-show` firma kapsamlı salt okunur
 bildirim kanıtıdır. Platform `relationships.notify` yazması güncel
 workspace çitini ister. Kaynak işi v5 `publisher_documents` ve

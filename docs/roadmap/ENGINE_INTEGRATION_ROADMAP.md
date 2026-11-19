@@ -1,5 +1,12 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**0.172.0:** İsteğe bağlı Bright Data LinkedIn şirket kanıtı yerel olarak
+uygulandı. Anahtar kullanıcı kararıyla sonra eklenecek; canlı sağlayıcı
+kabulü bekliyor. Sonraki teslim sırası: GitHub/Linux doğrulaması, birleşik
+sosyal keşif ve ek kanıtı firma incelemesi/vakaya bağlama, ardından düzenli
+takip ve değişiklik bildirimi. Son iki adım henüz uygulanmış değildir.
+[Kapsam ve yerel doğrulama](../BRIGHTDATA_SOCIAL.md).
+
 **0.171.1 — sosyal keşif teslimi ve doğruluk kabulü:** Kullanıcı öncelikle
 GitHub/Linux teslimi ve farklı firmalarda ölçüm istedi. Birleşik keşif,
 kanıt doğrulaması ve kalıcı sonuç 0.171.0'da; gzip ve firma `about` yönlendirme
@@ -53,7 +60,7 @@ PDF bağlantılarını otomatik izleyen genel tarayıcı, tüm internet taramas�
 LLM, geniş STIX/TAXII ve .NET/UI bu üç işle kendiliğinden açılmaz.
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.171.1 / çekirdek şema 81, ayrı platform iş şeması 3.
+**Mevcut sürüm:** 0.172.0 / çekirdek şema 82, ayrı platform iş şeması 3.
 
 **18 Kasım sonraki motor dilimi:** Kullanıcı IOC yaşam döngüsü geliştirmesini
 yetkilendirdi. 0.165.0 kaynak zamanı/kanıt yaşı/geçerlilik/toplama durumunu

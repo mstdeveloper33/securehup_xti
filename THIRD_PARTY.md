@@ -62,6 +62,24 @@ Seçili NSE kaydı ve resmî açıklamaları [Nmap kullanımında](docs/NMAP_MAN
 listelenir. Bunlar XTI'ın yazdığı zafiyet imzaları değildir; Nmap çıktısı
 kaynaklı kanıt olarak korunur.
 
+## Bright Data sosyal profil hizmeti
+
+0.172.0 kullanıcının kendi API hesabıyla isteğe bağlı LinkedIn şirket
+profili kanıtı alır. Bright Data SDK/sunucu kodu repoya kopyalanmaz;
+stdlib adaptörü yalnız `gd_l1vikfnt1wgvvqz95w` dataset'ine sınırlı async
+POST, ilerleme GET'i ve sonuç GET'i yapar. Hizmetin açık kaynak olduğu
+veya API ücretinin yeniden yayın hakkı verdiği varsayılmaz. Ticari ürünün
+saklama/müşteriye gösterme koşulları N-034'te açık takip maddesidir.
+
+Seçilen şirket profil URL'leri gönderilir; profil kimliği, ad, web adresi,
+sınırlı açıklama ve içerik özeti saklanır. Çalışan/kişi listesi, gönderiler,
+logo veya tam ham yanıt saklanmaz. İstek/yerel profil limiti fatura limiti
+değildir. Anahtar sonra eklenecek; canlı kabul henüz yapılmadı.
+[API ve alanlar](https://docs.brightdata.com/products/scrapers/linkedin/send-first-request.md),
+[fiyatlar](https://brightdata.com/pricing/web-scraper),
+[kullanım](docs/BRIGHTDATA_SOCIAL.md),
+[entegrasyon kararı](docs/decisions/0177-optional-social-provider-evidence.md).
+
 ## Tavily arama hizmeti
 
 0.144.0, kullanıcının kendi hesabı ve API anahtarıyla isteğe bağlı

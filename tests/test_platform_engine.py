@@ -62,7 +62,8 @@ class PlatformEngineTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertIn('jobs.submit', described['data']['operations'])
             self.assertTrue(described['data']['request_network_access'])
-            self.assertEqual(described['data']['request_network_operations'], ['reports.fetch', 'brand.discovery.run'])
+            self.assertEqual(described['data']['request_network_operations'],
+                             ['reports.fetch', 'brand.discovery.run', 'brand.enrichment.run', 'brand.enrichment.refresh'])
             code, submitted = self.submit()
             self.assertEqual(code, 0, submitted)
             self.assertEqual(submitted['data']['status'], 'queued')

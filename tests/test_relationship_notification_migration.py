@@ -4,7 +4,7 @@ import sqlite3
 import unittest
 from unittest.mock import patch
 
-from xti.adapters.schema import VERSION_TABLES, validate_schema
+from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from tests.case_evidence_v79_fixture import case_evidence_layout_v79
 from tests import test_cases as base
@@ -30,7 +30,7 @@ class RelationshipNotificationMigrationTests(unittest.TestCase):
         with self.assertRaises(StorageError):
             self.f.service.show(self.case.id)
         result = self.f.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (79, 81))
+        self.assertEqual((result['from_version'], result['to_version']), (79, SCHEMA_VERSION))
         self.assertEqual(self.manifest(self.f.path), before)
         self.assertEqual(self.manifest(result['backup']), before)
         self.assertEqual(self.f.service.evidence_show(self.case.id, self.link.id), self.link)

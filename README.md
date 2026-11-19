@@ -1,5 +1,13 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.172.0, sosyal keşifteki LinkedIn şirket hesaplarına isteğe bağlı **Bright Data**
+kanıtı ekler. Ağsız plan, gizli anahtar kurulumu, tek gönderim, kalıcı sonuç
+kimliği ve açık sonuç alma vardır. Günlük profil sınırı çalışma alanı bazındadır;
+sağlayıcı kanıtı eski sayfa kontrolünü veya sahiplik kararını değiştirmez.
+Mevcut kurulum için `./xti migrate` şema 81 → 82 geçişini yedekleyerek yapar.
+Anahtar kullanıcı kararıyla sonra eklenecek; canlı sağlayıcı kabulü bekliyor.
+[Kullanım ve kapsam](docs/BRIGHTDATA_SOCIAL.md).
+
 0.171.1 sosyal keşifte sınırlı gzip yanıtını ve firma ana sayfasının aynı
 domain altındaki `about` adresine yönlendirilmesini destekler. İlk on firmalık
 ölçümde ortaya çıkan iki keşif eksiği giderildi. Son turda 26 referansın
@@ -30,7 +38,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Sürüm:** 0.171.1 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 81 · **İş kuyruğu:** 3.
+**Sürüm:** 0.172.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 82 · **İş kuyruğu:** 3.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;

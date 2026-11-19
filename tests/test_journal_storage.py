@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite_reports import SQLiteReportRepository
 from xti.adapters.sqlite_journal_storage import SQLiteJournalStorageRepository
 from xti.adapters.compressed_evidence import unpack, journal_bytes
@@ -159,7 +160,7 @@ service.execute('journals.archive-apply', older_than_days=7, token=sys.argv[2])
             case_evidence_layout_v79(c)
             c.execute('PRAGMA user_version=78')
         result = self.repo.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (78, 81))
+        self.assertEqual((result['from_version'], result['to_version']), (78, SCHEMA_VERSION))
         with closing(sqlite3.connect(result['backup'])) as backup, self.f.repo.storage._connection(readonly=True) as current:
             self.assertEqual(backup.execute('PRAGMA user_version').fetchone()[0], 78)
             self.assertEqual(current.execute('SELECT * FROM report_journal').fetchall(), original)

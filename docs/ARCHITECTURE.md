@@ -1,5 +1,14 @@
 # XTI Motorunun Mimarisi
 
+0.172.0 `SocialEnrichmentService`, sağlayıcı ve depo portlarıyla mevcut sosyal
+keşfin değişmez kimliğine ek kanıt bağlar. Bright Data adaptörü tek sabit
+dataset/host ve sınırlı async POST/GET işlemleri kullanır; otomatik POST tekrarı
+yoktur. Şema82 rezervasyonu ve sonuç kimliğini kalıcı tutar. Firma kapsamı,
+işlem anahtarı ve UTC günlük profil sınırı ağdan önce doğrulanır. Platform
+yazmaları workspace çiti/yazıcı kilidi kullanır; engine okumaları ağsızdır.
+Sağlayıcı kanıtı sayfa doğrulamasından ayrıdır. Yeni Python bağımlılığı yoktur.
+[0177 kararı](decisions/0177-optional-social-provider-evidence.md).
+
 0.171.1 aynı akışta gzip açılımını aktarım ve çıktı boyutu sınırlarıyla
 destekler. Hash açılmış gövdeye, byte sayacı alınan sıkıştırılmış gövdeye
 aittir. Firma ana sayfası için kök/`www`/`about` tam host listesi vardır;
@@ -31,7 +40,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**19 Kasım 2026 — 0.171.1, çekirdek şema 81, iş kuyruğu şeması 3.**
+**19 Kasım 2026 — 0.172.0, çekirdek şema 82, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

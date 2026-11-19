@@ -6,6 +6,7 @@ import unittest
 from uuid import uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite_investigation import SQLiteInvestigationRepository
 from xti.application.investigation import InvestigationService
 from xti.domain.assets import ValidationError
@@ -142,6 +143,6 @@ class InvestigationTests(ResearchFixture, unittest.TestCase):
             case_evidence_layout_v79(connection)
             connection.execute('PRAGMA user_version=75')
         migration = self.repository.storage.migrate()
-        self.assertEqual((migration['from_version'], migration['to_version']), (75, 81))
+        self.assertEqual((migration['from_version'], migration['to_version']), (75, SCHEMA_VERSION))
         self.assertTrue(migration['backup'])
         self.assertTrue(self.graph()['nodes'])

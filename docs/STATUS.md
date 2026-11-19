@@ -1,5 +1,19 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.172.0:** Bright Data LinkedIn şirket kanıtı isteğe bağlı eklendi.
+`brand enrichment-plan/enrich/enrichment-refresh/enrichment-show/enrichments`
+ve `brand brightdata configure/status` vardır. `brand.enrichment.*` engine
+okumaları ve firma kapsamlı platform yazmaları aynı servise bağlıdır.
+Gönderimden önce kalıcı rezervasyon, aynı anahtarda ağsız tekrar, sonuç
+kimliğiyle GET üzerinden devam, işlem/günlük profil sınırı ve ayrı sağlayıcı
+kanıtı vardır. Şema82 yalnız ek tablo/index ekler; eski keşifler değişmez.
+Anahtar sonra eklenecek; canlı sağlayıcı kabulü ve doğruluk katkısı ölçülmedi.
+Son ilgili paket 100 / 21,978 sn ve eski geçiş modülleri 78 / 25,750 sn geçti.
+Genel koşu 3.296 test / 1.457,678 sn: beş eski şema beklentisi düzeltildi,
+dört Linux kontrolü macOS'ta atlandı; tam paket tekrar edilmedi.
+[Koşuların ayrımı](ACCEPTANCE_REVIEW.md#01720--bright-data-bağlantısının-yerel-kabulü).
+[Kullanım, sınırlar ve doğrulama](BRIGHTDATA_SOCIAL.md).
+
 **0.171.1:** On firmalık ücretsiz kabulün ortaya çıkardığı gzip yanıtı ve
 aynı domainin `about` ana sayfa yönlendirmesi desteklendi. Aktarılan ve açılmış
 gövde ayrı ayrı 2 MiB ile sınırlı; bozuk gzip, başka host ve özel IP reddedilir.
@@ -110,7 +124,7 @@ test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
 kabulü bu yerel teslimin sonucu değildir.
 
 
-**19 Kasım 2026 · 0.171.1 · Çekirdek şema 81 · İş kuyruğu şeması 3.**
+**19 Kasım 2026 · 0.172.0 · Çekirdek şema 82 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları

@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.171.1 / çekirdek 81 / iş kuyruğu 3**.
+Güncel çalışma: **0.172.0 / çekirdek 82 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,99 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-034 — Bright Data LinkedIn şirket kanıtı
+
+- **Durum:** İsteğe bağlı entegrasyon uygulandı; anahtar kullanıcı kararıyla
+  sonra eklenecek, canlı kabul bekliyor. **Güncellendi:** 19 Kasım 2026.
+- **Kapsam:** Mevcut sosyal keşiften kaynak destekli LinkedIn şirket
+  adaylarını seçme; sağlayıcının async işiyle profil kimliği, şirket adı,
+  web adresi ve sınırlı açıklama alma. Instagram/X, kişi profilleri, gönderi,
+  takipçi/çalışan listesi veya domain adından yeni Bright Data araması yoktur.
+- **Kullanım:** `brand brightdata configure/status`, `brand enrichment-plan`,
+  `brand enrich`, `brand enrichment-refresh/show` ve `brand enrichments`.
+  Engine okur, firma kapsamlı platform run/refresh yazar. Keşif ve ek kanıt
+  ayrı kalıcı kayıtlardır; sonradan alınan veri eski sayfa kararını değiştirmez.
+- **Bütçe:** Varsayılan iş başına 5, en fazla 20 profil. Çalışma alanı/UTC
+  gününde varsayılan 50 profil; yönetici `XTI_BRIGHTDATA_DAILY_PROFILE_LIMIT`
+  ile değiştirir. Rezervasyon ağdan önce yapılır; belirsiz/başarısız gönderim
+  tüketimi ihtiyatlı biçimde sayılır. Bu hesap bakiyesi veya tüm firmalar
+  için ortak para limiti değildir; sağlayıcı hesabındaki limit ayrıca ayarlanır.
+- **Kurtarma:** Tekrar anahtarı aynı POST'u yeniden göndermez. Snapshot
+  kaydedildiyse refresh yalnız GET ile devam eder. Gönderim sonrası süreç
+  kesilip snapshot kaydedilemediyse otomatik tekrar yok; panelden kontrol
+  gerekir. Yedek, eski keşif ve ek kanıtı birlikte korur; anahtar ayrı tutulur.
+- **Bekleyenler:** Gerçek hesabın dataset yetkisi/ücretsiz kota uygunluğu,
+  üç LinkedIn adayı ve yeni firmalarda ek doğru kanıt/maliyet ölçümü,
+  ticari üründe saklama/müşteriye gösterme koşulları. Ücretli kaynak başarısı
+  genel doğruluk yüzdesi veya marka sahipliği sayılmayacak.
+- **Yerel doğrulama:** Son 100 ilgili test / 21,978 sn ve eski geçiş
+  modüllerindeki 78 test / 25,750 sn geçti. Genel koşuda 3.296 test /
+  1.457,678 sn; beş sabit eski şema beklentisi düzeltildi, dört Linux
+  kontrolü macOS'ta atlandı. Tam paket tekrar edilmedi; yeni GitHub/Linux
+  koşusu ve canlı sağlayıcı kabulü yapılmış sayılmaz.
+- **Dayanak:** [Kullanım ve test kapsamı](docs/BRIGHTDATA_SOCIAL.md),
+  [mimari karar](docs/decisions/0177-optional-social-provider-evidence.md),
+  [resmî şirket dataset'i](https://docs.brightdata.com/products/scrapers/linkedin/send-first-request.md),
+  [async API](https://docs.brightdata.com/api-reference/rest-api/scraper/asynchronous-requests.md),
+  [sonuç alma](https://docs.brightdata.com/products/scrapers/scrapers-library/async-requests.md).
+
+### N-033 — Sosyal keşif için ücretli kaynak ve açık kaynak seçenekleri
+
+- **Durum:** Araştırma sonrası kullanıcı Bright Data entegrasyonunu seçti
+  (N-034). Apify/Crawlee/PDL kurulmadı; canlı sağlayıcı kabulü yapılmadı.
+  **Güncellendi:** 19 Kasım 2026.
+- **Amaç:** Firma adı/domaininden farklı kullanıcı adlı hesapları bulma ve
+  eksik profil kanıtını tamamlama. Ücretli olması, doğru firma eşleşmesini
+  veya genel yüzde başarıyı garanti etmez; N-031 ölçümü başlangıç kıyasıdır.
+- **İlk deneme adayı — Apify:** Apify'nin Instagram Search aracı anahtar
+  kelimelerle profil arar; Profile Scraper aday kullanıcı adı/URL'sinden
+  profil bilgisi, biyografi ve web bağlantısı getirir. HarvestAPI'nin
+  LinkedIn Company aracı şirket adıyla arama ve şirket URL'sinden bilgi
+  almayı sunuyor. Sonuncusu Apify Partner ürünü; LinkedIn'in resmî API'si
+  değildir. Bu işlevler sağlayıcı beyanıdır, bizim hedeflerde denenmedi.
+- **Açık kaynak ayrımı:** `apify-client-python` Apache-2.0 lisanslı bağlantı
+  kütüphanesidir. Crawlee Python da Apache-2.0 tarayıcı/HTTP toplama
+  altyapısıdır; hazır bütün sosyal ağlarda firma keşfi çözümü değildir.
+  Apify API bağlantısı için Crawlee kurulması gerekmez. Kütüphanelerin
+  açıklığı bulut hizmetinin veya bütün Store araçlarının kaynak kodunun
+  açık olduğu anlamına gelmez; seçilen aracın koşulları ayrı incelenir.
+- **Alternatif — Bright Data:** Yönetilen LinkedIn şirket/profil verisi
+  API'si; erişim, yeniden deneme ve ayrıştırma sağlayıcıya bırakılabilir.
+  N-031'deki üç LinkedIn adayında Apify ile karşılaştırılabilir. Sağlayıcının
+  başarılı veri teslim oranı bizim doğru hesap eşleştirme oranımız değildir.
+- **Ek seçenek — People Data Labs:** Company Enrichment domain/firma adı
+  ile kendi şirket veri kümesinde eşleştirme yapar. Örnek şirket kaydında
+  LinkedIn, Twitter ve Facebook bağlantıları var; her firmada tüm alanların
+  doluluğu, Instagram kapsamı veya canlı profil doğrulaması varsayılmaz.
+- **19 Kasım fiyat kaydı:** Apify ücretsiz planda aylık 5 USD kullanım
+  kredisi; Starter aylık 19 USD ve bu tutarda dahil kullanım sunuyor,
+  aşım ayrıca ücretli. Her hazır aracın fiyatı/ek alan ücreti ayrı.
+  Bright Data Web Scraper sayfası aylık 5.000 ücretsiz kayıt ve kullandıkça
+  ödemede 1.000 kayıt başına 1,50 USD bildiriyor. People Data Labs şirket
+  denemesi ayda 100 kayda kadar; aynı fiyat sayfasının ücretli paket
+  bölümleri tutarsız olduğundan ücretli tutar kesin bütçe sayılmayacak.
+  Bunlar ilan edilen koşullardır; hesap/endpoint uygunluğu canlı sınanmadı.
+- **Önerilen uygulama sınırı:** Önce mevcut ücretsiz keşif; gerekirse açık
+  seçim ve harcama sınırıyla değiştirilebilir sağlayıcı adaptörü. Kaynak,
+  alım zamanı, aday kimliği ve karar gerekçesi XTI'da korunur. Sağlayıcı
+  kaydı tek başına sayfayla doğrulama veya marka sahipliği sayılmaz.
+- **Bekleyen ölçüm:** Bilinen 26 referans/üç LinkedIn adayına ek olarak
+  yeni firmalar ve yanlış eşleşme örnekleriyle doğru bulunan ek hesap,
+  veri güncelliği, gecikme ve doğrulanabilen hesap başına maliyet kıyası.
+  Ticari üründe saklama/müşteriye gösterme koşulları seçilecek sağlayıcı
+  ve araç için ayrıca netleştirilecek. Firecrawl ertelemesi korunur.
+- **Dayanak:** [Apify fiyatları](https://apify.com/pricing),
+  [Instagram arama](https://apify.com/apify/instagram-search-scraper),
+  [Instagram profil](https://apify.com/apify/instagram-profile-scraper),
+  [LinkedIn şirket](https://apify.com/harvestapi/linkedin-company),
+  [Python istemcisi](https://github.com/apify/apify-client-python),
+  [Crawlee Python](https://github.com/apify/crawlee-python),
+  [Bright Data LinkedIn](https://brightdata.com/products/web-scraper/linkedin),
+  [Bright Data fiyatları](https://brightdata.com/pricing/web-scraper),
+  [PDL girdileri](https://docs.peopledatalabs.com/docs/input-parameters-company-enrichment-api),
+  [PDL şirket kaydı](https://docs.peopledatalabs.com/docs/example-company-record),
+  [PDL fiyatları](https://www.peopledatalabs.com/pricing/company).
 
 ### N-032 — Firecrawl değerlendirmesi ve birleşik sonuç doğruluğu
 

@@ -1,5 +1,16 @@
 # Değişiklik Kaydı
 
+## 0.172.0 — 19 Kasım 2026
+
+- Bright Data LinkedIn şirket kanıtı: ağsız plan, sınırlı async gönderim,
+  kalıcı snapshot ile sonuç alma ve firma kapsamlı CLI/JSON yüzeyi.
+- Gizli API anahtarı kurulumu, işlem/günlük profil sınırı ve kesintide
+  otomatik tekrar harcamasını engelleyen kalıcı rezervasyon.
+- Sağlayıcı kanıtı eski profil sayfası kontrolünden ayrı gösterilir.
+  Şema 81 → 82 ek tablo/index geçişi açık ve yedeklidir.
+- Kullanıcı anahtarı sonra ekleyecek; canlı sağlayıcı doğruluğu/kotası
+  henüz ölçülmedi. [Kullanım ve doğrulama](docs/BRIGHTDATA_SOCIAL.md).
+
 ## 0.153.0 — 17 Kasım 2026
 
 - Dört seçilmiş MISP warninglist: Cloudflare IP ağları, RFC1918 özel IPv4,

@@ -1,5 +1,36 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.172.0 — Bright Data bağlantısının yerel kabulü
+
+19 Kasım 2026; macOS / Python 3.13.3, çekirdek şema82, iş kuyruğu3.
+Kullanıcı API anahtarını sonra ekleyecek; bu kayıt canlı Bright Data
+erişimini, ücretsiz kotayı veya gerçek hedefte doğruluk katkısını doğrulamaz.
+Yeni sürüm için GitHub/Linux çalışması bu turda başlatılmadı.
+
+| Kontrol | Sonuç |
+|---|---|
+| Genel otomatik paket | **3.296 test / 1.457,678 sn**. Beş eski hedef-şema beklentisi 81 yerine 82 geldiği için başarısız; dört Linux kontrolü macOS'ta atlandı. Diğer testler geçti. |
+| Eski geçiş beklentilerinin düzeltmesi | Investigation, journal storage, relationships notification, reports ve research history hedef beklentileri `SCHEMA_VERSION` kullanır. Bu beş modülde **78 test / 25,750 sn**, hata/atlama yok. |
+| Son entegrasyon ve sınır paketi | Bright Data taşıma/anahtar, ek kanıt, sosyal keşif, engine/platform ve mimari: **100 test / 21,978 sn**, hata/atlama yok. |
+| Gerçek yerel CLI | `--version` 0.172.0; Bright Data status anahtarın olmadığını ağsız gösterdi; komut yardımları ve engine manifestindeki yeni okumalar doğrulandı. |
+
+Genel koşu test modüllerini düzeltmelerden önce yükledi. Beş beklenti
+düzeltmesinden sonra tam paket tekrar çalıştırılmadı; 78 testlik tekrar
+ve son 100 testlik paket ayrı sonuçlardır. Son paket, genel koşu sürerken
+eklenen geçici anahtar dosyası çakışması korumasını, sayısal/isimli LinkedIn
+adres bağı ve yanıt boyutu/toplam okuma süresi sınırlarını da kapsar.
+Demetler örtüşür; sayılar benzersiz test toplamı diye toplanmaz.
+
+Özellikle doğrulananlar: ağdan önce atomik rezervasyon, aynı anahtarda yeni
+POST yapılmaması, gönderim kesilince belirsiz durum, snapshot ile yalnız
+GET devamı, eşzamanlı günlük bütçe koruması, anahtarsız saklı okuma, firma
+çiti, kaynak/kimlik çelişkisi, ham hatadan/yanıttan sır sızmaması, 81 → 82
+geçişte eski satırların korunması, geçiş kesintisi ve yedekten dönüş.
+
+Özel genel koşu günlüğü: `/private/tmp/xti-brightdata-full-20261119.log`.
+Git'e anahtar, çalışma veritabanı veya ham API yanıtı eklenmedi.
+[Kullanım ve sözleşme](BRIGHTDATA_SOCIAL.md), [bekleyen canlı kabul](../NOTES.md#n-034--bright-data-linkedin-şirket-kanıtı).
+
 ## 0.171.1 — GitHub ve Linux teslimi
 
 19 Kasım 2026. Son uygulama kodu

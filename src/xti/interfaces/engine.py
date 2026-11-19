@@ -36,6 +36,10 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
         return operation is None or operation in names
 
     services = {}
+    from xti.domain.social_enrichment import READS as SOCIAL_ENRICHMENT_READS
+    if selected(*SOCIAL_ENRICHMENT_READS):
+        from xti.interfaces.social_enrichment import make_social_enrichment_service
+        services['social_enrichment'] = make_social_enrichment_service(database)
     from xti.domain.social_discovery import READS as SOCIAL_READS
     if selected(*SOCIAL_READS):
         from xti.interfaces.social_discovery import make_social_discovery_service
@@ -172,6 +176,10 @@ def engine_manifest() -> dict:
         'max_offset': 1_000_000,
         'social_discovery': {'policy': 'social-discovery-v1', 'write_via': 'brand.discovery.run',
                              'max_limit': 100, 'profile_existence_is_not_ownership': True},
+        'social_enrichment': {'policy': 'social-enrichment-v1', 'provider': 'brightdata',
+                              'scope': 'linkedin_company_profiles', 'max_profiles': 20,
+                              'write_via': ['brand.enrichment.run', 'brand.enrichment.refresh'],
+                              'provider_evidence_is_not_page_verification': True},
         'journals': {'policy': 'lossless-journal-bodies-v1', 'max_archive_window': 1000,
             'retention_days': [7, 3650], 'delete_logical_entries': False, 'backup_before_mutation': True},
         'evidence': {'model_version': 1, 'max_limit': 100, 'max_journal_entries': 20000,

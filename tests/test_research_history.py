@@ -12,6 +12,7 @@ from uuid import uuid4
 
 from xti.adapters.company_workspaces import provision_company_workspace, disable_company_workspace
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite_research_history import SQLiteResearchHistoryRepository, FIELDS
 from xti.application.research import priority_data
 from xti.application.research_history import ResearchHistoryService
@@ -290,7 +291,7 @@ class ResearchHistoryTests(ResearchFixture, unittest.TestCase):
             self.record()
         self.assertEqual(before, self.files())
         migration = SQLiteAssetRepository(self.path).migrate()
-        self.assertEqual((migration["from_version"], migration["to_version"]), (74, 81))
+        self.assertEqual((migration["from_version"], migration["to_version"]), (74, SCHEMA_VERSION))
         self.assertEqual(SQLiteAssetRepository(self.path).list(), [asset])
         with closing(sqlite3.connect(migration["backup"])) as connection:
             self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 74)

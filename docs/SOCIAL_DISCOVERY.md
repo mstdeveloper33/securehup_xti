@@ -1,5 +1,9 @@
 # Firmadan sosyal profil keşfi
 
+0.172.0'da bulunan LinkedIn şirket adaylarına isteğe bağlı
+[Bright Data ek kanıtı](BRIGHTDATA_SOCIAL.md) bağlanabilir. Bu ayrı ve açık
+seçilen işlem, aşağıdaki ücretsiz keşfi kendiliğinden ücretli hale getirmez.
+
 0.171.0 ile firma adı/domaini, tek bir sosyal keşif çalışmasının başlangıcıdır.
 `brand discover` sonuçları birleştirir, açık profil sayfalarını kontrol eder ve
 kanıtlı sonucu aynı çalışma alanında saklar. Firecrawl kurulmaz; yeni bağımlılık yoktur.

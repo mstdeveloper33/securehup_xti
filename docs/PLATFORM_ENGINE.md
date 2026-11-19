@@ -1,10 +1,17 @@
 # Çok firmalı platform motoru
 
+0.172.0 `brand.enrichment.plan/list/show` okumalarını ve firma çitiyle
+`brand.enrichment.run/refresh` yazmalarını ekler. Ağ çağırabilen işlem
+listesi artık `reports.fetch`, `brand.discovery.run`, `brand.enrichment.run`
+ve `brand.enrichment.refresh` içerir. Run aynı anahtarı tekrar göndermez;
+refresh yalnız kayıtlı snapshot'ı okur. Sağlayıcı hazır/başarısız durumu
+`data.record.state` içindedir. [Sözleşme ve sınırlar](BRIGHTDATA_SOCIAL.md).
+
 0.171.0 `brand.discovery.plan/list/show` ağsız okumalarını ve güncel workspace
 kimliği isteyen `brand.discovery.run` yazmasını ekler. Run eşzamanlı ağ çağrısı
 yapabilir; aynı anahtar/kapsam saklanan ilk sonucu döndürür. Manifestte
 `request_network_access=true`; ağ çağırabilen işlemler
-`request_network_operations=[reports.fetch, brand.discovery.run]` ile sınırlıdır.
+o sürümde `request_network_operations=[reports.fetch, brand.discovery.run]` ile sınırlıydı.
 İş kabulü ve engine okumaları ağsız kalır. [Parametreler](SOCIAL_DISCOVERY.md).
 
 0.170.0 `relationships.notification-show` firma kapsamlı salt okunur

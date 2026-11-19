@@ -35,5 +35,7 @@ company-registry.json
 .env
 .env.*
 !.env.example
+brightdata.key
+.brightdata-*
 .DS_Store
 

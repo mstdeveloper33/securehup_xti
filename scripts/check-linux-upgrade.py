@@ -27,7 +27,7 @@ from typing import NamedTuple
 
 PROJECT = Path(__file__).resolve().parents[1]
 BASELINE = "9cdf32c7981b87532952ec2c6b8a3fb5bb142ba8"
-MAX_REVIEWED_SCHEMA = 81
+MAX_REVIEWED_SCHEMA = 82
 OUTPUT_LIMIT = 8 * 1024 * 1024
 
 
