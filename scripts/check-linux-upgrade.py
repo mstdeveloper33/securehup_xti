@@ -296,21 +296,29 @@ def require_preserved_tables(before, after):
             and _preserved_collection_upgrade(name, expected, actual)
         )
         reviewed_case_upgrade = (
-            63 <= before[0] <= 79 and 80 <= after[0] <= MAX_REVIEWED_SCHEMA and name == "case_evidence"
-            and _preserved_case_upgrade(expected, actual)
+            63 <= before[0] < after[0] <= MAX_REVIEWED_SCHEMA and name == "case_evidence"
+            and _preserved_case_upgrade(expected, actual, before_schema=before[0], after_schema=after[0])
         )
         COMMON.require(actual == expected or reviewed_upgrade or reviewed_case_upgrade,
                        f"Schema migration changed pre-existing table/evidence: {name}.")
 
 
-def _preserved_case_upgrade(expected, actual):
-    """Permit only the schema80 CHECK extension; preserve every old row/rowid."""
-    if actual is None or expected[1] != actual[1]:
+def _preserved_case_upgrade(expected, actual, *, before_schema, after_schema):
+    """Permit exact schema80/83 CHECK extensions; preserve every old row/rowid."""
+    if (actual is None or expected[1] != actual[1]
+            or not 63 <= before_schema < after_schema <= MAX_REVIEWED_SCHEMA):
         return False
     from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_DDL, CASE_EVIDENCE_INDEX_DDL
-    from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as CURRENT_DDL
+    from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as V80_DDL
+    from xti.adapters.social_tracking_schema import CASE_EVIDENCE_DDL as V83_DDL
+
+    def reviewed_ddl(version):
+        if version <= 79: return CASE_EVIDENCE_DDL
+        if version <= 82: return V80_DDL
+        return V83_DDL
+
     shapes = []
-    for ddl in (CASE_EVIDENCE_DDL, CURRENT_DDL):
+    for ddl in (reviewed_ddl(before_schema), reviewed_ddl(after_schema)):
         with closing(sqlite3.connect(":memory:")) as connection:
             connection.execute(ddl)
             connection.execute(CASE_EVIDENCE_INDEX_DDL)

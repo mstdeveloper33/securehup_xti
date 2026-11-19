@@ -7,6 +7,10 @@ kullanır; ilk sonuç sessiz, sonraki anlamlı farklar tekil inbox bildirimidir.
 Erişim hataları son doğrulanabilir gözlemi korur. Kalıcı tur anahtarıyla
 keşif commit'i sonrası teslim toparlanır. Çekirdek 83 açık/yedekli geçiş;
 kuyruk 3 ve dış JSON v1 korunur. [Kullanım](SOCIAL_TRACKING.md).
+Yerel son özellik paketi 53 testle geçti. Genel doğrulamada yükseltme
+kabul betiğinin iki eski DDL beklentisi düzeltildi; ilgili 19 test hatasız
+(iki Linux kontrolü macOS'ta atlandı). Motor kodu değişmedi; genel koşu
+ve son teslim sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) ayrı tutulur.
 
 **0.172.0:** Bright Data LinkedIn şirket kanıtı isteğe bağlı eklendi.
 `brand enrichment-plan/enrich/enrichment-refresh/enrichment-show/enrichments`

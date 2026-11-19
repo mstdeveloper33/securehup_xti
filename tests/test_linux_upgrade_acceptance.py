@@ -223,28 +223,39 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
             self.assertEqual(self.helper.COMMON.snapshot(data), after_files)
             self.assertEqual((data / "upgrade-evidence.bin").read_bytes(), b"preserved external evidence")
 
-    def test_schema80_case_extension_requires_exact_old_rows_and_reviewed_ddl(self):
+    def test_case_extensions_require_exact_old_rows_and_version_specific_reviewed_ddl(self):
         from tests.test_cases import CaseTests
         from tests.case_evidence_v79_fixture import case_evidence_layout_v79
-        fixture = CaseTests(); fixture.setUp(); self.addCleanup(fixture.doCleanups)
-        case = fixture.create_case()
-        fixture.service.add_evidence(case.id, 'finding', fixture.insert_finding(), reason='Preserve this evidence')
-        with closing(sqlite3.connect(fixture.path)) as connection, connection:
-            connection.execute('UPDATE case_evidence SET rowid=rowid+100')
-            case_evidence_layout_v79(connection)
-            connection.execute('PRAGMA user_version=79')
-        before = self.helper.database_manifest(fixture.path)
-        fixture.storage.migrate()
-        after = self.helper.database_manifest(fixture.path)
-        self.helper.require_preserved_tables(before, after)
-        with closing(sqlite3.connect(fixture.path)) as connection, connection:
-            connection.execute("UPDATE case_evidence SET display_value=display_value || ' changed'")
-        with self.assertRaisesRegex(RuntimeError, 'case_evidence'):
-            self.helper.require_preserved_tables(before, self.helper.database_manifest(fixture.path))
-        columns, rows, objects = after[1]['case_evidence']
-        unexpected = (columns, rows, [(kind, name, sql.replace("'relationship_review'", "'unexpected_kind'") if sql else sql)
-                                     for kind, name, sql in objects])
-        self.assertFalse(self.helper._preserved_case_upgrade(before[1]['case_evidence'], unexpected))
+        from tests.case_evidence_v82_fixture import case_evidence_layout_v82
+        for version in (79, 80, 82):
+            with self.subTest(source_schema=version):
+                fixture = CaseTests(); fixture.setUp(); self.addCleanup(fixture.doCleanups)
+                case = fixture.create_case()
+                fixture.service.add_evidence(case.id, 'finding', fixture.insert_finding(), reason='Preserve this evidence')
+                with closing(sqlite3.connect(fixture.path)) as connection, connection:
+                    connection.execute('UPDATE case_evidence SET rowid=rowid+100')
+                    layout = case_evidence_layout_v79 if version <= 79 else case_evidence_layout_v82
+                    layout(connection)
+                    connection.execute(f'PRAGMA user_version={version}')
+                before = self.helper.database_manifest(fixture.path)
+                fixture.storage.migrate()
+                after = self.helper.database_manifest(fixture.path)
+                self.helper.require_preserved_tables(before, after)
+                with closing(sqlite3.connect(fixture.path)) as connection, connection:
+                    connection.execute("UPDATE case_evidence SET display_value=display_value || ' changed'")
+                with self.assertRaisesRegex(RuntimeError, 'case_evidence'):
+                    self.helper.require_preserved_tables(before, self.helper.database_manifest(fixture.path))
+                columns, rows, objects = after[1]['case_evidence']
+                unexpected = (columns, rows, [(kind, name, sql.replace("'relationship_review'", "'unexpected_kind'") if sql else sql)
+                                             for kind, name, sql in objects])
+                self.assertFalse(self.helper._preserved_case_upgrade(before[1]['case_evidence'], unexpected,
+                    before_schema=version, after_schema=after[0]))
+                # A reviewed shape is still invalid when it belongs to a different version.
+                wrong_before = 80 if version <= 79 else 79
+                self.assertFalse(self.helper._preserved_case_upgrade(before[1]['case_evidence'], after[1]['case_evidence'],
+                    before_schema=wrong_before, after_schema=after[0]))
+                self.assertFalse(self.helper._preserved_case_upgrade(before[1]['case_evidence'], after[1]['case_evidence'],
+                    before_schema=version, after_schema=82))
 
     def test_news_environment_upgrade_requires_one_exact_preserved_baseline(self):
         with tempfile.TemporaryDirectory() as temporary:

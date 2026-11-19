@@ -32,6 +32,12 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 - **Durum:** Uygulandı; 53 ilgili test ve gerçek eski koddan yükseltme/
   geri dönüş geçti. Genel doğrulama sürüyor. **Güncellendi:** 19 Kasım 2026.
+- **Yükseltme denetimi düzeltmesi:** Genel koşuda Linux kabul betiğinin
+  eski vaka DDL'sini beklemesi iki hata verdi. Betik 79/80/82 → 83
+  geçişlerinde kaynak/hedef sürüme ait tam tablo biçimini ve bütün eski
+  satır/rowid'leri doğrulayacak şekilde düzeltildi; bilinmeyen biçim veya
+  değişmiş eski veri reddedilir. İlgili 19 test / 4,120 sn hatasız;
+  Linux `/proc` gerektiren iki test macOS'ta atlandı. Motor kodu değişmedi.
 - **Kapsam:** Birleşik keşif ve ek sağlayıcı kanıtını firma incelemesinde
   birlikte görme, kaynak kararından ayrı sürümlü insan kararı, tek profilin
   vakaya donmuş kopyası; ücretsiz izleme tanımı/tur/duraklatma/monitor.

@@ -16,14 +16,36 @@
   pending → complete sağlayıcı ayrımı, firma kapsamı, CLI/JSON ve açık
   yedekli 82 → 83 geçiş/rollback/restore geçti. Kaynaklar kontrollüdür;
   yeni canlı sosyal doğruluk ölçümü veya Bright Data canlı kabulü değildir.
-- Genel test koşusu sürüyor; sonucu tamamlanmadan başarılı sayılmaz.
-  Günlük: `/private/tmp/xti-0173-full-20261119.log`.
+- Genel test koşusu sürüyor. Yükseltme kabul betiğinin yalnız eski vaka
+  DDL'sini kabul etmesi iki hata verdi; betik 80/83 uzantılarında tam
+  kaynak/hedef tablo biçimi ve eski satır/rowid korumasıyla düzeltildi.
+  İlgili modülün tamamı **19 test / 4,120 sn**, hata yok; Linux `/proc`
+  gerektiren iki test macOS'ta atlandı. Bu tekrar genel koşudan ayrıdır;
+  motorun geçiş kodu değişmedi. Genel günlük: `/private/tmp/xti-0173-full-20261119.log`.
+  Düzeltme günlüğü: `/private/tmp/xti-0173-upgrade-check-fix-20261119.log`.
 - Gerçek eski kod kabulü: `74356f7` / 0.172.0 ayrı geçici checkout'ta
   şema82 verisi oluşturdu. Domain, sosyal keşif, tamamlanmış kontrollü
   sağlayıcı sonucu ve vaka içeren **169 eski tablonun bütün satır/rowid'leri**
   CLI geçişi sonrası aynı kaldı. Yedek geri yüklendi ve eski 0.172.0 koduyla
   okundu; ardından 83'e yeniden geçişte iki kaynak makbuzu korundu.
   Ağ/ücretli API kullanılmadı. Kanıt: `/private/tmp/xti-0173-upgrade-9cmjkw9a/result.json`.
+
+### 0.173.0 GitHub/Linux teslimi
+
+[`8c74030fc1d931fedc4beca9dffcf4d09789b59e`](https://github.com/mstdeveloper33/securehup_xti/commit/8c74030fc1d931fedc4beca9dffcf4d09789b59e)
+main'e gönderildi. Bu kodun otomatik
+[Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44546153306),
+[marka araçları kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44546153307) ve
+[firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44546153144)
+kontrolleri geçti. [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44546153172)
+devam ediyor; henüz başarılı sayılmaz.
+
+Elle başlatılan tam Linux ve kurulum/yükseltme kontrolü için normal
+`gh auth login` oturumu bekleniyor. Git'in mevcut kimlik bilgisini CLI'ya
+aktarma denemesi otomatik onay denetimince reddedildi ve çalıştırılmadı;
+uzak sonuçlar kimlik bilgisi gerektirmeyen herkese açık API'den okundu.
+Yukarıdaki yerel 82 → 83 veri geçişi, bu Linux kurulum kabulünün yerine geçmez.
+Bright Data canlı kabulü anahtar beklemeye devam eder.
 
 ### Önceki 0.172.0 kodunun GitHub/Linux sonucu
 
