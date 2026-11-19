@@ -1,5 +1,44 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.173.0 — Sosyal inceleme, vaka ve değişiklik takibi
+
+19 Kasım 2026; yerel macOS / Python 3.13.3, çekirdek 83, kuyruk 3.
+
+- Son odaklı paket: sosyal takip, Bright Data ek kanıt, vaka geçişi ve
+  mimari **53 test / 40,472 sn**, hata/atlama yok.
+- Önceki geniş ilgili paket **252 test / 112,914 sn**: bir eski şema
+  nesne-listesi beklentisi yeni iki tabloyu içermiyordu. Beklenti
+  düzeltildi; ilgili vaka geçiş modülünün tamamı yukarıdaki 53 testte geçti.
+- Kontrollü kaynaklarla başlangıç, yeni profil, profil metni değişikliği,
+  açık yokluk, erişim hatası, aynı işlemin tekrarı, eşzamanlı kabul,
+  keşif commit'i öncesi/sonrası kesinti, ortak inbox ve okundu durumu sınandı.
+- İnsan kararının sürümü, önceki keşfe bağlı karar görünümü, donmuş vaka,
+  pending → complete sağlayıcı ayrımı, firma kapsamı, CLI/JSON ve açık
+  yedekli 82 → 83 geçiş/rollback/restore geçti. Kaynaklar kontrollüdür;
+  yeni canlı sosyal doğruluk ölçümü veya Bright Data canlı kabulü değildir.
+- Genel test koşusu sürüyor; sonucu tamamlanmadan başarılı sayılmaz.
+  Günlük: `/private/tmp/xti-0173-full-20261119.log`.
+- Gerçek eski kod kabulü: `74356f7` / 0.172.0 ayrı geçici checkout'ta
+  şema82 verisi oluşturdu. Domain, sosyal keşif, tamamlanmış kontrollü
+  sağlayıcı sonucu ve vaka içeren **169 eski tablonun bütün satır/rowid'leri**
+  CLI geçişi sonrası aynı kaldı. Yedek geri yüklendi ve eski 0.172.0 koduyla
+  okundu; ardından 83'e yeniden geçişte iki kaynak makbuzu korundu.
+  Ağ/ücretli API kullanılmadı. Kanıt: `/private/tmp/xti-0173-upgrade-9cmjkw9a/result.json`.
+
+### Önceki 0.172.0 kodunun GitHub/Linux sonucu
+
+`74356f7` main'e gönderildi; aşağıdaki **dört otomatik çalışma** başarılı:
+
+- [Hızlı kontroller](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888071)
+- [Firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888132)
+- [Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888154)
+- [Marka araçlarının kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888044)
+
+Bu koşular yeni 0.173.0 kodunun kabulü değildir. Elle başlatılan tam
+Linux ve yükseltme kontrolü için `gh auth login` oturumu bekleniyor;
+kullanıcı oturumu açacağını söyledi. Anahtar sonra ekleneceğinden canlı
+Bright Data testi açık kalır.
+
 ## 0.172.0 — Bright Data bağlantısının yerel kabulü
 
 19 Kasım 2026; macOS / Python 3.13.3, çekirdek şema82, iş kuyruğu3.

@@ -1,5 +1,18 @@
 # Değişiklik Kaydı
 
+## 0.173.0 — 19 Kasım 2026
+
+- Sosyal keşif ve ek sağlayıcı kanıtı `brand review-list/show` ve
+  `company.review` içinde birlikte görünür; insan kararları ayrı, sürümlü
+  ve gerekçeli kaydedilir.
+- Seçilen profil `social_discovery` türüyle vakaya donmuş kanıt olarak eklenir.
+- Ücretsiz kalıcı takip tanımı, tek tur, duraklatma ve sınırlı terminal
+  monitor akışı eklendi. İlk tur sessizdir; sonraki anlamlı profil
+  değişiklikleri ortak inbox'a bir kez aktarılır.
+- Keşif commit'i sonrası kesinti aynı işlem anahtarıyla ağsız toparlanır;
+  erişim hatası eski gözlemi silmez. Şema 82 → 83 açık ve yedeklidir.
+- [Komutlar, bütçeler, JSON ve sınırlar](docs/SOCIAL_TRACKING.md).
+
 ## 0.172.0 — 19 Kasım 2026
 
 - Bright Data LinkedIn şirket kanıtı: ağsız plan, sınırlı async gönderim,

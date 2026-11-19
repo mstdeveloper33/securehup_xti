@@ -18,7 +18,7 @@ class CompanyReviewService:
     def show(self, **parameters):
         options = review_parameters(**parameters)
         data = self.repository.read(checked_at=self.clock().isoformat(), **{key: options[key]
-            for key in ('stale_after_hours', 'root_offset', 'root_limit')})
+            for key in ('stale_after_hours', 'root_offset', 'root_limit', 'social_offset', 'social_limit')})
         items, roots_by_item = {}, {}
         for review in data.pop('reviews'):
             result = priority_data(review)
@@ -42,7 +42,7 @@ class CompanyReviewService:
                 return [stable(item) for item in value]
             return value
         snapshot = identity(POLICY_VERSION, options['root_offset'], options['root_limit'],
-            options['stale_after_hours'], stable(rows), data['limitations'], data['root_total_count'])
+            options['stale_after_hours'], stable(rows), data['limitations'], data['root_total_count'], stable(data.get('social')))
         if options['expected_snapshot'] is not None and snapshot != options['expected_snapshot']:
             raise ResearchSnapshotChanged('Firma inceleme listesi değişti; ilk sayfadan yeniden alın.')
         selected = rows[options['offset']:options['offset'] + options['limit']]

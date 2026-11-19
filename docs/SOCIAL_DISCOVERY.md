@@ -1,5 +1,8 @@
 # Firmadan sosyal profil keşfi
 
+0.173.0 sonuçları [firma incelemesi, vaka ve düzenli takibe](SOCIAL_TRACKING.md)
+bağlar. İnsan kararı ve sağlayıcı kanıtı özgün keşif sonucundan ayrı kalır.
+
 0.172.0'da bulunan LinkedIn şirket adaylarına isteğe bağlı
 [Bright Data ek kanıtı](BRIGHTDATA_SOCIAL.md) bağlanabilir. Bu ayrı ve açık
 seçilen işlem, aşağıdaki ücretsiz keşfi kendiliğinden ücretli hale getirmez.

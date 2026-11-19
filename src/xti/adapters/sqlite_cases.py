@@ -128,6 +128,13 @@ class SQLiteCaseRepository:
                 or record.active == (record.removed_reason is not None)
             ):
                 raise ValueError("invalid evidence")
+            if record.evidence_type == 'social_discovery':
+                from xti.domain.social_tracking import validate_case_snapshot, case_id
+                payload = validate_case_snapshot(json.loads(snapshot_json))
+                if record.evidence_id != case_id(payload['discovery_id'], payload['profile']['url']):
+                    raise ValueError('Social evidence reference differs')
+                if record.source_reference != 'brand review-show ' + payload['discovery_id'] + ' --url ' + payload['profile']['url']:
+                    raise ValueError('Social source reference differs')
             if record.evidence_type == 'relationship_review':
                 from xti.domain.relationship_notifications import validate_snapshot
                 validate_snapshot(json.loads(snapshot_json))
@@ -428,6 +435,10 @@ class SQLiteCaseRepository:
                 if case.status == "closed":
                     raise ValidationError("Kapalı vakaya kanıt eklemek için önce vakayı yeniden açın.")
                 read_case_evidence_links(connection)
+                if evidence_type == 'social_discovery':
+                    from xti.adapters.sqlite_social_tracking import case_snapshot
+                    if case_snapshot(connection, self._storage.path, evidence_id) != snapshot:
+                        raise ValidationError('Sosyal vaka kanıtı seçili firma kaydıyla uyuşmuyor.')
                 if evidence_type == 'relationship_review':
                     from xti.adapters.sqlite_relationship_notifications import case_snapshot
                     if case_snapshot(connection, evidence_id) != snapshot:

@@ -262,6 +262,61 @@ def assess(candidate, page, scope):
     return result
 
 
+def validate_profile(row, scope):
+    """Validate one frozen page decision with the same rules as discovery reports."""
+    from xti.domain.mentions import mention_time
+    allowed_sources={'username_hypothesis','stored_company_search','company_homepage','maigret','sherlock','tavily'}
+    try:
+        if set(row)!={'platform','url','username','state','reason','brand_relation','discovered_by','claimed_by','aliases','evidence'}:
+            raise ValueError('Profile shape')
+        normalized=profile_url(row['url'],row['platform'])
+        if (normalized['url']!=row['url'] or row['state'] not in STATES
+                or row['platform'] not in scope['platforms'] or normalized['username']!=row['username']):
+            raise ValueError('Profile scope')
+        for key in ('discovered_by','claimed_by'):
+            if (not isinstance(row[key],list) or len(row[key])>len(allowed_sources)
+                    or any(not isinstance(v,str) or v not in allowed_sources for v in row[key])
+                    or len(set(row[key]))!=len(row[key])):
+                raise ValueError('Profile provenance')
+        if not row['discovered_by'] or set(row['claimed_by'])-set(row['discovered_by']):raise ValueError('Claims')
+        if not isinstance(row['aliases'],list) or len(row['aliases'])>2 or len(set(row['aliases']))!=len(row['aliases']):raise ValueError('Aliases')
+        for alias in row['aliases']:
+            other=profile_url(alias,'LinkedIn')
+            if row['platform']!='LinkedIn' or other['username']!=row['username'] or other['url']==row['url']:
+                raise ValueError('Alias scope')
+        evidence=row['evidence']
+        decision={'state':'inconclusive','reason':'page_budget_exhausted','brand_relation':'unverified'}
+        if evidence is not None:
+            if set(evidence)!={'checked_at','status','final_url','title','description','body_sha256','error','requests',
+                    'received_bytes','elapsed_seconds','canonical_urls','profile_type','profile_username','identity_text','company_links'}:
+                raise ValueError('Evidence shape')
+            mention_time(evidence['checked_at'])
+            for key,limit in (('final_url',2048),('title',500),('description',1000),('profile_username',64),('identity_text',4096)):
+                value=evidence[key]
+                if not isinstance(value,str) or len(value)>limit or any(not c.isprintable() for c in value):raise ValueError('Evidence text')
+            for key in ('canonical_urls','company_links'):
+                if (not isinstance(evidence[key],list) or len(evidence[key])>8
+                        or any(not isinstance(v,str) or len(v)>2048 or not v.isprintable() for v in evidence[key])):
+                    raise ValueError('Evidence links')
+            for key,maximum in (('requests',3),('received_bytes',2*1024*1024)):
+                if type(evidence[key]) is not int or not 0<=evidence[key]<=maximum:raise ValueError('Evidence limits')
+            if (type(evidence['elapsed_seconds']) not in (int,float) or not math.isfinite(evidence['elapsed_seconds'])
+                    or evidence['elapsed_seconds']<0 or type(evidence['profile_type']) is not bool):raise ValueError('Evidence metrics')
+            if evidence['status'] is not None and (type(evidence['status']) is not int or not 100<=evidence['status']<=599):raise ValueError('HTTP code')
+            if evidence['body_sha256'] is not None and not re.fullmatch('[0-9a-f]{64}',evidence['body_sha256']):raise ValueError('Body hash')
+            if evidence['error'] is not None:text(evidence['error'],100)
+            proof=Page(url=row['url'],final_url=evidence['final_url'],status=evidence['status'],checked_at=evidence['checked_at'],
+                title=evidence['title'],description=evidence['description'],profile_type=evidence['profile_type'],
+                canonical_urls=tuple(evidence['canonical_urls']),profile_username=evidence['profile_username'],
+                visible_text=evidence['identity_text'],links=tuple(evidence['company_links']),error=evidence['error'])
+            decision=assess(row,proof,scope)
+        if decision['state']=='inconclusive' and row['claimed_by']:decision['state']='candidate'
+        if any(row[k]!=v for k,v in decision.items()):raise ValueError('Decision contradicts evidence')
+        return row
+    except (KeyError, ValueError, TypeError, AttributeError, RecursionError) as error:
+        raise ValidationError('Sosyal profil kanıtı veya kararı tutarsız.') from error
+
+
 def validate_report(report):
     from xti.domain.mentions import mention_time
     try:
@@ -274,53 +329,9 @@ def validate_report(report):
                 or not isinstance(report['profiles'],list) or len(report['profiles'])>MAX_CANDIDATES):
             raise ValueError('Report scope')
         seen=set()
-        allowed_sources={'username_hypothesis','stored_company_search','company_homepage','maigret','sherlock','tavily'}
         for row in report['profiles']:
-            if set(row)!={'platform','url','username','state','reason','brand_relation','discovered_by','claimed_by','aliases','evidence'}:
-                raise ValueError('Profile shape')
-            normalized=profile_url(row['url'],row['platform'])
-            if (normalized['url']!=row['url'] or row['url'] in seen or row['state'] not in STATES
-                    or row['platform'] not in scope['platforms'] or normalized['username']!=row['username']):
-                raise ValueError('Profile scope')
-            for key in ('discovered_by','claimed_by'):
-                if (not isinstance(row[key],list) or len(row[key])>len(allowed_sources)
-                        or any(not isinstance(v,str) or v not in allowed_sources for v in row[key])
-                        or len(set(row[key]))!=len(row[key])):
-                    raise ValueError('Profile provenance')
-            if not row['discovered_by'] or set(row['claimed_by'])-set(row['discovered_by']):raise ValueError('Claims')
-            if not isinstance(row['aliases'],list) or len(row['aliases'])>2 or len(set(row['aliases']))!=len(row['aliases']):raise ValueError('Aliases')
-            for alias in row['aliases']:
-                other=profile_url(alias,'LinkedIn')
-                if row['platform']!='LinkedIn' or other['username']!=row['username'] or other['url']==row['url']:
-                    raise ValueError('Alias scope')
-            evidence=row['evidence']
-            decision={'state':'inconclusive','reason':'page_budget_exhausted','brand_relation':'unverified'}
-            if evidence is not None:
-                if set(evidence)!={'checked_at','status','final_url','title','description','body_sha256','error','requests',
-                        'received_bytes','elapsed_seconds','canonical_urls','profile_type','profile_username','identity_text','company_links'}:
-                    raise ValueError('Evidence shape')
-                mention_time(evidence['checked_at'])
-                for key,limit in (('final_url',2048),('title',500),('description',1000),('profile_username',64),('identity_text',4096)):
-                    value=evidence[key]
-                    if not isinstance(value,str) or len(value)>limit or any(not c.isprintable() for c in value):raise ValueError('Evidence text')
-                for key in ('canonical_urls','company_links'):
-                    if (not isinstance(evidence[key],list) or len(evidence[key])>8
-                            or any(not isinstance(v,str) or len(v)>2048 or not v.isprintable() for v in evidence[key])):
-                        raise ValueError('Evidence links')
-                for key,maximum in (('requests',3),('received_bytes',2*1024*1024)):
-                    if type(evidence[key]) is not int or not 0<=evidence[key]<=maximum:raise ValueError('Evidence limits')
-                if (type(evidence['elapsed_seconds']) not in (int,float) or not math.isfinite(evidence['elapsed_seconds'])
-                        or evidence['elapsed_seconds']<0 or type(evidence['profile_type']) is not bool):raise ValueError('Evidence metrics')
-                if evidence['status'] is not None and (type(evidence['status']) is not int or not 100<=evidence['status']<=599):raise ValueError('HTTP code')
-                if evidence['body_sha256'] is not None and not re.fullmatch('[0-9a-f]{64}',evidence['body_sha256']):raise ValueError('Body hash')
-                if evidence['error'] is not None:text(evidence['error'],100)
-                proof=Page(url=row['url'],final_url=evidence['final_url'],status=evidence['status'],checked_at=evidence['checked_at'],
-                    title=evidence['title'],description=evidence['description'],profile_type=evidence['profile_type'],
-                    canonical_urls=tuple(evidence['canonical_urls']),profile_username=evidence['profile_username'],
-                    visible_text=evidence['identity_text'],links=tuple(evidence['company_links']),error=evidence['error'])
-                decision=assess(row,proof,scope)
-            if decision['state']=='inconclusive' and row['claimed_by']:decision['state']='candidate'
-            if any(row[k]!=v for k,v in decision.items()):raise ValueError('Decision contradicts evidence')
+            validate_profile(row, scope)
+            if row['url'] in seen: raise ValueError('Duplicate profile')
             seen.add(row['url'])
         expected={state:sum(row['state']==state for row in report['profiles']) for state in STATES}
         if report['counts']!=expected or any(type(v) is not int for v in report['counts'].values()):raise ValueError('Counts')

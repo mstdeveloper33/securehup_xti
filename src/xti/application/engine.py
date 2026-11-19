@@ -75,7 +75,7 @@ class EngineReadService:
     def __init__(self, search: GlobalSearchService | None = None, records: EngineRecordRepository | None = None,
                  sources: SourceReadinessService | None = None, components: ComponentCatalogService | None = None,
                  research: ResearchService | None = None, warninglists: WarninglistService | None = None,
-                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None, investigation=None, company_review=None, ioc_lifecycle=None, reports=None, evidence=None, journals=None, social_discovery=None, social_enrichment=None):
+                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None, investigation=None, company_review=None, ioc_lifecycle=None, reports=None, evidence=None, journals=None, social_discovery=None, social_enrichment=None, social_tracking=None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
         self.research = research
@@ -90,8 +90,12 @@ class EngineReadService:
         self.journals = journals
         self.social_discovery = social_discovery
         self.social_enrichment = social_enrichment
+        self.social_tracking = social_tracking
 
     def execute(self, request: EngineRequest) -> dict:
+        from xti.domain.social_tracking import READS as SOCIAL_TRACKING_READS
+        if request.operation in SOCIAL_TRACKING_READS and self.social_tracking is not None:
+            return self.social_tracking.execute(request.operation, **request.parameters)
         from xti.domain.social_enrichment import READS as SOCIAL_ENRICHMENT_READS
         if request.operation in SOCIAL_ENRICHMENT_READS and self.social_enrichment is not None:
             return self.social_enrichment.execute(request.operation, **request.parameters)

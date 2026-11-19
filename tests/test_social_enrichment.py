@@ -24,6 +24,7 @@ from xti.interfaces.entrypoint import main
 from xti.ports.social_enrichment import SocialProviderError
 from tests.test_brightdata_social import AT, DOMAIN, SNAPSHOT, URL
 from tests.test_social_discovery import page
+from tests.case_evidence_v82_fixture import case_evidence_layout_v82
 
 SECOND = 'https://linkedin.com/company/acme-official'
 
@@ -228,6 +229,7 @@ class SchemaMigrationTests(unittest.TestCase):
 
     def legacy(self):
         with closing(sqlite3.connect(self.path)) as connection, connection:
+            case_evidence_layout_v82(connection)
             connection.execute('DROP TABLE social_enrichment_runs'); connection.execute('PRAGMA user_version=81')
             self.assertEqual(validate_schema(connection, allow_legacy=True), 81)
             return {t: connection.execute(f'SELECT rowid,* FROM {t} ORDER BY rowid').fetchall() for t in VERSION_TABLES[81]}

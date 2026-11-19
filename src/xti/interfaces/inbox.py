@@ -46,7 +46,11 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
     for item in page.items:
         notice = item.notification
         read_state = "Okundu" if notice.read_at is not None else "Okunmadı"
-        if item.relationship_change is not None:
+        if item.social_change is not None:
+            change = item.social_change['change']
+            lines.extend(['', f"{read_state} | Sosyal profil değişikliği | {safe_text(item.social_change['domain'])}",
+                          '  Bildirim: ' + notice.id, f"  {safe_text(change['kind'])} | {safe_text(change['url'])}"])
+        elif item.relationship_change is not None:
             change = item.relationship_change['snapshot']['change']
             lines.extend(['', f"{read_state} | İlişki dayanağı değişti | {safe_text(change['root'][1])}",
                 '  Bildirim: ' + notice.id, '  ' + change['explanation'],
@@ -195,6 +199,14 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
 
 def detail_lines(item: InboxDetails, *, data_dir=None) -> list[str]:
     notice = item.notification
+    if item.social_change is not None:
+        from xti.interfaces.social_tracking import tracking_lines
+        from xti.domain.social_tracking import case_id
+        from xti.interfaces.text import xti_command
+        change = item.social_change['change']
+        return [*tracking_lines({'record': item.social_change}),
+            'Vakaya ekle: ' + xti_command('cases', 'evidence-add', 'VAKA_KIMLIGI', '--type', 'social_discovery',
+                '--evidence-id', case_id(change['after']['discovery_id'], change['url']), '--reason', 'İnceleme gerekçesi', data_dir=data_dir)]
     if item.relationship_change is not None:
         from xti.interfaces.evidence import evidence_lines
         from xti.interfaces.text import xti_command

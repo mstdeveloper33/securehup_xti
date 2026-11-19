@@ -1,0 +1,7 @@
+"""Durable workspace social workflow boundary."""
+from typing import Protocol
+
+
+class SocialTrackingRepository(Protocol):
+    def read(self, operation: str, request: dict) -> dict: ...
+    def write(self, operation: str, request: dict, at: str) -> dict: ...

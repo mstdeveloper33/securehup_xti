@@ -11,14 +11,14 @@ def make_company_review_service(database):
 
 def register_company_review_parser(commands):
     parser = commands.add_parser('review-queue', help='Firma genelindeki kayıtları gerekçeli inceleme sırasında göster.')
-    for name, default in (('offset', 0), ('limit', 20), ('root-offset', 0), ('root-limit', 25), ('stale-after-hours', 24)):
+    for name, default in (('offset', 0), ('limit', 20), ('root-offset', 0), ('root-limit', 25), ('stale-after-hours', 24), ('social-offset', 0), ('social-limit', 20)):
         parser.add_argument('--' + name, type=int, default=default)
     parser.add_argument('--expected-snapshot')
 
 
 def execute_company_review(database, args):
     data = make_company_review_service(database).show(**{key: getattr(args, key) for key in (
-        'offset', 'limit', 'root_offset', 'root_limit', 'stale_after_hours', 'expected_snapshot')})
+        'offset', 'limit', 'root_offset', 'root_limit', 'stale_after_hours', 'expected_snapshot', 'social_offset', 'social_limit')})
     lines = [f"Firma inceleme listesi: {data['root_examined_count']}/{data['root_total_count']} başlangıç kaydı incelendi."]
     labels = {'review_first': 'Önce incele', 'verify': 'Doğrula', 'context': 'Bağlam'}
     for item in data['items']:
@@ -28,6 +28,11 @@ def execute_company_review(database, args):
                      for state in item['source_states'])
         from xti.interfaces.research import _surface_detail_commands
         lines.extend('  Ayrıntı: ' + command for command in _surface_detail_commands(item['evidence'], database.parent))
+    from xti.interfaces.social_tracking import review_lines
+    social = data['social']
+    lines.append(f"Sosyal profil incelemesi: {len(social['records'])}/{social['total_count']} kayıt.")
+    for row in social['records']: lines.extend(review_lines(row))
+    if social['has_more']: lines.append(f"Sonraki sosyal sayfa: --social-offset {social['offset'] + len(social['records'])}")
     if not data['coverage_complete']:
         lines.append('Kapsam kısmi: ' + ', '.join(data['limitations']))
     if data['root_has_more']:

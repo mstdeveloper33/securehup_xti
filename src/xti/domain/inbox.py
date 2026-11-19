@@ -36,6 +36,7 @@ class Notification:
     supplier_watch_run_id: str | None = None
     global_search_run_id: str | None = None
     relationship_review_id: str | None = None
+    social_change_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,6 +89,7 @@ class InboxItem:
     supplier_change: SupplierWatchRunReport | None = None
     global_search_change: GlobalSavedSearchRunReport | None = None
     relationship_change: dict | None = None
+    social_change: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,6 +116,7 @@ class InboxDetails:
     supplier_change: SupplierWatchRunReport | None = None
     global_search_change: GlobalSavedSearchRunReport | None = None
     relationship_change: dict | None = None
+    social_change: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)

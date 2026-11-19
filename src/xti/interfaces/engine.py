@@ -36,6 +36,10 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
         return operation is None or operation in names
 
     services = {}
+    from xti.domain.social_tracking import READS as SOCIAL_TRACKING_READS
+    if selected(*SOCIAL_TRACKING_READS):
+        from xti.interfaces.social_tracking import make_social_tracking_service
+        services['social_tracking'] = make_social_tracking_service(database)
     from xti.domain.social_enrichment import READS as SOCIAL_ENRICHMENT_READS
     if selected(*SOCIAL_ENRICHMENT_READS):
         from xti.interfaces.social_enrichment import make_social_enrichment_service
@@ -174,6 +178,8 @@ def engine_manifest() -> dict:
         'request_max_bytes': MAX_REQUEST_BYTES, 'response_max_bytes': MAX_RESPONSE_BYTES,
         'max_json_depth': MAX_JSON_DEPTH, 'default_limit': 50, 'max_limit': 500,
         'max_offset': 1_000_000,
+        'social_tracking': {'policy': 'social-tracking-v1', 'review_scope': 'domain_and_exact_profile',
+                            'first_run': 'silent_baseline', 'case_evidence_type': 'social_discovery'},
         'social_discovery': {'policy': 'social-discovery-v1', 'write_via': 'brand.discovery.run',
                              'max_limit': 100, 'profile_existence_is_not_ownership': True},
         'social_enrichment': {'policy': 'social-enrichment-v1', 'provider': 'brightdata',

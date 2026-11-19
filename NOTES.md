@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.172.0 / çekirdek 82 / iş kuyruğu 3**.
+Güncel çalışma: **0.173.0 / çekirdek 83 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,35 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-035 — Sosyal inceleme, vaka ve düzenli takip teslimi
+
+- **Durum:** Uygulandı; 53 ilgili test ve gerçek eski koddan yükseltme/
+  geri dönüş geçti. Genel doğrulama sürüyor. **Güncellendi:** 19 Kasım 2026.
+- **Kapsam:** Birleşik keşif ve ek sağlayıcı kanıtını firma incelemesinde
+  birlikte görme, kaynak kararından ayrı sürümlü insan kararı, tek profilin
+  vakaya donmuş kopyası; ücretsiz izleme tanımı/tur/duraklatma/monitor.
+- **Bildirim:** İlk gözlem sessizdir; sonraki anlamlı farklar aynı son
+  transaction'da ortak inbox'a bir kez kaydedilir. Erişim hatası/eksik
+  kapsam hesap silinmesi sayılmaz; son doğrulanabilir gözlem korunur.
+- **Kurtarma:** Kaydedilmiş keşif aynı anahtarla yeniden çağrılmaz. Keşfin
+  kendisi kesilmişse aynı anahtar `interrupted` sonucuna toparlanır; yeni
+  tarama yeni anahtar ister. Terminal monitor beklerken kilit tutmaz.
+- **Sınırlar:** Düzenli takip Tavily/Bright Data çağırmaz; önceki URL yeni
+  turda keşfedilmiyorsa ek hedef olarak taranmaz, eksik kontrol sayılır.
+  Arka plan servisi/dağıtık worker yok; zamanlama tüketen platformdadır.
+  Son-gözlem kapsamı çalışma alanında 5.000 profil; işlem geçmişi toplam 10.000 olay /
+  32 MiB, bildirim 10.000. Keşif/ek kanıtın mevcut sınırları ayrıca sürer.
+- **Veri:** Çekirdek 82 → 83 açık/yedekli geçiş; eski vaka satır/rowid'leri
+  ve kaynak kanıtları korunur. Ek sağlayıcı penceresi keşfin son 20 işlemidir;
+  daha eski kayıtlar ayrı listeden açılır ve kısmi kapsam belirtilir.
+- **Gerçek eski kod:** `74356f7` / 0.172.0 ile üretilen şema82 kaydındaki
+  169 eski tablonun bütün satır/rowid'leri korunarak CLI geçişi yapıldı.
+  Yedek eski kodda okunabildi; yeniden geçişte keşif/sağlayıcı makbuzları
+  korundu. Kontrollü kaynaklar; yeni canlı doğruluk ölçümü değildir.
+- **Dayanak:** [Kullanım](docs/SOCIAL_TRACKING.md),
+  [mimari karar](docs/decisions/0178-social-review-tracking-and-cases.md),
+  [kabul kaydı](docs/ACCEPTANCE_REVIEW.md).
 
 ### N-034 — Bright Data LinkedIn şirket kanıtı
 
@@ -58,6 +87,13 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   1.457,678 sn; beş sabit eski şema beklentisi düzeltildi, dört Linux
   kontrolü macOS'ta atlandı. Tam paket tekrar edilmedi; yeni GitHub/Linux
   koşusu ve canlı sağlayıcı kabulü yapılmış sayılmaz.
+- **GitHub teslimi:** `74356f7` main'e gönderildi. Otomatik
+  [hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888071),
+  [firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888132),
+  [Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888154) ve
+  [marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44540888044)
+  başarılı. Elle başlatılan tam Linux/yükseltme kontrolü GitHub CLI oturumu
+  bekler. Kullanıcı oturumu açacağını belirtti; giriş tamamlandığı varsayılmadı.
 - **Dayanak:** [Kullanım ve test kapsamı](docs/BRIGHTDATA_SOCIAL.md),
   [mimari karar](docs/decisions/0177-optional-social-provider-evidence.md),
   [resmî şirket dataset'i](https://docs.brightdata.com/products/scrapers/linkedin/send-first-request.md),

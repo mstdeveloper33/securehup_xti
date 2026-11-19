@@ -9,8 +9,14 @@ class SQLiteCompanyReviewRepository:
     def __init__(self, path):
         self.repository = SQLiteResearchRepository(path)
 
-    def read(self, *, checked_at, stale_after_hours, root_offset, root_limit):
+    def read(self, *, checked_at, stale_after_hours, root_offset, root_limit, social_offset=0, social_limit=20):
         with self.repository.open(None, checked_at) as reader:
+            from xti.adapters.sqlite_social_tracking import review_list_in
+            social = review_list_in(reader.connection, self.repository.path, offset=social_offset, limit=social_limit)
+            if social_offset or social['has_more']:
+                reader.limitations.add('company_social_window')
+            if any(row['provider_evidence_truncated'] for row in social['records']):
+                reader.limitations.add('company_social_provider_window')
             reader.case_context.load()
             reader.content_context.load()
             reader.investigation_context.load()
@@ -44,7 +50,7 @@ class SQLiteCompanyReviewRepository:
             limited = root_offset != 0 or len(roots) < root_total
             if limited:
                 reader.limitations.add('company_root_window')
-            return {'reviews': reviews, 'checked_at': checked_at,
+            return {'reviews': reviews, 'social': social, 'checked_at': checked_at,
                 'root_total_count': root_total, 'root_examined_count': len(roots), 'root_offset': root_offset,
                 'root_limit': root_limit, 'root_has_more': root_offset + len(roots) < root_total,
                 'next_root_offset': root_offset + len(roots) if root_offset + len(roots) < root_total else None,

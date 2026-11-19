@@ -1,5 +1,13 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.173.0:** Sosyal keşif ve ek kanıt firma incelemesine, insan kararına ve
+donmuş vaka kanıtına bağlandı. `brand review-*`, `tracking-*`, `change-show`
+ve `company.review` sosyal bölümü vardır. Düzenli takip ücretsiz kaynakları
+kullanır; ilk sonuç sessiz, sonraki anlamlı farklar tekil inbox bildirimidir.
+Erişim hataları son doğrulanabilir gözlemi korur. Kalıcı tur anahtarıyla
+keşif commit'i sonrası teslim toparlanır. Çekirdek 83 açık/yedekli geçiş;
+kuyruk 3 ve dış JSON v1 korunur. [Kullanım](SOCIAL_TRACKING.md).
+
 **0.172.0:** Bright Data LinkedIn şirket kanıtı isteğe bağlı eklendi.
 `brand enrichment-plan/enrich/enrichment-refresh/enrichment-show/enrichments`
 ve `brand brightdata configure/status` vardır. `brand.enrichment.*` engine
@@ -13,6 +21,10 @@ Genel koşu 3.296 test / 1.457,678 sn: beş eski şema beklentisi düzeltildi,
 dört Linux kontrolü macOS'ta atlandı; tam paket tekrar edilmedi.
 [Koşuların ayrımı](ACCEPTANCE_REVIEW.md#01720--bright-data-bağlantısının-yerel-kabulü).
 [Kullanım, sınırlar ve doğrulama](BRIGHTDATA_SOCIAL.md).
+**0.172.0 GitHub teslimi:** `74356f7` main'e gönderildi. Otomatik hızlı
+kontrol, firma izolasyonu, Linux kurulumu ve marka kurulumu başarılı.
+Elle başlatılan tam Linux/yükseltme koşusu CLI oturumu bekler; bu sonuçlar
+onların yerine geçmez. Bright Data canlı kabulü anahtar beklemeye devam eder.
 
 **0.171.1:** On firmalık ücretsiz kabulün ortaya çıkardığı gzip yanıtı ve
 aynı domainin `about` ana sayfa yönlendirmesi desteklendi. Aktarılan ve açılmış
@@ -124,7 +136,7 @@ test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
 kabulü bu yerel teslimin sonucu değildir.
 
 
-**19 Kasım 2026 · 0.172.0 · Çekirdek şema 82 · İş kuyruğu şeması 3.**
+**19 Kasım 2026 · 0.173.0 · Çekirdek şema 83 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları

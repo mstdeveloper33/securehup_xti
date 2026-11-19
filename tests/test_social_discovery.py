@@ -20,6 +20,7 @@ from xti.domain.platform_engine import parse_platform_request
 from xti.domain.social_discovery import Page, SocialDiscoveryError, assess, parameters, profile_url
 from xti.interfaces.cli import main
 from xti.interfaces.social_discovery import social_discovery_lines
+from tests.case_evidence_v82_fixture import case_evidence_layout_v82
 
 AT='2026-11-19T10:00:00+00:00'
 SCOPE={'domain':'acme.example','name':'Acme','platforms':['Instagram','HackerNews','GitHub']}
@@ -338,6 +339,7 @@ class MigrationTests(unittest.TestCase):
     def test_schema80_upgrade_preserves_rows_and_backup_and_requires_explicit_migration(self):
         self.storage.add('old.example')
         with closing(sqlite3.connect(self.path)) as c,c:
+            case_evidence_layout_v82(c)
             c.execute('DROP TABLE social_discovery_runs');c.execute('PRAGMA user_version=80')
             self.assertEqual(validate_schema(c,allow_legacy=True),80)
             before={t:c.execute(f'SELECT rowid,* FROM {t} ORDER BY rowid').fetchall() for t in VERSION_TABLES[80]}
@@ -351,6 +353,7 @@ class MigrationTests(unittest.TestCase):
 
     def test_interrupted_migration_rolls_back_and_keeps_restoreable_backup(self):
         with closing(sqlite3.connect(self.path)) as c,c:
+            case_evidence_layout_v82(c)
             c.execute('DROP TABLE social_discovery_runs');c.execute('PRAGMA user_version=80')
         from xti.adapters.social_discovery_schema import create
         def interrupted(connection):create(connection);raise KeyboardInterrupt()

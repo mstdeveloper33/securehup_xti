@@ -61,7 +61,9 @@ def platform_manifest():
         'storage_isolation': 'dedicated_company_workspace',
         'authentication_owner': 'consuming_platform',
         'request_network_access': True,
-        'request_network_operations': ['reports.fetch', 'brand.discovery.run', 'brand.enrichment.run', 'brand.enrichment.refresh'],
+        'request_network_operations': ['reports.fetch', 'brand.discovery.run', 'brand.enrichment.run', 'brand.enrichment.refresh', 'brand.tracking.run'],
+        'social_tracking': {'policy': 'social-tracking-v1', 'scheduling': 'trusted_host_or_foreground_monitor',
+                            'paid_sources': False, 'first_run': 'silent_baseline', 'interval_min_seconds': 300},
         'social_enrichment': {'policy': 'social-enrichment-v1', 'provider': 'brightdata',
                              'scope': 'linkedin_company_profiles', 'max_profiles': 20,
                              'automatic_resubmission': False, 'budget_scope': 'workspace_utc_day'},
@@ -114,6 +116,10 @@ def _data(value):
 
 
 def execute_platform_request(context, request):
+    from xti.domain.social_tracking import WRITES as SOCIAL_TRACKING_WRITES
+    if request.operation in SOCIAL_TRACKING_WRITES:
+        from xti.interfaces.social_tracking import execute_platform_social_tracking
+        return execute_platform_social_tracking(context, request)
     from xti.domain.social_enrichment import WRITES as SOCIAL_ENRICHMENT_WRITES
     if request.operation in SOCIAL_ENRICHMENT_WRITES:
         from xti.interfaces.social_enrichment import execute_platform_social_enrichment

@@ -1,5 +1,11 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.173.0, bulunan sosyal hesapları firma incelemesine ve vakalara bağlar.
+Gerekçeli insan kararı, ücretsiz düzenli takip, sessiz başlangıç ve tekil
+değişiklik bildirimi vardır. Kaynak erişim hatası hesap kaybı sayılmaz;
+vaka kanıtı sonraki taramayla değişmez. Mevcut kurulum için `./xti migrate`.
+[Kullanım ve JSON sözleşmesi](docs/SOCIAL_TRACKING.md).
+
 0.172.0, sosyal keşifteki LinkedIn şirket hesaplarına isteğe bağlı **Bright Data**
 kanıtı ekler. Ağsız plan, gizli anahtar kurulumu, tek gönderim, kalıcı sonuç
 kimliği ve açık sonuç alma vardır. Günlük profil sınırı çalışma alanı bazındadır;

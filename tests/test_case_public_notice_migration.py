@@ -144,7 +144,8 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
         # Include SQLite's constraint auto-indexes as well as named declarations.
         with closing(sqlite3.connect(":memory:")) as expected_connection:
             from xti.adapters.relationship_notification_schema import DDL as NOTIFICATION_DDL
-            for statement in (*NOTIFICATION_DDL, *COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
+            from xti.adapters.social_tracking_schema import DDL as SOCIAL_TRACKING_DDL
+            for statement in (*SOCIAL_TRACKING_DDL, *NOTIFICATION_DDL, *COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
                 expected_connection.execute(statement)
             expected_added = {
                 (kind, name): declaration for kind, name, declaration in expected_connection.execute(
@@ -153,7 +154,7 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
             }
         self.assertEqual(added, expected_added)
         self.assertEqual(before[("table", "case_evidence")], CASE_EVIDENCE_V62_DDL)
-        from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
+        from xti.adapters.social_tracking_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
         self.assertEqual(after[("table", "case_evidence")], CURRENT_CASE_DDL)
         with closing(sqlite3.connect(self.path)) as connection:
             self.assertEqual(connection.execute(

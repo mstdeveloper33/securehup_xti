@@ -1,10 +1,17 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**0.173.0:** Sosyal keşif/ek kanıt firma incelemesine ve vakaya bağlandı;
+gerekçeli kararlar, ücretsiz kalıcı takip ve ortak inbox değişiklik bildirimi
+uygulandı. Terminal monitor ve firma JSON aynı servisleri kullanır.
+[Teslim kapsamı](../SOCIAL_TRACKING.md). 0.172.0 `74356f7` GitHub tesliminin
+dört otomatik Linux çalışması geçti; elle başlatılan tam Linux/yükseltme
+kontrolü CLI oturumu, Bright Data canlı kabulü anahtar bekler.
+
 **0.172.0:** İsteğe bağlı Bright Data LinkedIn şirket kanıtı yerel olarak
 uygulandı. Anahtar kullanıcı kararıyla sonra eklenecek; canlı sağlayıcı
-kabulü bekliyor. Sonraki teslim sırası: GitHub/Linux doğrulaması, birleşik
-sosyal keşif ve ek kanıtı firma incelemesi/vakaya bağlama, ardından düzenli
-takip ve değişiklik bildirimi. Son iki adım henüz uygulanmış değildir.
+kabulü bekliyor. O sürümde belirlenen firma inceleme/vaka bağlantısı ve
+düzenli takip/değişiklik bildirimi 0.173.0'da uygulandı; güncel kabul durumu
+yukarıdadır.
 [Kapsam ve yerel doğrulama](../BRIGHTDATA_SOCIAL.md).
 
 **0.171.1 — sosyal keşif teslimi ve doğruluk kabulü:** Kullanıcı öncelikle
@@ -17,10 +24,10 @@ başarılı; tam paket 3.262, hızlı paket 1.965 testle hatasız/atlamasız ge�
 [Ölçüm](../SOCIAL_DISCOVERY_ACCEPTANCE.md),
 [Linux teslim durumu](../ACCEPTANCE_REVIEW.md).
 
-Sosyal keşfin sonraki işleri: kalıcı sonuçların firma inceleme/vaka akışına
-bağlanması, ardından periyodik keşif ve değişim bildirimi. Bunlar henüz bu
-akışa uygulanmadı; eski kullanıcı adı izleme komutları kendi sözleşmesini
-korur. Firecrawl, LLM ve geniş STIX/TAXII kullanıcı kararıyla bekler.
+0.171.1'de sonraki iş olarak belirlenen firma inceleme/vaka bağlantısı ve
+periyodik sosyal keşif/değişim bildirimi 0.173.0'da uygulandı. Eski kullanıcı
+adı izleme komutları kendi sözleşmesini korur. Firecrawl, LLM ve geniş
+STIX/TAXII kullanıcı kararıyla bekler.
 
 **0.170.0:** Kullanıcı aşağıdaki üç işi birlikte onayladı. Seçilmiş belge
 işleri, bildirim/vaka bağlantısı ve tekrarlanabilir kapasite kontrolü
@@ -60,7 +67,7 @@ PDF bağlantılarını otomatik izleyen genel tarayıcı, tüm internet taramas�
 LLM, geniş STIX/TAXII ve .NET/UI bu üç işle kendiliğinden açılmaz.
 
 **Karar:** 16 Kasım 2026 son kullanıcı yönlendirmesi.
-**Mevcut sürüm:** 0.172.0 / çekirdek şema 82, ayrı platform iş şeması 3.
+**Mevcut sürüm:** 0.173.0 / çekirdek şema 83, ayrı platform iş şeması 3.
 
 **18 Kasım sonraki motor dilimi:** Kullanıcı IOC yaşam döngüsü geliştirmesini
 yetkilendirdi. 0.165.0 kaynak zamanı/kanıt yaşı/geçerlilik/toplama durumunu

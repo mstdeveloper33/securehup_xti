@@ -33,6 +33,7 @@ _EVIDENCE = {
     "public_notice": "HIBP tarihî kamu olay kaydı",
     "public_notice_watch": "HIBP kuruluş izleme kanıtı",
     "relationship_review": "İlişki dayanağı değişikliği",
+    "social_discovery": "Firma sosyal keşif kanıtı",
 }
 _TASK = {"open": "Açık", "done": "Tamamlandı", "cancelled": "İptal edildi"}
 _ACTIVITY = {
@@ -279,8 +280,16 @@ def evidence_detail_lines(evidence: CaseEvidence) -> list[str]:
     if evidence.removed_reason:
         lines.append(f"Çıkarılma: {safe_text(evidence.removed_at)} | {safe_text(evidence.removed_reason)}")
     lines.extend(_public_notice_evidence_lines(evidence))
-    if evidence.evidence_type == 'relationship_review':
-        import json
+    if evidence.evidence_type == 'social_discovery':
+        from xti.interfaces.social_tracking import review_lines
+        from xti.domain.social_tracking import validate_case_snapshot
+        payload = validate_case_snapshot(json.loads(evidence.snapshot_json))
+        history = payload['review_history']
+        lines.extend(review_lines({**payload, 'review': history[-1] if history else None,
+            'revision': len(history), 'review_matches_discovery': bool(history and history[-1]['discovery_id'] == payload['discovery_id']),
+            'case_evidence_id': evidence.evidence_id}))
+        lines.extend(payload['limitations'])
+    elif evidence.evidence_type == 'relationship_review':
         proof = json.loads(evidence.snapshot_json)
         change = proof['change']
         lines.extend([change['explanation'],

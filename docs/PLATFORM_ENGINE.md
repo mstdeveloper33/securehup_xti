@@ -1,5 +1,12 @@
 # Çok firmalı platform motoru
 
+0.173.0 `brand.review.decide` ve `brand.tracking.add/set/run` yazmalarını
+güncel workspace kimliği ve tekrar anahtarıyla ekler. Karar değişimi ve
+izleme duraklatma/açma güncel revision ister. Yeni işlemlerden yalnız
+`brand.tracking.run` ağ kullanır; ücretli kaynak çağırmaz. Okuma işlemleri,
+firma incelemesi sosyal bölümü ve [tam sözleşme](SOCIAL_TRACKING.md#engine-ve-platform)
+terminalle aynı servislere bağlıdır. Zamanlayıcı tüketen platforma aittir.
+
 0.172.0 `brand.enrichment.plan/list/show` okumalarını ve firma çitiyle
 `brand.enrichment.run/refresh` yazmalarını ekler. Ağ çağırabilen işlem
 listesi artık `reports.fetch`, `brand.discovery.run`, `brand.enrichment.run`

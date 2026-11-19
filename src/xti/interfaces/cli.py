@@ -845,6 +845,8 @@ def build_parser() -> Parser:
     register_social_discovery_parser(brand_actions)
     from xti.interfaces.social_enrichment import register_social_enrichment_parser
     register_social_enrichment_parser(brand_actions)
+    from xti.interfaces.social_tracking import register_social_tracking_parser
+    register_social_tracking_parser(brand_actions)
     brand_actions.add_parser(
         "source-evaluation",
         help="Ücretsiz dış araçların kabul kararını ağsız ve kayıtsız göster.",
@@ -2014,7 +2016,7 @@ def build_parser() -> Parser:
         "--type", required=True,
         choices=(
             "finding", "social_profile", "ransomware_threatcluster",
-            "ransomware_ransomlook", "supplier", "public_notice", "public_notice_watch", "relationship_review",
+            "ransomware_ransomlook", "supplier", "public_notice", "public_notice_watch", "relationship_review", "social_discovery",
         ),
     )
     case_evidence_add.add_argument("--evidence-id", required=True)
@@ -3833,7 +3835,11 @@ def run(args: argparse.Namespace) -> int | None:
         )
         emit(asdict(report), unified_analysis_lines(report), as_json=args.json)
     elif args.command == "brand":
-        if args.brand_action in {'brightdata', 'enrichment-plan', 'enrich', 'enrichment-refresh', 'enrichment-show', 'enrichments'}:
+        if args.brand_action in {'review-list', 'review-show', 'review-decide', 'tracking-add', 'tracking-set', 'tracking-list', 'tracking-show', 'tracking-run', 'tracking-run-show', 'change-show', 'tracking-monitor'}:
+            from xti.interfaces.social_tracking import execute_social_tracking
+            data, lines = execute_social_tracking(settings.database, args)
+            emit(data, lines, as_json=args.json)
+        elif args.brand_action in {'brightdata', 'enrichment-plan', 'enrich', 'enrichment-refresh', 'enrichment-show', 'enrichments'}:
             from xti.interfaces.social_enrichment import execute_social_enrichment
             data, lines = execute_social_enrichment(settings.database, args)
             emit(data, lines, as_json=args.json)

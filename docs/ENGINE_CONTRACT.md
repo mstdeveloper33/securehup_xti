@@ -1,5 +1,11 @@
 # Engine okuma sözleşmesi v1
 
+0.173.0 `brand.review.list/show`, `brand.tracking.list/show`,
+`brand.tracking.run.show` ve `brand.change.show` okumalarını ekler.
+`company.review` içindeki `social` bölümü `social_offset/social_limit` ile
+ayrı sayfalanır ve aynı okuma kesitindedir. Karar/izleme yazmaları platform
+girişindedir. [Parametreler ve hata kodları](SOCIAL_TRACKING.md#engine-ve-platform).
+
 0.172.0 `brand.enrichment.plan/list/show` salt okunur Bright Data ek kanıt
 yüzeyidir. Provider sonucuna erişmek için `.run` ve `.refresh` firma yazma
 girişindedir. Sağlayıcı kayıt durumu `data.record.state.status` içindedir;

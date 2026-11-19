@@ -1,9 +1,12 @@
 """Faithful pre80 layout; only explicitly empty new notification data may be removed."""
 from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_DDL, CASE_EVIDENCE_COLUMNS, CASE_EVIDENCE_INDEX_DDL
 from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
+from xti.adapters.social_tracking_schema import CASE_EVIDENCE_DDL as V83_CASE_DDL
+from tests.case_evidence_v82_fixture import case_evidence_layout_v82
 
 
 def case_evidence_layout_v79(connection):
+    case_evidence_layout_v82(connection)
     if connection.execute("SELECT 1 FROM sqlite_schema WHERE name='relationship_review_notifications'").fetchone():
         if connection.execute('SELECT 1 FROM relationship_review_notifications LIMIT 1').fetchone():
             raise ValueError('Fixture contains schema80 notification evidence')
@@ -27,7 +30,7 @@ def legacy_case_manifest_entry(entry):
     normalized = []
     for kind, name, sql in objects:
         if name == 'case_evidence' and sql != CASE_EVIDENCE_DDL:
-            if sql != CURRENT_CASE_DDL:
+            if sql not in (CURRENT_CASE_DDL, V83_CASE_DDL):
                 raise AssertionError('Unexpected case layout')
             sql = CASE_EVIDENCE_DDL
         normalized.append((kind, name, sql))

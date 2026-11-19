@@ -41,7 +41,7 @@ class SQLiteSocialEnrichmentRepository:
         with self.storage._connection(readonly=True) as connection:
             return self._discovery(connection, identifier)
 
-    def _record(self, connection, row):
+    def _record(self, connection, row, *, discovery=None):
         try:
             identifier, key, discovery_id, raw_scope, raw_state, digest, started, updated = row
             mention_uuid(identifier); mention_uuid(discovery_id); history_key(key)
@@ -50,7 +50,8 @@ class SQLiteSocialEnrichmentRepository:
                 raise ValueError('Size/time')
             scope, state = json.loads(raw_scope), json.loads(raw_state)
             options = parameters('brand.enrichment.plan', {key: scope[key] for key in ('discovery_id', 'max_profiles', 'include_found')})
-            discovery = self._discovery(connection, discovery_id)
+            discovery = self._discovery(connection, discovery_id) if discovery is None else discovery
+            if discovery['id'] != discovery_id: raise ValueError('Discovery identity')
             if (scope['discovery_id'] != discovery_id or scope != plan(discovery, options)
                     or not scope['targets'] or canonical(scope) != raw_scope or canonical(state) != raw_state):
                 raise ValueError('Scope')

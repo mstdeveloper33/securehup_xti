@@ -1,5 +1,14 @@
 # XTI Motorunun Mimarisi
 
+0.173.0 `SocialTrackingService`, saf günlük replay/karşılaştırma kurallarını
+küçük depo portu ve mevcut keşif servisiyle çalıştırır. Firma incelemesi
+sosyal kanıtı aynı read transaction içinde ayrı sayfalar. Şema83 günlük ve
+bildirimi ekler; vaka CHECK geçişi özgün satır/rowid'leri korur. Tur anahtarı
+ağdan önce, değişiklik ve inbox aynı son transaction'da kaydedilir. Kalıcı
+keşif anahtarı kesintide yeniden ağ çağrısını önler. Terminal monitor
+beklerken kilit tutmaz; platform yazmaları workspace çiti ister.
+[0178 kararı](decisions/0178-social-review-tracking-and-cases.md).
+
 0.172.0 `SocialEnrichmentService`, sağlayıcı ve depo portlarıyla mevcut sosyal
 keşfin değişmez kimliğine ek kanıt bağlar. Bright Data adaptörü tek sabit
 dataset/host ve sınırlı async POST/GET işlemleri kullanır; otomatik POST tekrarı
@@ -40,7 +49,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**19 Kasım 2026 — 0.172.0, çekirdek şema 82, iş kuyruğu şeması 3.**
+**19 Kasım 2026 — 0.173.0, çekirdek şema 83, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını
