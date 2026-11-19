@@ -1,5 +1,11 @@
 # XTI Motorunun Mimarisi
 
+0.171.1 aynı akışta gzip açılımını aktarım ve çıktı boyutu sınırlarıyla
+destekler. Hash açılmış gövdeye, byte sayacı alınan sıkıştırılmış gövdeye
+aittir. Firma ana sayfası için kök/`www`/`about` tam host listesi vardır;
+genel alt alan taraması veya wildcard yönlendirme izni verilmez.
+Şema81 ve `social-discovery-v1` karar sözleşmesi değişmez.
+
 0.171.0 `SocialDiscoveryService` keşif kaynakları, açık profil sayfaları ve
 kalıcı makbuz portlarını birleştirir. Karar kuralları domain katmanındadır;
 HTTP/DNS, araç süreçleri ve SQLite ayrı adaptörlerdir. Şema81 işlem anahtarını
@@ -25,7 +31,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**19 Kasım 2026 — 0.171.0, çekirdek şema 81, iş kuyruğu şeması 3.**
+**19 Kasım 2026 — 0.171.1, çekirdek şema 81, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

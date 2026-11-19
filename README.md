@@ -1,5 +1,10 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.171.1 sosyal keşifte sınırlı gzip yanıtını ve firma ana sayfasının aynı
+domain altındaki `about` adresine yönlendirilmesini destekler. İlk on firmalık
+ölçümde ortaya çıkan iki keşif eksiği giderildi; karşılaştırma ve doğrulama
+kaydı [kabul belgesindedir](docs/ACCEPTANCE_REVIEW.md).
+
 0.171.0 `brand discover DOMAIN --name FIRMA` ile sosyal hesap adaylarını tek
 sonuçta birleştirir ve profil sayfalarıyla doğrular. Instagram kaçırmaları,
 yanlış hesap iddiaları ve erişilemeyen sayfalar ayrı görünür; sonuç kalıcıdır.
@@ -22,7 +27,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Sürüm:** 0.171.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 81 · **İş kuyruğu:** 3.
+**Sürüm:** 0.171.1 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 81 · **İş kuyruğu:** 3.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;

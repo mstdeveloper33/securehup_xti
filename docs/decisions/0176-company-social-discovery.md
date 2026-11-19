@@ -29,3 +29,10 @@ Tamamlanmış profil doğrulaması otomatik sahiplik veya taklit kararı değild
 Genel doğruluk yüzdesi yerine bilinen pozitif/negatif örnekler, erişilemeyen
 kapsam, kaynak katkısı, gerçek süre, tekrar trafiği ve kredi belirsizliği ölçülür.
 [Kullanım, sözleşme, sınırlar ve canlı kabul](../SOCIAL_DISCOVERY.md).
+
+0.171.1 kabul düzeltmesi: bazı sağlayıcılar `identity` isteğine rağmen gzip
+gönderdiği için zlib ile sınırlı açılım eklendi; ek bağımlılık yoktur. Aynı
+domainin `about` ana sayfa yönlendirmesi tam host listesine eklendi; DNS/IP,
+TLS, zaman ve yönlendirme sınırları aynıdır. Karar kuralı, kanıt biçimi,
+eski makbuzlar ve şema81 değişmedi. Sıkıştırılmış aktarım byte'ı ve açılmış
+gövde hash'i ayrı anlamlarını korur.

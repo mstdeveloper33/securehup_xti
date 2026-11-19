@@ -9,6 +9,7 @@ import ssl
 import subprocess
 import sys
 import time
+import zlib
 from urllib.parse import urljoin, urlsplit
 
 from xti.adapters.https_probe import is_public_address
@@ -109,7 +110,7 @@ def _request(host, address, path, timeout):
             if 'transfer-encoding' in headers and 'content-length' in headers:raise PageFailure('ambiguous_headers')
             if response.status in (301, 302, 303, 307, 308):
                 return response.status, headers, b''
-            if headers.get('content-encoding', 'identity').lower() not in ('identity', ''):
+            if headers.get('content-encoding', 'identity').strip().lower() not in ('identity', '', 'gzip'):
                 raise PageFailure('unsupported_encoding')
             if 'content-length' in headers and not 0 <= int(headers['content-length']) <= MAX_BODY:
                 raise PageFailure('body_too_large')
@@ -211,11 +212,34 @@ def _clean(value, maximum):
     return ' '.join(''.join(c for c in value if c.isprintable() or c.isspace()).split())[:maximum]
 
 
-def parse_page(url, final_url, status, body, *, checked_at, requests=1, elapsed=0.0, content_type='text/html'):
+def _decode_body(body, encoding):
+    """Bound both transfer and expanded sizes; reject truncated/ambiguous gzip."""
+    if len(body) > MAX_BODY:
+        raise PageFailure('body_too_large')
+    encoding = encoding.strip().lower()
+    if encoding in ('', 'identity'):
+        return body
+    if encoding != 'gzip':
+        raise PageFailure('unsupported_encoding')
+    decoder = zlib.decompressobj(16 + zlib.MAX_WBITS)
+    try:
+        decoded = decoder.decompress(body, MAX_BODY + 1)
+    except zlib.error:
+        raise PageFailure('invalid_compressed_body') from None
+    if len(decoded) > MAX_BODY or decoder.unconsumed_tail:
+        raise PageFailure('body_too_large')
+    if not decoder.eof or decoder.unused_data:
+        raise PageFailure('invalid_compressed_body')
+    return decoded
+
+
+def parse_page(url, final_url, status, body, *, checked_at, requests=1, elapsed=0.0,
+               content_type='text/html', received_bytes=None):
     if len(body) > MAX_BODY: raise PageFailure('body_too_large')
     base = dict(url=url, final_url=final_url, status=status, checked_at=checked_at,
                 body_sha256=hashlib.sha256(body).hexdigest(), requests=requests,
-                received_bytes=len(body), elapsed_seconds=round(elapsed, 3))
+                received_bytes=len(body) if received_bytes is None else received_bytes,
+                elapsed_seconds=round(elapsed, 3))
     if content_type.split(';',1)[0].strip().lower() not in ('text/html','application/xhtml+xml','text/plain'):
         return Page(**base, error='unsupported_content_type')
     parser = _ProfileHTML(final_url)
@@ -269,9 +293,11 @@ class PublicProfilePageSource:
                     if not location or len(location)>2048: raise PageFailure('redirect_missing')
                     current = urljoin(current, location)
                     continue
+                decoded = _decode_body(body, headers.get('content-encoding', 'identity'))
                 if self.monotonic() > deadline: raise TimeoutError()
-                return parse_page(url, current, status, body, checked_at=at, requests=count,
-                    elapsed=self.monotonic()-start, content_type=headers.get('content-type','text/html'))
+                return parse_page(url, current, status, decoded, checked_at=at, requests=count,
+                    elapsed=self.monotonic()-start, content_type=headers.get('content-type','text/html'),
+                    received_bytes=len(body))
         except PageFailure as error:
             reason = str(error)
         except (TimeoutError, socket.timeout, subprocess.TimeoutExpired):

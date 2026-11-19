@@ -1,5 +1,12 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.171.1:** On firmalık ücretsiz kabulün ortaya çıkardığı gzip yanıtı ve
+aynı domainin `about` ana sayfa yönlendirmesi desteklendi. Aktarılan ve açılmış
+gövde ayrı ayrı 2 MiB ile sınırlı; bozuk gzip, başka host ve özel IP reddedilir.
+Şema81 ve karar politikası v1 korunur; eski sosyal keşif makbuzları değişmez.
+İlgili 62 test / 13,449 sn geçti. Yeni canlı karşılaştırma ve son Linux
+sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) ayrıca takip edilir.
+
 **0.171.0:** Firma/domaininden birleşik sosyal keşif tamamlandı: Maigret,
 Sherlock, firma ana sayfası, saklı aramalar ve isteğe bağlı Tavily tek sonuçta
 birleşir. Açık profil kanıtı ile aday/erişim hatası/yokluk ayrılır. Kalıcı
@@ -95,7 +102,7 @@ test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
 kabulü bu yerel teslimin sonucu değildir.
 
 
-**19 Kasım 2026 · 0.171.0 · Çekirdek şema 81 · İş kuyruğu şeması 3.**
+**19 Kasım 2026 · 0.171.1 · Çekirdek şema 81 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları

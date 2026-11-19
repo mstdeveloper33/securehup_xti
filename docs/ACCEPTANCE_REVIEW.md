@@ -1,5 +1,35 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.171.1 — On firma karşılaştırmasından çıkan keşif düzeltmeleri
+
+19 Kasım 2026; ücretsiz akış. `a5672d7` / 0.171.0 üzerinde motor sonuçları
+görülmeden önce on firmanın resmî sitelerinden 26 profil referansı donduruldu.
+Her firmaya yeni veri alanı açıldı; yalnız domain ve firma adı verildi.
+Referans hesaplar motora aktarılmadı. Firma ve ürün hesapları bu referans
+kümesine dahildir; bu küme firmaların bütün hesaplarının envanteri değildir.
+
+İlk sonuç: **21 doğrulanmış profil, 2 aday, 3 keşfedilemeyen referans**.
+Medyan toplam komut süresi 11,940 sn, on örnekte en yakın sıra p95 13,916 sn.
+Toplam 233 aday/profil satırı referans kümesine eşit değildir; diğer satırlar
+bağımsız etiketlenmediğinden yanlış pozitif yüzdesi hesaplanmadı.
+
+Proton ana sayfası `Accept-Encoding: identity` isteğine rağmen gzip döndürdü;
+iki farklı kullanıcı adlı hesap bu yüzden keşfedilemedi. GitLab kökü
+`about.gitlab.com` adresine yönlendi; eski tam host listesi bunu reddetti ve
+`linkedin.com/company/gitlab-com` kaçtı. 0.171.1 bu iki durumu sınırlı gzip
+açılımı ve kök/`www`/`about` listesiyle destekler. Sınırlar gevşetilmez;
+bozuk/taşan gzip ve diğer host/özel IP retleri ayrıca sınanır.
+
+`tests.test_public_profile_pages`, `tests.test_social_discovery` ve
+`tests.test_ci_configuration`: **62 test / 13,449 sn**, hata/atlama yok.
+Engine/platform/CLI/mimari demeti ayrıca **40 test / 25,380 sn** geçti.
+Önceki sürümün on gerçek makbuzu `_collect` çağrısını hata veren kancayla
+kapatarak tekrar okundu: aynı kayıt, yeni ağ yok. Bu yerel sonuçlar,
+düzeltme sonrası canlı karşılaştırma veya son Linux tam
+paketi değildir; onların sonuçları tamamlandığında ayrıca kaydedilir.
+Şema81 ve karar politikası v1 değişmedi. Ham HTML/DB repoya alınmadı.
+Özel ilk ölçüm: `/private/tmp/xti-social-multicompany-n4woysv3`.
+
 ## 0.171.0 — Birleşik sosyal profil doğrulaması
 
 19 Kasım 2026; macOS arm64 / Python 3.13.3. Çekirdek81, kuyruk3.

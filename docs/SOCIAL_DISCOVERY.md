@@ -89,9 +89,16 @@ hedef profil doğrulandığında `aliases` altında birleşir. Ham HTML saklanma
   doğrulaması yapılır. Yönlendirme yalnız ilgili platformun izinli hostlarına
   gider. Yerel/özel IP, başka host, HTTP, özel port veya kullanıcı bilgili URL
   reddedilir. Anahtar/cookie/oturum bilgisi profil sayfasına gönderilmez.
+- 0.171.1 firma ana sayfasında kök, `www` ve `about` tam hostlarını destekler.
+  `about` adresi yalnız sunucu oraya yönlendirirse alınır; ek sayfa taraması
+  başlatılmaz. Diğer alt alanlar ve dış domainler otomatik açılmaz.
 - Sayfa başına en fazla üç HTTP adımı, 2 MiB gövde, 32 KiB başlık; HTML
   derinliği/düğüm sayısı ve yapılandırılmış veri boyutu sınırlıdır. Eksik veya
   çelişkili HTTP yanıtı profil kanıtına dönüştürülmez.
+- `gzip` yanıtı 0.171.1 ile açılır; hem aktarılan hem açılmış boyut için
+  ayrı 2 MiB sınırı vardır. Bozuk, kesik, ek veri taşıyan veya ardışık gzip
+  üyeli yanıt kanıt sayılmaz. `body_sha256` açılmış gövdeyi; `received_bytes`
+  aktarılan gövdeyi gösterir. Brotli veya üst üste kodlamalar desteklenmez.
 - `metrics.page_http_requests` yalnız ek sayfa kontrollerini ölçer.
   Maigret/Sherlock iç trafiği ölçülmediği için toplam internet isteği diye sunulmaz.
 - Çalışma anahtarı ağdan önce transaction içinde ayrılır. Tamamlanan sonucun

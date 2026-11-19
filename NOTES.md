@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.171.0 / çekirdek 81 / iş kuyruğu 3**.
+Güncel çalışma: **0.171.1 / çekirdek 81 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -111,6 +111,12 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   tek hesaba birleşti. HackerNews HTTP419 nedeniyle aday kaldı; eski
   `No such user.` yanıtı bugünün cevabı sayılmadı. 6,438 saniye toplam,
   0,063 saniye ağsız replay. Sahiplik veya genel yüzde doğruluk iddiası yok.
+- **On firma ölçümü:** `a5672d7` / 0.171.0'da motor çalışmadan önce resmî
+  sitelerden dondurulan 26 referansın 21'i doğrulandı, 2'si aday kaldı,
+  3'ü keşfedilemedi. Proton gzip yanıtı ve GitLab `about` yönlendirmesi
+  0.171.1'de düzeltildi; 62 ilgili test geçti. Aynı referansla yeni canlı
+  doğrulama ve son Linux kontrolü henüz bu satırda tamamlanmış sayılmaz.
+  Özel kanıt: `/private/tmp/xti-social-multicompany-n4woysv3`.
 - **Sınır:** Eski `username-preview/watch-*` kaynak iddiası sözleşmesini
   korur; birleşik doğrulama yeni komutta ve `brand.discovery.*` JSON
   yüzeyindedir. Yeni advanced/alan filtreli Tavily orkestrasyonu kontrollü

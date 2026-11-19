@@ -86,7 +86,11 @@ class SocialDiscoveryService:
         # Reserve half the collection budget for the independent page checks.
         collection_deadline = start + scope['budget_seconds'] * 0.5
         home = 'https://' + scope['domain'] + '/'
-        home_hosts = tuple(dict.fromkeys((scope['domain'], 'www.' + scope['domain'], scope['domain'].removeprefix('www.'))))
+        home_domain = scope['domain'].removeprefix('www.')
+        # A corporate landing-page alias is followed only after an HTTP redirect;
+        # this is an exact host list, not permission to crawl arbitrary subdomains.
+        home_hosts = tuple(dict.fromkeys((scope['domain'], home_domain,
+                                         'www.' + home_domain, 'about.' + home_domain)))
         with ThreadPoolExecutor(max_workers=4) as pool:
             home_task = pool.submit(self.pages.fetch, home, allowed_hosts=home_hosts,
                                     timeout=min(scope['timeout'], max(0.001, collection_deadline-self.monotonic())))

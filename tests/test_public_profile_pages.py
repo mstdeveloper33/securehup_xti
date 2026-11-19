@@ -1,12 +1,14 @@
 """Public evidence transport must not follow private targets or mistake HTTP 200 for a profile."""
 from io import BytesIO
+import gzip
+import hashlib
 import json
 from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
 from xti.adapters.public_profile_pages import (
-    MAX_BODY, PageFailure, PublicProfilePageSource, _request, parse_page, resolve_public,
+    MAX_BODY, PageFailure, PublicProfilePageSource, _decode_body, _request, parse_page, resolve_public,
 )
 from xti.adapters.social_discovery_sources import SocialDiscoverySourceAdapter
 from xti.adapters.tavily_search import TavilySearchSource
@@ -107,12 +109,47 @@ class TransportTests(unittest.TestCase):
                           (b'HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nhello\r\n0\r\n\r\n',b'hello'),
                           (b'HTTP/1.1 302 Found\r\nLocation: /next\r\nContent-Length: 100\r\n\r\n',b'')):
             with self.subTest(wire=wire):self.assertEqual(self.wire_request(wire)[2],body)
-        for wire in (b'HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\n\r\n',
+        for wire in (b'HTTP/1.1 200 OK\r\nContent-Encoding: br\r\n\r\n',
                      b'HTTP/1.1 200 OK\r\nContent-Length: 99999999\r\n\r\n',
                      b'HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nshort',
                      b'HTTP/1.1 200 OK\r\nContent-Length: 5\r\nContent-Length: 5\r\n\r\nhello',
                      b'HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nContent-Length: 5\r\n\r\n'):
             with self.assertRaises(PageFailure):self.wire_request(wire)
+
+    def test_gzip_response_is_verified_with_transfer_bytes_and_decoded_hash(self):
+        body=(f'<title>Acme</title><meta property="og:type" content="profile">'
+              f'<meta property="og:url" content="{IG}">').encode()
+        compressed=gzip.compress(body)
+        wire=b'HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Length: '+str(len(compressed)).encode()+b'\r\n\r\n'+compressed
+        response=self.wire_request(wire)
+        result=self.fetch(request=Mock(return_value=response))
+        self.assertIsNone(result.error)
+        self.assertEqual(assess(profile_url(IG),result,SCOPE)['state'],'found')
+        self.assertEqual(result.received_bytes,len(compressed))
+        self.assertEqual(result.body_sha256,hashlib.sha256(body).hexdigest())
+
+    def test_gzip_expansion_bomb_and_oversized_transfer_are_bounded(self):
+        for body in (gzip.compress(b'x'*(MAX_BODY+1)),b'x'*(MAX_BODY+1)):
+            with self.subTest(size=len(body)):
+                result=self.fetch(request=Mock(return_value=(200,{'content-encoding':'gzip'},body)))
+                self.assertEqual(result.error,'body_too_large')
+                self.assertEqual(assess(profile_url(IG),result,SCOPE)['state'],'inconclusive')
+        self.assertEqual(_decode_body(gzip.compress(b'x'*MAX_BODY),'gzip'),b'x'*MAX_BODY)
+
+    def test_bad_gzip_trailer_truncation_and_concatenation_cannot_create_evidence(self):
+        good=gzip.compress(b'<title>Acme</title>')
+        corrupt=good[:-8]+bytes([good[-8]^1])+good[-7:]
+        for body in (b'',b'not gzip',good[:-1],corrupt,good+b'trailing',good+good):
+            with self.subTest(body=body):
+                result=self.fetch(request=Mock(return_value=(200,{'content-encoding':'gzip'},body)))
+                self.assertEqual(result.error,'invalid_compressed_body')
+                self.assertEqual(assess(profile_url(IG),result,SCOPE)['state'],'inconclusive')
+
+    def test_unsupported_or_stacked_compression_is_not_interpreted_as_html(self):
+        for encoding in ('br','deflate','gzip, gzip'):
+            with self.subTest(encoding=encoding):
+                result=self.fetch(request=Mock(return_value=(200,{'content-encoding':encoding},b'<title>Acme</title>')))
+                self.assertEqual(result.error,'unsupported_encoding')
 
     def test_slow_drip_body_and_headers_cannot_restart_the_total_deadline(self):
         from xti.adapters.public_profile_pages import _DeadlineFile

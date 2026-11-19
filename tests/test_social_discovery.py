@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
-from xti.adapters.public_profile_pages import parse_page
+from xti.adapters.public_profile_pages import PublicProfilePageSource, parse_page
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_social_discovery import SQLiteSocialDiscoveryRepository
@@ -138,6 +138,40 @@ class DiscoveryTests(unittest.TestCase):
         self.run_discovery(name='Acme')
         self.assertEqual({c[1] for c in self.sources.calls},{'acme'})
         self.assertFalse(any(c[0]=='web' for c in self.sources.calls))
+
+    def test_corporate_about_redirect_discovers_a_different_handle_without_extra_crawling(self):
+        original=self.pages.fetch
+        target='https://instagram.com/acmeprivacy'
+        request=Mock(side_effect=[(302,{'location':'https://about.acme.example/'},b''),
+                                  (200,{},f'<a href="{target}">Instagram</a>'.encode())])
+        transport=PublicProfilePageSource(resolve=Mock(return_value='8.8.8.8'),request=request)
+        def fetch(url,**options):
+            if url=='https://acme.example/':return transport.fetch(url,**options)
+            if url==target:return profile(target,'acmeprivacy')
+            return original(url,**options)
+        self.pages.fetch=fetch
+        report=self.run_discovery()['record']['report']
+        row=next(r for r in report['profiles'] if r['url']==target)
+        self.assertEqual(row['state'],'found');self.assertEqual(row['discovered_by'],['company_homepage'])
+        self.assertEqual([c.args[0] for c in request.call_args_list],['acme.example','about.acme.example'])
+        self.assertIsNone(report['homepage']['error'])
+
+    def test_corporate_about_allowance_does_not_open_other_hosts_or_private_dns(self):
+        original=self.pages.fetch
+        for index,(destination,address,error,calls) in enumerate((
+            ('https://about.acme.example.evil.test/','8.8.8.8','redirect_scope_rejected',1),
+            ('https://accounts.acme.example/','8.8.8.8','redirect_scope_rejected',1),
+            ('https://about.acme.example/','127.0.0.1','non_public_address',1),
+        )):
+            request=Mock(return_value=(302,{'location':destination},b''))
+            transport=PublicProfilePageSource(resolve=Mock(side_effect=['8.8.8.8',address]),request=request)
+            def fetch(url,**options):
+                return transport.fetch(url,**options) if url=='https://acme.example/' else original(url,**options)
+            self.pages.fetch=fetch
+            with self.subTest(destination=destination):
+                report=self.run_discovery(idempotency_key=f'redirect-{index}')['record']['report']
+                self.assertEqual(report['homepage']['error'],error)
+                self.assertEqual(request.call_count,calls)
 
     def test_replay_keeps_first_receipt_no_network_no_writes_and_scope_conflict_is_early(self):
         first=self.run_discovery();before=self.path.read_bytes()
