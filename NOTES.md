@@ -28,36 +28,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
-### N-030 — Yayın işleri, ilişki bildirimi ve birikimli kapasite kabulü
-
-- **Durum:** Uygulandı; Linux kapasite kabulü geçti, tam regresyon sürüyor. **Güncellendi:** 19 Kasım 2026.
-- **Yetki:** Kullanıcı üç işi birlikte onayladı.
-- **Korunacaklar:** Mevcut kuyruk, firma ayrımı, eski belge/karar kanıtı,
-  açık insan kararı, yedekli geçiş ve yayıncı koşulları. Başarılı belgeler
-  tekrar işinde yeniden indirilmez; kısmi kapsam kesin kayıp sayılmaz.
-- **Alınan kanıt:** Linux'ta 22 yeni test; iki firmada 80 belge/160 sürüm,
-  118 komut, gerçek SIGKILL sonrası indirmeden toparlanma, bildirim/vaka,
-  arşiv ve birlikte geri yükleme geçti. Yerelde gerçek eski kodla 79 → 80
-  ve 75 → 80 geçiş/geri dönüş tamamlandı.
-- **Canlı kuyruk:** CERT-FR CTI-010 HTML/PDF iki HTTP denemesiyle alındı;
-  aynı iş tekrarında yeni indirme/makbuz oluşmadı. 22 kararın 20+2
-  bildirim penceresi ve tekrar tekilleştirmesi de doğrulandı.
-- **Kabul betiği düzeltmesi:** İlk Linux yükseltme koşusu eski 79 sınırında
-  durdu. Betik şema 80'in yalnız beklenen vaka CHECK genişlemesine izin
-  verecek şekilde güncellendi; eski satır/rowid denetimi korunur. İlgili
-  34 test geçti (iki Linux kontrolü macOS'ta atlandı); son 21 belge/
-  bildirim/platform testi de geçti. Eski hızlı/tam koşular durduruldu;
-  güncel `9925b5e` ile yeniden başlatıldı. Gerçek Linux 64 → 80 yükseltme
-  ve kurulum kurtarması marka/theHarvester kollarında geçti.
-- **Eski test verilerinin toplu kontrolü:** Şema73 etiketli iki geçiş testi
-  ve şema61 manifest karşılaştırması gerçek tarihî düzene uyarlandı.
-  `migrat/schema/legacy/upgrade` kapsamındaki **328 test / 100,212 s**
-  hata vermedi; iki Linux denetimi macOS'ta atlandı. Motor kodu değişmedi.
-  Önceki koşular bu test düzeneği düzeltmelerinin sonucu sayılmaz.
-- **Bekleyen kabul:** Tam ve hızlı Linux regresyonunun sonucu. Sonuç
-  alınmadan bu madde kapatılmayacak.
-- **Dayanak:** [Uygulama kararı](docs/decisions/0175-publisher-jobs-and-review-delivery.md).
-
 ### N-029 — Tam yayın metni, yeniden inceleme ve günlük arşivi
 
 - **Durum:** Uygulandı ve GitHub/Linux teslimi tamamlandı; lisans koşulları sürekli. **Güncellendi:** 19 Kasım 2026.
@@ -92,8 +62,9 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   kurulumu, firma izolasyonu, 64 → 79 geçişi ve kesilen kurulumdan dönüş
   doğrulandı. Önceki macOS test düzeltmesi bu tam koşuya dahildir.
   Bu sonuç kaynakların sürekli erişilebilirliği veya 7/24 kapasite
-  garantisi değildir; sonraki toplu metin işleri/bildirim/kapasite
-  genişletmeleri [yol haritasında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md) henüz plan olarak durur.
+  garantisi değildir. Toplu metin işleri, bildirim ve birikimli kapasite
+  genişletmeleri 0.170.0 içinde uygulandı; ayrı kabul sonuçları N-030'da
+  ve [yol haritasında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md) izlenir.
 - **Dayanak:** [Teslim planı](docs/roadmap/REPORT_REVIEW_RETENTION_DELIVERY.md),
   [CERT-FR koşulları](https://cert.cyber.gouv.fr/mentions-legales/),
   [NCSC koşulları](https://www.ncsc.gov.uk/section/about-this-website/terms-and-conditions),
@@ -631,6 +602,46 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Kapanan notlar ve kanıtları
 
+### N-030 — Yayın işleri, ilişki bildirimi ve birikimli kapasite kabulü
+
+- **Durum:** Kapandı; aşağıdaki tanımlı kapsamda Linux teslimi tamamlandı. **Güncellendi:** 19 Kasım 2026.
+- **Yetki:** Kullanıcı üç işi birlikte onayladı.
+- **Korunacaklar:** Mevcut kuyruk, firma ayrımı, eski belge/karar kanıtı,
+  açık insan kararı, yedekli geçiş ve yayıncı koşulları. Başarılı belgeler
+  tekrar işinde yeniden indirilmez; kısmi kapsam kesin kayıp sayılmaz.
+- **Alınan kanıt:** Linux'ta 22 yeni test; iki firmada 80 belge/160 sürüm,
+  118 komut, gerçek SIGKILL sonrası indirmeden toparlanma, bildirim/vaka,
+  arşiv ve birlikte geri yükleme geçti. Yerelde gerçek eski kodla 79 → 80
+  ve 75 → 80 geçiş/geri dönüş tamamlandı.
+- **Canlı kuyruk:** CERT-FR CTI-010 HTML/PDF iki HTTP denemesiyle alındı;
+  aynı iş tekrarında yeni indirme/makbuz oluşmadı. 22 kararın 20+2
+  bildirim penceresi ve tekrar tekilleştirmesi de doğrulandı.
+- **Kabul betiği düzeltmesi:** İlk Linux yükseltme koşusu eski 79 sınırında
+  durdu. Betik şema 80'in yalnız beklenen vaka CHECK genişlemesine izin
+  verecek şekilde güncellendi; eski satır/rowid denetimi korunur. İlgili
+  34 test geçti (iki Linux kontrolü macOS'ta atlandı); son 21 belge/
+  bildirim/platform testi de geçti. Eski hızlı/tam koşular durduruldu;
+  güncel `9925b5e` ile yeniden başlatıldı. Gerçek Linux 64 → 80 yükseltme
+  ve kurulum kurtarması marka/theHarvester kollarında geçti.
+- **Eski test verilerinin toplu kontrolü:** Şema73 etiketli iki geçiş testi
+  ve şema61 manifest karşılaştırması gerçek tarihî düzene uyarlandı.
+  `migrat/schema/legacy/upgrade` kapsamındaki **328 test / 100,212 s**
+  hata vermedi; iki Linux denetimi macOS'ta atlandı. Motor kodu değişmedi.
+  Önceki koşular bu test düzeneği düzeltmelerinin sonucu sayılmaz.
+- **Son hızlı Linux kontrolü:** `ec6514a` koduyla **1.914 test /
+  1.302,696 saniye**; hata/atlama yok.
+- **Son tam Linux kontrolü:** Aynı `ec6514a` koduyla Python 3.13.18
+  üzerinde **3.211 test / 2.244,145 saniye**; hata/atlama yok. İlk
+  başarısız/durdurulan koşuların ardından bu tam paket tamamlandı.
+- **Kapanış sınırı:** Kapasite yükü 135,909 saniye ve 80 belge/160 sürümdür;
+  sürekli hizmet veya daha büyük yük garantisi değildir. Motor, test,
+  betik ve CI dosyaları son test edilen commit ile aynı kalır; kapanış
+  yalnız belge güncellemesidir. Tavily/Nmap ve ertelenen LLM/STIX ayrı kalır.
+- **Kalıcı kanıt:** [Tam Linux paketi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44490469211),
+  [hızlı Linux paketi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44490404692),
+  [bütün kabul sonuçları](docs/ACCEPTANCE_REVIEW.md#01700--yayın-işleri-ilişki-bildirimi-ve-birikimli-kapasite).
+- **Dayanak:** [Uygulama kararı](docs/decisions/0175-publisher-jobs-and-review-delivery.md).
+
 ### N-016 — Linux kabul süresindeki dalgalanma
 
 - **Durum:** Kapatıldı; başlangıç yükü azaltıldı ve iki Linux kolu ilk koşuda geçti.
@@ -761,6 +772,15 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.170.0 teslimi tamamlandı:** Kullanıcının birlikte istediği yayın
+işleri, ilişki bildirimi/vaka bağlantısı ve iki firmalı birikimli kapasite
+kabulü N-030 ile kapatıldı. Son Linux tam paketi 3.211 test, hızlı paket
+1.914 test; hata/atlama yok. Kullanım ve güncelleme adımları
+[yayın işleri belgesinde](docs/PUBLISHER_JOB_DELIVERY.md), ölçülen yük ve
+sınırlar [kabul kaydında](docs/ACCEPTANCE_REVIEW.md) bulunur. Yeni bir
+geliştirme başlığı bu kapanışla kendiliğinden başlatılmaz; aşağıdaki
+önceki sürüm kayıtları ve ayrı bekleyen notlar korunur.
 
 **0.168.0:** Kullanıcının birlikte istediği sekiz madde uygulandı; tanımlı
 yerel kabul, eski kodla geçiş ve iki test beklentisinin düzeltilmesiyle

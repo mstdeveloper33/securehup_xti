@@ -1,6 +1,10 @@
 # 0175 — Seçilmiş yayın işleri ve ilişki değişikliği teslimi
 
-Tarih: 19 Kasım 2026. Durum: uygulama ve kabul çalışması sürüyor.
+Tarih: 19 Kasım 2026. Durum: uygulandı ve tanımlı Linux kabulü tamamlandı.
+[Kabul sonuçları](../ACCEPTANCE_REVIEW.md#01700--yayın-işleri-ilişki-bildirimi-ve-birikimli-kapasite):
+3.211 testlik tam paket, kurulum/yükseltme, firma izolasyonu ve iki firmada
+80 belge/160 sürümlük kapasite/kurtarma geçti. Bu ölçümün süre ve hacim
+sınırları kabul kaydında korunur.
 
 Kullanıcının onayladığı üç iş: HTML/PDF alımını mevcut kuyruğa bağlamak,
 ilişki kanıtındaki değişikliği gelen kutusu ve vakaya taşımak, biriken

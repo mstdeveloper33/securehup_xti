@@ -7,7 +7,15 @@ ve donmuş vaka kanıtına taşınır; kısmi kapsam kesin kayıp sayılmaz.
 Çekirdek 80 açık/yedekli geçiş gerektirir; kuyruk 3, önceki iş modelleri
 1–4, araştırma 3, öncelik v8 ve dış JSON v1 korunur.
 [Kullanım](PUBLISHER_JOB_DELIVERY.md), [karar](decisions/0175-publisher-jobs-and-review-delivery.md).
-Kabul çalışması sürüyor; aşağıdaki 0.169.0 Linux sonuçları önceki sürüme aittir.
+**GitHub/Linux teslimi tamamlandı:** Son `ec6514a` kodunda Python 3.13.18
+tam paketi **3.211 test / 2.244,145 saniye**, Python 3.11.18 hızlı paketi
+**1.914 test / 1.302,696 saniye**; hata/atlama yok. Linux kurulumları,
+firma izolasyonu, 64 → 80 yükseltme/kurulum kurtarması ve iki firmada
+80 belge/160 sürümlük kapasite, gerçek kesinti, arşiv ve yedekten dönüş
+geçti. Gerçek CERT-FR HTML/PDF kuyruk alımı da doğrulandı. Kapasite
+ölçümü 135,909 saniyelik tanımlı yüktür; 7/24 hizmet garantisi değildir.
+[Kabul sonuçları](ACCEPTANCE_REVIEW.md#01700--yayın-işleri-ilişki-bildirimi-ve-birikimli-kapasite).
+Son kapanış yalnız belge değişikliğidir; aşağıdaki 0.169.0 sonuçları önceki sürüme aittir.
 
 **0.169.0 GitHub/Linux teslimi tamamlandı:** `071a076` kodu `main` dalına
 gönderildi; altı GitHub çalışması başarılı. Ubuntu 24.04 x86_64 üzerinde

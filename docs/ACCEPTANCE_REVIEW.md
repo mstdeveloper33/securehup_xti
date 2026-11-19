@@ -4,9 +4,11 @@
 
 19 Kasım 2026. Uygulama ve Linux kabul kodu:
 [`53a2eaf0d7eae81f18870680b87710ee16bcddce`](https://github.com/mstdeveloper33/securehup_xti/commit/53a2eaf0d7eae81f18870680b87710ee16bcddce).
-Son kabul/test betiği commit'i
+Yükseltme kabul/test betiği commit'i
 [`9925b5e15c189a3b033514efeaa6a38e2445a1fe`](https://github.com/mstdeveloper33/securehup_xti/commit/9925b5e15c189a3b033514efeaa6a38e2445a1fe);
-motor kaynakları, bağımlılıklar ve kapasite betiği ilk commit ile aynıdır.
+son tarihî test verisi düzeltmesi
+[`ec6514acc33881fedc7c0b3825d610b2a1266437`](https://github.com/mstdeveloper33/securehup_xti/commit/ec6514acc33881fedc7c0b3825d610b2a1266437).
+Motor kaynakları, bağımlılıklar ve kapasite betiği ilk commit ile aynıdır.
 Çekirdek 80, kuyruk 3, kaynak işi modeli 5. Önceki iş modelleri 1–4
 ve dış JSON sözleşmesi 1 korunur. İstenen üç işin
 [kullanımı ve sınırları](PUBLISHER_JOB_DELIVERY.md) ayrı belgelenmiştir.
@@ -21,13 +23,17 @@ ve dış JSON sözleşmesi 1 korunur. İstenen üç işin
 | Normal kurulum ve theHarvester | Başarılı. [Marka/PDF/RSS kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401780), [theHarvester kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401635). |
 | Firma izolasyonu ve gerçek süreç kurtarması | Python 3.11 / 3.13 kolları başarılı. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44485401541). |
 | Gerçek Linux kurulumundan 64 → 80 geçiş ve kurtarma | Güncel `9925b5e` ile marka araçları ve theHarvester kolları başarılı. Eski satır/rowid/kanıtlar, özgün yedek ve kesilmiş kurulumdan dönüş doğrulandı. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487521778). |
-| Hızlı Linux regresyonu | Sonuç bekleniyor. [Güncel çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487464281). |
-| Tam Linux paketi | Sonuç bekleniyor. [Güncel çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487512527). |
+| Hızlı Linux regresyonu | **Başarılı.** Python 3.11.18; 1.914 test / 1.302,696 saniye; hata ve atlama yok. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44490404692). |
+| Tam Linux paketi | **Başarılı.** Python 3.13.18; 3.211 test / 2.244,145 saniye; hata ve atlama yok. [Çalışma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44490469211). |
 
 Test demetleri örtüşür; sayıları toplanmaz. Yerelde geliştirme sırasında
 başlatılan bir tam koşu, altı adım sınırı kesinleştirilirken durduruldu;
 tamamlanmış veya başarılı paket sayılmaz. Teslimin tam sonucu yukarıdaki
-Linux çalışmasıdır; bitmeden başarılı kabul edilmez.
+tamamlanmış Linux çalışmasıdır. Son hızlı ve tam paket aynı `ec6514a`
+commit'inde geçti. Kurulum, firma izolasyonu, yayın kapasitesi ve yükseltme
+kabulü de yukarıda belirtilen commit'lerde tamamlandı; çalışma kodu aynıdır.
+Kapanış güncellemesi yalnız Markdown belgelerini değiştirir; test edilen
+kaynak, test, betik, bağımlılık ve CI dosyaları korunur.
 
 **Kabul betiği düzeltmesi:** İlk [Linux yükseltme çalışması](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44486436950)
 iki araçta da aday şema kontrolünde durdu: test betiği yalnız 64–79'u
@@ -54,7 +60,11 @@ yalnız bu manifestte iki hata vardı; düzeltme sonrası **328 test /
 100,212 s**, hata yok, macOS'ta iki Linux atlaması. Bu kapsam test kimliğinde
 `migrat`, `schema`, `legacy` veya `upgrade` geçen bütün testlerdir.
 Çalışma kodu/bağımlılıklar/kapasite betiği değişmedi. Son tam ve hızlı
-Linux sonucu bu test düzeneklerini de içeren commit için ayrıca kaydedilir.
+Linux paketleri bu test düzeneklerini içeren `ec6514a` commit'inde geçti.
+`9925b5e` [hızlı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487464281)
+ve [tam](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44487512527)
+koşuları eski test düzenekleriyle tamamlanmış kabul sayılmaz; nihai
+koşular `ec6514a` üzerinden yukarıdaki tabloda izlenir.
 
 **Canlı yayın işi:** Ayrı `/tmp` alanında seçilmiş CERT-FR CTI-010 HTML ve
 PDF, gerçek `./xti source-jobs` plan → submit → worker → result yoluyla
@@ -124,6 +134,8 @@ Geçici kanıtlar: `/tmp/xti-01700-publisher-capacity-final.json`,
 `/tmp/xti-01700-linux-publisher.json`,
 `/tmp/xti-01700-real79-upgrade-final.json`,
 `/tmp/xti-01700-engine-upgrade.json` ve ilgili test logları.
+Son test logları `/tmp/xti-01700-linux-quick-final.log` ve
+`/tmp/xti-01700-linux-full-final.log` içindedir.
 Kalıcı kanıt bu kayıt, sürümlü test/betikler ve GitHub çalışma loglarıdır;
 test veri tabanları ve ham yayın metinleri repoya eklenmez.
 

@@ -2,7 +2,11 @@
 
 **0.170.0:** Kullanıcı aşağıdaki üç işi birlikte onayladı. Seçilmiş belge
 işleri, bildirim/vaka bağlantısı ve tekrarlanabilir kapasite kontrolü
-uygulandı; nihai test/Linux kabulü sürüyor. [Kullanım](../PUBLISHER_JOB_DELIVERY.md).
+uygulandı ve tanımlı Linux kabulü tamamlandı. Son tam paket 3.211 test,
+hızlı paket 1.914 test; hata/atlama yok. İki firmada 80 belge/160 sürümle
+kapasite, kesinti, arşiv ve yedekten dönüş ölçüldü.
+[Kullanım](../PUBLISHER_JOB_DELIVERY.md),
+[sonuçlar ve ölçüm sınırları](../ACCEPTANCE_REVIEW.md#01700--yayın-işleri-ilişki-bildirimi-ve-birikimli-kapasite).
 
 **0.169.0 teslimi:** Kullanıcının seçtiği 2/3/4; izinli yayıncı HTML/PDF,
 ilişki yeniden inceleme ve kayıpsız günlük arşivi uygulandı.
@@ -12,18 +16,23 @@ GitHub/Linux teslimi `071a076` koduyla tamamlandı: altı workflow başarılı,
 [Kabul kaydı](../ACCEPTANCE_REVIEW.md#01690--github-ve-linux-teslimi).
 LLM ve geniş STIX/TAXII bekler.
 
-### 19 Kasım — 0.169.0 tesliminden sonraki önerilen sıra
+### 19 Kasım — 0.170.0 için onaylanan üç iş
 
 Kullanıcı GitHub/Linux teslim adımıyla devam edilmesini istedi. Kod
 `071a076` olarak gönderildi ve Linux kabulü tamamlandı; çalışma sonuçları
 [kabul kaydında](../ACCEPTANCE_REVIEW.md) tutulur. Aşağıdaki üç genişletme
-0.170.0 içinde uygulandı; yeni dilimin kabul sonuçları ayrı kaydedilir.
+0.170.0 içinde uygulandı; kabul sonuçları önceki sürümden ayrı kaydedildi.
 
-| Sonraki iş | Uygulama sınırı | Tamamlanma ölçütü |
+| Uygulanan iş | Uygulama sınırı | Tamamlanma ölçütü |
 | --- | --- | --- |
 | Tam metni yönetilen işlere katma | Önce açıkça seçilmiş, izinli yayıncı URL'leri. Mevcut plan/iş/worker, firma kapsamı, bütçe ve iptal düzeni kullanılır; yeni uygulama backend'i kurulmaz. | Plan ağ kullanmadan URL ve sınırları gösterir. Gerçek yönlendirme/istek tüketimi sayılır. Belge kaydından sonra süreç kesilirse aynı sonuç çoğalmadan bulunur. Başarısız makbuzla açık tekrar ayrılır; önceki iş sürümleri okunur. Terminal ve firma JSON aynı davranır. |
 | Yeniden incelemeyi bildirim ve vakaya bağlama | Değişen karar dayanağı mevcut yerel kutuya bağlanır; vakaya ekleme insan seçimidir. | Aynı kanıt değişimi tekrar bildirim üretmez; önceki/güncel dayanak ve karar ayrı görünür. Kısmi görünüm kaybolmuş kanıt sayılmaz. Firma sınırı, eski karar ve geri alma korunur; otomatik tehdit/ihlal kararı veya dış aksiyon oluşmaz. |
-| HTML/PDF birikimiyle Linux kapasite ölçümü | Bu sürümün kurulum kabulünden ayrı, yeni içerik türleriyle uzun çalışma. | Önceden tanımlı iki firma/yük profilinde disk, bellek, gecikme, kuyruk, arşiv ve yedekten dönüş ölçülür. Makine/süre/yük raporda yer alır; mevcut 64 MiB özgün nesne ve okuma sınırları saklanmaz veya ölçmeden kaldırılmaz. |
+| HTML/PDF birikimiyle Linux kapasite ölçümü | Kurulum kabulünden ayrı, iki firmada birikimli HTML/PDF yükü. | Önceden tanımlı iki firma/yük profilinde disk, bellek, gecikme, kuyruk, arşiv ve yedekten dönüş ölçülür. Makine/süre/yük raporda yer alır; mevcut 64 MiB özgün nesne ve okuma sınırları saklanmaz veya ölçmeden kaldırılmaz. |
+
+Üç işin kabulü tamamlandı. Yeni içerik yükünün Linux ölçümü **135,909 saniye**
+sürdü; uzun süreli 7/24 işletim veya daha büyük yük için sonuç çıkarılmaz.
+İki firma, 80 belge/160 sürüm, 118 komut, gerçek SIGKILL kesintisi ve
+birlikte yedekten dönüş ayrı kabul kaydında ölçüleriyle yer alır.
 
 PDF bağlantılarını otomatik izleyen genel tarayıcı, tüm internet taraması,
 LLM, geniş STIX/TAXII ve .NET/UI bu üç işle kendiliğinden açılmaz.
