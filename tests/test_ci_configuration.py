@@ -33,6 +33,29 @@ def brand_acceptance():
 
 
 class CiConfigurationTests(unittest.TestCase):
+    def test_job_history_acceptance_covers_queue_and_conflict_changes_on_both_events(self):
+        workflow = (PROJECT_ROOT / '.github/workflows/job-history.yml').read_text()
+        critical = ('pyproject.toml', 'src/xti/adapters/engine_job_catalog.py',
+                    'src/xti/adapters/sqlite_engine_jobs.py', 'src/xti/domain/source_conflicts.py',
+                    'src/xti/interfaces/platform_engine.py', 'scripts/check-job-history.py',
+                    'tests/test_job_history.py', 'tests/test_job_history_conflict_platform.py',
+                    'tests/test_source_conflicts.py', 'tests/test_ci_configuration.py')
+        for event in ('push', 'pull_request'):
+            block = re.search(rf'(?ms)^  {event}:\n(.*?)(?=^  [a-z_]+:|\Z)', workflow)
+            self.assertIsNotNone(block)
+            paths = re.findall(r'^      - "([^"\n]+)"$', block.group(1), re.MULTILINE)
+            for path in critical:
+                with self.subTest(event=event, path=path):
+                    self.assertTrue(any(fnmatchcase(path, pattern) for pattern in paths))
+            self.assertFalse(any(fnmatchcase('docs/DAILY_USE.md', pattern) for pattern in paths))
+        self.assertIn('fetch-depth: 0', workflow)  # Actual old producer must be available.
+        self.assertIn('persist-credentials: false', workflow)
+        self.assertIn('python: ["3.11", "3.13"]', workflow)
+        self.assertIn('scripts/check-job-history.py --output', workflow)
+        for module in ('test_job_history', 'test_source_conflicts', 'test_job_history_conflict_platform'):
+            self.assertIn('tests.' + module, workflow)
+            self.assertIn('tests/' + module + '.py', (PROJECT_ROOT / 'scripts/check-fast').read_text())
+
     def test_every_push_runs_only_the_fast_offline_gate(self) -> None:
         workflow = (PROJECT_ROOT / ".github/workflows/check.yml").read_text(
             encoding="utf-8"

@@ -15,11 +15,11 @@ def initialize_jobs(context):
     SQLiteEngineJobRepository(jobs_database(context)).initialize()
 
 
-def validate_jobs(context):
+def validate_jobs(context, *, allow_dirty=False):
     from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
     with SQLiteAssetRepository(context.database)._connection(readonly=True):
         pass
-    SQLiteEngineJobRepository(jobs_database(context)).validate()
+    SQLiteEngineJobRepository(jobs_database(context)).readiness(allow_dirty=allow_dirty)
 
 
 def recover_storage(context):
@@ -37,7 +37,7 @@ def recover_storage(context):
         storage = SQLiteAssetRepository(context.database)
         with storage._connection() as connection:
             storage._check_integrity(connection)
-        validate_jobs(context)
+        SQLiteEngineJobRepository(queue).validate()
 
 
 def make_job_service(context):

@@ -71,6 +71,9 @@ exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/check-test-shar
     tests/test_platform_entrypoint.py \
     tests/test_company_content.py \
     tests/test_engine_jobs_storage.py \
+    tests/test_job_history.py \
+    tests/test_source_conflicts.py \
+    tests/test_job_history_conflict_platform.py \
     tests/test_engine_job_service.py \
     tests/test_source_jobs.py \
     tests/test_source_jobs_platform.py \

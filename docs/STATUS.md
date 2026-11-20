@@ -1,5 +1,18 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.179.0:** Ortak iş kuyruğunda tamamlanan geçmiş etkin kapasiteden
+ayrıldı. 10.000 sınırı bekleyen/çalışan işlere aittir; özgün sonuç,
+tekrar anahtarı ve retry zinciri korunur. Kuyruk4 yedekli açık geçiştir;
+çekirdek88 ve kaynak işi7 değişmez. Durum/sonuç/worker seçimi indeksli,
+geçmiş kesite bağlı sayfalı; bütünlük denetimi açık bakım işlemidir.
+`research.conflicts` aynı profil hakkındaki açık kaynak iddialarını
+zaman/kapsam/kanıtla değerlendirir. Öncelik v10; eski incelemeler değişmez.
+[İş geçmişi](JOB_HISTORY.md), [çelişki anlamı](SOURCE_CONFLICTS.md).
+İki firmada 50.000'er sentetik geçmiş iş üzerine yeni iş kabulü, gerçek
+eski üreticiden3→4 geçişi ve yedekten eski kodla dönüş yerelde geçti.
+Linux teslim sonucu [sabit kabul kaydında](roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md)
+ayrıca izleniyor; çok günlük canlı pilot bu teslimin kapsamında değildir.
+
 **0.178.0:** Grup güncel durumu, olay sonuçları ve değişiklik kanıtı
 indeksli okunur. `groups current/history/changes/audit/rebuild` eklendi.
 Yeni olay2 önceki durum SHA'sıyla ilerler; aynı kanıt yeniden saklanmaz.
@@ -16,7 +29,8 @@ firma kabulü, sosyal kabul, kurulum ve işletim kontrolleri başarılı.
 İlk hızlı koşu 25 dakika sınırında iptal edildi; aynı 176 modül iki ayrık
 parçaya bölündü ve `f515df5` üzerinde ikisi de geçti. Motor kodu değişmedi.
 Güncel test envanteri 3.415; bu sayı CI günlüklerinden alınmış koşu sayısı
-değildir. Ortak kuyruğun 10.000 saklı iş sınırı ayrı kalır. Son kapanış
+değildir. Bu sürümde ortak kuyruğun 10.000 saklı iş sınırı ayrı kalmıştı;
+0.179.0 bu sınırı etkin işlere ayırır. Son kapanış
 yalnız belgeleri günceller; birikimli kullanım kabulü geliştirme kuralıdır.
 
 **0.177.0:** Kayıtlı grup kontrolü `group-refresh` ile mevcut kaynak

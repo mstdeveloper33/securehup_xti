@@ -37,6 +37,14 @@ class ResearchService:
         """Internal capture input; public read results retain their page limits."""
         return self._priorities(parameters, paginate=False)
 
+    def conflicts(self, **parameters):
+        from xti.domain.source_conflicts import conflict_report
+        query = research_query(**parameters)
+        checked_at = self._now()
+        with self.repository.open(query, checked_at) as reader:
+            graph = build_research(reader, replace(query, expected_snapshot=None), checked_at, paginate=False)
+            return conflict_report(replace(graph, query=query))
+
     def _priorities(self, parameters, *, paginate):
         query = research_query(**parameters)
         checked_at = self._now()

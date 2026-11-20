@@ -1,5 +1,13 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.179.0 — Etkin iş kapasitesi ve kaynak uyuşmazlığı
+
+Kuyruk geçmişi ve kaynak değerlendirmesinin sabit kapsamı, son yerel
+173/45/26 test, gerçek eski üreticiyle kuyruk3→4 geçiş/geri dönüş ve iki
+firmada50.000'er geçmiş iş ölçümü [tek teslim kaydında](roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
+Eski v9 donmuş incelemeler aynı kalır. Linux sonucu ayrıca kaydedilecek;
+kontrollü geçmiş yükü çok günlük canlı pilot yerine sunulmaz.
+
 ## 0.178.0 — Biriken grup geçmişi ve bildirim kapasitesi
 
 İndeksli güncel durum, sayfalı geçmiş, aynı kanıtı yeniden saklamayan

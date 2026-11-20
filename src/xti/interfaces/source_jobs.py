@@ -34,9 +34,16 @@ def register_source_jobs_parser(commands):
     parser = commands.add_parser('source-jobs', help='Kaynak toplama ve sosyal takip adımlarını ortak kuyrukla yönet.')
     actions = parser.add_subparsers(dest='source_job_action', required=True)
     for name, label in (('init', 'Mevcut yerel veri alanında iş kuyruğunu açıkça oluştur.'),
-                        ('migrate', 'Mevcut kuyruğu yedekle ve şema 3’e yükselt.'),
+                        ('migrate', 'Mevcut kuyruğu yedekle ve şema 4’e yükselt.'),
                         ('recover', 'Kesilen işleri işaretle; ağ isteğini tekrarlama.')):
         actions.add_parser(name, help=label)
+    actions.add_parser('capacity', help='Ortak kuyruğun etkin ve arşiv iş kapasitesini göster.')
+    actions.add_parser('audit', help='Bütün özgün iş/olay zincirlerini ve kuyruk indeksini denetle; büyük geçmişte sürebilir.')
+    history = actions.add_parser('history', help='Ortak kuyrukta profil ve kaynak işlerinin kayıpsız geçmişini sayfala.')
+    history.add_argument('--bucket', choices=('active', 'archive', 'all'), default='archive')
+    history.add_argument('--limit', type=int, default=20)
+    history.add_argument('--before-sequence', type=int)
+    history.add_argument('--expected-snapshot')
     for name in ('plan', 'submit'):
         action = actions.add_parser(name, help='Kaynakları ve sınırları göster.' if name == 'plan' else 'Seçilen planı kuyruğa ekle; ağ isteği gönderme.')
         action.add_argument('value')
@@ -186,6 +193,13 @@ def execute_source_jobs(database, args):
     context = SimpleNamespace(data_dir=database.parent, database=database)
     service = make_source_job_service(context)
     action = args.source_job_action
+    if action in {'capacity', 'audit', 'history'}:
+        from xti.interfaces.job_history import make_job_history_service, history_lines
+        with SQLiteAssetRepository(database)._connection(readonly=True):
+            pass
+        options = {key: getattr(args, key) for key in ('bucket', 'limit', 'before_sequence', 'expected_snapshot')} if action == 'history' else {}
+        data = make_job_history_service(database.parent).execute('jobs.' + action, **options)
+        return data, history_lines(data, data_dir=args.data_dir)
     if action in {"plan", "submit"} and args.publisher_documents is not None:
         args.publisher_documents = [{"provider": provider, "url": url} for provider, url in args.publisher_documents]
     if action == 'plan':

@@ -143,8 +143,10 @@ class EngineReadService:
                 return method(**request.parameters)
             except WarninglistRunNotFound as error:
                 raise EngineContractError('not_found', str(error)) from error
-        if request.operation in {'research.show', 'research.priorities'} and self.research is not None:
+        if request.operation in {'research.show', 'research.priorities', 'research.conflicts'} and self.research is not None:
             try:
+                if request.operation == 'research.conflicts':
+                    return self.research.conflicts(**request.parameters)
                 if request.operation == 'research.priorities':
                     return priority_data(self.research.priorities(**request.parameters))
                 return research_data(self.research.show(**request.parameters))

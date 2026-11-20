@@ -1,5 +1,13 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.179.0, biten işleri etkin kuyruk kapasitesinden ayırır; eski sonuç ve
+tekrar anahtarlarını korur. `source-jobs capacity/history/audit` ile
+geçmiş ve kapasite görülebilir. Mevcut kuyruk için `./xti source-jobs migrate`.
+`research DOMAIN --type domain --conflicts` kaynakların aynı profil
+hakkındaki karşıt iddialarını zaman ve kanıtıyla gösterir; erişim hatasını
+hesap yokluğu saymaz. [İş geçmişi](docs/JOB_HISTORY.md),
+[kaynak değerlendirmesi](docs/SOURCE_CONFLICTS.md).
+
 0.178.0, güncel grup ve bildirim sonuçlarını bütün geçmişi tekrar işlemeden
 okur. Değişmeyen kontroller aynı kanıtı kopyalamaz; geçmiş ayrı sayfalanır.
 Eski karar, vaka ve iş makbuzu korunur. `./xti migrate` şema88 geçişini

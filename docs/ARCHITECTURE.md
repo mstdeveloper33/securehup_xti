@@ -1,5 +1,16 @@
 # XTI Motorunun Mimarisi
 
+0.179.0 kuyruk4 özgün iş ve olayları değiştirmeden durum/tür/sıra indeksi
+ekler. Bitiş ve arşiv kaydı aynı transaction'dadır; olağan dışı SQL yazımı
+koruma kaydını kirletir. Normal kabul/okuma seçili kaydı doğrular; tam
+audit, migration ve yedek bütün günlüğü denetler. Geçmiş sayfası değişim
+sayacına bağlıdır; etkin kapasite saklı geçmişten ayrıdır.
+`source_conflicts` saf alan kuralları mevcut sınırlı araştırma kesitinde
+açık profil varlığı/kimliği ve CTI yaşam döngüsünü değerlendirir; yeni
+öncelik v10 eski donmuş kayıtları yeniden yazmaz. Küçük tarihçe portu
+uygulama servisinden, SQLite/CLI/firma bağları giriş katmanından kurulur.
+[0184 kararı](decisions/0184-terminal-job-history-and-source-conflicts.md).
+
 0.178.0 `group_state.transition` geçmiş uzunluğundan bağımsız saf geçiştir.
 Şema88 özgün günlükten türeyen son durum, olay sonucu ve fark kanıtını
 aynı transaction içinde günceller. Bir kontrol değişmeyen kanıta SHA ile
@@ -97,7 +108,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**20 Kasım 2026 — 0.178.0, çekirdek şema 88, iş kuyruğu şeması 3.**
+**20 Kasım 2026 — 0.179.0, çekirdek şema 88, iş kuyruğu şeması 4.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

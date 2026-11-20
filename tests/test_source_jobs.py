@@ -368,10 +368,10 @@ class SourceJobTests(unittest.TestCase):
     def test_migration_failure_rolls_back_and_keeps_readable_original_backup(self):
         repo = self.old_queue()
         original = repo._schema
-        def fail_after_change(db):
-            if db.execute('PRAGMA user_version').fetchone()[0] == 3:
+        def fail_after_change(db, **options):
+            if db.execute('PRAGMA user_version').fetchone()[0] == 4:
                 raise StorageError('Controlled failure before commit')
-            return original(db)
+            return original(db, **options)
         with patch.object(repo, '_schema', side_effect=fail_after_change), self.assertRaises(StorageError):
             repo.migrate()
         repo.validate()

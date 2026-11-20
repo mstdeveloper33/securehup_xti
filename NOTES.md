@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **20 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.178.0 / çekirdek 88 / iş kuyruğu 3**.
+Güncel çalışma: **0.179.0 / çekirdek 88 / iş kuyruğu 4**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,33 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-042 — Kalıcı iş geçmişi ve kaynak çelişkisi değerlendirmesi
+
+- **Durum:** Uygulama/kabul sürüyor. **Tarih:** 20 Kasım 2026.
+- **Yetki/kapsam:** Kullanıcı önerilen 1 ve 3'ü seçti: ortak motor kuyruğunda
+  tamamlanan işleri etkin iş kapasitesinden ayırmak ve kaynak iddialarındaki
+  uyuşmazlığı kanıt/zaman/kapsamla değerlendirmek. Çok günlük canlı pilot
+  bu teslimin koşulu değildir; yeni kaynak veya ücretli çağrı açılmaz.
+- **Korunacaklar:** Özgün iş/istek/sonuç, tekrar anahtarı, yeniden deneme
+  zinciri ve firma sınırı; eski inceleme/vaka/insan kararının değişmemesi.
+  Kuyruk geçişi açık/yedekli; eski üreticiyle geri dönüş doğrulanır.
+- **Birikimli kullanım:** 10.000 sınırı yalnız bekleyen/çalışan işlere
+  uygulanacak. Biten işler otomatik kayıpsız geçmişe ayrılacak; seçilen
+  sonuç ve durum okunacak, tam denetim açık bakım olacak. Saklanan veri
+  yine büyür; arşivleme otomatik silme veya sınırsız disk değildir.
+- **Çelişki anlamı:** Tam profil adresinde yakın zamanlı karşıt varlık
+  iddiaları inceleme adayıdır. Eski gözlem, erişim hatası, farklı profil
+  ve CTI iddiasının geri çekilmesi ayrı açıklanır. Metinlerden genel
+  anlamsal çıkarım, çoğunluk oyu veya otomatik tehdit/kimlik hükmü yoktur.
+- **Kabul:** Eski ve arşivli tekrar/sonuç; iptal/kesinti/retry/restore;
+  eşzamanlı yazma; 10.000'i aşan geçmişte seçili okuma ve yeni iş;
+  iki firma; tam/eksik/zaman farkı içeren karşıt kanıt; terminal ve JSON.
+- **Yerel sonuç:** Son ilgili paketler173/45/26 test başarılı; iki firmada
+  50.000'er geçmiş iş, p95 0,396655 sn / tepe RSS49.577.984 byte. Gerçek
+  kuyruk3 üreticisiyle kayıpsız geçiş/rollback ve iki v9 donmuş inceleme
+  korunması geçti. Linux sonuçları bekleniyor; ayrıntı teslim kaydında.
+- **Dayanak:** [Sabit teslim](docs/roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
 
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 

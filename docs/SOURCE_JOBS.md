@@ -1,6 +1,11 @@
 # Kaynak güncelleme işleri
 
-20 Kasım 2026 · 0.177.0 · çekirdek şema 87 · iş kuyruğu şeması 3.
+20 Kasım 2026 · 0.179.0 · çekirdek şema 88 · iş kuyruğu şeması 4.
+
+0.179.0 biten işleri etkin kapasiteden ayırır; özgün makbuz/sonuç/retry
+bağı korunur. Güncel geçmiş, kapasite, audit ve yedekli kuyruk geçişi
+[iş geçmişi rehberindedir](JOB_HISTORY.md). Aşağıdaki eski kaynak işi
+sürümlerinin plan ve kanıt anlamları değişmez.
 
 Güncel iş modeli **7**, `group-refresh` ve zorunlu `group_id` alanını
 ekler (terminalde `--group`). Saklı grubun aynı firma/kök kapsamında yerel
@@ -80,7 +85,7 @@ Uyumsuz sağlayıcı ve bilinmeyen kaynak reddedilir.
 | `--record-review` | Varsayılan kapalı; kaynakların ardından aynı kapsamın incelemesini saklar |
 | Araştırma | `--max-hops`, `--node-limit`, `--edge-limit`, `--stale-after-hours`; mevcut araştırma sınırları |
 | Listeleme | `--offset`, `--limit` (1–100); en yeni iş başta |
-| Kuyruk | Aynı alanda bütün iş türleri toplam en fazla 10.000; otomatik silme yok |
+| Kuyruk | Aynı alanda profil/kaynak türlerinde en fazla 10.000 bekleyen/çalışan iş; biten geçmiş korunur, otomatik silme yok |
 | Tekrar zinciri | En fazla 32; eski iş ve tamamlanmış kaynak makbuzları korunur |
 
 Süre sınırı devam eden HTTP çağrısını zorla kesmez; isteğin kendi zaman
@@ -220,7 +225,7 @@ paylaşır. İş ve kanıt hash'leri yerel bütünlük denetimidir, imza değild
 
 ## Firma platformu
 
-Yeni `platform provision` şema 3 kuyruğu oluşturur. Mevcut firma için:
+Yeni `platform provision` şema 4 kuyruğu oluşturur. Mevcut firma için:
 
 ```sh
 ./xti platform jobs-migrate --root "$PWD/.xti-platform" --company firma-a

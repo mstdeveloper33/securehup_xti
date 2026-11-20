@@ -215,12 +215,15 @@ class EngineJobStorageTests(unittest.TestCase):
 
     def test_request_hash_tampering_and_event_hash_tampering_fail_closed(self):
         job = self.create()
+        other = self.create('other')
+        self.claim(other)
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("UPDATE engine_jobs SET request_sha256='bad' WHERE id=?", (job.id,))
         with self.assertRaises(StorageError):
             self.repo.get(job.id)
-        other = self.create('other')
-        self.claim(other)
+        # Schema 4 rejects all queue use after an out-of-band mutation.
+        with self.assertRaises(StorageError):
+            self.create('after-tampering')
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("UPDATE engine_job_events SET event_sha256='bad' WHERE job_id=?", (other.id,))
         with self.assertRaises(StorageError):

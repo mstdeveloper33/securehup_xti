@@ -10,12 +10,14 @@ from xti.domain.research import (
 from xti.domain.surface_discovery_status import StoredDiscoveryStatus
 
 
-POLICY_VERSION = "research-priority-v9"
+POLICY_VERSION = "research-priority-v10"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
 # observations do not vote, add points, or change an analyst's decision.
 RULES = {
+    'source_conflict_candidate': ('review_first', 'Aynı tam profil adresinde yakın zamanlı karşıt kaynak iddiaları var; kanıtları karşılaştırın. Otomatik tehdit kararı değildir.'),
+    'source_identity_mismatch': ('verify', 'Sağlayıcının döndürdüğü profil kimliği istenen adresle uyuşmuyor.'),
     'social_source_difference': ('verify', 'Aynı sosyal adres için kaynak kayıtları farklı; sayfa kanıtını ve zamanlarını karşılaştırın.'),
     'social_verification_gap': ('verify', 'Sosyal profil kontrolü tamamlanamamış; kaynak iddiası hesap varlığını doğrulamaz.'),
     'social_review_pending': ('verify', 'Birleşik sosyal profil bu keşif kesitinde insan incelemesi bekliyor.'),
@@ -149,6 +151,14 @@ def _reasons(rows, total, matches, related, checked_at, hours, discovery=()):
         reasons.append(ReviewReason(code, tuple(sorted({evidence_id(row) for row in evidence}))))
 
     now = datetime.fromisoformat(checked_at)
+    from xti.domain.source_conflicts import assessments
+    for assessment in assessments(rows, subject='selected-record', checked_at=checked_at,
+                                  stale_after_hours=hours, total=total):
+        code = {'conflict_candidate': 'source_conflict_candidate', 'identity_mismatch': 'source_identity_mismatch'}.get(assessment['state'])
+        if code:
+            ids = {identifier for pair in assessment['candidate_pairs'] for identifier in pair['evidence_ids']} if assessment['state'] == 'conflict_candidate' else {
+                row['evidence_id'] for row in assessment['observations'] if row['value'] == 'different_profile' and row['excluded_reason'] is None}
+            add(code, [row for row in rows if evidence_id(row) in ids])
     from xti.domain.source_comparison import comparisons
     for comparison in comparisons(rows, total=total):
         if comparison['predicate'] != 'profile_presence':

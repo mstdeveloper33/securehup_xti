@@ -1,0 +1,70 @@
+name: XTI job history and source conflicts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/job-history.yml"
+      - "src/xti/**"
+      - "scripts/check-job-history.py"
+      - "tests/test_job_history*.py"
+      - "tests/test_source_conflicts.py"
+      - "tests/test_ci_configuration.py"
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/job-history.yml"
+      - "src/xti/**"
+      - "scripts/check-job-history.py"
+      - "tests/test_job_history*.py"
+      - "tests/test_source_conflicts.py"
+      - "tests/test_ci_configuration.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xti-job-history-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Select Python
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install reviewed test dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/news.txt -r requirements/reports.txt
+      - name: Queue, conflicts, legacy results, cancellation, retry and isolation
+        run: >-
+          ./scripts/python -m unittest -q tests.test_job_history
+          tests.test_source_conflicts tests.test_job_history_conflict_platform
+          tests.test_engine_jobs_storage tests.test_source_jobs
+          tests.test_source_jobs_platform tests.test_platform_backup
+          tests.test_platform_storage_recovery tests.test_research_priority
+          tests.test_research_history
+      - name: Real queue3 producer, rollback and two 50000-job company histories
+        run: ./scripts/python scripts/check-job-history.py --output "$RUNNER_TEMP/job-history.json"
+      - name: Preserve synthetic acceptance measurements
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/job-history.json" ]; then
+            cat "$RUNNER_TEMP/job-history.json"
+          fi

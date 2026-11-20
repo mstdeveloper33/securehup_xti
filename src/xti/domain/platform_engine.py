@@ -12,6 +12,7 @@ from xti.domain.collection_profiles import normalize_profile_name
 from xti.domain.assets import ValidationError
 from xti.domain.nmap_platform import NMAP_OPERATIONS, parse_nmap_parameters
 from xti.domain.source_job_contract import SOURCE_JOB_OPERATIONS, parse_source_job_parameters
+from xti.domain.job_history import OPERATIONS as JOB_HISTORY_OPERATIONS, parameters as job_history_parameters
 
 
 from xti.domain.investigation_contract import WRITE_OPERATIONS as INVESTIGATION_WRITES, parse_parameters as parse_investigation_parameters
@@ -25,7 +26,7 @@ PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
     'research.review.record',
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
-) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + INVESTIGATION_WRITES + REPORT_WRITES + EVIDENCE_WRITES + JOURNAL_WRITES + SOCIAL_WRITES + SOCIAL_ENRICHMENT_WRITES + SOCIAL_TRACKING_WRITES
+) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + JOB_HISTORY_OPERATIONS + INVESTIGATION_WRITES + REPORT_WRITES + EVIDENCE_WRITES + JOURNAL_WRITES + SOCIAL_WRITES + SOCIAL_ENRICHMENT_WRITES + SOCIAL_TRACKING_WRITES
 
 
 def _fields(value, allowed, required=()):
@@ -57,7 +58,9 @@ def parse_platform_request(value):
         return parse_engine_request(value)
     parameters = value['parameters']
     try:
-        if operation in SOCIAL_TRACKING_WRITES:
+        if operation in JOB_HISTORY_OPERATIONS:
+            normalized = job_history_parameters(operation, parameters)
+        elif operation in SOCIAL_TRACKING_WRITES:
             normalized = social_tracking_parameters(operation, parameters, scoped=True)
         elif operation in SOCIAL_ENRICHMENT_WRITES:
             normalized = social_enrichment_parameters(operation, parameters, scoped=True)

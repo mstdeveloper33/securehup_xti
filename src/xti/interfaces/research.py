@@ -126,6 +126,7 @@ def register_research_parser(commands):
     parser.add_argument("--expected-snapshot", help="Önceki sayfanın snapshot_id değeri; kayıtlar değişirse durur.")
     parser.add_argument("--priorities", action="store_true", help="Kayıt ve ilişkileri gerekçeli inceleme sırasıyla göster; --limit öğe sayısıdır.")
     parser.add_argument('--groups', action='store_true', help='Aynı kökün ortak kanıt gruplarını göster; en fazla 20 grup/sayfa.')
+    parser.add_argument('--conflicts', action='store_true', help='Kaynak uyuşmazlığını, zaman farkını ve erişim eksikliğini kanıtlarıyla ayır.')
     parser.add_argument('--time-window-hours', type=int, default=24, help='Grup gözlem yakınlığı: 0–168 saat.')
 
 
@@ -321,6 +322,9 @@ def research_lines(data, *, data_dir=None):
 
 
 def execute_research(database, args):
+    if sum((args.groups, args.priorities, args.conflicts)) > 1:
+        from xti.domain.assets import ValidationError
+        raise ValidationError('--groups, --priorities ve --conflicts ayrı görünümlerdir.')
     if args.groups:
         from xti.domain.assets import ValidationError
         if args.priorities:
@@ -341,6 +345,10 @@ def execute_research(database, args):
     if parameters['limit'] is None:
         parameters['limit'] = 50
     service = make_research_service(database)
+    if args.conflicts:
+        from xti.interfaces.source_conflicts import conflict_lines
+        data = service.conflicts(**parameters)
+        return data, conflict_lines(data, data_dir=args.data_dir)
     if args.priorities:
         data = priority_data(service.priorities(**parameters))
         return data, priority_lines(data, data_dir=args.data_dir)

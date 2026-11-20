@@ -39,7 +39,7 @@ class PublisherPlatformTests(unittest.TestCase):
         self.assertEqual(code, 0)
         manifest = response['data']['source_jobs']
         self.assertEqual(manifest['execution_version'], 7)
-        self.assertEqual(manifest['schema_version'], 3)
+        self.assertEqual(manifest['schema_version'], 4)
         self.assertEqual(manifest['max_execution_steps'], 6)
         self.assertEqual(manifest['max_publisher_documents'], 5)
         self.assertIn('relationships.notify', response['data']['operations'])

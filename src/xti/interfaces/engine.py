@@ -74,7 +74,7 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
     if selected('components.list'):
         from xti.interfaces.components import make_component_service
         services['components'] = make_component_service()
-    if selected('research.show', 'research.priorities'):
+    if selected('research.show', 'research.priorities', 'research.conflicts'):
         from xti.interfaces.research import make_research_service
         services['research'] = make_research_service(database)
     if selected('warninglists.status', 'warninglists.lookup', 'warninglists.run.get'):
@@ -201,7 +201,9 @@ def engine_manifest() -> dict:
                      'indicator_types': ['domain', 'ip', 'ipv4', 'ipv6', 'url', 'md5', 'sha1', 'sha256'],
                      'max_edges': 200, 'max_limit': 100, 'pagination_guard': 'expected_snapshot',
                      'priority_policy_version': POLICY_VERSION, 'priorities': list(PRIORITIES),
-                     'priority_pagination': 'items', 'priority_scope': 'bounded_research_neighborhood'},
+                     'priority_pagination': 'items', 'priority_scope': 'bounded_research_neighborhood',
+                     'conflict_operation': 'research.conflicts', 'conflict_policy': 'source-conflict-v1',
+                     'conflict_window_seconds': 3600, 'conflict_semantics': 'explicit_predicates_only'},
         'research_history': {'capture_via': 'operator_cli_or_company_platform', 'snapshot_max_bytes': 8388608,
                              'readable_model_versions': list(READABLE_RESEARCH_MODELS),
                              'max_limit': 100, 'list_pagination_guard': 'expected_snapshot',

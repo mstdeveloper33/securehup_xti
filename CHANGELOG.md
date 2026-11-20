@@ -1,5 +1,24 @@
 # Değişiklik Kaydı
 
+## 0.179.0 — 20 Kasım 2026
+
+- Ortak profil/kaynak kuyruğunda 10.000 sınırı yalnız bekleyen/çalışan
+  işlere uygulanır. Biten işler aynı işlemde mantıksal arşive ayrılır;
+  özgün sonuç, tekrar anahtarı ve retry zinciri silinmez.
+- Durum/sonuç/anahtar okuması ve worker seçimi indekslidir. Geçmiş
+  kesite bağlı sayfalanır; `jobs.capacity/history/audit` firma JSON'a ve
+  `source-jobs capacity/history/audit` terminale eklendi.
+- Kuyruk3→4 geçişi önce doğrulanmış yedek alır, eski satır/rowid'leri
+  korur. Normal okumalar seçilen işi, açık audit/yedek bütün geçmişi
+  denetler. Çekirdek88, kaynak işi7 ve dış JSONv1 korunur.
+- `research.conflicts` / `research --conflicts` aynı tam profil adresi
+  için yakın zamanlı karşıt iddiaları, farklı kimliği, eski/eksik kanıtı
+  ve erişim sorununu ayırır. Otomatik doğruluk/tehdit kararı vermez.
+- Yeni inceleme önceliği v10; eski donmuş rapor ve insan kararları
+  değiştirilmez. Yeni bağımlılık veya ağ çağrısı eklenmedi.
+- [Kullanım](docs/JOB_HISTORY.md), [değerlendirme sınırları](docs/SOURCE_CONFLICTS.md),
+  [birikimli kullanım ve geçiş kabulü](docs/roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
+
 ## 0.178.0 — 20 Kasım 2026
 
 - Güncel grup, idempotent sonuç ve seçilen bildirim artık tüm geçmişi

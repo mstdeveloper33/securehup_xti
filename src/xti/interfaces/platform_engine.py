@@ -72,7 +72,7 @@ def platform_manifest():
                              'idempotency': 'company_key_and_normalized_scope', 'automatic_retry': False},
         'job_type': 'saved_collection_profile',
         'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
-        'source_jobs': {'schema_version': 3, 'plan_operation': 'sources.plan',
+        'source_jobs': {'schema_version': 4, 'plan_operation': 'sources.plan',
                         'execution_version': 7, 'readable_execution_versions': [1, 2, 3, 4, 5, 6, 7],
                         'usage_unit': 'http_open_attempt', 'shared_quota_owner': 'consuming_platform',
                         'sources': ['circl', 'urlscan', 'misp', 'ripestat', 'ripestat-whois', 'report-capture', 'news:cisa', 'news:ncsc', 'news:cert-fr', 'reports', 'publisher', 'relationship-notify', 'social-tracking', 'group-refresh'], 'review_opt_in': True,
@@ -87,6 +87,8 @@ def platform_manifest():
                         'notification_window': 20, 'notification_cursor': 'notification_offset',
                         'uncertain_retry_requires_acknowledgement': True},
         'worker': 'explicit_one_job',
+        'job_history': {'model_version': 1, 'active_limit': 10000, 'automatic_terminal_archive': True,
+                        'automatic_deletion': False, 'audit_operation': 'jobs.audit'},
         'idempotency': 'company_and_key_bound_to_profile_revision',
         'submission_fence': 'expected_workspace_id',
         'automatic_replay_after_interruption': False,
@@ -182,6 +184,10 @@ def execute_platform_request(context, request):
                             for row in records[:limit]],
                 'has_more': len(records) > limit, 'offset': offset, 'limit': limit,
                 'next_offset': offset + limit if len(records) > limit else None}
+    from xti.domain.job_history import OPERATIONS as JOB_HISTORY_OPERATIONS
+    if request.operation in JOB_HISTORY_OPERATIONS:
+        from xti.interfaces.job_history import make_job_history_service
+        return make_job_history_service(context.data_dir).execute(request.operation, **request.parameters)
     parameters = dict(request.parameters)
     if request.operation == 'jobs.submit' and parameters.pop('expected_workspace_id') != context.workspace_id:
         raise EngineContractError('scope_mismatch', 'İstek güncel firma veri alanına ait değil; işi yeniden planlayın.')
@@ -261,7 +267,7 @@ def run_platform(args, *, stream=None, output=None):
                 recover_storage(context)
             # Refuse incomplete platform provisioning, including read operations.
             from xti.interfaces.platform_jobs import validate_jobs
-            validate_jobs(context)
+            validate_jobs(context, allow_dirty=bool(action == 'request' and not args.describe and request.operation == 'jobs.audit'))
             if action == 'request':
                 if args.describe:
                     operation, data = 'describe', platform_manifest()
@@ -299,7 +305,7 @@ def run_platform(args, *, stream=None, output=None):
                 'invalid_job_state': 'İşin kayıtlı durumu bu işlemi desteklemiyor.',
                 'profile_changed': 'Kayıtlı profil veya izleme kapsamı değişti; güncel seçimle yeni iş planlayın.',
                 'capacity_exceeded': 'İş geçmişi kapasite sınırına ulaştı; tekrar anahtarları silinmedi.',
-                'migration_required': 'Yeni kaynak işleri için platform jobs-migrate ile iş kuyruğunu şema 3’e yükseltin.',
+                'migration_required': 'platform jobs-migrate ile iş kuyruğunu güncel şema 4’e yükseltin.',
                 'plan_changed': 'Kaynak planı özeti uyuşmuyor; sources.plan ile güncel planı alın.',
                 'uncertain_outcome': 'Kesilen isteğin sonucu belirsiz; yeniden gönderme allow_uncertain seçimi gerektirir.',
             }.get(error.code, 'İş isteği mevcut kayıtlı durumla uyuşmuyor.'))

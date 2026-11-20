@@ -159,7 +159,7 @@ class ExtendedSourceTests(unittest.TestCase):
                         for table in ('engine_jobs', 'engine_job_events')]
         before = rows(repo.path)
         migrated = repo.migrate()
-        self.assertEqual((migrated['from_version'], migrated['to_version']), (2, 3))
+        self.assertEqual((migrated['from_version'], migrated['to_version']), (2, 4))
         self.assertEqual(rows(repo.path), before)
         self.assertEqual(rows(Path(migrated['backup'])), before)
         self.assertEqual(repo.get(old.id).payload.version, 2)

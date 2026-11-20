@@ -29,7 +29,7 @@ def parse_source_job_parameters(operation, parameters):
     if operation == 'sources.jobs.list':
         _fields(parameters, {'offset', 'limit'})
         offset, limit = parameters.get('offset', 0), parameters.get('limit', 20)
-        if type(offset) is not int or not 0 <= offset <= 10_000 or type(limit) is not int or not 1 <= limit <= 100:
+        if type(offset) is not int or not 0 <= offset <= 2_147_483_647 or type(limit) is not int or not 1 <= limit <= 100:
             raise ValidationError('Kaynak işi liste sınırları geçersiz.')
         return {'offset': offset, 'limit': limit}
     extra = {'expected_workspace_id'} if operation.endswith(('.cancel', '.retry')) else set()

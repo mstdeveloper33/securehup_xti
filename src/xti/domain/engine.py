@@ -19,7 +19,7 @@ from xti.domain.social_enrichment import READS as SOCIAL_ENRICHMENT_READS, param
 from xti.domain.social_tracking import READS as SOCIAL_TRACKING_READS, parameters as social_tracking_parameters
 
 ENGINE_CONTRACT_VERSION = 1
-ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show', 'research.priorities',
+ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show', 'research.priorities', 'research.conflicts',
                      'research.history', 'research.review.get', 'company.review', 'ioc.lifecycle',
                      'warninglists.status', 'warninglists.lookup', 'warninglists.run.get',
                      'enrichment.lookup', 'enrichment.history', 'enrichment.run.get') + INVESTIGATION_READS + REPORT_READS + EVIDENCE_READS + JOURNAL_READS + SOCIAL_READS + SOCIAL_ENRICHMENT_READS + SOCIAL_TRACKING_READS
@@ -218,7 +218,7 @@ def parse_engine_request(value: object) -> EngineRequest:
                 raise ValidationError('İnceleme görünümü geçersiz.')
             normalized = {'review_id': normalize_knowledge_id(parameters['review_id']), 'view': view,
                           'offset': page['offset'], 'limit': page['limit']}
-        elif operation in {'research.show', 'research.priorities'}:
+        elif operation in {'research.show', 'research.priorities', 'research.conflicts'}:
             from xti.domain.research import research_query
             parameters = _object(parameters, allowed={
                 'indicator_type', 'value', 'max_hops', 'node_limit', 'edge_limit',
