@@ -1,5 +1,13 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.176.0, kayıtlı kanıtlardan ortak IP, sertifika ve rapor grupları oluşturur.
+Dört adıma kadar araştırma, gözlem zamanlarının karşılaştırılması, gerekçeli
+insan kararı ve değişiklik geçmişi vardır. Gruplar vaka, firma incelemesi ve
+kuruluş raporuna bağlıdır. `./xti migrate` şema86 geçişini önce yedekler.
+[Kullanım](docs/RESEARCH_GROUPS.md), [sabit teslim kapsamı](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md),
+[crt.sh güncel kanıtı](docs/SOURCE_EVIDENCE_2026_11_20.md) ve
+[ticari kaynak kararları](docs/COMMERCIAL_SOURCE_REVIEW.md).
+
 0.175.0, sosyal hesap kanıtlarını ortak araştırmaya ve kayıtlı toplama
 profillerine bağlar. Kaynaklar farklı sonuç verdiğinde adresi, zamanı ve
 gerekçeyi gösterir; erişim hatasını hesap yokluğu saymaz. Eski sosyal keşif

@@ -1,5 +1,12 @@
 # Üçüncü Taraf Yazılım ve Veri Bildirimi
 
+**20 Kasım 2026:** Mevcut veri hizmetleri ve sabit yazılım bileşenleri için
+saklama, müşteri gösterimi, kullanım ve dağıtım değerlendirmesi
+[ticari karar matrisinde](docs/COMMERCIAL_SOURCE_REVIEW.md) tamamlandı.
+Koşullarıyla seçilen kapsam ile yazılı izin beklediği için ilk ticari
+profilden çıkarılan kaynaklar ayrı kayıtlıdır. Mevcut kişisel komutların
+çalışması bütün ticari hakların alındığı anlamına gelmez.
+
 **16 Kasım 2026 ürün kararı:** XTI kendi platformumuzun kapalı kaynak
 motoru olarak geliştiriliyor. Aşağıdaki üçüncü taraf bildirimleri ve
 lisansları korunur. Teknik olarak kurulmuş bir araç ticari ürün içinde
@@ -204,7 +211,7 @@ komutunda Maigret CLI'ın yalnız seçili herkese açık profil kontrolü ve NDJ
 - Resmî depo: [soxoj/maigret](https://github.com/soxoj/maigret).
 - Kullanılan sürüm: 0.6.6; yukarıdaki tam commit'e sabitlenmiştir.
 - Katalog SHA-256: `8dd404e6b3012f01fd467c154b5159386d1362587070c661c2565ec8fa649899`.
-- Lisans: [MIT](https://github.com/soxoj/maigret/blob/master/LICENSE).
+- Lisans: [MIT](https://github.com/soxoj/maigret/blob/b8747b98820f4df9d1baf23235db7b2cb55d0198/LICENSE).
 - Telif: Copyright © 2020–2026 Soxoj.
 
 Maigret kaynak kodu ve site veritabanı XTI kaynak deposuna kopyalanmaz. Paket

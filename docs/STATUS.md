@@ -1,5 +1,22 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.176.0:** İlk sekiz maddelik ilişki/grup paketi uygulandı: dört adıma
+kadar araştırma, gözlem zamanına dayanan ortak kanıt grubu, donmuş kayıt ve
+insan kararı, değişiklik/yeniden inceleme, ortak altyapı/kopya metin ayrımı,
+CLI/firma JSON/vaka/kuruluş raporu bağlantıları. Grup modeli1; çekirdek86
+geçişi yedekli ve kayıpsızdır, kuyruk3 ve dış JSONv1 korunur. Yeni bağımlılık
+veya ağ toplayıcı eklenmedi. [Kullanım](RESEARCH_GROUPS.md).
+Gerçek 0.175.0 üreticisinin şema85 verisi yükseltildi; 172 tablo ve 14 eski
+fixture satırı/rowid korundu, eski yedek eski kodla açıldı. İki firmada
+100'er grup/1.000'er olay; 12 gerçek JSON okumasında p95 0,6103 sn,
+62.406.656 byte tepe RSS, 13.964.683 byte toplam firma verisi ölçüldü.
+Bu kontrollü yük kabulüdür, gerçek dünya doğruluk oranı veya 7/24 garanti
+değildir. Genel/Linux doğrulamasının durumu [teslim kaydında](roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
+crt.sh yeni motor ve bağımsız HTTP isteğinde başarılı; eski kesintinin
+kesin nedeni bilinmiyor. Ticari kaynak/bileşen kararları tamamlandı;
+yazılı izin gerektiren kaynaklar ticari profilde kapalı tutuluyor.
+[Kaynak kanıtı](SOURCE_EVIDENCE_2026_11_20.md), [ticari matris](COMMERCIAL_SOURCE_REVIEW.md).
+
 **0.175.0:** Altı maddelik sosyal motor paketi uygulandı: ortak araştırma
 ve vaka bağı, zamanlı kaynak karşılaştırması, kayıtlı sosyal toplama profili,
 etiketli doğruluk ölçümü, kayıpsız sosyal gövde arşivi ve otomatik Linux

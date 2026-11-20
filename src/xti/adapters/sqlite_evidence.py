@@ -112,6 +112,9 @@ class SQLiteEvidenceRepository:
     def read(self, operation, options, at):
         with self.storage._connection(readonly=True) as connection:
             connection.execute('BEGIN')
+            if operation.startswith('groups.'):
+                from xti.adapters.sqlite_groups import read
+                return read(connection, self.storage.path, operation, options, at)
             if operation == 'relationships.notification-show':
                 from xti.adapters.sqlite_relationship_notifications import get_notification
                 return {'notification': get_notification(connection, options['identifier'])}
@@ -152,6 +155,9 @@ class SQLiteEvidenceRepository:
     def mutate(self, operation, request, at):
         with self.storage._connection() as connection, connection:
             connection.execute('BEGIN IMMEDIATE')
+            if operation.startswith('groups.'):
+                from xti.adapters.sqlite_groups import mutate
+                return mutate(connection, self.storage.path, operation, request, at)
             if operation == 'relationships.notify':
                 from xti.adapters.sqlite_relationship_notifications import notify
                 return notify(connection, self.storage.path, request, at)

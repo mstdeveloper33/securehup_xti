@@ -29,6 +29,10 @@ def case_link_evidence(link, activity):
 def case_subjects(link):
     """Only explicit typed scope in the frozen evidence; never text/name guessing."""
     payload = json.loads(link.snapshot_json)
+    if link.evidence_type == 'research_group':
+        from xti.domain.group_ledger import validate_case_payload
+        validate_case_payload(payload)
+        return tuple(sorted({tuple(payload['group']['root']), *(tuple(row['key']) for row in payload['group']['members'])}))
     if link.evidence_type == 'social_discovery':
         from xti.domain.social_tracking import validate_case_snapshot
         from xti.domain.research_social import social_key

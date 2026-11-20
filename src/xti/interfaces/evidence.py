@@ -15,7 +15,7 @@ def _configure(parser, operation):
     allowed, required = FIELDS[operation]
     for key in sorted(allowed):
         kwargs = {}
-        if key in ('offset', 'limit', 'expected_revision'):
+        if key in ('offset', 'limit', 'expected_revision', 'max_hops', 'time_window_hours'):
             kwargs['type'] = int
         if key == 'decision':
             kwargs['choices'] = ('accepted', 'rejected', 'uncertain', 'withdrawn')
@@ -31,6 +31,7 @@ def _configure(parser, operation):
 
 def register_evidence_parser(commands):
     for family, help_text, actions in (
+        ('groups', 'Kanıtlı inceleme grupları; kayıt, karar ve yerel yeniden kontrol.', ('preview', 'capture', 'list', 'show', 'queue', 'review', 'refresh')),
         ('sightings', 'Sensörün bildirdiği gerçek görülmeler; kaynak listelerinden ayrı.', ('record', 'list', 'show', 'revoke')),
         ('relationships', 'Kayıtlı kanıttan ilişki önerileri ve gerekçeli insan kararları.', ('candidates', 'review', 'show', 'queue', 'notify', 'notification-show')),
         ('identity', 'Kabul edilmiş kimlik bağlarını özgün kayıtlarla birlikte göster.', ('view',))):
@@ -38,6 +39,12 @@ def register_evidence_parser(commands):
         subs = parser.add_subparsers(dest=family + '_action', required=True)
         for action in actions:
             _configure(subs.add_parser(action), family + '.' + action)
+        if family == 'groups':
+            monitor = subs.add_parser('monitor', help='Kayıtlı grubu yerel kanıtta sonlu sayıda yeniden kontrol et; kaynak toplamaz.')
+            monitor.set_defaults(evidence_operation='groups.monitor')
+            monitor.add_argument('identifier')
+            monitor.add_argument('--rounds', type=int, default=1)
+            monitor.add_argument('--interval-seconds', type=int, default=60)
 
 
 def register_comparison_parser(commands):
@@ -104,9 +111,16 @@ def evidence_lines(data):
 def execute_evidence(database, args):
     from xti.adapters.worker_lock import LocalExecutionLock
     operation = args.evidence_operation
+    if operation == 'groups.monitor':
+        from xti.interfaces.research_groups import monitor_group
+        data = monitor_group(database, args.identifier, rounds=args.rounds, interval_seconds=args.interval_seconds)
+        return data, [f"Grup takibi: {row['round']} | {row['status']} | değişiklik: {row['new_changes']}" for row in data['rounds']]
     options = {key: getattr(args, key) for key in FIELDS[operation][0] if getattr(args, key, None) is not None}
     with LocalExecutionLock(database).acquire() if operation in WRITES else nullcontext():
         data = make_evidence_service(database).execute(operation, **options)
+    if operation.startswith('groups.'):
+        from xti.interfaces.research_groups import group_lines
+        return data, group_lines(data)
     return data, evidence_lines(data)
 
 

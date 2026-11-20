@@ -5,6 +5,8 @@ from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_COLUMNS, CASE_E
 
 
 def case_evidence_layout_v82(connection):
+    from tests.case_evidence_v85_fixture import case_evidence_layout_v85
+    case_evidence_layout_v85(connection)
     from tests.collection_v84_fixture import collection_layout_v84
     collection_layout_v84(connection)
     for table in ('social_tracking_notifications', 'social_tracking_journal'):

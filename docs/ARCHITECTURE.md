@@ -1,5 +1,13 @@
 # XTI Motorunun Mimarisi
 
+0.176.0 `research_groups` ortak DNS/TLS/rapor dayanağını ve gerçek gözlem
+zaman penceresini saf kurallarla türetir; `group_ledger` donmuş karar/fark
+geçmişini doğrular. Mevcut EvidenceService/port ve firma yazıcı kilidi
+kullanılır; grafiğin ve günlüğün okunması aynı transaction içindedir.
+Şema86 yeni journal ve vaka CHECK genişlemesidir; eski satır/rowid/hash
+korunur. Grup sınırları, kısmi kontrol, tekrar güvenliği ve aynı kanıta bağlı
+karar [0181 kararında](decisions/0181-evidence-backed-research-groups.md).
+
 0.175.0 `research_social` ve `source_comparison` saf kanıt gösterim
 kurallarıdır. `StoredSocialContext` aynı salt-okunur transaction içinde
 sınırlı sosyal kanıt okur. Araştırma önceliği v9, araştırma modeli3'tür.
@@ -69,7 +77,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**20 Kasım 2026 — 0.174.0, çekirdek şema 84, iş kuyruğu şeması 3.**
+**20 Kasım 2026 — 0.176.0, çekirdek şema 86, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

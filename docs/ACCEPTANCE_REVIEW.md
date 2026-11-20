@@ -1,5 +1,13 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.176.0 — İlişki grupları, kaynak kanıtı ve ticari kararlar
+
+Uygulama, hedefli testler, gerçek eski koddan 85→86 geçiş/geri dönüş,
+iki firmalı kapasite/kesinti ölçümü ve genel/Linux teslim durumu
+[sabit on maddelik teslim kaydında](roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
+Yeni kaynak ölçümü ile eski kesinti ayrıdır; ticari değerlendirme kararı
+sağlayıcıdan henüz alınmamış izin yerine geçmez.
+
 ## 0.175.0 — Sosyal kanıt ve işletim teslimi
 
 Yerel hedefli testler, gerçek eski koddan yükseltme/geri dönüş ve 35

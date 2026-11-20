@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **20 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.175.0 / çekirdek 85 / iş kuyruğu 3**.
+Güncel çalışma: **0.176.0 / çekirdek 86 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -28,7 +28,46 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
+### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
+
+- **Durum:** Kaynak değerlendirmesi tamam; aşağıdaki kaynaklar yazılı/veri
+  kapsamı teyidi gelene kadar ticari profilde kapalı. **Tarih:** 20 Kasım 2026.
+- **Kapsam:** crt.sh hizmeti, Common Crawl/Wayback arşiv metaverisi,
+  ThreatCluster'ın mevcut açık feed'ini satılan müşteri platformuna katma,
+  sosyal sitelerde otomatik profil toplama/yeniden gösterme ve CISA içerik
+  kapsamı. Açık erişim veya MIT araç lisansı veri hakkı sayılmadı.
+- **Kapanan iş:** Her kaynak için kullanım, saklama, müşteri gösterimi ve
+  dağıtım kararı [ticari matriste](docs/COMMERCIAL_SOURCE_REVIEW.md).
+  ThreatCluster'ın açık feed paylaşım izni ile ücretli ürün için anlaşma
+  koşulu arasındaki kapsam, ayrı CC BY dataset'e karıştırılmadı.
+- **Yeniden açılma koşulu:** Somut ürün/veri alanları ve saklama süresi için
+  açık sağlayıcı koşulu veya yazılı yanıtın kaydı. Onay gelmeden müşteriye
+  açılmayacak; bu bir işletim kararı, çalışma zamanı lisans kilidi değil.
+- **Ayrı takip:** urlscan N-001, Nmap N-002, RIPEstat N-022, Bright Data N-034.
+  Firmalar arası Tavily ortak önbelleği de bu teslimde seçilmedi. Mevcut
+  kişisel kullanım kaldırılmadı; yeni ücretli çağrı/iletişim yapılmadı.
+
+### N-038 — İlişki grupları, kaynak kanıtı ve ticari değerlendirme teslimi
+
+- **Durum:** Kullanıcı 20 Kasım 2026'da sekiz motor maddesi ile iki kaynak
+  değerlendirmesini birlikte yetkilendirdi; uygulama ve hedefli kabul
+  tamam, son genel/Linux teslim kontrolü sürüyor.
+- **Kapsam:** Dört adıma kadar araştırma, gözlem zamanına dayanan ilişki
+  grupları, karar/değişim geçmişi, gürültü ayrımı, mevcut motor akışları ve
+  ölçülen teslim. crt.sh yeni hata/başarı kanıtı ile ticari kaynak kararları
+  ayrıca kaydedildi. Gerçek 85→86 yükseltme/geri dönüş ve iki firmalı
+  kapasite/kesinti ölçümü geçti. [Sabit teslim listesi](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
+- **Korunan sınır:** Sağlayıcı izni veya sözleşmesi gerektiren kararlar
+  araştırmayla alınmış sayılmaz; belirsiz ticari kaynaklar onaylı listesine
+  geçirilmez. Ücretli çağrı veya sağlayıcıyla iletişim başlatılmaz.
+
 ### N-034 — Bright Data LinkedIn şirket kanıtı
+
+- **20 Kasım 2026 ticari karar:** 12 Ekim 2026 tarihli genel sözleşme
+  incelendi. Müşteri platformuna gösterme/saklama, kullanım amacı ve dataset
+  kapsamı hesap sözleşmesiyle netleşene kadar ilk ticari profilde kapalı.
+  Anahtarın daha sonra eklenmesi tercihi ve canlı kabul bekleyişi korunur.
+  [Karar matrisi](docs/COMMERCIAL_SOURCE_REVIEW.md).
 
 - **Durum:** İsteğe bağlı entegrasyon uygulandı; anahtar kullanıcı kararıyla
   sonra eklenecek, canlı kabul bekliyor. **Güncellendi:** 19 Kasım 2026.
@@ -281,6 +320,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-001 — urlscan verisinin ticari üründe kullanımı
 
+- **20 Kasım 2026 kararı:** Resmî FAQ/koşullar tekrar okundu. Müşteri
+  platformuna veri katma, saklama ve rapor sunma kapsamı sağlayıcı onayı
+  bekliyor; ilk ticari profilde urlscan kapalı. Değerlendirme işi tamam,
+  izin alınmış değil. [Karar matrisi](docs/COMMERCIAL_SOURCE_REVIEW.md).
+
 - **Durum:** Açık. **Güncellendi:** 17 Kasım 2026.
 - **Not:** Mevcut kişisel kullanımda anahtarsız arşiv sorgusu çalıştı.
   Önceki kaynak incelemesinde, veriyi müşterilere sunulan ürüne dahil etme
@@ -294,6 +338,13 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ### N-002 — Nmap ve theHarvester için ticari kullanım değerlendirmesi
 
+- **20 Kasım 2026 kararı:** theHarvester sabit GPL-2.0 lisansı doğrulandı;
+  yalnız kendi sunucularımızda dağıtım yapmadan ayrı araç kullanımı seçildi.
+  Kod lisansı Common Crawl/Wayback veri haklarını açmaz. Nmap'in NPSL/OEM
+  koşulları kapalı kaynak müşteri ürünündeki kullanım için yazılı kapsam
+  teyidi bekliyor; ilk ticari profilde Nmap kapalı. Müşteriye araç/imaj
+  dağıtımı her ikisi için bu onayın dışında. [Ayrıntı](docs/COMMERCIAL_SOURCE_REVIEW.md).
+
 - **Durum:** Açık. **Güncellendi:** 17 Kasım 2026.
 - **Not:** Araçların kurulması ve çalışması, ticari ürün kullanımının bütün
   koşullarının tamamlandığı anlamına gelmiyor. İlk işletim kendi
@@ -306,6 +357,14 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   [ürün kararları](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md#64-ticari-kullanım-dağıtım-ve-korunacak-kararlar).
 
 ### N-003 — Kaynak atıfları ve yeni kaynakların koşulları
+
+- **20 Kasım 2026 değerlendirmesi tamamlandı:** Seçili veri hizmetleri,
+  yayıncılar ve sabit yazılım bileşenleri için saklama/gösterim/kullanım/
+  dağıtım kararları [matriste](docs/COMMERCIAL_SOURCE_REVIEW.md) kayıtlı.
+  Feodo'nun CC0 istisnası, HIBP kamu katalog izni, RansomLook CC BY 4.0,
+  CERT Polska, CIRCL, ATT&CK ve seçili MISP kapsamı doğrulandı. Kod lisansı
+  ile verinin hakkı ayrıldı. Kaynak/sürüm değişikliklerinde bu sürekli not
+  yeniden uygulanır; belirsiz kaynaklar N-039 ile ticari profilde kapalı.
 
 - **Durum:** Sürekli. **Güncellendi:** 17 Kasım 2026.
 - **Not:** Önceki incelemede CIRCL verileri için CC-BY ve CIRCL hizmet
@@ -330,20 +389,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   doğrulamak; çalışmayan seçeneği açık bırakmak.
 - **Dayanak:** [Nmap kapsamı](docs/NMAP_MANAGED.md),
   [raporun açık kalanları](docs/ACCEPTANCE_REVIEW.md#diğer-sonuçların-kapsamı).
-
-### N-006 — Kaynak erişim hatalarının kanıtı
-
-- **Durum:** Açık; önceki crt.sh kabulündeki kök neden kanıtı eksik.
-  **Güncellendi:** 17 Kasım 2026.
-- **Not:** Önceki raporda zaman aşımı kanıtı var; sonraki HTTP 200 iddiasının
-  komut/zaman/çıktısı yok. Kesin olarak yalnız sağlayıcı hatası denmeyecek.
-  Common Crawl/Wayback gibi kaynaklarda da eski kesinti kaydı güncel durumla
-  karıştırılmayacak.
-- **Sonraki iş:** İlgili kaynak tekrar ele alındığında zaman, istek, HTTP
-  sonucu ve eski başarılı verinin korunmasını birlikte kaydetmek. Yeni
-  kanıtla düzelen madde kapatılacak; kesintisiz hizmet garantisi verilmeyecek.
-- **Dayanak:** [Kaynak raporu incelemesi](docs/ACCEPTANCE_REVIEW.md#diğer-sonuçların-kapsamı),
-  [kullanım kabulü](docs/FUNCTIONAL_ACCEPTANCE.md).
 
 ### N-007 — Birden fazla firma için ortak sağlayıcı kotası
 
@@ -560,6 +605,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   [mimari karar](docs/decisions/0168-supplier-monitoring-research.md).
 
 ### N-022 — RIPEstat ticari kullanım izni
+
+- **20 Kasım 2026 kararı:** Resmî şartlar doğrudan HTTP200 ile yeniden
+  alındı; madde 3.3 yazılı izin gereğini doğruluyor. Değerlendirme tamam;
+  yazılı izin gelene kadar network-info ve WHOIS ticari profilde kapalı.
+  Sağlayıcıya mesaj gönderilmedi. [Yanıt özeti ve karar](docs/COMMERCIAL_SOURCE_REVIEW.md).
 
 - **19 Kasım ek kapsam:** 0.168.0 aynı hizmetin WHOIS kayıt bağlamını ekler.
   Anahtarsız canlı kişisel sorgu HTTP200 ile doğrulandı; ilk sandbox denemesi
@@ -797,6 +847,25 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   ve pasif kaynak toplama sınırları korunacak.
 
 ## Kapanan notlar ve kanıtları
+
+### N-006 — Kaynak erişim hatalarının kanıtı
+
+- **Durum:** Güncel crt.sh yeniden değerlendirmesi kapandı.
+  **Güncellendi:** 20 Kasım 2026.
+- **Kanıt:** Gerçek adaptör 09:34:25.687998–09:34:30.211130 UTC arasında
+  HTTP200 aldı (4,523 sn). Aynı URL'ye ayrı GET 6,230 sn'de HTTP200 verdi.
+  Her iki yanıt 7095 byte ve aynı SHA-256; JSON listesinde 23 kaynak satırı.
+  Kısıtlı ortamın önceki DNS hatası sağlayıcı kesintisi sayılmadı.
+- **Tarihî sınır:** 16 Kasım raporundaki sonraki HTTP200 iddiasının özgün
+  kaydı bulunmuyor; eski kesintinin kesin nedeni bilinmiyor. Yeni başarı
+  eski boşluğu geriye dönük doldurmaz. Common Crawl/Wayback bu tur canlı
+  denenmedi; eski sonuçlar kendi tarihleriyle korunur.
+- **Tekrar üretim:** `scripts/check-source-evidence.py` zaman/istek/yanıt
+  özetini yeni özel dosyaya kaydeder, kullanıcı veritabanına yazmaz.
+  Son başarılı verinin hata sonrası korunması ayrı otomatik test kapsamıdır.
+- **Dayanak:** [Güncel ölçüm](docs/SOURCE_EVIDENCE_2026_11_20.md),
+  [tarihî rapor incelemesi](docs/ACCEPTANCE_REVIEW.md#diğer-sonuçların-kapsamı).
+  Teknik başarı ticari izin sağlamaz; crt.sh için N-039 geçerlidir.
 
 ### N-037 — Sosyal kanıt ve işletim paketi
 
@@ -1139,6 +1208,12 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.176.0 — 20 Kasım:** Kullanıcının onayladığı ilk sekiz motor işi ve
+iki kaynak değerlendirmesi N-038 kapsamında uygulanıyor. Sabit liste
+[teslim kaydında](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md); kapsam yeni
+fikirlerle genişletilmeyecek. Dış izin bekleyen ticari kapsam N-039 ve
+ilgili sabit notlarda, uygulanmış motor işiyle ayrı izlenir.
 
 **0.174.0 — 20 Kasım:** Kullanıcının devam onayıyla önceki sosyal adreslerin
 yeniden kontrolü, mevcut ortak kuyruk bağlantısı ve ücretsiz farklı kuruluş

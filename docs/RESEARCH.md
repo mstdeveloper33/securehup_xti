@@ -1,5 +1,10 @@
 # İlişkili kanıt araştırması
 
+0.176.0 araştırmada varsayılan iki adımı korur; `--max-hops` 1–4 arasında
+seçilebilir. Düğüm/kenar/yol ve kaynak okuma sınırları korunur. Aynı kökün
+ortak kanıt grupları `research --groups` veya `groups preview` ile açılır;
+[gözlem zamanı, karar/geçmiş ve kullanım](RESEARCH_GROUPS.md) ayrı açıklanır.
+
 0.175.0 birleşik sosyal keşifleri domain, tam profil URL'si, insan kararı
 ve vaka üzerinden araştırmaya bağlar. `social_page`, `social_source_claim`,
 `social_provider`, `social_review_decision` kanıtları ayrı kalır. Düğüm ve
@@ -421,7 +426,7 @@ Sadece liste eşleşen ama kayıtlı kanıtı olmayan kökün durumu yine
 | Parametre | Kural |
 |---|---|
 | `indicator_type`, `value` | Zorunlu; `domain`, `ip`, `ipv4`, `ipv6`, `url`, `md5`, `sha1`, `sha256`; kesin değer |
-| `max_hops` | 1–2, varsayılan 2 |
+| `max_hops` | 1–4, varsayılan 2 |
 | `node_limit` | 2–100, varsayılan 100 |
 | `edge_limit` | 1–200, varsayılan 200 |
 | `offset`, `limit` | 0–1.000.000 ve 1–100, varsayılan 0 ve 50; **yol sayfası** |
@@ -445,7 +450,7 @@ Sonuç `data` alanları:
 | `nodes` | Bu sayfanın düğümleri: kararlı kimlik, tür, değer, etiket, özgün referanslar, kanıt ve `warninglist_matches` |
 | `warninglists` | Liste kaynakları ve bu dört listenin güncellik/başarı kapsamı; araştırma kanıt bütçesinden ayrıdır |
 | `edges` | Bu sayfanın bağlantıları: kimlik, kaynak/hedef düğüm, ilişki türü ve özgün kanıt |
-| `paths` | Kökten başlayan `node_ids`, `edge_ids`, `hops`; en fazla iki adım, döngüsüz |
+| `paths` | Kökten başlayan `node_ids`, `edge_ids`, `hops`; en fazla dört adım, döngüsüz |
 | `collected_node_count`, `collected_edge_count`, `collected_path_count` | Bütçe içinde toplanan alt graf/yol sayıları; bütün veri tabanının toplamı değildir |
 | `offset`, `limit`, `has_more`, `next_offset` | Yol sayfalaması |
 | `coverage_complete`, `limitations`, `coverage` | Seçilen dar kapsamın eksikleri ve incelenen DNS/TLS, CNAME, CTI pencereleri |

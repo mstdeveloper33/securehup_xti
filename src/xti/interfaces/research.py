@@ -121,10 +121,12 @@ def register_research_parser(commands):
     parser.add_argument("value")
     parser.add_argument("--type", choices=("domain", "ip", "ipv4", "ipv6", "url", "md5", "sha1", "sha256"), required=True, dest="indicator_type")
     for flag, default in (("max-hops", 2), ("node-limit", 100), ("edge-limit", 200),
-                          ("offset", 0), ("limit", 50), ("stale-after-hours", 24)):
+                          ("offset", 0), ("limit", None), ("stale-after-hours", 24)):
         parser.add_argument("--" + flag, type=int, default=default)
     parser.add_argument("--expected-snapshot", help="Önceki sayfanın snapshot_id değeri; kayıtlar değişirse durur.")
     parser.add_argument("--priorities", action="store_true", help="Kayıt ve ilişkileri gerekçeli inceleme sırasıyla göster; --limit öğe sayısıdır.")
+    parser.add_argument('--groups', action='store_true', help='Aynı kökün ortak kanıt gruplarını göster; en fazla 20 grup/sayfa.')
+    parser.add_argument('--time-window-hours', type=int, default=24, help='Grup gözlem yakınlığı: 0–168 saat.')
 
 
 def priority_lines(data, *, data_dir=None):
@@ -319,9 +321,25 @@ def research_lines(data, *, data_dir=None):
 
 
 def execute_research(database, args):
+    if args.groups:
+        from xti.domain.assets import ValidationError
+        if args.priorities:
+            raise ValidationError('--groups ve --priorities birlikte kullanılamaz.')
+        if (args.node_limit, args.edge_limit, args.stale_after_hours) != (100, 200, 24):
+            raise ValidationError('Grup görünümünde düğüm/bağlantı/güncellik sınırları 100/200/24 sabittir; adım ve gözlem yakınlığı seçilebilir.')
+        from xti.interfaces.evidence import make_evidence_service
+        from xti.interfaces.research_groups import group_lines
+        options = dict(indicator_type=args.indicator_type, value=args.value, max_hops=args.max_hops,
+            time_window_hours=args.time_window_hours, offset=args.offset, limit=20 if args.limit is None else args.limit)
+        if args.expected_snapshot is not None:
+            options['expected_snapshot'] = args.expected_snapshot
+        data = make_evidence_service(database).execute('groups.preview', **options)
+        return data, group_lines(data)
     parameters = {key: getattr(args, key) for key in (
         "indicator_type", "value", "max_hops", "node_limit", "edge_limit", "offset",
         "limit", "stale_after_hours", "expected_snapshot")}
+    if parameters['limit'] is None:
+        parameters['limit'] = 50
     service = make_research_service(database)
     if args.priorities:
         data = priority_data(service.priorities(**parameters))

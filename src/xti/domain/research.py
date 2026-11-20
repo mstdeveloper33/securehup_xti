@@ -54,7 +54,7 @@ def research_query(*, indicator_type, value, max_hops=2, node_limit=100,
         raise ValidationError("Araştırma kökü domain, IP, URL veya dosya kimliği olmalı.")
     root = context_query(indicator_type=indicator_type, value=value)
     for name, number, low, high in (
-        ("Adım", max_hops, 1, 2), ("Düğüm", node_limit, 2, 100),
+        ("Adım", max_hops, 1, 4), ("Düğüm", node_limit, 2, 100),
         ("Bağlantı", edge_limit, 1, 200), ("Başlangıç", offset, 0, 1_000_000),
         ("Sayfa", limit, 1, 100), ("Güncellik saati", stale_after_hours, 1, 8760),
     ):

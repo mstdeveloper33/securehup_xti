@@ -168,11 +168,26 @@ class _SnapshotReader:
         coverage.append(public_coverage)
         case_keys.update(self.public_notice_case_keys(domain=domain))
         notices = self.domain_notices(asset_id, domain)
+        from xti.adapters.sqlite_groups import read_groups
+        group_records = []
+        for group_record in self.cached('research_groups', lambda c: read_groups(c)[0]).values():
+            group = group_record['group']
+            if group['root'] != ['domain', domain]:
+                continue
+            decision = group_record['decision']
+            group_records.append(OrganizationReportRecord(group_record['id'], 'research_group',
+                ', '.join(member['label'] for member in group['members']), group_record['status'],
+                group_record['last_checked_at'], 'local-research-groups',
+                (group['rule'], group['temporal']['state'], 'Son kayıtlı grup; canlı yeniden kontrol değildir.',
+                 'Karar: ' + (decision['value'] if decision else 'henüz yok')),
+                navigation=(_navigation('Grup kanıtı ve geçmişi', 'groups', 'show', group_record['id']),)))
+            case_keys.add(('research_group', group_record['id']))
         return OrganizationReportTarget(
             membership, (("domain", domain),), tuple(coverage),
             (
                 self.page("findings", findings), self.page("surface_candidates", candidates),
                 self.page("public_notices", public_notices),
+                self.page('research_groups', sorted(group_records, key=lambda row: row.id)),
                 self.page("notifications", notices), self.page("case_links", self.case_links(case_keys)),
             ),
             (

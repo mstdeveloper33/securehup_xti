@@ -128,6 +128,11 @@ class SQLiteCaseRepository:
                 or record.active == (record.removed_reason is not None)
             ):
                 raise ValueError("invalid evidence")
+            if record.evidence_type == 'research_group':
+                from xti.domain.group_ledger import validate_case_payload
+                payload = validate_case_payload(json.loads(snapshot_json))
+                if record.evidence_id != payload['group']['id'] or record.source_reference != 'groups show ' + record.evidence_id:
+                    raise ValueError('Group evidence reference differs')
             if record.evidence_type == 'social_discovery':
                 from xti.domain.social_tracking import validate_case_snapshot, case_id
                 payload = validate_case_snapshot(json.loads(snapshot_json))
@@ -435,6 +440,10 @@ class SQLiteCaseRepository:
                 if case.status == "closed":
                     raise ValidationError("Kapalı vakaya kanıt eklemek için önce vakayı yeniden açın.")
                 read_case_evidence_links(connection)
+                if evidence_type == 'research_group':
+                    from xti.adapters.sqlite_groups import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('Grup vaka kanıtı seçili firma kaydıyla uyuşmuyor.')
                 if evidence_type == 'social_discovery':
                     from xti.adapters.sqlite_social_tracking import case_snapshot
                     if case_snapshot(connection, self._storage.path, evidence_id) != snapshot:

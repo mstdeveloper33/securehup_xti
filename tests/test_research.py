@@ -239,7 +239,7 @@ class ResearchTests(ResearchFixture, unittest.TestCase):
         self.assertEqual(self.graph()["status"], "not_recorded")
         SQLiteAssetRepository(self.path).add("example.com")
         self.assertEqual(self.graph()["status"], "no_relationships")
-        for options in ({"node_limit": True}, {"max_hops": 3}, {"offset": -1}, {"limit": 101},
+        for options in ({"node_limit": True}, {"max_hops": 5}, {"offset": -1}, {"limit": 101},
                         {"edge_limit": 0}, {"expected_snapshot": "bad"}, {"stale_after_hours": 0}):
             with self.subTest(options=options), self.assertRaises(ValidationError):
                 self.graph(**options)

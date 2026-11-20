@@ -1,0 +1,68 @@
+name: XTI research group delivery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/group-delivery.yml"
+      - "src/xti/domain/research_groups.py"
+      - "src/xti/domain/group_*.py"
+      - "src/xti/adapters/sqlite_groups.py"
+      - "scripts/check-group-delivery.py"
+      - "scripts/check-source-evidence.py"
+      - "tests/test_research_groups.py"
+      - "tests/test_source_evidence_diagnostic.py"
+  pull_request:
+    paths:
+      - "src/xti/**"
+      - "tests/test_research_groups.py"
+      - "scripts/check-group-delivery.py"
+      - "scripts/check-source-evidence.py"
+      - "tests/test_source_evidence_diagnostic.py"
+      - ".github/workflows/group-delivery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xti-groups-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Select Python
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install reviewed test dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/news.txt -r requirements/reports.txt
+      - name: Group rules, time, history, reports, cases and isolation
+        run: >-
+          ./scripts/python -m unittest -q tests.test_research_groups
+          tests.test_research_history tests.test_research_case_content
+          tests.test_linux_upgrade_acceptance tests.test_source_evidence_diagnostic
+      - name: Schema85 producer, migration, rollback and measured capacity
+        run: ./scripts/python scripts/check-group-delivery.py --output "$RUNNER_TEMP/groups-delivery.json"
+      - name: Preserve synthetic acceptance measurements
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/groups-delivery.json" ]; then
+            cat "$RUNNER_TEMP/groups-delivery.json"
+          fi

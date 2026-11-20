@@ -24,6 +24,7 @@ CASE_EVIDENCE_TYPES = frozenset({
     "public_notice_watch",
     "relationship_review",
     "social_discovery",
+    "research_group",
 })
 CASE_ACTIVITY_TYPES = frozenset({
     "case_created", "case_updated", "status_changed", "note_added",
@@ -126,7 +127,7 @@ def normalize_case_evidence_type(value: str) -> str:
     if not isinstance(value, str) or value not in CASE_EVIDENCE_TYPES:
         raise ValidationError(
             "Kanıt türü finding, social_profile, ransomware_threatcluster, "
-            "ransomware_ransomlook, supplier, public_notice, public_notice_watch, relationship_review veya social_discovery olmalı."
+            "ransomware_ransomlook, supplier, public_notice, public_notice_watch, relationship_review, social_discovery veya research_group olmalı."
         )
     return value
 

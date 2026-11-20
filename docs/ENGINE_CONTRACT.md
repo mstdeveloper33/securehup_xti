@@ -1,5 +1,12 @@
 # Engine okuma sözleşmesi v1
 
+0.176.0 salt okunur `groups.preview/list/show/queue` işlemlerini ekler.
+`research.show/priorities` adım aralığı 1–4, varsayılan 2 olur. Grup modeli1
+ve `research-groups-v1` mevcut dış zarf v1 içindedir; eski kayıtlar
+korunur. [Tam parametreler, sınırlar ve anlamlar](RESEARCH_GROUPS.md#json-sözleşmesi).
+Yazmalar `groups.capture/review/refresh` platform girişindedir; engine
+okumaları internet sorgusu veya otomatik kayıt oluşturmaz.
+
 0.175.0 eklemeleri: araştırma düğüm/kenarları isteğe bağlı
 `source_comparisons` taşır (`source-comparison-v1`); eski inceleme snapshot
 biçimi değişmez. Sosyal keşif kaydı `policy` alanında karar kuralını açıklar;

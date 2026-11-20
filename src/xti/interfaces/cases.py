@@ -34,6 +34,7 @@ _EVIDENCE = {
     "public_notice_watch": "HIBP kuruluş izleme kanıtı",
     "relationship_review": "İlişki dayanağı değişikliği",
     "social_discovery": "Firma sosyal keşif kanıtı",
+    "research_group": "Ortak kanıta dayanan inceleme grubu",
 }
 _TASK = {"open": "Açık", "done": "Tamamlandı", "cancelled": "İptal edildi"}
 _ACTIVITY = {
@@ -280,7 +281,13 @@ def evidence_detail_lines(evidence: CaseEvidence) -> list[str]:
     if evidence.removed_reason:
         lines.append(f"Çıkarılma: {safe_text(evidence.removed_at)} | {safe_text(evidence.removed_reason)}")
     lines.extend(_public_notice_evidence_lines(evidence))
-    if evidence.evidence_type == 'social_discovery':
+    if evidence.evidence_type == 'research_group':
+        from xti.domain.group_ledger import validate_case_payload
+        from xti.interfaces.research_groups import group_lines
+        payload = validate_case_payload(json.loads(evidence.snapshot_json))
+        lines.extend(group_lines({'record': {**payload, 'id': payload['group']['id']}}))
+        lines.append('Vakaya bağlandığı andaki kanıt ve karar korunur; güncel grup sonradan değişmiş olabilir.')
+    elif evidence.evidence_type == 'social_discovery':
         from xti.interfaces.social_tracking import review_lines
         from xti.domain.social_tracking import validate_case_snapshot
         payload = validate_case_snapshot(json.loads(evidence.snapshot_json))

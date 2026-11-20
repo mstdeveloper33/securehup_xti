@@ -6,6 +6,8 @@ from xti.adapters.collection_social_schema import (
 
 
 def collection_layout_v84(connection):
+    from tests.case_evidence_v85_fixture import case_evidence_layout_v85
+    case_evidence_layout_v85(connection)
     found = connection.execute("SELECT sql FROM sqlite_schema WHERE name='collection_step_receipts'").fetchone()
     if found is None or found[0] != COLLECTION_HISTORY_DDL[2]: return
     if connection.execute('SELECT 1 FROM collection_step_receipts WHERE social_tracking_run_id IS NOT NULL LIMIT 1').fetchone():

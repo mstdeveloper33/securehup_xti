@@ -1,4 +1,4 @@
 """XTI: a local foundation for external threat intelligence."""
 
-__version__ = "0.175.0"
+__version__ = "0.176.0"
 

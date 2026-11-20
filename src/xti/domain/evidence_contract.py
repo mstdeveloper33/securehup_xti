@@ -5,6 +5,7 @@ from xti.domain.cti_indicators import normalize_indicator_type, normalize_indica
 from xti.domain.cti_knowledge import normalize_knowledge_id
 from xti.domain.cases import normalize_case_reason
 from xti.domain.reports import sha
+from xti.domain import group_contract
 
 READS = ('sightings.list', 'sightings.show', 'relationships.candidates', 'relationships.show', 'relationships.queue', 'relationships.notification-show', 'identity.view', 'ioc.compare')
 WRITES = ('sightings.record', 'sightings.revoke', 'relationships.review', 'relationships.notify')
@@ -27,6 +28,9 @@ FIELDS = {
     'identity.view': ({'kind', 'identifier'}, {'kind', 'identifier'}),
     'ioc.compare': (ROOT | PAGE, ROOT),
 }
+READS += group_contract.READS
+WRITES += group_contract.WRITES
+FIELDS.update(group_contract.FIELDS)
 
 
 def text(value, limit):
@@ -36,6 +40,8 @@ def text(value, limit):
 
 
 def parameters(operation, options, *, scoped=False):
+    if operation in group_contract.FIELDS:
+        return group_contract.parameters(operation, options, scoped=scoped)
     from xti.domain.research_history import history_key
     if operation not in FIELDS:
         raise ValidationError('Kanıt işlemi bilinmiyor.')

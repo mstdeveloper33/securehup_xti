@@ -17,6 +17,7 @@ from xti.interfaces.public_notice_watches import watch_detail_lines
 
 
 _SECTIONS = {"findings": "Domain/marka bulguları", "surface_candidates": "Pasif alt alan adı adayları",
+             "research_groups": "Kayıtlı inceleme grupları",
              "profiles": "Sosyal profil sonuçları", "claims": "Kaynak iddiaları",
              "public_notices": "Kamu olay kataloğu tam domain eşleşmeleri",
              "notifications": "Yerel bildirimler", "case_links": "Açık vaka bağlantıları",

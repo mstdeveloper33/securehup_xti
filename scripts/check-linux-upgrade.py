@@ -27,7 +27,7 @@ from typing import NamedTuple
 
 PROJECT = Path(__file__).resolve().parents[1]
 BASELINE = "9cdf32c7981b87532952ec2c6b8a3fb5bb142ba8"
-MAX_REVIEWED_SCHEMA = 85
+MAX_REVIEWED_SCHEMA = 86
 OUTPUT_LIMIT = 8 * 1024 * 1024
 
 
@@ -304,18 +304,20 @@ def require_preserved_tables(before, after):
 
 
 def _preserved_case_upgrade(expected, actual, *, before_schema, after_schema):
-    """Permit exact schema80/83 CHECK extensions; preserve every old row/rowid."""
+    """Permit exact schema80/83/86 CHECK extensions; preserve every old row/rowid."""
     if (actual is None or expected[1] != actual[1]
             or not 63 <= before_schema < after_schema <= MAX_REVIEWED_SCHEMA):
         return False
     from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_DDL, CASE_EVIDENCE_INDEX_DDL
     from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as V80_DDL
     from xti.adapters.social_tracking_schema import CASE_EVIDENCE_DDL as V83_DDL
+    from xti.adapters.group_schema import CASE_EVIDENCE_DDL as V86_DDL
 
     def reviewed_ddl(version):
         if version <= 79: return CASE_EVIDENCE_DDL
         if version <= 82: return V80_DDL
-        return V83_DDL
+        if version <= 85: return V83_DDL
+        return V86_DDL
 
     shapes = []
     for ddl in (reviewed_ddl(before_schema), reviewed_ddl(after_schema)):

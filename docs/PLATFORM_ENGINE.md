@@ -1,5 +1,13 @@
 # Çok firmalı platform motoru
 
+0.176.0 `groups.preview/list/show/queue` okumalarını ve
+`groups.capture/review/refresh` firma yazmalarını ekler. Yazmalar
+`expected_workspace_id`, `expected_revision` ve `idempotency_key` ister;
+kanıt değişmişse eski karar yazılmaz. `company.review` yanıtındaki `groups`
+bölümü `group_offset/group_limit` ile son saklı grup durumunu sayfalar.
+Mevcut zarf v1 ve kuyruk3 korunur; backend kimlik doğrulaması bu motorun
+sorumluluğuna taşınmaz. [Sözleşme ve örnekler](RESEARCH_GROUPS.md#json-sözleşmesi).
+
 0.175.0 aynı firma alanında hazırlanmış sosyal seçimli toplama profillerini
 mevcut `jobs.submit`/worker akışında çalıştırır. Yeni profil/plan version3
 `social_watch_ids` taşır; iş sonucu receipt.kind=`social_tracking_run`

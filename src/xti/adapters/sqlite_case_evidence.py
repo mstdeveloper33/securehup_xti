@@ -132,6 +132,11 @@ class SQLiteCaseEvidenceSourceRepository:
     def resolve(self, evidence_type: str, evidence_id: str) -> CaseEvidenceSnapshot:
         evidence_type = normalize_case_evidence_type(evidence_type)
         evidence_id = normalize_case_evidence_id(evidence_id)
+        if evidence_type == 'research_group':
+            from xti.adapters.sqlite_groups import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
         if evidence_type == 'social_discovery':
             from xti.adapters.sqlite_social_tracking import case_snapshot
             with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
