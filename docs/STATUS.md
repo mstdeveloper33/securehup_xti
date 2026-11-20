@@ -1,5 +1,17 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.174.0:** Önceki sosyal adresleri dönüşümlü yeniden kontrol ve
+`social-tracking` ortak kaynak işi tamamlandı. Aynı firma/domain/sürüm
+kontrolü, açık retry, kalıcı kanıtla kesinti toparlama ve dürüst trafik
+ölçümü mevcut worker'ı kullanır. Tavily/Bright Data otomatik çağrılmaz.
+Çekirdek84 açık/yedekli geçiş; eski satır/hash/DDL korunur. Kuyruk3,
+dış JSONv1, kaynak işi modeli6. [Kullanım](SOCIAL_TRACKING.md).
+Altı yeni kuruluşta yedi dondurulmuş referansın beşi sayfayla doğrulandı,
+ikisi aday kaldı. Referansı alınamayan üç kuruluş başarı sayılmadı.
+Gerçek worker ile iki turda seçilen eski adreslerin 20/20'si kontrol edildi;
+aynı işin tekrarı ağsızdı. [Canlı ölçüm](SOCIAL_TRACKING_ACCEPTANCE.md).
+Otomatik test ve teslim sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md).
+
 **0.173.0:** Sosyal keşif ve ek kanıt firma incelemesine, insan kararına ve
 donmuş vaka kanıtına bağlandı. `brand review-*`, `tracking-*`, `change-show`
 ve `company.review` sosyal bölümü vardır. Düzenli takip ücretsiz kaynakları
@@ -148,7 +160,7 @@ test düzeltmelerinden sonra tam paket tekrarlanmadı. Ayrıntı ve kapsam
 kabulü bu yerel teslimin sonucu değildir.
 
 
-**19 Kasım 2026 · 0.173.0 · Çekirdek şema 83 · İş kuyruğu şeması 3.**
+**20 Kasım 2026 · 0.174.0 · Çekirdek şema 84 · İş kuyruğu şeması 3.**
 
 Bu dosya çalışan uygulamanın durumudur. Roadmap belgeleri hedef kapsamıdır.
 Kullanım koşulları, bekleyen doğrulamalar ve takip kararları

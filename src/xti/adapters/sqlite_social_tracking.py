@@ -133,7 +133,8 @@ def review_list_in(connection, path, *, domain=None, offset=0, limit=20, state=N
         providers = None
         for profile in sorted(discovery['report']['profiles'], key=lambda r: (r['platform'], r['url'])):
             # Empty username hypotheses are retained in discovery-show, not the analyst queue.
-            if profile['state'] not in ('found', 'candidate') and not profile['claimed_by']: continue
+            if (profile['state'] not in ('found', 'candidate') and not profile['claimed_by']
+                    and 'retained_profile' not in profile['discovered_by']): continue
             history = state['reviews'].get(profile_key(discovery['scope']['domain'], profile['url']), [])
             digest_rows.append([identifier, discovery['report_sha256'], profile['url'], history[-1] if history else None])
             if offset <= total < offset + limit:
@@ -153,6 +154,18 @@ class SQLiteSocialTrackingRepository:
     def __init__(self, path):
         self.path = path
         self.storage = SQLiteAssetRepository(path)
+
+    def run_for_key(self, key):
+        history_key(key)
+        with self.storage._connection(readonly=True) as connection:
+            connection.execute('BEGIN')
+            state = audit(connection)[0]
+            for event in state['events'].values():
+                if event['key'] == key:
+                    if event['operation'] != 'brand.tracking.run':
+                        raise SocialDiscoveryError('idempotency_conflict', 'İş anahtarı başka sosyal işleme bağlı.')
+                    return state['runs'][event['id']]
+            return None
 
     def read(self, operation, request):
         with self.storage._connection(readonly=True) as connection:
@@ -183,7 +196,8 @@ class SQLiteSocialTrackingRepository:
                 notifications_in(connection, state)
                 for event in state['events'].values():
                     if event['key'] == key:
-                        if event['operation'] != operation or event['request'] != request:
+                        previous_request = {name: value for name, value in event['request'].items() if name != '_version'}
+                        if event['operation'] != operation or previous_request != request:
                             raise SocialDiscoveryError('idempotency_conflict', 'Tekrar anahtarı farklı sosyal işleme ait.')
                         record = state['runs'][event['id']] if operation == 'brand.tracking.run' else state['responses'][event['id']]
                         connection.rollback()
@@ -191,6 +205,7 @@ class SQLiteSocialTrackingRepository:
                 if previous_at is not None and at < previous_at:
                     raise SocialDiscoveryError('clock_regressed', 'Saat kayıt geçmişinin gerisinde; işlem yapılmadı.')
                 count, size = _bounded(connection, 'social_tracking_journal', 'LENGTH(request_json)+LENGTH(request_key)+LENGTH(operation)+256')
+                if operation == 'brand.tracking.run': request['_version'] = 2
                 text = canonical(request)
                 if count >= MAX_EVENTS or size + len(text) + 512 > MAX_BYTES:
                     raise StorageError('Sosyal izleme günlük kapasitesi doldu.')

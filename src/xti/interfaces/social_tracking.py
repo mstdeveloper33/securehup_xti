@@ -91,6 +91,9 @@ def tracking_lines(data):
         lines = [f"Sosyal izleme turu: {row['id']} | {row['status']}",
                  'Tekrar anahtarı: ' + safe_text(row['request_key']),
                  f"Başlangıç: {'evet' if row['baseline'] else 'hayır'} | değişiklik: {len(row['changes'])} | kontrol eksik: {row['unchecked_count']}"]
+        if row.get('version') == 2:
+            retained = row['tracking']
+            lines.append(f"Önceki hesaplar: bu tur seçilen {len(retained['urls'])}/{retained['total']}; diğerleri sonraki turlara döner.")
         lines.extend(f"  {c['kind']} | {c['url']}" for c in row['changes'])
         if row['discovery_id']: lines.append('Tam kaynak/sayfa sonucu: brand discovery-show ' + row['discovery_id'])
         if row['baseline']: lines.append('İlk gözlem başlangıçtır; değişiklik bildirimi üretilmez.')

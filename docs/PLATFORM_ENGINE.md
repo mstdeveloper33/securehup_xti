@@ -1,5 +1,13 @@
 # Çok firmalı platform motoru
 
+0.174.0 `sources.plan` / `sources.jobs.submit`, `social-tracking` adımı için
+`social_watch_id`, `social_watch_revision` ve isteğe bağlı `social_force`
+kabul eder. Firma/domain ve izleme sürümü doğrulanır; mevcut `platform worker`
+ücretsiz turu çalıştırır. Dış JSONv1/kuyruk3 aynı, kaynak işi modeli6'dır.
+Plan toplam istek tavanı sosyal araç trafiği nedeniyle `null` olabilir;
+ölçülebilen sayfa trafiği ayrıdır. [Sözleşme](SOURCE_JOBS.md),
+[komutlar ve kurtarma](SOCIAL_TRACKING.md#ortak-iş-kuyruğuyla-çalıştırma).
+
 0.173.0 `brand.review.decide` ve `brand.tracking.add/set/run` yazmalarını
 güncel workspace kimliği ve tekrar anahtarıyla ekler. Karar değişimi ve
 izleme duraklatma/açma güncel revision ister. Yeni işlemlerden yalnız

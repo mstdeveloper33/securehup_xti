@@ -265,7 +265,7 @@ def assess(candidate, page, scope):
 def validate_profile(row, scope):
     """Validate one frozen page decision with the same rules as discovery reports."""
     from xti.domain.mentions import mention_time
-    allowed_sources={'username_hypothesis','stored_company_search','company_homepage','maigret','sherlock','tavily'}
+    allowed_sources={'username_hypothesis','stored_company_search','company_homepage','maigret','sherlock','tavily','retained_profile'}
     try:
         if set(row)!={'platform','url','username','state','reason','brand_relation','discovered_by','claimed_by','aliases','evidence'}:
             raise ValueError('Profile shape')
@@ -279,11 +279,15 @@ def validate_profile(row, scope):
                     or len(set(row[key]))!=len(row[key])):
                 raise ValueError('Profile provenance')
         if not row['discovered_by'] or set(row['claimed_by'])-set(row['discovered_by']):raise ValueError('Claims')
+        if 'retained_profile' in row['claimed_by']: raise ValueError('Historical target is not a current source claim')
         if not isinstance(row['aliases'],list) or len(row['aliases'])>2 or len(set(row['aliases']))!=len(row['aliases']):raise ValueError('Aliases')
         for alias in row['aliases']:
             other=profile_url(alias,'LinkedIn')
             if row['platform']!='LinkedIn' or other['username']!=row['username'] or other['url']==row['url']:
                 raise ValueError('Alias scope')
+        if 'retained_profile' in row['discovered_by'] and not (
+                {row['url'], *row['aliases']} & set(scope.get('tracking', {}).get('urls', []))):
+            raise ValueError('Historical target outside frozen tracking window')
         evidence=row['evidence']
         decision={'state':'inconclusive','reason':'page_budget_exhausted','brand_relation':'unverified'}
         if evidence is not None:
@@ -319,12 +323,13 @@ def validate_profile(row, scope):
 
 def validate_report(report):
     from xti.domain.mentions import mention_time
+    from xti.domain.social_retained import validate_scope
     try:
         required={'policy','scope','usernames','status','profiles','counts','coverage','sources','homepage','metrics','notes'}
         if (not isinstance(report,dict) or set(report)!=required or report['policy']!=POLICY
                 or len(canonical(report))>MAX_REPORT_BYTES or report['status'] not in ('complete','partial')):
             raise ValueError('Report structure')
-        scope=parameters('brand.discovery.plan',report['scope'])
+        scope=validate_scope(report['scope'])
         if (scope!=report['scope'] or report['usernames']!=list(usernames(scope))
                 or not isinstance(report['profiles'],list) or len(report['profiles'])>MAX_CANDIDATES):
             raise ValueError('Report scope')

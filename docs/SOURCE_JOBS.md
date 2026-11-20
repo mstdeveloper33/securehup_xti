@@ -1,6 +1,12 @@
 # Kaynak güncelleme işleri
 
-19 Kasım 2026 · 0.170.0 · çekirdek şema 80 · iş kuyruğu şeması 3.
+20 Kasım 2026 · 0.174.0 · çekirdek şema 84 · iş kuyruğu şeması 3.
+
+İş modeli **6**, aynı firma/domain ve izleme sürümüne bağlı ücretsiz
+`social-tracking` adımını ekler. Eski modeller 1–5 değişmeden okunur.
+Toplam sosyal araç HTTP sayısı ölçülemediğinden plan ve kullanım toplamı
+`null` olabilir; sosyal turun sayfa/süre sınırı ayrı korunur.
+[Sosyal kuyruk örneği ve kesinti kuralları](SOCIAL_TRACKING.md#ortak-iş-kuyruğuyla-çalıştırma).
 
 İş modeli 5, açıkça seçilmiş en fazla beş yayıncı HTML/PDF belgesini
 ve ilişki bildirimi adımını ekler. Toplam altı yürütme adımı korunur.
@@ -98,12 +104,12 @@ döndürdüğü kaynak işi aynı görünümü taşır. Yeni işlem eklenmez.
 
 | Alan | Anlamı |
 |---|---|
-| `limits.max_requests` | Bu iş için verilen üst sınır; tüketilmiş istek değildir |
+| `limits.max_requests` | Ölçümlü kaynak adımları için verilen üst sınır; sosyal araç trafiği dahil değildir |
 | `limits.max_seconds` | Adımlar arasında uygulanan süre sınırı |
 | `requests.attempts` | Bu işteki HTTP açma denemesi; kesin sayı yoksa `null` |
 | `requests.measurement_complete` | Kaydedilmiş iş durumunda bütün başlamış kaynak adımlarının kullanımı biliniyor mu? İşin bittiğini göstermez |
 | `requests.recorded` | Kaydedilmiş `attempts`, `responses`, `transport_errors`, `rate_limited`, `budget_rejections` sayaçları |
-| `requests.possible_unrecorded_attempts_maximum` | Ölçülemeyen başlamış adımlardaki ek denemelerin üst sınırı; harcanmış sayı değildir |
+| `requests.possible_unrecorded_attempts_maximum` | Ölçülemeyen başlamış adımlardaki ek denemelerin üst sınırı; sosyal araç için bilinmediğinde `null`; harcanmış sayı değildir |
 | `requests.by_step` | Her adım için ölçüm durumu, sayı ve varsa yeniden kullanılan iş kimliği |
 | `timing.queue_wait_seconds` | İşin kabulünden worker tarafından alınmasına kadar kayıtlı süre |
 | `timing.execution_seconds` | Başlangıç/bitiş UTC kayıtları arası süre; iş bitmediyse `null` |
@@ -122,7 +128,7 @@ değildir; 404 ve 429 gibi yanıtları da kapsar. Sırlar, başlıklar ve
 yanıt gövdeleri kullanım kaydına kopyalanmaz. Ortak sağlayıcı kotası ve
 ticari faturalama bu sayaçtan otomatik türetilmez.
 
-Her adımın önceden hesaplanan istek tavanı HTTP açılmadan uygulanır;
+Ölçümlü kaynak adımlarının önceden hesaplanan istek tavanı HTTP açılmadan uygulanır;
 adımların tavanları planın toplam bütçesini aşamaz. Yeni sayaç kaynakların
 mevcut bekleme ve zaman aşımı kurallarını değiştirmez. Süre ölçümü UTC
 kayıt farkıdır; CPU süresi veya kesintide gerçek çalışma süresi değildir.
@@ -137,17 +143,40 @@ Tekrar kullanılan başarılı adımın **bu işteki** tüketimi sıfırdır; es
 işin tüketimi kendi kaydında kalır. İlk iş ve tekrarları ayrı iş
 kimlikleriyle değerlendirilir; bu görünüm zincirin toplamı değildir.
 
+### Sosyal adımın ölçümü
+
+`social-tracking` varsa plan `maximum_external_requests=null` döndürür.
+`maximum_metered_source_requests` yalnız diğer kaynakların hesaplanabilir
+tavanıdır; `request_limit_scope=metered_source_steps_excludes_social_collection`
+plan ve execution limits içinde bu ayrımı bildirir. Plan okumasında ayrıca
+`social_watch` altında dondurulan izleme sürümü, kapsam ve aralık görünür.
+Makbuzdaki izleme kimliği/sürümü ve tur hash'i özgün core kanıtına doğrulanır.
+
+Sosyal makbuzun `usage.version=2`, `unit=social_profile_collection` alanları
+`attempted`, `page_http_requests`, `tool_requests`, `receipt_reused` içerir.
+Kaynak çalıştıysa `tool_requests=null`; sayfa HTTP denemeleri özgün rapordan
+alınır. Execution özetinde `recorded_social_page_http_requests` ayrı sayılır,
+toplam `attempts=null` ve `measurement_complete=false` olur. Başlamamış
+veya gerçekten ağsız tekrarın bu işteki tüketimi sıfırdır. Sosyal olmayan
+makbuz usage v1 ve önceki sayaç anlamları değişmez.
+
+Sosyal guard (`not_found`, `scope_mismatch`, `revision_changed`, `paused`,
+`not_due`, `busy`) yeni ağ çağrısı olmadan `source_status=blocked` makbuzu
+bırakır; adım `failed` olur. Bütün işi başarılı göstermez. Ayrıntı
+`receipt.reason` içindedir. İş geçmişindeki karar sonraki watch değişimiyle
+yeniden hesaplanmaz. Kaynak sonucu kısmi ise adım/iş `partial` kalabilir.
+
 ### Sürüm uyumu
 
-Yeni kabul edilen `sources.refresh` işlerindeki yürütme/sonuç sürümü 3'tür;
-platform zarfı v1 korunur; kuyruk şeması 3'e açık geçiş gerekir. Rapor/kimlik günlüğü için
-çekirdek 76 geçişi `./xti migrate` ile açıkça yapılır. Eski v1/v2 işler eski
-biçimleriyle çalışır/okunur; saklı JSON/hash'ler yeniden yazılmaz. Aynı
-tekrar anahtarı eski işi döndürür. Eski başarısız işin açık retry'si yeni
-v3 iş olur. İstek niyeti aynı olduğundan kanonik istek sürümü 1 kalır;
+Yeni kabul edilen `sources.refresh` işlerindeki yürütme/sonuç sürümü 6'dır;
+platform zarfı v1 ve kuyruk şeması3 korunur. Çekirdek84 geçişi `./xti migrate`
+ile açıkça/yedekli yapılır. Eski v1–v5 işler kendi biçimleriyle
+çalışır/okunur; saklı JSON/hash'ler yeniden yazılmaz. Aynı tekrar anahtarı
+eski işi döndürür. Eski başarısız işin açık retry'si yeni v6 iş olur.
+İstek niyeti aynı olduğundan kanonik istek sürümü 1 kalır;
 yürütme sürümü payload/result içinde ayrıca saklanır.
 
-0.163.0 ve önceki kod yeni v3 işleri okuyamaz. Kod yükseltmeden önce birlikte firma
+0.173.0 ve önceki kod yeni v6 işleri okuyamaz. Kod yükseltmeden önce birlikte firma
 yedeği alınmalı; kod geri dönüşünde yükseltme öncesi yedek yeni alana
 dönülmelidir. Şemanın aynı olması eski kodun yeni kayıt biçimini
 desteklediği anlamına gelmez.
@@ -197,7 +226,7 @@ veya farklı firma seçemez.
 
 | İşlem | Parametreler |
 |---|---|
-| `sources.plan` | `indicator_type`, `value`, `sources`; isteğe bağlı `warninglist_ids`, `record_review`, bütçe ve araştırma kapsamı |
+| `sources.plan` | `indicator_type`, `value`, `sources`; isteğe bağlı `warninglist_ids`, `record_review`, bütçe ve araştırma kapsamı. `social-tracking` için `social_watch_id`, `social_watch_revision` zorunlu; `social_force` isteğe bağlı boolean |
 | `sources.jobs.submit` | Aynı plan + `plan_sha256`, `idempotency_key`, `expected_workspace_id` |
 | `sources.jobs.list` | İsteğe bağlı `offset`, `limit` |
 | `sources.jobs.status` / `sources.jobs.result` | `job_id` |

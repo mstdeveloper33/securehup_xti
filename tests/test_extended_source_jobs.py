@@ -56,7 +56,7 @@ class ExtendedSourceTests(unittest.TestCase):
         job = fixture.submit(indicator_type='ipv4', value='1.1.1.1', sources=['ripestat'], record_review=True)
         result = fixture.worker.work_one(job.id)
         self.assertEqual(result.status, 'complete')
-        self.assertEqual(result.payload.version, 5)
+        self.assertEqual(result.payload.version, 6)
         self.assertEqual(result.steps[0]['receipt']['provider'], 'ripestat')
         graph = research_data(ResearchService(SQLiteResearchRepository(fixture.core)).show(indicator_type='ipv4', value='1.1.1.1'))
         self.assertTrue(any(row['kind'] == 'asn' and row['value'] == '13335' for row in graph['nodes']))
@@ -164,7 +164,7 @@ class ExtendedSourceTests(unittest.TestCase):
         self.assertEqual(rows(Path(migrated['backup'])), before)
         self.assertEqual(repo.get(old.id).payload.version, 2)
         self.assertEqual(service.submit(**options, idempotency_key='new-v3',
-            plan_sha256=service.plan(**options)['plan_sha256']).payload.version, 5)
+            plan_sha256=service.plan(**options)['plan_sha256']).payload.version, 6)
 
     def test_existing_v3_job_in_v2_queue_is_readable_but_never_started_before_migration(self):
         from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository, _EVENTS_DDL_V2

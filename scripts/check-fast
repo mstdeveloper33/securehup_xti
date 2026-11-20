@@ -76,6 +76,9 @@ exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_brightdata_social.py \
     tests/test_social_enrichment.py \
     tests/test_social_tracking.py \
+    tests/test_social_retained.py \
+    tests/test_social_jobs.py \
+    tests/test_social_job_platform.py \
     tests/test_mentions_storage.py \
     tests/test_mentions_migration.py \
     tests/test_mentions_service.py \

@@ -1,5 +1,10 @@
 # Firmadan sosyal profil keşfi
 
+0.174.0 [düzenli takip](SOCIAL_TRACKING.md), önceki kaynak destekli adresleri
+yeni keşif kaynakları bildirmese de dönüşümlü kontrol eder. Bu iç `tracking`
+kapsamı keşif kaydına dondurulur; `brand discover` için serbest URL listesi
+eklenmez. [Yeni canlı örneklem ve ortak kuyruk ölçümü](SOCIAL_TRACKING_ACCEPTANCE.md).
+
 0.173.0 sonuçları [firma incelemesi, vaka ve düzenli takibe](SOCIAL_TRACKING.md)
 bağlar. İnsan kararı ve sağlayıcı kanıtı özgün keşif sonucundan ayrı kalır.
 

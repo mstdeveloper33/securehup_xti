@@ -1109,6 +1109,8 @@ class SQLiteAssetRepository:
                     create_social_enrichment_schema(connection)
                 if version < 83:
                     create_social_tracking_schema(connection)
+                # Schema84 reserves the new receipt semantics. The explicit backup
+                # above protects rollback; all schema83 rows and DDL stay intact.
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

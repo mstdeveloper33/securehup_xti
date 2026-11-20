@@ -1,5 +1,40 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.174.0 — Saklı sosyal adresler ve ortak kaynak işi
+
+20 Kasım 2026; yerel macOS / Python3.13.3, çekirdek84, kuyruk3,
+kaynak işi modeli6. Son genel koşu devam ediyor; Linux sonucu değildir.
+
+- Sosyal keşif, ek sağlayıcı, takip, saklı adresler ve gerçek firma/CLI
+  bağlantısı: **82 test / 39,094sn**, hata/atlama yok.
+- Kaynak kuyruğu, kullanım ve yeni sosyal işler: ilk **55 test /16,907sn**
+  koşusunda bir yeni fixture hatası vardı. Eski model1'e o modelde bulunmayan
+  haber kaynağı verilmişti; CIRCL ile düzeltildi ve hedef test geçti.
+  Mevcut kaynak/platform ve yayıncı platform modüllerindeki16 test ayrıca geçti.
+  Yeni platform testinde bir import yolu ve kısmi worker sonucunun çıkış3
+  beklentisi düzeltildi; düzeltilmiş üç test yukarıdaki82 test içindedir.
+- Saklı adres rotasyonu, kaynak sayfasından kaybolan farklı kullanıcı adı,
+  erişim hatasının hesap kaybı sayılmaması, eski günlük replay'i, scope/hash
+  bağı ve kullanıcıdan iç URL listesi alınmaması sınandı.
+- İş kabulünün ağsız olması, firma/domain/revision ayrımı, zamanı gelmeyen/
+  busy/duraklatılmış çalışma, iptal/süre, core commit öncesi/sonrası kesinti,
+  aynı kanıtı tekrar kullanma, tekil bildirim, ölçülemeyen araç trafiği,
+  bozulmuş sayaç/hash reddi, eski iş modelleri1–5, platform backup/restore
+  ve eski workspace reddi kontrollü kaynaklarla sınandı.
+- Gerçek önceki **`f85097d` /0.173.0** kodu ayrı alanda çalıştırıldı.
+  Keşif, takip, değişiklik bildirimi, insan kararı ve vaka kanıtı üretti.
+  83 →84 gerçek CLI geçişi öncesinde yeni motor açık migration istedi.
+  **171 tablonun DDL'si ve 14 dolu satırın tamamı/rowid'leri** korundu.
+  Eski run JSON'u aynı kaldı. Yedek eski kodda okundu; eski kod yeni84
+  alanını reddetti. Yedekten boş alana restore ve remigrate geçti.
+  Özel kanıt: geçici `xti-upgrade-0174-i5x36o19/report.json`.
+- Altı yeni kuruluşta ücretsiz canlı keşif ve MSF için ortak worker'da
+  iki canlı tur ayrıca yapıldı. Yedi dondurulmuş referansın beşi doğrulandı,
+  ikisi aday kaldı; referansı alınamayan kuruluşlar başarı sayılmadı.
+  [Bütün adresler, ölçümler ve kapsam](SOCIAL_TRACKING_ACCEPTANCE.md).
+- Bright Data canlı kabulü yapılmadı; anahtar kullanıcı kararıyla bekliyor.
+  GitHub/Linux teslimi son kod gönderiminden sonra ayrıca kaydedilecek.
+
 ## 0.173.0 — Sosyal inceleme, vaka ve değişiklik takibi
 
 19 Kasım 2026; yerel macOS / Python 3.13.3, çekirdek 83, kuyruk 3.

@@ -40,7 +40,8 @@ def register_social_discovery_parser(actions):
 
 STATE = {'found':'Bulundu','candidate':'Aday / doğrulanamadı','not_found':'Bu adreste bulunamadı','inconclusive':'Kontrol edilemedi'}
 SOURCES = {'username_hypothesis':'firma/domaininden türetildi', 'company_homepage':'firma sitesindeki bağlantı',
-           'stored_company_search':'kayıtlı firma araması', 'maigret':'Maigret', 'sherlock':'Sherlock', 'tavily':'Tavily'}
+           'stored_company_search':'kayıtlı firma araması', 'maigret':'Maigret', 'sherlock':'Sherlock', 'tavily':'Tavily',
+           'retained_profile':'önceki bulgudan yeniden kontrol'}
 REASONS = {'profile_identity_confirmed':'profil kimliği sayfada doğrulandı',
            'http_profile_absent':'sayfa 404/410 döndü', 'explicit_absence':'sayfa hesabın bulunmadığını belirtiyor',
            'insufficient_profile_evidence':'sayfa profil kimliğini doğrulamıyor',
@@ -86,6 +87,9 @@ def social_discovery_lines(data):
     unresolved=[c['platform'] for c in report['coverage'] if c['state']=='unresolved']
     if unresolved: lines.append('Doğrulanmış profil bulunmayan platformlar (hesap yok demek değildir): '+', '.join(unresolved))
     metrics=report['metrics']
+    if 'tracking' in record['scope']:
+        retained = record['scope']['tracking']
+        lines.append(f"Önceki hesap kontrol penceresi: {len(retained['urls'])}/{retained['total']} | başlangıç {retained['offset']}")
     lines.append(f"Süre: {metrics['elapsed_seconds']} sn | tekil profil kontrolü: {metrics['profile_pages_checked']}")
     lines.extend(report['notes'])
     return lines

@@ -49,9 +49,22 @@ class SocialDiscoveryService:
                     'notes': NOTES}
         if operation == 'brand.discovery.list': return self.repository.list(**options)
         if operation == 'brand.discovery.show': return self.repository.show(options['identifier'])
+        key = options.pop('idempotency_key')
+        return self._run(options, key)
+
+    def run_tracking(self, scope, context, key):
+        """Internal workflow only: public discovery parameters cannot inject targets."""
+        from xti.domain.social_retained import validate_scope
+        return self._run(validate_scope({**scope, 'tracking': context}), key)
+
+    def reserve_tracking(self, scope, context, key):
+        """Close a cancelled recovery without collecting or inventing provider data."""
+        from xti.domain.social_retained import validate_scope
+        return self.repository.reserve(validate_scope({**scope, 'tracking': context}), key, self.clock())
+
+    def _run(self, options, key):
         if self.pages is None or self.sources is None:
             raise SocialDiscoveryError('invalid_parameters', 'Sosyal keşif için toplama adaptörleri gerekli.')
-        key = options.pop('idempotency_key')
         receipt = self.repository.reserve(options, key, self.clock())
         if receipt['replayed']: return receipt
         report = self._collect(options)
@@ -80,6 +93,10 @@ class SocialDiscoveryService:
             if source not in row['discovered_by']: row['discovered_by'].append(source)
             if claimed and source not in row['claimed_by']: row['claimed_by'].append(source)
 
+        # Persisted historical targets get a reserved, rotating half-page window.
+        # They are not current ownership/source claims and never raise confidence.
+        retained = scope.get('tracking', {}).get('urls', [])
+        for url in retained: add(url, 'retained_profile')
         for seed in seeds(scope): add(seed['url'], 'username_hypothesis')
         for url in self.repository.known_links(scope['domain']): add(url, 'stored_company_search', claimed=True)
 
@@ -122,6 +139,8 @@ class SocialDiscoveryService:
 
         # Official links first; then hypotheses missed by tools, then other source claims.
         ordered = sorted(candidates.values(), key=lambda r: (
+            'retained_profile' not in r['discovered_by'],
+            retained.index(r['url']) if r['url'] in retained else len(retained),
             'company_homepage' not in r['discovered_by'], 'username_hypothesis' not in r['discovered_by'],
             r['platform'], r['url']))
         pages = {}

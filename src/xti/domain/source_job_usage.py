@@ -10,6 +10,7 @@ UNIT = 'http_open_attempt'
 
 
 def request_ceiling(key, plan):
+    if key == 'social-tracking': return None
     if key == 'publisher':
         return 4 * len(plan['publisher_documents'])
     if key.startswith('publisher:'):
@@ -59,6 +60,7 @@ class RequestUsageMeter:
 def execution_usage(job):
     """Use only persisted events. Unknown or pre-metering requests are never zeroed."""
     rows, recorded, possible_unknown = [], dict.fromkeys(COUNTERS, 0), 0
+    social_pages = 0
     for step in job.steps:
         maximum = request_ceiling(step['key'], job.payload.plan)
         usage = step['receipt'].get('usage') if step['receipt'] else None
@@ -66,6 +68,16 @@ def execution_usage(job):
             state, actual, unknown = 'reused', 0, 0
         elif maximum == 0 or step['status'] in {'pending', 'skipped'}:
             state, actual, unknown = 'not_attempted', 0, 0
+        elif maximum is None:
+            from xti.domain.social_jobs import validate_usage as validate_social_usage
+            if usage is not None:
+                validate_social_usage(usage)
+                attempted = usage['attempted']
+                social_pages += usage['page_http_requests'] or 0
+                state = 'social_tools_unmeasured' if attempted else 'receipt_reused' if usage['receipt_reused'] else 'not_attempted'
+                actual, unknown = (None, None) if attempted else (0, 0)
+            else:
+                state, actual, unknown = 'unrecorded', None, None
         elif usage is not None:
             validate_usage(usage, maximum)
             state, actual, unknown = 'measured', usage['attempts'], 0
@@ -74,7 +86,7 @@ def execution_usage(job):
         else:
             state = 'unrecorded' if step['status'] == 'running' else 'legacy_unmeasured'
             actual, unknown = None, maximum
-        possible_unknown += unknown
+        possible_unknown = None if possible_unknown is None or unknown is None else possible_unknown + unknown
         rows.append({'step': step['key'], 'state': state, 'attempts': actual,
                      'possible_unrecorded_attempts_maximum': unknown,
                      'reused_from': step['reused_from']})
@@ -101,12 +113,17 @@ def execution_usage(job):
     queue_wait = None
     if job.started_at:
         queue_wait = (datetime.fromisoformat(job.started_at) - datetime.fromisoformat(job.created_at)).total_seconds()
-    return {'version': 1, 'basis': 'persisted_job_events',
+    result = {'version': 1, 'basis': 'persisted_job_events',
             'limits': {'max_requests': job.payload.plan['max_requests'],
                        'max_seconds': job.payload.plan['max_seconds'], 'time_enforcement': 'between_steps'},
             'requests': {'unit': UNIT, 'measurement_complete': possible_unknown == 0,
-                         'attempts': None if possible_unknown else recorded['attempts'],
+                         'attempts': None if possible_unknown != 0 else recorded['attempts'],
                          'recorded': recorded, 'possible_unrecorded_attempts_maximum': possible_unknown,
                          'by_step': rows},
             'timing': {'basis': 'recorded_utc_timestamps', 'queue_wait_seconds': queue_wait,
                        'execution_seconds': duration}, 'stop_reasons': reasons}
+    if 'social-tracking' in job.payload.plan['sources']:
+        result['limits']['request_limit_scope'] = 'metered_source_steps_excludes_social_collection'
+        result['requests']['recorded_social_page_http_requests'] = social_pages
+        result['requests']['social_tool_requests_measured'] = False
+    return result

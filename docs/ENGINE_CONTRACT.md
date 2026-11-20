@@ -1,5 +1,11 @@
 # Engine okuma sözleşmesi v1
 
+0.174.0 takip turu v2 okumaları `watch_revision` ve dondurulmuş `tracking`
+penceresini taşır; eski tur JSON'u değişmez. Keşif scope içindeki bu bağlam
+yalnız izleme servisinden gelir, serbest JSON parametresi değildir.
+Kaynak işi modeli6 `social-tracking` adımını platform/worker'da yürütür;
+engine okumaları ağsız kalır. [Alanlar ve kullanım](SOCIAL_TRACKING.md).
+
 0.173.0 `brand.review.list/show`, `brand.tracking.list/show`,
 `brand.tracking.run.show` ve `brand.change.show` okumalarını ekler.
 `company.review` içindeki `social` bölümü `social_offset/social_limit` ile

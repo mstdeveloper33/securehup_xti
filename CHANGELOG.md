@@ -1,5 +1,21 @@
 # Değişiklik Kaydı
 
+## 0.174.0 — 20 Kasım 2026
+
+- Önceden bulunan sosyal adresler kaynak yanıtından kaybolsa da sınırlı,
+  dönüşümlü pencereyle yeniden kontrol edilir. Tarihî köken güncel kanıt
+  veya sahiplik kararı sayılmaz; erişim hatası hesap kaybına çevrilmez.
+- `social-tracking` ortak kaynak işi/worker'a bağlandı. Plan/kabul ağsız;
+  firma/domain ve izleme sürümü kontrolü, iptal, açık retry ve core makbuzuyla
+  kesintiden kurtarma mevcut kuyrukta çalışır. Ücretli kaynak çağırmaz.
+- Sayfa HTTP denemesi ve ölçülemeyen araç trafiği ayrı gösterilir;
+  sosyal turun toplamı bilinmediğinde `null` olur.
+- Çekirdek83 → 84 açık/yedekli anlamsal geçiştir; eski satır/rowid,
+  JSON/hash ve tablo yapıları korunur. Kuyruk3, dış JSONv1 aynı; kaynak
+  işi modeli6, eski modeller1–5 okunur. Yeni bağımlılık yoktur.
+- Altı yeni kuruluşta ücretsiz canlı ölçüm ve ortak worker ile iki
+  takip turu yapıldı; [kanıt ve ölçüm sınırları](docs/SOCIAL_TRACKING_ACCEPTANCE.md).
+
 ## 0.173.0 — 19 Kasım 2026
 
 - Sosyal keşif ve ek sağlayıcı kanıtı `brand review-list/show` ve

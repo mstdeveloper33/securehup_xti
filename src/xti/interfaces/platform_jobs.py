@@ -76,10 +76,18 @@ def make_source_runner(database):
         from xti.interfaces.evidence import make_evidence_service
         return RelationshipNotificationStep(database, make_evidence_service(database))
 
+    def social_tracking(*, network=False):
+        from xti.adapters.source_job_social import SocialTrackingStep
+        from xti.adapters.sqlite_social_discovery import SQLiteSocialDiscoveryRepository
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        from xti.interfaces.social_tracking import make_social_tracking_service
+        return SocialTrackingStep(make_social_tracking_service(database, network=network),
+            SQLiteSocialDiscoveryRepository(database), SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'))
+
     from xti.adapters.source_job_reports import VersionedReportStep
     operations = ExistingSourceJobOperations(enrichment, warninglists, history,
         news=news, investigations=investigations, reports=lambda: VersionedReportStep(database),
-        publishers=publishers, relationship_notifications=relationship_notifications)
+        publishers=publishers, relationship_notifications=relationship_notifications, social_tracking=social_tracking)
     return CooperativeSourceJobRunner(operations, LocalExecutionLock(database))
 
 

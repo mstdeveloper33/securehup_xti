@@ -1,5 +1,15 @@
 # XTI Motorunun Mimarisi
 
+0.174.0 saf `social_retained` kuralları önceki kaynak destekli adresleri
+izleme günlüğünden türetir. Turv2 kontrol penceresini keşif scope/hash'ine
+dondurur; eski günlük/keşif/vaka biçimleri korunur. Çekirdek84 yeni kayıt
+anlamını eski motordan ayırır; açık geçiş DDL/satır/rowid değiştirmez.
+`SocialTrackingStep` aynı servisi kaynak işi modeli6 ile ortak worker'a
+bağlar. Queue→core kilit sırası, firma/sürüm guard'ı, kalıcı keşif/tur
+makbuzuyla kurtarma ve ücretli çağrıların kapalı olması korunur. Toplam
+araç trafiği bilinmiyorsa sayı uydurulmaz; sayfa sayacı ayrı raporlanır.
+[0179 kararı](decisions/0179-retained-social-targets-and-source-jobs.md).
+
 0.173.0 `SocialTrackingService`, saf günlük replay/karşılaştırma kurallarını
 küçük depo portu ve mevcut keşif servisiyle çalıştırır. Firma incelemesi
 sosyal kanıtı aynı read transaction içinde ayrı sayfalar. Şema83 günlük ve
@@ -49,7 +59,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**19 Kasım 2026 — 0.173.0, çekirdek şema 83, iş kuyruğu şeması 3.**
+**20 Kasım 2026 — 0.174.0, çekirdek şema 84, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

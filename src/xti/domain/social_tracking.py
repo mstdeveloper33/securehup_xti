@@ -7,6 +7,7 @@ from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.cases import normalize_case_reason, normalize_case_title
 from xti.domain.mentions import mention_uuid, mention_time
 from xti.domain.social_discovery import SocialDiscoveryError, canonical, fingerprint, profile_url
+from xti.domain.social_retained import base_scope, context_for, remember, validate_scope
 
 READS = ('brand.review.list', 'brand.review.show', 'brand.tracking.list', 'brand.tracking.show',
          'brand.tracking.run.show', 'brand.change.show')
@@ -133,7 +134,8 @@ def due_at(watch):
 
 
 def public_watch(watch):
-    return {key: deepcopy(value) for key, value in watch.items() if key not in ('known', 'baseline_ready')}
+    return {key: deepcopy(value) for key, value in watch.items()
+            if key not in ('known', 'baseline_ready', 'retained_urls', 'retained_last_url')}
 
 
 def apply_event(state, event, discovery):
@@ -141,7 +143,11 @@ def apply_event(state, event, discovery):
     op, request, rid, at = event['operation'], event['request'], event['id'], event['recorded_at']
     mention_uuid(rid); mention_time(at)
     if op != 'brand.tracking.finish':
-        if parameters(op, {**request, 'idempotency_key': event['key']}) != {**request, 'idempotency_key': event['key']}:
+        supplied = dict(request)
+        if '_version' in supplied:
+            if op != 'brand.tracking.run' or type(supplied['_version']) is not int or supplied.pop('_version') != 2:
+                raise ValidationError('Sosyal izleme tur sürümü geçersiz.')
+        if parameters(op, {**supplied, 'idempotency_key': event['key']}) != {**supplied, 'idempotency_key': event['key']}:
             raise ValidationError('Sosyal işlem isteği kanonik değil.')
     if op == 'brand.review.decide':
         row = selected_profile(discovery, request['url'])
@@ -159,11 +165,13 @@ def apply_event(state, event, discovery):
         if any(watch['name'] == request['name'] for watch in state['watches'].values()):
             raise SocialDiscoveryError('conflict', 'Bu izleme adı zaten kayıtlı.')
         # Recurring tracking is free by default and never silently repeats paid search/enrichment.
-        scope = {**discovery['scope'], 'web_search': False}
+        scope = {**base_scope(discovery['scope']), 'web_search': False}
         watch = {'id': rid, 'name': request['name'], 'seed_discovery_id': discovery['id'],
                  'scope': scope, 'interval_seconds': request['interval_seconds'], 'enabled': True,
                  'revision': 1, 'created_at': at, 'updated_at': at, 'last_started_at': None,
-                 'last_run_id': None, 'known': {}, 'baseline_ready': False}
+                 'last_run_id': None, 'known': {}, 'baseline_ready': False,
+                 'retained_urls': set(), 'retained_last_url': None}
+        remember(watch, discovery)
         state['watches'][rid] = watch
         result = public_watch(watch)
     elif op in ('brand.tracking.set', 'brand.tracking.run'):
@@ -185,13 +193,17 @@ def apply_event(state, event, discovery):
                       'discovery_key': 'social-tracking-' + rid, 'started_at': at, 'finished_at': None,
                       'discovery_id': None, 'status': 'running', 'baseline': not watch['baseline_ready'],
                       'changes': [], 'unchecked_count': 0, 'request_key': event['key']}
+            if request.get('_version') == 2:
+                result.update(version=2, watch_revision=watch['revision'], tracking=context_for(watch, rid))
+                if result['tracking']['urls']: watch['retained_last_url'] = result['tracking']['urls'][-1]
             state['runs'][rid] = result
             watch.update(last_started_at=at, last_run_id=rid)
     elif op == 'brand.tracking.finish':
         if set(request) != {'run_id', 'discovery_id'}: raise ValidationError('İzleme sonuç başvurusu geçersiz.')
         run = state['runs'].get(request['run_id'])
         if run is None or run['status'] != 'running': raise ValidationError('İzleme sonucu mevcut çalışmaya bağlı değil.')
-        if (discovery['idempotency_key'] != run['discovery_key'] or discovery['scope'] != run['scope']
+        expected_scope = {**run['scope'], **({'tracking': run['tracking']} if run.get('version') == 2 else {})}
+        if (discovery['idempotency_key'] != run['discovery_key'] or discovery['scope'] != expected_scope
                 or discovery['started_at'] < run['started_at'] or discovery['started_at'] > at
                 or discovery['finished_at'] is not None and discovery['finished_at'] > at):
             raise ValidationError('İzleme sonucu farklı kapsam veya çalışmaya bağlı.')
@@ -206,6 +218,7 @@ def apply_event(state, event, discovery):
             if len(changes) + sum(len(other['changes']) for other in state['runs'].values()) > MAX_EVENTS:
                 raise ValidationError('Sosyal değişiklik geçmişi kapasitesi aşıldı; keşif kanıtı korunuyor.')
             watch['known'] = known
+            remember(watch, discovery)
             if any(value['profile']['state'] in ('found', 'not_found') for value in known.values()):
                 watch['baseline_ready'] = True
             run.update(status=discovery['status'], changes=changes, unchecked_count=unchecked)
@@ -225,13 +238,13 @@ def validate_case_snapshot(value):
             'profile', 'provider_evidence', 'review_history', 'limitations'} or value['kind'] != 'social_discovery_evidence'
             or type(value['version']) is not int or value['version'] != 1):
         raise ValidationError('Sosyal vaka kanıt biçimi geçersiz.')
-    from xti.domain.social_discovery import parameters as discovery_parameters, validate_profile
+    from xti.domain.social_discovery import validate_profile
     from xti.domain.social_enrichment import validate_evidence, assess_record
     def sha(value):
         if not isinstance(value, str) or re.fullmatch('[0-9a-f]{64}', value) is None:
             raise ValidationError('Sosyal vaka kanıt özeti geçersiz.')
     mention_uuid(value['discovery_id']); sha(value['report_sha256'])
-    scope = discovery_parameters('brand.discovery.plan', value['scope'])
+    scope = validate_scope(value['scope'])
     if scope != value['scope'] or scope['domain'] != value['domain']:
         raise ValidationError('Sosyal vaka firma kapsamı uyuşmuyor.')
     validate_profile(value['profile'], scope)

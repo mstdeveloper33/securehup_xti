@@ -6,14 +6,16 @@ from xti.adapters.sqlite import SQLiteAssetRepository
 from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
 from xti.application.source_jobs import SourceJobService
 from xti.domain.engine import EngineContractError
-from xti.domain.source_jobs import PLAN_FIELDS, SOURCE_KEYS
+from xti.domain.source_jobs import PLAN_FIELDS, SOURCE_KEYS, source_plan, plan_data
 from xti.domain.warninglists import POLICIES
 from xti.interfaces.platform_jobs import jobs_database, make_job_service, initialize_jobs, migrate_jobs
 from xti.interfaces.text import safe_text, xti_command
 
 
 def make_source_job_service(context):
-    return SourceJobService(SQLiteEngineJobRepository(jobs_database(context)))
+    from xti.interfaces.social_tracking import make_social_tracking_service
+    return SourceJobService(SQLiteEngineJobRepository(jobs_database(context)),
+        social_tracking=make_social_tracking_service(context.database))
 
 
 def execute_platform_source_job(context, request):
@@ -28,7 +30,7 @@ def execute_platform_source_job(context, request):
 
 
 def register_source_jobs_parser(commands):
-    parser = commands.add_parser('source-jobs', help='IP/URL/hash, liste, haber ve rapor adımlarını kuyrukla yönet; ilerlemeyi izle.')
+    parser = commands.add_parser('source-jobs', help='Kaynak toplama ve sosyal takip adımlarını ortak kuyrukla yönet.')
     actions = parser.add_subparsers(dest='source_job_action', required=True)
     for name, label in (('init', 'Mevcut yerel veri alanında iş kuyruğunu açıkça oluştur.'),
                         ('migrate', 'Mevcut kuyruğu yedekle ve şema 3’e yükselt.'),
@@ -50,6 +52,10 @@ def register_source_jobs_parser(commands):
         action.add_argument('--document', dest='publisher_documents', action='append', nargs=2, metavar=('PROVIDER', 'URL'),
                             help='publisher için seçilmiş belge; en fazla beş kez ver.')
         action.add_argument('--notification-offset', type=int, help='relationship-notify karar penceresinin başlangıcı.')
+        action.add_argument('--social-watch', dest='social_watch_id', help='social-tracking için bu çalışma alanındaki izleme kimliği.')
+        action.add_argument('--social-revision', dest='social_watch_revision', type=int, help='İzlemenin planlanan sürümü.')
+        action.add_argument('--social-force', dest='social_force', action='store_true', default=None,
+                            help='Sosyal takip tur aralığını bu iş için bekleme; kapsam ve duraklatma korunur.')
         for flag, default in (('max-seconds', 180), ('max-requests', 7), ('max-hops', 2),
                               ('node-limit', 100), ('edge-limit', 200), ('stale-after-hours', 24)):
             action.add_argument('--' + flag, type=int, default=default)
@@ -91,6 +97,9 @@ def source_job_lines(data, *, data_dir=None):
             requests = execution['requests']
             if requests['measurement_complete']:
                 lines.append(f"HTTP denemesi: {requests['attempts']} | İşin istek sınırı: {execution['limits']['max_requests']}")
+            elif requests['possible_unrecorded_attempts_maximum'] is None:
+                lines.append(f"Toplam HTTP denemesi bilinmiyor; sosyal araçların iç trafiği ölçülmüyor. "
+                             f"Kayıtlı sosyal sayfa denemesi: {requests['recorded_social_page_http_requests']}.")
             else:
                 lines.append(f"HTTP denemesi: kesin toplam bilinmiyor; kayıtlı {requests['recorded']['attempts']}, "
                              f"ölçülemeyen adımlarda en fazla {requests['possible_unrecorded_attempts_maximum']} ek deneme olabilir.")
@@ -115,6 +124,15 @@ def source_job_lines(data, *, data_dir=None):
             if step['reused_from']:
                 lines.append('    Önceki tamamlanmış adım kullanıldı; yeniden sorgulanmadı.')
             receipt = step['receipt']
+            if receipt and step['key'] == 'social-tracking':
+                if receipt['run_id']:
+                    lines.append('    Sosyal tur: ' + xti_command('brand', 'tracking-run-show', receipt['run_id'], data_dir=data_dir))
+                else:
+                    reasons = {'not_found': 'İzleme bulunamadı.', 'scope_mismatch': 'Domain kapsamı uyuşmuyor.',
+                        'revision_changed': 'İzleme sürümü değişti; yeni plan gerekli.', 'paused': 'İzleme duraklatılmış.',
+                        'not_due': 'Tur zamanı henüz gelmedi.', 'busy': 'Önceki tur henüz sonuçlanmadı.'}
+                    lines.append('    ' + reasons[receipt['reason']])
+                continue
             if receipt and step['key'].startswith('publisher:'):
                 lines.append('    ' + safe_text(receipt['url']))
                 lines.append('    Makbuz: ' + xti_command('reports', 'fetch-show', receipt['run_id'], data_dir=data_dir))
@@ -144,9 +162,11 @@ def source_job_lines(data, *, data_dir=None):
         return lines
     if 'plan' in data:
         plan = data['plan']
+        request_note = (f"En çok {data['maximum_external_requests']} dış istek" if data['maximum_external_requests'] is not None
+                        else 'Sosyal araç trafiğinin kesin toplamı ölçülmüyor; sayfa/süre sınırı izleme kapsamında')
         return ['Hedef: ' + safe_text(plan['value']), 'Adımlar: ' + ' → '.join(data['step_order']),
                 *[f"Belge {index}: {safe_text(row['provider'])} | {safe_text(row['url'])}" for index, row in enumerate(plan.get('publisher_documents', []), 1)],
-                f"En çok {data['maximum_external_requests']} dış istek; adımlar arasında {plan['max_seconds']} saniye bütçe.",
+                f"{request_note}; adımlar arasında {plan['max_seconds']} saniye bütçe.",
                 'İnceleme kaydı: ' + ('evet' if plan['record_review'] else 'hayır'),
                 'Plan özeti: ' + data['plan_sha256'], *data['notes']]
     if 'to_version' in data:
@@ -172,7 +192,7 @@ def execute_source_jobs(database, args):
             data = migrate_jobs(context)
         elif action == 'submit':
             parameters = {key: getattr(args, key) for key in PLAN_FIELDS}
-            plan = service.plan(**parameters)
+            plan = plan_data(source_plan(**parameters))
             data = service.submit(**parameters, idempotency_key=args.idempotency_key, plan_sha256=plan['plan_sha256']).to_dict()
         elif action == 'list':
             data = service.list(offset=args.offset, limit=args.limit)

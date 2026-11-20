@@ -1,5 +1,12 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.174.0, daha önce bulunan sosyal hesapları kaynaklar yeniden bildirmese de
+dönüşümlü kontrol eder. Sosyal takip mevcut iş kuyruğu ve ortak worker ile
+çalışır; izleme duraklatılmış veya kapsamı değişmişse yeni istek göndermez.
+Mevcut kurulum için `./xti migrate`; eski kayıtlar/yedekler korunur.
+[Komutlar](docs/SOCIAL_TRACKING.md#ortak-iş-kuyruğuyla-çalıştırma),
+[altı yeni kuruluş ve iki canlı takip turu](docs/SOCIAL_TRACKING_ACCEPTANCE.md).
+
 0.173.0, bulunan sosyal hesapları firma incelemesine ve vakalara bağlar.
 Gerekçeli insan kararı, ücretsiz düzenli takip, sessiz başlangıç ve tekil
 değişiklik bildirimi vardır. Kaynak erişim hatası hesap kaybı sayılmaz;

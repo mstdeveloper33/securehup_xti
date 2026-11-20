@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
-Son güncelleme: **19 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.173.0 / çekirdek 83 / iş kuyruğu 3**.
+Son güncelleme: **20 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
+Güncel çalışma: **0.174.0 / çekirdek 84 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -28,6 +28,40 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
+### N-036 — Saklı sosyal adres kontrolü, ortak kuyruk ve genişletilmiş ölçüm
+
+- **Durum:** Üç başlık uygulandı; son genel test ve GitHub teslim sonucu
+  bekleniyor. **Güncellendi:** 20 Kasım 2026. Bekleyen koşular başarılı sayılmaz.
+- **Kapsam:** Seed/önceki kaynak kanıtından gelen adresler sayfa bütçesinin
+  yarısında dönüşümlü yeniden kontrol edilir. Kaynak yeniden bildirmese de
+  takip sürer; tarihî köken sahiplik/güncel kaynak kanıtı sayılmaz.
+- **Ortak kuyruk:** `social-tracking`, kaynak işi modeli6 içindedir.
+  Firma/domain/revision kontrolü, iptal, açık retry ve kesilen core sonucu
+  toparlama mevcut worker'ı kullanır. Yeni daemon, UI veya backend yoktur.
+- **Trafik:** `max_requests` diğer ölçümlü kaynak adımlarına uygulanır.
+  Sosyal araç toplam trafiği bilinmez; `null` gösterilir. Bilinen sayfa
+  HTTP denemesi ayrıdır. Sayfa/süre/platform ve mevcut araç sınırları korunur.
+  Düzenli tur Tavily/Bright Data çağırmaz; ücretli sağlayıcı kendiliğinden açılmaz.
+- **Veri:** Çekirdek83 → 84 açık/yedekli anlamsal geçiş; tablo yapısı ve
+  eski satır/rowid/JSON/hash değişmez. Kuyruk3 ve dış JSONv1 korunur.
+  Gerçek eski `f85097d` kodundan 171 tablo/14 kontrollü satır korundu;
+  eski kod yedeği okudu, yeni şemayı reddetti, restore/remigrate geçti.
+- **Canlı ölçüm:** Altı yeni kuruluşta yedi dondurulmuş referansın beşi
+  doğrulandı, ikisi aday; yedisi de sonuçta vardı. Referansı alınamayan üç
+  kuruluş başarı sayılmadı. 180 satırın diğerleri bağımsız sahiplik etiketi
+  almadı; yanlış pozitif/genel doğruluk oranı hesaplanmadı. Medyan11,586sn.
+- **Gerçek worker:** MSF için iki ücretsiz tur; her tur seçilen eski
+  adreslerin20/20'si, toplam40 profil sayfası kontrol edildi. İki iş de
+  `partial`; ikinci tur bir eski aday sayfayla bulundu. Aynı iş tekrarı
+  ağsızdı. Bu koşu dağıtık çalışma veya 7/24 hizmet kapasitesi kanıtı değildir.
+- **Test:** Son sosyal/gerçek CLI-platform paketi82 test/39,094sn geçti.
+  Kaynak işi55 testteki tek hata yeni eski-sürüm fixture'ının v1'de olmayan
+  haber kaynağını seçmesiydi; CIRCL ile düzeltildi ve hedef test geçti.
+  Genel koşu sonuçlanınca aşağıdaki kabul kaydı güncellenecek.
+- **Dayanak:** [Kullanım](docs/SOCIAL_TRACKING.md),
+  [mimari karar](docs/decisions/0179-retained-social-targets-and-source-jobs.md),
+  [canlı ölçüm](docs/SOCIAL_TRACKING_ACCEPTANCE.md), [test kaydı](docs/ACCEPTANCE_REVIEW.md).
+
 ### N-035 — Sosyal inceleme, vaka ve düzenli takip teslimi
 
 - **Durum:** Uygulandı; 53 ilgili test ve gerçek eski koddan yükseltme/
@@ -50,9 +84,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - **Kurtarma:** Kaydedilmiş keşif aynı anahtarla yeniden çağrılmaz. Keşfin
   kendisi kesilmişse aynı anahtar `interrupted` sonucuna toparlanır; yeni
   tarama yeni anahtar ister. Terminal monitor beklerken kilit tutmaz.
-- **Sınırlar:** Düzenli takip Tavily/Bright Data çağırmaz; önceki URL yeni
-  turda keşfedilmiyorsa ek hedef olarak taranmaz, eksik kontrol sayılır.
-  Arka plan servisi/dağıtık worker yok; zamanlama tüketen platformdadır.
+- **Sınırlar:** Düzenli takip Tavily/Bright Data çağırmaz. 0.173.0'da
+  önceki URL yeni turda keşfedilmiyorsa ek hedef olarak taranmıyordu;
+  0.174.0 N-036 bu eksikliği dönüşümlü kontrolle tamamladı ve ortak worker'a
+  bağladı. Dağıtık worker yok; zamanlama tüketen platformdadır.
   Son-gözlem kapsamı çalışma alanında 5.000 profil; işlem geçmişi toplam 10.000 olay /
   32 MiB, bildirim 10.000. Keşif/ek kanıtın mevcut sınırları ayrıca sürer.
 - **Veri:** Çekirdek 82 → 83 açık/yedekli geçiş; eski vaka satır/rowid'leri
@@ -1047,6 +1082,12 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.174.0 — 20 Kasım:** Kullanıcının devam onayıyla önceki sosyal adreslerin
+yeniden kontrolü, mevcut ortak kuyruk bağlantısı ve ücretsiz farklı kuruluş
+ölçümü uygulandı (N-036). Son test ve teslim kapatılıyor. Bright Data anahtarı
+kullanıcı tercihiyle daha sonra; normal GitHub CLI oturumu gerektiren elle
+Linux kabulü ayrı bekleyen kontroldür. Yeni özellik paketi kendiliğinden açılmaz.
 
 **0.171.1 teslim / doğruluk çalışması — 19 Kasım:** Kullanıcı son sosyal
 keşif paketinin GitHub/Linux teslimiyle ve farklı firmalarda daha geniş

@@ -1,12 +1,14 @@
 # Firma sosyal hesaplarını inceleme ve düzenli takip
 
-0.173.0, birleşik sosyal keşfi firma incelemesi, gerekçeli insan kararı,
+0.174.0 önceki hesap adreslerini dönüşümlü kontrol eder ve sosyal takibi
+ortak iş kuyruğu/worker'a bağlar. 0.173.0, birleşik sosyal keşfi firma incelemesi, gerekçeli insan kararı,
 donmuş vaka kanıtı ve düzenli değişiklik takibine bağlar. Terminal ve
 firma kapsamlı JSON aynı servisleri kullanır. Bright Data anahtarı gerekmez.
 
-Mevcut kurulumda önce `./xti migrate` çalıştırılır. Çekirdek 82 → 83
-geçişi önce yedek alır; eski keşif, ek kanıt, vaka satırları ve kimlikleri
-korunur. İş kuyruğu 3, engine/platform sözleşmesi v1 değişmez.
+Mevcut kurulumda önce `./xti migrate` çalıştırılır. Çekirdek 83 → 84
+geçişi önce yedek alır; tablo yapısı, eski kayıtlar ve hash'ler değişmez.
+84, yeni kontrol kapsamını bilmeyen eski motorun bu alanı açmasını engeller.
+İş kuyruğu 3, engine/platform sözleşmesi v1 değişmez; kaynak işi modeli 6'dır.
 
 ## 1. Bulunan hesapları birlikte inceleme
 
@@ -25,7 +27,9 @@ Her profilde şunlar ayrı görünür:
 
 `review-list` her domainin en son **tamamlanmış** keşfini gösterir.
 Devam eden çalışma önceki kanıtı silmez. Sayfayla doğrulanmış profiller
-ve kaynakların desteklediği adaylar inceleme listesine girer. Yalnız
+ve kaynakların desteklediği adaylar inceleme listesine girer. Önceden
+görülen adresin son kontrolü başarısız veya yokluk yanıtlıysa bu ayrım da
+listede görünür. Yalnız
 türetilmiş, kanıt bulunmamış kullanıcı adı denemeleri özgün
 `brand discovery-show KESIF_UUID` sonucunda kalır.
 
@@ -125,14 +129,61 @@ keşfedilmeyen URL **hesap kaybı değildir**. Son doğrulanabilir gözlem
 korunur. Sonraki başarılı kontrol aynı bilgiyi verirse yeni değişiklik
 üretilmez. Sırf sayfanın gövde hash'i değişti diye bildirim oluşmaz.
 
-Kaynak/yeni aday kapsamı sınırlıdır: önceki URL bu turda kaynaklardan veya
-kullanıcı adı türetiminden gelmezse otomatik ek hedef olarak taranmaz;
-eksik kontrol sayısına girer. Tam kaynak hataları `discovery-show` içindedir.
+Önceki kaynak destekli veya sayfayla bulunmuş adresler, yeni kaynak
+yanıtında yer almasa da yeniden kontrol edilir. Her tur sayfa bütçesinin
+yarısı (en az bir) bu adreslere ayrılır; kalan adresler sonraki turlara
+döner. Yeni bulunan adresler eklense de son-adres imleci eski adresleri
+atlamaz. Bir sayfalık bütçede saklı adres varsa yeni aday kontrolü o tur
+yapılamayabilir. `tracking-run-show` seçilen/toplam eski adres sayısını,
+`discovery-show` tek tek sonuçlarını gösterir. `retained_profile` güncel
+kaynak veya sahiplik kanıtı değildir. Tam kaynak hataları yine korunur.
 Bright Data kayıtlarının değişimi bu ücretsiz takipte otomatik sorgulanmaz.
 
 Bir turun farkları, kalıcı sonucu ve bildirimleri tek veritabanı işleminde
 yazılır. Tekrar çağrıda bildirim çoğalmaz ve okundu durumu sıfırlanmaz.
 Bildirim kutusundaki durum insan kararından bağımsızdır.
+
+## Ortak iş kuyruğuyla çalıştırma
+
+Mevcut izlemenin `tracking-show` çıktısındaki kimlik/sürümü kullanılır.
+Yerel kuyruk daha önce kurulmadıysa bir kez `./xti source-jobs init`
+çalıştırılır; var olan kuyruk3 yeniden oluşturulmaz.
+
+```sh
+./xti source-jobs plan securehup.com --type domain --source social-tracking \
+  --social-watch IZLEME_UUID --social-revision 1
+./xti source-jobs submit securehup.com --type domain --source social-tracking \
+  --social-watch IZLEME_UUID --social-revision 1 --idempotency-key securehup-social-job-1
+./xti source-jobs worker --job-id IS_UUID
+./xti source-jobs result IS_UUID
+```
+
+Plan ve kabul ağsızdır. `--social-force` yalnız bu tur için aralık
+beklemeyi atlar; duraklatma/sürüm/firma sınırını atlamaz. İptal, durum,
+tekrar, ilerleme ve kurtarma mevcut `source-jobs` akışındadır. İşin
+adım makbuzundan özgün sosyal tur ve keşif kaydı açılır. Sıradaki iş
+çalışırken izleme duraklatılmış veya sürümü değişmişse yeni istek gönderilmez.
+Zamanı gelmemiş/busy iş açık gerekçe taşır; otomatik sürekli servis kurulmaz.
+
+Firma platformunda aynı `sources.plan` / `sources.jobs.submit` işlemleri
+`sources:["social-tracking"]`, `social_watch_id`, `social_watch_revision`
+ve isteğe bağlı `social_force` alanlarını alır. Submit ayrıca güncel
+`expected_workspace_id`, plan hash'i ve tekrar anahtarı ister.
+Mevcut `platform worker` aynı işi yürütür. Yeni backend/API yazılması gerekmez.
+
+Toplam araç trafiği ölçülmediğinden `max_requests` sosyal turun tamamını
+sınırlamaz; diğer ölçümlü kaynak adımlarına uygulanır. Sosyal kapsam kendi
+sayfa/süre/platform sınırını korur. Plan `maximum_external_requests=null`,
+sonuç toplam HTTP `attempts=null` verir; bilinen sayfa denemeleri ayrı
+`recorded_social_page_http_requests` alanındadır. Bu ayrım [kuyruk
+sözleşmesinde](SOURCE_JOBS.md) açıklanır. Tavily/Bright Data çağrılmaz.
+
+Kuyruk kesintisinde `source-jobs retry IS_UUID --idempotency-key YENI_ANAHTAR
+--allow-uncertain` açık kabul ister. Kaydedilmiş core sonucu varsa yeniden
+taranmadan bağlanır; kaydedilmiş kısmi turun yeni retry'si yeni turdur.
+Keşif rezervasyonu öncesinde duraklatılmış eski tur ağsız kapanır;
+izleme `busy` olarak kalmaz. Başlamış isteği iptal geri alamaz; iptal
+ve işin toplam süre denetimi adımlar arasında yapılır.
 
 ## Kesinti ve kapasite
 
@@ -150,6 +201,11 @@ silmez; tamamlanmış keşif korunur ve işlem hata verir. Bu sınırlar büyük
 ölçekli veya kesintisiz hizmet garantisi değildir.
 
 ## Engine ve platform
+
+Yeni takip turları `version=2`, `watch_revision` ve `tracking` alanı taşır.
+`tracking.urls` o tur için seçilmiş eski adresleri, `total` bütün saklı
+adres sayısını gösterir. Keşif kapsamındaki aynı bağlam scope/hash'e dahildir.
+Eski tur kayıtlarında bu alanlar yoktur; eski JSON yeniden yazılmaz.
 
 | İşlem | Parametreler |
 | --- | --- |
@@ -183,5 +239,6 @@ okunur. `not_due`, `busy`, `revision_conflict`, `idempotency_conflict`,
 Kontrollü sayfa/kaynak yanıtlarıyla insan kararı, sağlayıcı ayrımı,
 başlangıç, değişiklik, hata sonrası toparlanma, aynı işin tekrarı, eşzamanlı
 yazma, kutu okundu durumu, tarihî vaka, firma ayrımı, gerçek CLI/JSON ve
-82 → 83 yedekli geçiş test edilir. Bu testler yeni bir canlı doğruluk
-ölçümü değildir. Koşu sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md) tutulur.
+eski/yeni yedekli geçişler test edilir. Kontrollü testler canlı doğruluk
+ölçümü değildir. Koşu sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md),
+altı yeni kuruluş ve gerçek kuyruk ölçümü [ayrı belgede](SOCIAL_TRACKING_ACCEPTANCE.md) tutulur.

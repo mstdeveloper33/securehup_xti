@@ -12,13 +12,29 @@ from xti.ports.jobs import ExecutionLock
 
 
 class SourceJobService:
-    def __init__(self, repository: EngineJobRepository, *, clock=None):
+    def __init__(self, repository: EngineJobRepository, *, clock=None, social_tracking=None):
         self.repository = repository
+        self.social_tracking = social_tracking
         self.clock = clock or (lambda: datetime.now(timezone.utc))
 
-    @staticmethod
-    def plan(**parameters):
-        return plan_data(source_plan(**parameters))
+    def _social_guard(self, plan):
+        from xti.domain.social_jobs import SOURCE, watch_guard
+        if SOURCE not in plan['sources']: return
+        if self.social_tracking is None:
+            raise EngineJobError('invalid_parameters', 'Sosyal iş için çalışma alanı izleme servisi gerekli.')
+        watch = self.social_tracking.execute('brand.tracking.show', identifier=plan['social_watch_id'])['record']
+        reason = watch_guard(watch, plan)
+        if reason: raise EngineJobError('plan_changed', 'Sosyal izleme domaini, sürümü veya etkinliği değişti; planı yenileyin.')
+        return watch
+
+    def plan(self, **parameters):
+        plan = source_plan(**parameters)
+        watch = self._social_guard(plan)
+        data = plan_data(plan)
+        if watch is not None:
+            data['social_watch'] = {'id': watch['id'], 'revision': watch['revision'], 'scope': watch['scope'],
+                                    'interval_seconds': watch['interval_seconds']}
+        return data
 
     def _now(self):
         value = self.clock()
@@ -40,6 +56,8 @@ class SourceJobService:
         plan = source_plan(**parameters)
         if plan_data(plan)['plan_sha256'] != plan_sha256:
             raise EngineJobError('plan_changed', 'Kaynak planı özeti uyuşmuyor; güncel planı inceleyin.')
+        if self.repository.find_request(request_key(idempotency_key)) is None:
+            self._social_guard(plan)
         return self._submit(SourceJobPayload(plan), idempotency_key)
 
     def status(self, job_id):

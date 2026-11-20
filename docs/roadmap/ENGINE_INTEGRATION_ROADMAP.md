@@ -1,5 +1,13 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**0.174.0:** Önceden bulunan hesapların dönüşümlü yeniden kontrolü, sosyal
+takibin ortak iş kuyruğuna bağlanması ve altı yeni kuruluşta ücretsiz canlı
+ölçüm uygulandı. Kaynak koşullarından doğan aday/belirsiz sonuçlar korunur;
+geliştirme yüzde100 doğruluk iddiasıyla kapatılmaz. [Kullanım](../SOCIAL_TRACKING.md),
+[ölçüm](../SOCIAL_TRACKING_ACCEPTANCE.md), [teslim kontrolleri](../ACCEPTANCE_REVIEW.md).
+Bright Data canlı kabulü kullanıcı anahtarı bekler; Firecrawl, LLM, geniş
+STIX/TAXII ve tüketici backend/UI çalışmaları bu paketle açılmadı.
+
 **0.173.0:** Sosyal keşif/ek kanıt firma incelemesine ve vakaya bağlandı;
 gerekçeli kararlar, ücretsiz kalıcı takip ve ortak inbox değişiklik bildirimi
 uygulandı. Terminal monitor ve firma JSON aynı servisleri kullanır.

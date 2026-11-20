@@ -3,11 +3,13 @@ import json
 from uuid import uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.domain.assets import ValidationError
 from xti.domain.mentions import mention_time, mention_uuid
 from xti.domain.research_history import history_key
 from xti.domain.social_discovery import (
     POLICY, MAX_REPORT_BYTES, SocialDiscoveryError, canonical, fingerprint, parameters, validate_report,
 )
+from xti.domain.social_retained import MAX_SCOPE_BYTES, validate_scope
 
 MAX_RUNS = 10_000
 MAX_TOTAL_BYTES = 64 * 1024 * 1024
@@ -18,12 +20,14 @@ def _receipt(row):
     try:
         identifier, key, domain, scope_json, scope_hash, status, payload, digest, started, finished = row
         mention_uuid(identifier); history_key(key); mention_time(started)
-        if not isinstance(scope_json,str) or len(scope_json) > 8192:
+        if not isinstance(scope_json,str) or len(scope_json) > MAX_SCOPE_BYTES:
             raise ValueError('Scope size')
         scope = json.loads(scope_json)
-        if (parameters('brand.discovery.plan',scope) != scope or canonical(scope) != scope_json
+        if (validate_scope(scope) != scope or canonical(scope) != scope_json
                 or fingerprint([POLICY,scope]) != scope_hash or scope['domain'] != domain):
             raise ValueError('Scope changed')
+        if 'tracking' in scope and key != 'social-tracking-' + scope['tracking']['run_id']:
+            raise ValueError('Tracking operation key')
         report = None
         if status == 'running':
             if payload is not None or digest is not None or finished is not None: raise ValueError('Pending state')
@@ -54,12 +58,14 @@ class SQLiteSocialDiscoveryRepository:
         if (len(allocated)>1 or (not allocated and count) or (allocated and allocated[0][0]!=count)):
             raise StorageError('Sosyal keşif işlem geçmişinden kayıt eksilmiş; yeni ağ işi başlatılmadı.')
         if connection.execute('SELECT 1 FROM social_discovery_runs WHERE length(id)!=36 OR length(request_key)>128 '
-                'OR length(domain)>253 OR length(scope_json)>8192 OR length(scope_sha256)!=64 '
+                f'OR length(domain)>253 OR length(scope_json)>{MAX_SCOPE_BYTES} OR length(scope_sha256)!=64 '
                 'OR length(status)>16 OR length(started_at)>64 OR length(finished_at)>64 LIMIT 1').fetchone():
             raise StorageError('Sosyal keşif makbuz alanları izin verilen sınırı aşıyor.')
 
     def reserve(self, scope, key, at):
-        scope = parameters('brand.discovery.plan',scope); key = history_key(key); mention_time(at)
+        scope = validate_scope(scope); key = history_key(key); mention_time(at)
+        if 'tracking' in scope and key != 'social-tracking-' + scope['tracking']['run_id']:
+            raise ValidationError('Saklı profil isteği izleme turuna ait olmalı.')
         with self.storage._connection() as connection:
             connection.execute('BEGIN IMMEDIATE')
             try:
@@ -109,6 +115,13 @@ class SQLiteSocialDiscoveryRepository:
             row = connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?',(identifier,)).fetchone()
             if row is None: raise SocialDiscoveryError('not_found','Sosyal keşif çalışması bulunamadı.')
             return {'record':_receipt(row),'replayed':False}
+
+    def find_key(self, key):
+        history_key(key)
+        with self.storage._connection(readonly=True) as connection:
+            self._capacity(connection)
+            row = connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE request_key=?', (key,)).fetchone()
+            return _receipt(row) if row is not None else None
 
     def list(self, *, domain=None, offset=0, limit=20):
         options = parameters('brand.discovery.list',{'offset':offset,'limit':limit,**({'domain':domain} if domain else {})})
