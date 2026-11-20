@@ -28,83 +28,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
-### N-037 — Sosyal kanıt ve işletim paketi
-
-- **Durum:** Uygulandı; son genel/Linux teslim sonuçları takip ediliyor.
-  **Güncellendi:** 20 Kasım 2026.
-- **Kapsam:** Birleşik sosyal araştırma/vaka, aynı anlamdaki kaynak
-  karşılaştırması, mevcut profile/işe sosyal izleme seçimi, etiketli kalite
-  ölçümü ve mevcut journals arşivinde sosyal keşif gövdeleri.
-- **Veri:** Şema85 yedekli toplama tablosu geçişi; eski rowid/kolon/hash
-  korunur. Profil/plan v3 ve yeni vaka v2, eski biçimlerin okuyucusunu korur.
-  X tam kullanıcı adı kuralı keşif v2'dir; tarihî kararlar yeniden yazılmaz.
-- **Kanıt:** 45 özellik testi /16,553sn; gerçek SIGKILL sonrası keşfi tekrar
-  toplamadan tek makbuzla kurtarma dahil. Son teslim/hedefli paket34 test /
-  35,552sn. Gerçek `dbaf235` kodundan iki şema84 alanı (172'şer tablo;
-  13 sosyal,23 toplama fixture satırı) yükseldi; eski kayıt/rowid'ler ve
-  v1 vakalar korundu; eski motor iki eski yedeği geri okuyabildi (4,210sn).
-- **Doğruluk sınırı:** 35 etiketli kontrollü sayfa örneği:8 bulunan,
-  6 bulunmayan,21 belirsiz;35/35 beklenen karar. Tüm internet için yüzde
-  doğruluk ölçümü değildir. Yeni canlı ücretli istek yapılmadı.
-- **Linux:** GitHub CLI henüz giriş yapmış değil. Sürüm dosyası main'e
-  gönderildiğinde tam test ve kurulum/yükseltme kabulü artık otomatik başlar.
-  `ed2b04b` sosyal kabulü Ubuntu24.04/Python3.11 ve3.13 ile geçti
-  ([koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697161402)).
-  Son araştırma düzeltmesi99 testle50,786sn'de geçti; yeni commit için
-  Linux kabulü ayrıca başlatılacak. Genel/işletim sonuçları kapanışta yazılır.
-- **Ayrı bekleyenler:** Bright Data anahtarı N-034; gelişmiş Nmap yetkili
-  IP/port N-005. Bu paketin fixture testleri bu canlı kabullerin yerine geçmez.
-- **Dayanak:** [Teslim kaydı](docs/roadmap/SOCIAL_ENGINE_DELIVERY.md),
-  [0180 karar](docs/decisions/0180-social-engine-delivery.md),
-  [kullanım](docs/SOCIAL_TRACKING.md).
-
-### N-035 — Sosyal inceleme, vaka ve düzenli takip teslimi
-
-- **Durum:** Uygulandı; 53 ilgili test ve gerçek eski koddan yükseltme/
-  geri dönüş geçti. Genel koşu 3.327 test / 1.639,841 sn: iki yükseltme
-  denetimi hatası düzeltildi, dört Linux kontrolü macOS'ta atlandı;
-  başka hata yok. Tam paket tekrar edilmedi; düzeltme kontrolü aşağıda
-  ayrı verilir. **Güncellendi:** 19 Kasım 2026.
-- **Yükseltme denetimi düzeltmesi:** Genel koşuda Linux kabul betiğinin
-  eski vaka DDL'sini beklemesi iki hata verdi. Betik 79/80/82 → 83
-  geçişlerinde kaynak/hedef sürüme ait tam tablo biçimini ve bütün eski
-  satır/rowid'leri doğrulayacak şekilde düzeltildi; bilinmeyen biçim veya
-  değişmiş eski veri reddedilir. İlgili 19 test / 4,120 sn hatasız;
-  Linux `/proc` gerektiren iki test macOS'ta atlandı. Motor kodu değişmedi.
-- **Kapsam:** Birleşik keşif ve ek sağlayıcı kanıtını firma incelemesinde
-  birlikte görme, kaynak kararından ayrı sürümlü insan kararı, tek profilin
-  vakaya donmuş kopyası; ücretsiz izleme tanımı/tur/duraklatma/monitor.
-- **Bildirim:** İlk gözlem sessizdir; sonraki anlamlı farklar aynı son
-  transaction'da ortak inbox'a bir kez kaydedilir. Erişim hatası/eksik
-  kapsam hesap silinmesi sayılmaz; son doğrulanabilir gözlem korunur.
-- **Kurtarma:** Kaydedilmiş keşif aynı anahtarla yeniden çağrılmaz. Keşfin
-  kendisi kesilmişse aynı anahtar `interrupted` sonucuna toparlanır; yeni
-  tarama yeni anahtar ister. Terminal monitor beklerken kilit tutmaz.
-- **Sınırlar:** Düzenli takip Tavily/Bright Data çağırmaz. 0.173.0'da
-  önceki URL yeni turda keşfedilmiyorsa ek hedef olarak taranmıyordu;
-  0.174.0 N-036 bu eksikliği dönüşümlü kontrolle tamamladı ve ortak worker'a
-  bağladı. Dağıtık worker yok; zamanlama tüketen platformdadır.
-  Son-gözlem kapsamı çalışma alanında 5.000 profil; işlem geçmişi toplam 10.000 olay /
-  32 MiB, bildirim 10.000. Keşif/ek kanıtın mevcut sınırları ayrıca sürer.
-- **Veri:** Çekirdek 82 → 83 açık/yedekli geçiş; eski vaka satır/rowid'leri
-  ve kaynak kanıtları korunur. Ek sağlayıcı penceresi keşfin son 20 işlemidir;
-  daha eski kayıtlar ayrı listeden açılır ve kısmi kapsam belirtilir.
-- **Gerçek eski kod:** `74356f7` / 0.172.0 ile üretilen şema82 kaydındaki
-  169 eski tablonun bütün satır/rowid'leri korunarak CLI geçişi yapıldı.
-  Yedek eski kodda okunabildi; yeniden geçişte keşif/sağlayıcı makbuzları
-  korundu. Kontrollü kaynaklar; yeni canlı doğruluk ölçümü değildir.
-- **GitHub teslimi:** `8c74030` motor kodunda Linux kurulumu, marka
-  kurulumu ve firma izolasyonu geçti. Yükseltme denetimi düzeltmesi
-  `64e5d86` ile gönderildi; motor kodu aynı,
-  [son hızlı Linux kontrolü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44547804883)
-  başarılı tamamlandı. Son kapanış uygulama kodunu değiştirmeyen belge güncellemesidir.
-  Önceki hızlı koşu yeni gönderimle otomatik iptal edildi.
-  Tam Linux ve kurulum/yükseltme kabulünün elle başlatılması normal
-  GitHub CLI oturumu bekler; bunlar tamamlandı diye gösterilmez.
-- **Dayanak:** [Kullanım](docs/SOCIAL_TRACKING.md),
-  [mimari karar](docs/decisions/0178-social-review-tracking-and-cases.md),
-  [kabul kaydı](docs/ACCEPTANCE_REVIEW.md).
-
 ### N-034 — Bright Data LinkedIn şirket kanıtı
 
 - **Durum:** İsteğe bağlı entegrasyon uygulandı; anahtar kullanıcı kararıyla
@@ -874,6 +797,99 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   ve pasif kaynak toplama sınırları korunacak.
 
 ## Kapanan notlar ve kanıtları
+
+### N-037 — Sosyal kanıt ve işletim paketi
+
+- **Durum:** Kapandı; altı iş ve Linux kabulü tamamlandı.
+  **Güncellendi:** 20 Kasım 2026.
+- **Kapsam:** Birleşik sosyal araştırma/vaka, aynı anlamdaki kaynak
+  karşılaştırması, mevcut profile/işe sosyal izleme seçimi, etiketli kalite
+  ölçümü ve mevcut journals arşivinde sosyal keşif gövdeleri.
+- **Veri:** Şema85 yedekli toplama tablosu geçişi; eski rowid/kolon/hash
+  korunur. Profil/plan v3 ve yeni vaka v2, eski biçimlerin okuyucusunu korur.
+  X tam kullanıcı adı kuralı keşif v2'dir; tarihî kararlar yeniden yazılmaz.
+- **Kanıt:** 45 özellik testi / 16,553 sn; gerçek SIGKILL sonrası keşfi tekrar
+  toplamadan tek makbuzla kurtarma dahil. Teslim/hedefli paket 34 test /
+  35,552 sn; son araştırma paketi 99 test / 50,786 sn geçti. Gerçek `dbaf235`
+  kodundan iki şema84 alanı (SQLite yardımcı tablosu dahil 172'şer tablo;
+  13 sosyal, 23 toplama fixture satırı) yükseldi; eski kayıt/rowid'ler ve
+  v1 vakalar korundu; eski motor iki eski yedeği geri okuyabildi (4,210 sn).
+- **Yerel genel koşu:** İlk 3.361 test / 1.662,945 sn koşusunda 15 eski
+  şema beklentisi hatası ve 4 Linux/macOS atlaması vardı. İki test
+  yardımcısı güncellendi; etkilenen sekiz modülün 44 testi son kodla
+  31,615 sn'de geçti. İlk koşu başarı sayılmadı; temiz tam doğrulama
+  aşağıdaki Linux koşusudur. Son test envanteri 3.364'tür.
+- **Doğruluk sınırı:** 35 etiketli kontrollü sayfa örneği: 8 bulunan,
+  6 bulunmayan, 21 belirsiz; 35/35 beklenen karar. Tüm internet için yüzde
+  doğruluk ölçümü değildir. Yeni canlı ücretli istek yapılmadı.
+- **Linux:** `ab080a7` üzerinde
+  [tam test](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697471676)
+  Python 3.13 ile 27 dk 36 sn'de,
+  [kısa paket](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697471561)
+  Python 3.11 ile 24 dk 32 sn'de başarılı tamamlandı.
+  [Sosyal kabul](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697471642)
+  ve [iki firma/süreç kurtarma](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697471531)
+  Python 3.11/3.13 ile geçti. Kurulum/işletim kodu aynı `ed2b04b` üzerinde
+  [yükseltme ve işletim](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697161293)
+  geçti: iki araç ortamı, kaynak kesintisi, 100/1.000/5.000 domain, düşük
+  disk, gerçek systemd ve 600 saniyelik dayanıklılık. Normal Linux ve marka
+  kurulumları da geçti; bütün bağlantılar teslim kaydında.
+  Sürüm gönderiminde otomatik tetikleme kullanıldı; GitHub CLI oturumu
+  gerektirmedi. Bu ölçümler 7/24 hizmet garantisi değildir.
+- **Ayrı bekleyenler:** Bright Data anahtarı N-034; gelişmiş Nmap yetkili
+  IP/port N-005. Bu paketin fixture testleri bu canlı kabullerin yerine geçmez.
+- **Dayanak:** [Teslim kaydı](docs/roadmap/SOCIAL_ENGINE_DELIVERY.md),
+  [0180 karar](docs/decisions/0180-social-engine-delivery.md),
+  [kullanım](docs/SOCIAL_TRACKING.md).
+
+### N-035 — Sosyal inceleme, vaka ve düzenli takip teslimi
+
+- **Durum:** Kapandı. 0.175.0'da N-037 tam Linux ve kurulum/yükseltme
+  kabulüyle kalan teslim kontrolleri tamamlandı. **Güncellendi:** 20 Kasım 2026.
+- **0.173.0 kanıtı:** 53 ilgili test ve gerçek eski koddan yükseltme/
+  geri dönüş geçti. Genel koşu 3.327 test / 1.639,841 sn: iki yükseltme
+  denetimi hatası düzeltildi, dört Linux kontrolü macOS'ta atlandı;
+  başka hata yok. Tam paket tekrar edilmedi; düzeltme kontrolü aşağıda
+  ayrı verilir. **Güncellendi:** 19 Kasım 2026.
+- **Yükseltme denetimi düzeltmesi:** Genel koşuda Linux kabul betiğinin
+  eski vaka DDL'sini beklemesi iki hata verdi. Betik 79/80/82 → 83
+  geçişlerinde kaynak/hedef sürüme ait tam tablo biçimini ve bütün eski
+  satır/rowid'leri doğrulayacak şekilde düzeltildi; bilinmeyen biçim veya
+  değişmiş eski veri reddedilir. İlgili 19 test / 4,120 sn hatasız;
+  Linux `/proc` gerektiren iki test macOS'ta atlandı. Motor kodu değişmedi.
+- **Kapsam:** Birleşik keşif ve ek sağlayıcı kanıtını firma incelemesinde
+  birlikte görme, kaynak kararından ayrı sürümlü insan kararı, tek profilin
+  vakaya donmuş kopyası; ücretsiz izleme tanımı/tur/duraklatma/monitor.
+- **Bildirim:** İlk gözlem sessizdir; sonraki anlamlı farklar aynı son
+  transaction'da ortak inbox'a bir kez kaydedilir. Erişim hatası/eksik
+  kapsam hesap silinmesi sayılmaz; son doğrulanabilir gözlem korunur.
+- **Kurtarma:** Kaydedilmiş keşif aynı anahtarla yeniden çağrılmaz. Keşfin
+  kendisi kesilmişse aynı anahtar `interrupted` sonucuna toparlanır; yeni
+  tarama yeni anahtar ister. Terminal monitor beklerken kilit tutmaz.
+- **Sınırlar:** Düzenli takip Tavily/Bright Data çağırmaz. 0.173.0'da
+  önceki URL yeni turda keşfedilmiyorsa ek hedef olarak taranmıyordu;
+  0.174.0 N-036 bu eksikliği dönüşümlü kontrolle tamamladı ve ortak worker'a
+  bağladı. Dağıtık worker yok; zamanlama tüketen platformdadır.
+  Son-gözlem kapsamı çalışma alanında 5.000 profil; işlem geçmişi toplam 10.000 olay /
+  32 MiB, bildirim 10.000. Keşif/ek kanıtın mevcut sınırları ayrıca sürer.
+- **Veri:** Çekirdek 82 → 83 açık/yedekli geçiş; eski vaka satır/rowid'leri
+  ve kaynak kanıtları korunur. Ek sağlayıcı penceresi keşfin son 20 işlemidir;
+  daha eski kayıtlar ayrı listeden açılır ve kısmi kapsam belirtilir.
+- **Gerçek eski kod:** `74356f7` / 0.172.0 ile üretilen şema82 kaydındaki
+  169 eski tablonun bütün satır/rowid'leri korunarak CLI geçişi yapıldı.
+  Yedek eski kodda okunabildi; yeniden geçişte keşif/sağlayıcı makbuzları
+  korundu. Kontrollü kaynaklar; yeni canlı doğruluk ölçümü değildir.
+- **GitHub teslimi:** `8c74030` motor kodunda Linux kurulumu, marka
+  kurulumu ve firma izolasyonu geçti. Yükseltme denetimi düzeltmesi
+  `64e5d86` ile gönderildi; motor kodu aynı,
+  [son hızlı Linux kontrolü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44547804883)
+  başarılı tamamlandı. Son kapanış uygulama kodunu değiştirmeyen belge güncellemesidir.
+  Önceki hızlı koşu yeni gönderimle otomatik iptal edildi.
+  O tarihte açık olan tam Linux ve kurulum/yükseltme kabulü 0.175.0'da
+  otomatik tetiklemeyle tamamlandı; son kanıt N-037'de tutulur.
+- **Dayanak:** [Kullanım](docs/SOCIAL_TRACKING.md),
+  [mimari karar](docs/decisions/0178-social-review-tracking-and-cases.md),
+  [kabul kaydı](docs/ACCEPTANCE_REVIEW.md).
 
 ### N-036 — Saklı sosyal adres kontrolü, ortak kuyruk ve genişletilmiş ölçüm
 

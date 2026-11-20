@@ -7,7 +7,7 @@ kenar JSON'undaki ek `source_comparisons` alanı kaynak/referans başına son
 gözlemi, zamanı, farklılığı veya doğrulama eksiğini gösterir. Bir araç
 bildirimi tek başına resmî hesap/taklit kararı değildir.
 Araştırma kuralı v9; geçmiş kayıtlı incelemeler değişmez. Sosyal kapsam
-5.000 satır/16MiB ön denetim ve1.000 profil sınırına sığmazsa `coverage`
+5.000 satır / 16 MiB ön denetim ve 1.000 profil sınırına sığmazsa `coverage`
 eksikliği açıkça belirtir. [Kullanım](SOCIAL_TRACKING.md).
 
 0.168.0 yerel sensör görülmelerini `local_sighting` kanıtı olarak, WHOIS

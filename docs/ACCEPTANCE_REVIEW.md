@@ -2,10 +2,13 @@
 
 ## 0.175.0 — Sosyal kanıt ve işletim teslimi
 
-Yerel hedefli testler, gerçek eski koddan yükseltme/geri dönüş ve35
+Yerel hedefli testler, gerçek eski koddan yükseltme/geri dönüş ve 35
 etiketli sayfa örneğinin ölçümü [tek teslim kaydında](roadmap/SOCIAL_ENGINE_DELIVERY.md).
-Genel/Linux koşularının sonucu aynı kayda commit ve koşu bağlantısıyla
-eklenir. Kaynak anahtarı veya yetkili hedef gerektiren canlı kabul,
+`ab080a7` tam Linux/kısa paket, sosyal kabul ve iki firma kurtarma
+kontrollerinden geçti. Aynı kurulum/işletim kodu `ed2b04b` ile gerçek
+kurulum/yükseltme, düşük disk, systemd ve dayanıklılık kabulünden geçti.
+Bütün sonuçlar aynı kayıtta commit ve koşu bağlantısıyla tutulur.
+Kaynak anahtarı veya yetkili hedef gerektiren canlı kabul,
 kontrollü test sonucu ile kapatılmaz.
 
 ## 0.174.0 — Saklı sosyal adresler ve ortak kaynak işi

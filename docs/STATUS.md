@@ -8,9 +8,13 @@ düzeltir; eski v1 kararlar değiştirilmez. Çekirdek85 yedekli geçiştir;
 profil/plan v3, yeni vaka kopyası v2, kuyruk3 ve dış JSONv1 korunur.
 35 kontrollü sayfa örneği geçti; bu canlı internet doğruluk oranı değildir.
 Gerçek eski 0.174.0 kodundan iki veri alanı yükseltildi ve eski yedekler
-eski motorla geri açıldı. Hedefli 45 ve teslim 34 testlik koşular geçti.
-Genel koşu ve son commit'in Linux sonuçları
-[teslim kaydında](roadmap/SOCIAL_ENGINE_DELIVERY.md) ayrı izlenir.
+eski motorla geri açıldı. `ab080a7` üzerinde tam Linux testi (Python 3.13),
+kısa paket (Python 3.11), sosyal kabul ve iki firma/süreç kurtarma
+(Python 3.11/3.13) başarılıdır. Aynı kurulum/işletim kodu `ed2b04b` ile
+gerçek kurulum, araç yükseltme, düşük disk, systemd ve dayanıklılık
+kontrollerinden geçti. Son test envanteri 3.364; ilk yerel koşu ve
+düzeltilen test beklentileri [teslim kaydında](roadmap/SOCIAL_ENGINE_DELIVERY.md)
+son temiz Linux sonucundan ayrı tutulur.
 
 **0.174.0:** Önceki sosyal adresleri dönüşümlü yeniden kontrol ve
 `social-tracking` ortak kaynak işi tamamlandı. Aynı firma/domain/sürüm

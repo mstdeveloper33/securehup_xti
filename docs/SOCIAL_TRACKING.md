@@ -16,6 +16,7 @@ yeni bir alana yapılır.
 
 Önce `brand tracking-add` ile izleme oluşturulur. Aşağıdaki `<izleme-kimliği>`
 yerine onun kimliği yazılır; izleme ve profil aynı domaine ait olmalıdır.
+Domain önceden `assets add` ile kayıtlı olmalıdır.
 
 ```sh
 ./xti profiles save "Firma sosyal" securehup.com --only-social --social-watch <izleme-kimliği>
