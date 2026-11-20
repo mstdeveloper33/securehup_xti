@@ -4,6 +4,7 @@
 Temel commit `f85097d92af67cba510b664f5d426f95ef7d0d61` üzerine 0.174.0
 değişiklikleriyle çalışıldı. Maigret0.6.6 / Sherlock0.16.2 incelenmiş
 kurulumları kullanıldı. Tavily ve Bright Data çağrısı yapılmadı.
+Ölçülen uygulama kodu `1a6052d` commit'iyle GitHub'a gönderildi.
 
 ## Yöntem
 
@@ -57,6 +58,8 @@ Ek sayfa HTTP denemesi **305**, kaydedilen gövde baytı **56.910.651**.
 Maigret/Sherlock iç trafiği bu sayılara dahil değildir; genel trafik veya
 sunucu kapasitesi sonucu çıkarılamaz. Altı örnekte en yakın sıra p95 en
 yavaş örneğe eşittir; SLA veya her ağda hız garantisi değildir.
+Ölçümün bir bölümünde yerel otomatik testler de çalışıyordu; ayrılmış
+bir performans sunucusu veya yük testi sonucu değildir.
 
 ## Gerçek ortak worker ile iki takip turu
 
@@ -86,6 +89,11 @@ kontroller açık kaldı; bütün hesaplar kontrol edildi sayılmadı.
 worker tekrar almadı. Toplama metodu hata veren bir kancayla kapatılarak
 bu tekrarların ağsız olduğu ayrıca doğrulandı. Tool iç trafiği bilinmediği
 için toplam HTTP sayacı `null`, sayfa denemeleri ayrı kaldı.
+
+İkinci turun Vimeo kanıtı ayrı bir test veri alanına alınarak mevcut
+vaka servisine eklendi. Yeni `tracking` kapsamı ve `retained_profile`
+kökeni donmuş vaka kopyasında korundu; yedekten yeni alana dönüşte snapshot
+birebir aynı kaldı. Bu ek kontrol saklı veriyi kullandı; yeni tarama değildi.
 
 ## Kontrollü senaryolar ve canlı ölçüm ayrımı
 
@@ -118,3 +126,5 @@ altındaki `xti-social-0174-0nz233ya` ve `xti-social-0174-g9nujys6`.
 `references.json`, `run-manifest.json`, domain başına `result.json`/DB ve
 ilk alandaki `queue-acceptance.json` korunuyor. Ham yanıt/DB Git'e alınmadı.
 Geçici alanlar kalıcı yedek değildir; bu belgede ölçüm özeti saklanır.
+Vaka/yedek kabulünün özel çıktısı aynı geçici kökteki
+`xti-social-case-0174-ppij5ydf/report.json` dosyasındadır.

@@ -5,6 +5,8 @@ takibin ortak iş kuyruğuna bağlanması ve altı yeni kuruluşta ücretsiz can
 ölçüm uygulandı. Kaynak koşullarından doğan aday/belirsiz sonuçlar korunur;
 geliştirme yüzde100 doğruluk iddiasıyla kapatılmaz. [Kullanım](../SOCIAL_TRACKING.md),
 [ölçüm](../SOCIAL_TRACKING_ACCEPTANCE.md), [teslim kontrolleri](../ACCEPTANCE_REVIEW.md).
+`1a6052d` üzerinde Linux hızlı test, temiz kurulum, marka kurulumu ve firma
+izolasyonu başarılı; üç maddelik bu paket tamamlandı.
 Bright Data canlı kabulü kullanıcı anahtarı bekler; Firecrawl, LLM, geniş
 STIX/TAXII ve tüketici backend/UI çalışmaları bu paketle açılmadı.
 

@@ -3,10 +3,22 @@
 ## 0.174.0 — Saklı sosyal adresler ve ortak kaynak işi
 
 20 Kasım 2026; yerel macOS / Python3.13.3, çekirdek84, kuyruk3,
-kaynak işi modeli6. Son genel koşu devam ediyor; Linux sonucu değildir.
+kaynak işi modeli6. Yerel genel koşu Linux sonucu değildir.
+
+- Genel koşu **3.346 test /1.678,229sn**: 3.340 başarılı, iki eski test
+  beklentisi hatası, dört Linux/macOS atlaması. İki hata yeni işin sürümü
+  için5 beklenmesiydi; güncel sürüm6 beklentisiyle düzeltilmiş modülün
+  tamamı aşağıdaki38 testlik pakette geçti. Motor kodu değişmedi;
+  genel paket yeniden çalıştırılmadı. Dört atlama Linux `/proc` ve
+  `systemd-analyze` gerektiren kontrollerdir. İki koşu ayrı tutulur;
+  ilk genel koşu hatasızmış gibi sunulmaz.
 
 - Sosyal keşif, ek sağlayıcı, takip, saklı adresler ve gerçek firma/CLI
   bağlantısı: **82 test / 39,094sn**, hata/atlama yok.
+- Son kaynak işi/sosyal kuyruk/Linux yükseltme test paketi **38 test /
+  15,048sn**, hata yok; Linux `/proc` gerektiren iki test macOS'ta atlandı.
+  Genel koşunun yakaladığı iki eski yeni-iş sürüm5 beklentisi sürüm6'ya
+  güncellendi; bu modülün tamamı son38 testte geçti. Motor kodu değişmedi.
 - Kaynak kuyruğu, kullanım ve yeni sosyal işler: ilk **55 test /16,907sn**
   koşusunda bir yeni fixture hatası vardı. Eski model1'e o modelde bulunmayan
   haber kaynağı verilmişti; CIRCL ile düzeltildi ve hedef test geçti.
@@ -32,8 +44,25 @@ kaynak işi modeli6. Son genel koşu devam ediyor; Linux sonucu değildir.
   iki canlı tur ayrıca yapıldı. Yedi dondurulmuş referansın beşi doğrulandı,
   ikisi aday kaldı; referansı alınamayan kuruluşlar başarı sayılmadı.
   [Bütün adresler, ölçümler ve kapsam](SOCIAL_TRACKING_ACCEPTANCE.md).
+- Canlı turdan saklanan Vimeo profili ayrı test alanında mevcut vaka
+  servisine bağlandı. Turv2 kapsamı/kökeni donmuş kanıtta kaldı; yedekten
+  yeni alana dönüşte snapshot birebir korundu. Yeni ağ toplaması yapılmadı.
+  Özel çıktı: geçici `xti-social-case-0174-ppij5ydf/report.json`.
 - Bright Data canlı kabulü yapılmadı; anahtar kullanıcı kararıyla bekliyor.
-  GitHub/Linux teslimi son kod gönderiminden sonra ayrıca kaydedilecek.
+  GitHub CLI normal oturumu henüz açık olmadığı için elle tam Linux/
+  kurulum-yükseltme kabulü bekliyor; otomatik hızlı paket bunun yerine sayılmaz.
+
+**GitHub teslimi — `1a6052d`:** Dört otomatik iş başarılı:
+
+- [Hızlı Linux kontrolleri](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44687803917):
+  2.049 test içeren güncel paket; iki sürüm beklentisi düzeltmesi dahildir.
+- [Linux temiz kurulum](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44687803934).
+- [Maigret/Sherlock marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44687804014).
+- [Firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44687803944).
+
+Son kapanış commit'i yalnız bu sonuçları belgelere işler; uygulama/test
+kodunu değiştirmez. İlk genel koşunun iki eski beklenti hatası bu ayrı
+başarılı sonuçlarla gizlenmez; yukarıda özgün koşu korunur.
 
 ## 0.173.0 — Sosyal inceleme, vaka ve değişiklik takibi
 

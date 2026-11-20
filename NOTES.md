@@ -28,40 +28,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
-### N-036 — Saklı sosyal adres kontrolü, ortak kuyruk ve genişletilmiş ölçüm
-
-- **Durum:** Üç başlık uygulandı; son genel test ve GitHub teslim sonucu
-  bekleniyor. **Güncellendi:** 20 Kasım 2026. Bekleyen koşular başarılı sayılmaz.
-- **Kapsam:** Seed/önceki kaynak kanıtından gelen adresler sayfa bütçesinin
-  yarısında dönüşümlü yeniden kontrol edilir. Kaynak yeniden bildirmese de
-  takip sürer; tarihî köken sahiplik/güncel kaynak kanıtı sayılmaz.
-- **Ortak kuyruk:** `social-tracking`, kaynak işi modeli6 içindedir.
-  Firma/domain/revision kontrolü, iptal, açık retry ve kesilen core sonucu
-  toparlama mevcut worker'ı kullanır. Yeni daemon, UI veya backend yoktur.
-- **Trafik:** `max_requests` diğer ölçümlü kaynak adımlarına uygulanır.
-  Sosyal araç toplam trafiği bilinmez; `null` gösterilir. Bilinen sayfa
-  HTTP denemesi ayrıdır. Sayfa/süre/platform ve mevcut araç sınırları korunur.
-  Düzenli tur Tavily/Bright Data çağırmaz; ücretli sağlayıcı kendiliğinden açılmaz.
-- **Veri:** Çekirdek83 → 84 açık/yedekli anlamsal geçiş; tablo yapısı ve
-  eski satır/rowid/JSON/hash değişmez. Kuyruk3 ve dış JSONv1 korunur.
-  Gerçek eski `f85097d` kodundan 171 tablo/14 kontrollü satır korundu;
-  eski kod yedeği okudu, yeni şemayı reddetti, restore/remigrate geçti.
-- **Canlı ölçüm:** Altı yeni kuruluşta yedi dondurulmuş referansın beşi
-  doğrulandı, ikisi aday; yedisi de sonuçta vardı. Referansı alınamayan üç
-  kuruluş başarı sayılmadı. 180 satırın diğerleri bağımsız sahiplik etiketi
-  almadı; yanlış pozitif/genel doğruluk oranı hesaplanmadı. Medyan11,586sn.
-- **Gerçek worker:** MSF için iki ücretsiz tur; her tur seçilen eski
-  adreslerin20/20'si, toplam40 profil sayfası kontrol edildi. İki iş de
-  `partial`; ikinci tur bir eski aday sayfayla bulundu. Aynı iş tekrarı
-  ağsızdı. Bu koşu dağıtık çalışma veya 7/24 hizmet kapasitesi kanıtı değildir.
-- **Test:** Son sosyal/gerçek CLI-platform paketi82 test/39,094sn geçti.
-  Kaynak işi55 testteki tek hata yeni eski-sürüm fixture'ının v1'de olmayan
-  haber kaynağını seçmesiydi; CIRCL ile düzeltildi ve hedef test geçti.
-  Genel koşu sonuçlanınca aşağıdaki kabul kaydı güncellenecek.
-- **Dayanak:** [Kullanım](docs/SOCIAL_TRACKING.md),
-  [mimari karar](docs/decisions/0179-retained-social-targets-and-source-jobs.md),
-  [canlı ölçüm](docs/SOCIAL_TRACKING_ACCEPTANCE.md), [test kaydı](docs/ACCEPTANCE_REVIEW.md).
-
 ### N-035 — Sosyal inceleme, vaka ve düzenli takip teslimi
 
 - **Durum:** Uygulandı; 53 ilgili test ve gerçek eski koddan yükseltme/
@@ -879,6 +845,51 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Kapanan notlar ve kanıtları
 
+### N-036 — Saklı sosyal adres kontrolü, ortak kuyruk ve genişletilmiş ölçüm
+
+- **Durum:** Kapandı; üç başlık uygulandı, canlı kabul ve otomatik GitHub
+  teslim kontrolleri tamamlandı. **Güncellendi:** 20 Kasım 2026.
+- **Kapsam:** Seed/önceki kaynak kanıtından gelen adresler sayfa bütçesinin
+  yarısında dönüşümlü yeniden kontrol edilir. Kaynak yeniden bildirmese de
+  takip sürer; tarihî köken sahiplik/güncel kaynak kanıtı sayılmaz.
+- **Ortak kuyruk:** `social-tracking`, kaynak işi modeli 6 içindedir.
+  Firma/domain/revision kontrolü, iptal, açık retry ve kesilen core sonucu
+  toparlama mevcut worker'ı kullanır. Yeni daemon, UI veya backend yoktur.
+- **Trafik:** `max_requests` diğer ölçümlü kaynak adımlarına uygulanır.
+  Sosyal araç toplam trafiği bilinmez; `null` gösterilir. Bilinen sayfa
+  HTTP denemesi ayrıdır. Sayfa/süre/platform ve mevcut araç sınırları korunur.
+  Düzenli tur Tavily/Bright Data çağırmaz; ücretli sağlayıcı kendiliğinden açılmaz.
+- **Veri:** Çekirdek 83 → 84 açık/yedekli anlamsal geçiş; tablo yapısı ve
+  eski satır/rowid/JSON/hash değişmez. Kuyruk 3 ve dış JSON v1 korunur.
+  Gerçek eski `f85097d` kodundan 171 tablo/14 kontrollü satır korundu;
+  eski kod yedeği okudu, yeni şemayı reddetti, restore/remigrate geçti.
+- **Canlı ölçüm:** Altı yeni kuruluşta yedi dondurulmuş referansın beşi
+  doğrulandı, ikisi aday; yedisi de sonuçta vardı. Referansı alınamayan üç
+  kuruluş başarı sayılmadı. 180 satırın diğerleri bağımsız sahiplik etiketi
+  almadı; yanlış pozitif/genel doğruluk oranı hesaplanmadı. Medyan 11,586 sn.
+- **Gerçek worker:** MSF için iki ücretsiz tur; her tur seçilen eski
+  adreslerin 20/20'si, toplam 40 profil sayfası kontrol edildi. İki iş de
+  `partial`; ikinci tur bir eski aday sayfayla bulundu. Aynı iş tekrarı
+  ağsızdı. Bu koşu dağıtık çalışma veya 7/24 hizmet kapasitesi kanıtı değildir.
+- **Test:** Son sosyal/gerçek CLI-platform paketi 82 test / 39,094 sn geçti.
+  Kaynak işi 55 testteki tek hata yeni eski-sürüm fixture'ının v1'de olmayan
+  haber kaynağını seçmesiydi; CIRCL ile düzeltildi ve hedef test geçti.
+  Son kaynak işi/sosyal kuyruk/yükseltme paketi 38 test / 15,048 sn hatasız
+  tamamlandı; Linux `/proc` gerektiren iki test macOS'ta atlandı. Genel
+  koşuda iki eski yeni-iş sürüm beklentisi 5 yerine 6 olarak güncellendi;
+  düzeltilmiş modül 38 testlik pakette geçti. Motor kodu değişmedi.
+  Genel koşu 3.346 test / 1.678,229 sn: 3.340 başarı, iki eski sürüm beklentisi
+  hatası ve dört Linux/macOS atlaması. Başka hata yok; beklentiler düzeltilip
+  modülün tamamı yeniden geçti. Genel paket tekrarlanmadı; koşular ayrı tutuldu.
+- **Gönderim:** `1a6052d` main'e gönderildi. Linux kurulumu, firma
+  izolasyonu, marka araçları kurulumu ve 2.049 test içeren hızlı Linux
+  kontrolü geçti. [Koşular](docs/ACCEPTANCE_REVIEW.md).
+  GitHub CLI normal oturumu 20 Kasım kontrolünde henüz açık değil; elle
+  tam Linux/kurulum-yükseltme kabulü bu otomatik kontrollerden ayrıdır.
+- **Dayanak:** [Kullanım](docs/SOCIAL_TRACKING.md),
+  [mimari karar](docs/decisions/0179-retained-social-targets-and-source-jobs.md),
+  [canlı ölçüm](docs/SOCIAL_TRACKING_ACCEPTANCE.md), [test kaydı](docs/ACCEPTANCE_REVIEW.md).
+
 ### N-004 — Tavily canlı kabulü
 
 - **Durum:** Kapandı; seçilmiş SecureHup firma kapsamı. **Güncellendi:** 19 Kasım 2026.
@@ -1085,7 +1096,8 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 **0.174.0 — 20 Kasım:** Kullanıcının devam onayıyla önceki sosyal adreslerin
 yeniden kontrolü, mevcut ortak kuyruk bağlantısı ve ücretsiz farklı kuruluş
-ölçümü uygulandı (N-036). Son test ve teslim kapatılıyor. Bright Data anahtarı
+ölçümü uygulandı ve teslim edildi (N-036). Dört otomatik GitHub kontrolü
+başarılı. Bright Data anahtarı
 kullanıcı tercihiyle daha sonra; normal GitHub CLI oturumu gerektiren elle
 Linux kabulü ayrı bekleyen kontroldür. Yeni özellik paketi kendiliğinden açılmaz.
 

@@ -11,6 +11,14 @@ ikisi aday kaldı. Referansı alınamayan üç kuruluş başarı sayılmadı.
 Gerçek worker ile iki turda seçilen eski adreslerin 20/20'si kontrol edildi;
 aynı işin tekrarı ağsızdı. [Canlı ölçüm](SOCIAL_TRACKING_ACCEPTANCE.md).
 Otomatik test ve teslim sonuçları [kabul kaydında](ACCEPTANCE_REVIEW.md).
+Yerel genel koşu 3.346 testte iki eski yeni-iş sürüm beklentisi dışında
+hata vermedi; dört Linux kontrolü Mac'te atlandı. Beklentiler güncellendi,
+ilgili modülün tamamı son 38 testlik pakette hatasız geçti. Motor kodu
+değişmedi; genel koşu tekrar edilmedi.
+`1a6052d` üzerinde dört otomatik GitHub kontrolü başarılı: 2.049 testlik
+hızlı Linux paketi, Linux kurulumu, marka araçları kurulumu ve firma ayrımı.
+Bright Data canlı kabulü anahtar; elle tam Linux/yükseltme kabulü normal
+GitHub CLI oturumu bekler. Kapanış güncellemesi yalnız belgelerdedir.
 
 **0.173.0:** Sosyal keşif ve ek kanıt firma incelemesine, insan kararına ve
 donmuş vaka kanıtına bağlandı. `brand review-*`, `tracking-*`, `change-show`
