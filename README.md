@@ -1,5 +1,12 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.177.0, kayıtlı grupları mevcut iş kuyruğuyla yeniden kontrol eder ve
+gerçek değişiklikleri önceki/sonraki kanıtıyla bildirim kutusuna taşır.
+Grup geçmişi silinmeden arşivlenebilir; karar, vaka ve eski iş sonuçları
+korunur. Mevcut kurulumda `./xti migrate` şema87 geçişini yedekler.
+[Komutlar ve sınırlar](docs/GROUP_OPERATIONS.md),
+[doğrulama ve teslim](docs/roadmap/GROUP_OPERATIONS_DELIVERY.md).
+
 0.176.0, kayıtlı kanıtlardan ortak IP, sertifika ve rapor grupları oluşturur.
 Dört adıma kadar araştırma, gözlem zamanlarının karşılaştırılması, gerekçeli
 insan kararı ve değişiklik geçmişi vardır. Gruplar vaka, firma incelemesi ve
@@ -66,7 +73,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Sürüm:** 0.172.0 · **Tarih:** 19 Kasım 2026 · **Çekirdek şema:** 82 · **İş kuyruğu:** 3.
+**Sürüm:** 0.177.0 · **Tarih:** 20 Kasım 2026 · **Çekirdek şema:** 87 · **İş kuyruğu:** 3.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;

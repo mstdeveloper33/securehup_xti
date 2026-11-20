@@ -31,7 +31,7 @@ def difference(before, after):
         'temporal_changed': after is not None and before['temporal'] != after['temporal']}
 
 
-def project(entries):
+def project(entries, *, change_proofs=None):
     records, sizes, keys = {}, {}, set()
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != {'version', 'id', 'subject_id', 'operation', 'request', 'recorded_at', 'snapshot', 'limitations'}:
@@ -46,6 +46,7 @@ def project(entries):
             raise ValidationError('Grup tekrar anahtarı çoğalmış.')
         keys.add(request['idempotency_key'])
         previous = records.get(identifier)
+        before = case_payload(previous) if change_proofs is not None and previous is not None and operation == 'groups.refresh' else None
         if request['expected_revision'] != (previous['revision'] if previous else 0):
             raise ReportError('revision_changed', 'Grup sürümü değişmiş; güncel kaydı alın.')
         if previous and at < previous['history'][-1]['recorded_at']:
@@ -109,6 +110,10 @@ def project(entries):
         if record['revision'] > 1000 or sizes[identifier] > MAX_RECORD_BYTES:
             raise ValidationError('Grup geçmişi 1000 olay / 4 MiB sınırını aşıyor; önceki kayıt korunur.')
         record['state_sha256'] = identity(record['history'])
+        if before is not None and record['changes'] and record['changes'][-1]['id'] == entry['id']:
+            change_proofs[entry['id']] = {'version': 1, 'kind': 'research_group_change',
+                'group_id': identifier, 'change': record['changes'][-1],
+                'before': before, 'after': case_payload(record)}
     return records
 
 

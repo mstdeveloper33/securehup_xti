@@ -113,8 +113,8 @@ class SourceJobUsageTests(unittest.TestCase):
         job = self.submit(record_review=True)
         self.assertEqual(self.usage(job)['attempts'], 0)
         done = self.worker.work_one(job.id)
-        self.assertEqual(done.payload.version, 6)
-        self.assertEqual(done.result['version'], 6)
+        self.assertEqual(done.payload.version, 7)
+        self.assertEqual(done.result['version'], 7)
         self.assertEqual(len(self.http.calls), 1)
         usage = SQLiteEngineJobRepository(self.queue.path).get(job.id).to_dict()['execution']['requests']
         self.assertEqual(usage['attempts'], 1)
@@ -247,7 +247,7 @@ class SourceJobUsageTests(unittest.TestCase):
         self.now += timedelta(seconds=3)
         new = self.service.retry(old.id, idempotency_key='new')
         self.worker.work_one(new.id)
-        self.assertEqual(new.payload.version, 6)
+        self.assertEqual(new.payload.version, 7)
         self.assertEqual(self.usage(new)['attempts'], 1)
         self.assertIsNone(self.usage(old)['attempts'])
 

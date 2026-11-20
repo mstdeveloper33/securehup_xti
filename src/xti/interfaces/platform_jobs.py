@@ -102,10 +102,15 @@ def make_source_runner(database):
         return SocialTrackingStep(make_social_tracking_service(database, network=network),
             SQLiteSocialDiscoveryRepository(database), SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'))
 
+    def groups():
+        from xti.adapters.source_job_groups import GroupRefreshStep
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        return GroupRefreshStep(database, SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'))
+
     from xti.adapters.source_job_reports import VersionedReportStep
     operations = ExistingSourceJobOperations(enrichment, warninglists, history,
         news=news, investigations=investigations, reports=lambda: VersionedReportStep(database),
-        publishers=publishers, relationship_notifications=relationship_notifications, social_tracking=social_tracking)
+        publishers=publishers, relationship_notifications=relationship_notifications, social_tracking=social_tracking, groups=groups)
     return CooperativeSourceJobRunner(operations, LocalExecutionLock(database))
 
 

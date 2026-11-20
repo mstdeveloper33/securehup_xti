@@ -46,7 +46,14 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
     for item in page.items:
         notice = item.notification
         read_state = "Okundu" if notice.read_at is not None else "Okunmadı"
-        if item.social_change is not None:
+        if item.group_change is not None:
+            proof = item.group_change['snapshot']
+            change = proof['change']
+            lines.extend(['', f"{read_state} | İnceleme grubu değişti | {safe_text(proof['after']['group']['root'][1])}",
+                '  Bildirim: ' + notice.id,
+                f"  Eklenen: {len(change['added'])} | görünümden çıkan: {len(change['removed_from_view'])}",
+                '  Grup: ' + proof['group_id']])
+        elif item.social_change is not None:
             change = item.social_change['change']
             lines.extend(['', f"{read_state} | Sosyal profil değişikliği | {safe_text(item.social_change['domain'])}",
                           '  Bildirim: ' + notice.id, f"  {safe_text(change['kind'])} | {safe_text(change['url'])}"])
@@ -199,6 +206,18 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
 
 def detail_lines(item: InboxDetails, *, data_dir=None) -> list[str]:
     notice = item.notification
+    if item.group_change is not None:
+        from xti.interfaces.research_groups import group_lines
+        proof = item.group_change['snapshot']
+        lines = [f"Bildirim: {notice.id} | İnceleme grubu değişti",
+            f"Kutuda oluşturulma: {notice.created_at} | Okundu: {notice.read_at or 'hayır'}"]
+        for label, record in (('Önceki kanıt', proof['before']), ('Kontrol sonucu', proof['after'])):
+            lines.append(label + ' | ' + record['status'])
+            lines.extend(group_lines({'record': {**record, 'id': proof['group_id']}, 'notes': []}))
+        if proof['after']['status'] == 'not_in_view':
+            lines.append('Grup bu tam kontrolün görünümünde bulunmadı; gösterilen son kanıt korunuyor.')
+        lines.append('Bu kayıt bildirim anındaki iki durumu korur; insan kararını değiştirmez.')
+        return lines
     if item.social_change is not None:
         from xti.interfaces.social_tracking import tracking_lines
         from xti.domain.social_tracking import case_id

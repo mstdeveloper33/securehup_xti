@@ -54,7 +54,7 @@ class SocialJobPlatformTests(unittest.TestCase):
             self.assertNotEqual(code, 0, result); self.assertEqual(result['error']['code'], 'not_found')
         self.assertEqual(self.f.invoke('worker', extra=('--job-id', submitted['job_id']))[1]['data'], None)
         code, manifest = self.f.invoke(extra=('--describe',))
-        self.assertEqual(manifest['data']['source_jobs']['execution_version'], 6)
+        self.assertEqual(manifest['data']['source_jobs']['execution_version'], 7)
         self.assertFalse(manifest['data']['source_jobs']['social_tracking']['paid_sources'])
 
     def test_backup_restore_preserves_social_context_result_and_fences_old_workspace(self):

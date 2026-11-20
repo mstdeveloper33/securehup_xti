@@ -13,7 +13,7 @@ NOISE_LABELS = {
 }
 
 
-def monitor_group(database, identifier, *, rounds=1, interval_seconds=60, sleep=None):
+def monitor_group(database, identifier, *, rounds=1, interval_seconds=60, sleep=None, queued=False):
     import time
     from uuid import uuid4
     from xti.domain.assets import ValidationError
@@ -23,23 +23,61 @@ def monitor_group(database, identifier, *, rounds=1, interval_seconds=60, sleep=
     parameters('groups.show', {'identifier': identifier})
     if type(rounds) is not int or not 1 <= rounds <= 100 or type(interval_seconds) is not int or not 1 <= interval_seconds <= 3600:
         raise ValidationError('Grup takibi 1–100 tur; aralık 1–3600 saniye olmalı.')
+    if type(queued) is not bool:
+        raise ValidationError('Grup kuyruk seçimi boolean olmalı.')
     service, result, run_id = make_evidence_service(database), [], str(uuid4())
+    if queued:
+        from types import SimpleNamespace
+        from xti.interfaces.source_jobs import make_source_job_service
+        from xti.interfaces.platform_jobs import make_job_service
+        context = SimpleNamespace(data_dir=database.parent, database=database)
+        jobs, worker = make_source_job_service(context), make_job_service(context)
     for index in range(rounds):
         if index:
             (sleep or time.sleep)(interval_seconds)
+        if queued:
+            previous = service.execute('groups.show', identifier=identifier)['record']
+            plan = jobs.plan(indicator_type=previous['group']['root'][0], value=previous['group']['root'][1],
+                sources=['group-refresh'], group_id=identifier)
+            job = jobs.submit(**plan['plan'], plan_sha256=plan['plan_sha256'],
+                idempotency_key=f'group-monitor:{run_id}:{index}')
+            worker.work_one(job.id)
+            job = jobs.status(job.id)
+            receipt = job.steps[0]['receipt']
+            result.append({'round': index + 1, 'job_id': job.id, 'job_status': job.status,
+                'revision': receipt['revision'] if receipt else None,
+                'status': receipt['group_status'] if receipt else job.status,
+                'new_changes': int(receipt is not None and receipt['notification_id'] is not None)})
+            if job.status not in ('complete', 'partial'):
+                break
+            continue
         with LocalExecutionLock(database).acquire():
             previous = service.execute('groups.show', identifier=identifier)['record']
             current = service.execute('groups.refresh', identifier=identifier, expected_revision=previous['revision'],
                 idempotency_key=f'group-monitor:{run_id}:{index}')['record']
         result.append({'round': index + 1, 'revision': current['revision'], 'status': current['status'],
             'new_changes': len(current['changes']) - len(previous['changes'])})
-    return {'run_id': run_id, 'group_id': identifier, 'rounds': result, 'stored_data_only': True}
+    return {'run_id': run_id, 'group_id': identifier, 'rounds': result, 'stored_data_only': True,
+        'execution': 'managed_queue' if queued else 'foreground'}
 
 
 def group_lines(data):
+    if 'notification' in data:
+        notice = data['notification']
+        proof = notice['snapshot']
+        lines = [f"Bildirim: {notice['id']} | {notice['created_at']} | okundu: {notice['read_at'] or 'hayır'}"]
+        for label, record in (('Önceki kanıt', proof['before']), ('Kontrol sonucu', proof['after'])):
+            lines.append(label + ' | ' + record['status'])
+            lines.extend(group_lines({'record': {**record, 'id': proof['group_id']}, 'notes': []}))
+        lines.append('Bildirim anındaki kanıtlar korunur; insan kararı değiştirilmez.')
+        return lines
     result = []
     records = [data['record']] if 'record' in data else data.get('records', [])
     for record in records:
+        if 'snapshot_sha256' in record and 'change' in record:
+            result.append(f"Bildirim: {record['id']} | {record['created_at']} | grup: {record['group_id']}")
+            result.append(f"  Eklenen: {len(record['change']['added'])} | görünümden çıkan: {len(record['change']['removed_from_view'])}")
+            continue
         group = record.get('group', record)
         result.append(f"Grup: {record['id']} | {group.get('rule', '')}")
         if 'root' in group:

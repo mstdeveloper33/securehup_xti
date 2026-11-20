@@ -17,7 +17,7 @@ class ResearchReadBudget:
             count, length = self.connection.execute(
                 f'SELECT COUNT(*),COALESCE(SUM({expression}+128),0) FROM "{table}"'
             ).fetchone()
-            if table in ('report_journal', 'evidence_journal', 'social_discovery_runs'):
+            if table in ('report_journal', 'evidence_journal', 'social_discovery_runs', 'research_group_journal'):
                 from xti.adapters.compressed_evidence import logical_extra
                 length += logical_extra(self.connection, table)
             pending.append(table)

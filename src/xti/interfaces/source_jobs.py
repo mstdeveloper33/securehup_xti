@@ -14,8 +14,9 @@ from xti.interfaces.text import safe_text, xti_command
 
 def make_source_job_service(context):
     from xti.interfaces.social_tracking import make_social_tracking_service
+    from xti.interfaces.evidence import make_evidence_service
     return SourceJobService(SQLiteEngineJobRepository(jobs_database(context)),
-        social_tracking=make_social_tracking_service(context.database))
+        social_tracking=make_social_tracking_service(context.database), groups=make_evidence_service(context.database))
 
 
 def execute_platform_source_job(context, request):
@@ -51,6 +52,7 @@ def register_source_jobs_parser(commands):
         action.add_argument('--capture-limit', type=int)
         action.add_argument('--document', dest='publisher_documents', action='append', nargs=2, metavar=('PROVIDER', 'URL'),
                             help='publisher için seçilmiş belge; en fazla beş kez ver.')
+        action.add_argument('--group', dest='group_id', help='group-refresh için bu çalışma alanındaki kayıtlı grup kimliği.')
         action.add_argument('--notification-offset', type=int, help='relationship-notify karar penceresinin başlangıcı.')
         action.add_argument('--social-watch', dest='social_watch_id', help='social-tracking için bu çalışma alanındaki izleme kimliği.')
         action.add_argument('--social-revision', dest='social_watch_revision', type=int, help='İzlemenin planlanan sürümü.')
@@ -124,6 +126,12 @@ def source_job_lines(data, *, data_dir=None):
             if step['reused_from']:
                 lines.append('    Önceki tamamlanmış adım kullanıldı; yeniden sorgulanmadı.')
             receipt = step['receipt']
+            if receipt and step['key'] == 'group-refresh':
+                lines.append('    Grup: ' + xti_command('groups', 'show', receipt['group_id'], data_dir=data_dir))
+                lines.append(f"    Kontrol sürümü: {receipt['revision']} | durum: {receipt['group_status']}")
+                if receipt['notification_id']:
+                    lines.append('    Bildirim: ' + xti_command('inbox', 'show', receipt['notification_id'], data_dir=data_dir))
+                continue
             if receipt and step['key'] == 'social-tracking':
                 if receipt['run_id']:
                     lines.append('    Sosyal tur: ' + xti_command('brand', 'tracking-run-show', receipt['run_id'], data_dir=data_dir))

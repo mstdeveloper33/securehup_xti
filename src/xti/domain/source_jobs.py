@@ -10,15 +10,15 @@ from xti.domain.indicator_enrichment import enrichment_query, PROVIDERS
 from xti.domain.research_history import capture_scope
 from xti.domain.warninglists import POLICIES
 from xti.domain.source_job_usage import request_ceiling, validate_usage
-from xti.domain import social_jobs
+from xti.domain import social_jobs, group_jobs
 
 
 OPERATION = "sources.refresh"
-SOURCE_KEYS = ("circl", "urlscan", "misp", "ripestat", "ripestat-whois", "news:cisa", "news:ncsc", "news:cert-fr", "reports", "report-capture", "publisher", "relationship-notify", social_jobs.SOURCE)
-EXECUTION_VERSION = 6
+SOURCE_KEYS = ("circl", "urlscan", "misp", "ripestat", "ripestat-whois", "news:cisa", "news:ncsc", "news:cert-fr", "reports", "report-capture", "publisher", "relationship-notify", social_jobs.SOURCE, group_jobs.SOURCE)
+EXECUTION_VERSION = 7
 FLOW_FIELDS = {'source_order', 'failure_policy', 'capture_source', 'capture_limit'}
 PLAN_FIELDS = {"indicator_type", "value", "sources", "warninglist_ids", "record_review",
-               "max_hops", "node_limit", "edge_limit", "stale_after_hours", "max_seconds", "max_requests"} | FLOW_FIELDS | {"publisher_documents", "notification_offset"} | social_jobs.FIELDS
+               "max_hops", "node_limit", "edge_limit", "stale_after_hours", "max_seconds", "max_requests"} | FLOW_FIELDS | {"publisher_documents", "notification_offset"} | social_jobs.FIELDS | group_jobs.FIELDS
 
 
 def source_plan(**parameters):
@@ -58,12 +58,15 @@ def source_plan(**parameters):
         raise ValidationError("Seçilen kaynaklar istek bütçesine sığmıyor; kaynak/liste seçimini daraltın.")
     extra = {key: value for key, value in parameters.items() if key in FLOW_FIELDS and value is not None}
     extra.update(social_jobs.selection(parameters, sources, scope))
+    extra.update(group_jobs.selection(parameters, sources))
     if 'source_order' in extra:
         order = extra['source_order']
         if not isinstance(order, (list, tuple)) or any(not isinstance(v, str) for v in order) or sorted(order) != sources:
             raise ValidationError('Adım sırası seçili kaynakların her birini tam bir kez içermeli.')
         extra['source_order'] = list(order)
     order = extra.get('source_order', sources)
+    if group_jobs.SOURCE in sources and any(order.index(key) > order.index(group_jobs.SOURCE) for key in sources if key not in (group_jobs.SOURCE, 'relationship-notify')):
+        raise ValidationError('Grup yeniden kontrolü kaynak adımlarından sonra olmalı; --step ile sıralayın.')
     if 'report-capture' in sources and any(order.index(key) > order.index('report-capture') for key in sources if key.startswith('news:')):
         raise ValidationError('Haber yenileme adımları sürümlü rapor yakalamadan önce olmalı.')
     if extra.get('failure_policy', 'continue') not in ('continue', 'stop'):
@@ -106,7 +109,7 @@ def reusable_steps(parent, *, version=EXECUTION_VERSION):
     redo_capture = (version >= 4 and parent.payload.plan.get('capture_source') == 'news'
         and any(step['key'].startswith('news:') and step['status'] != 'complete' for step in parent.steps))
     return tuple({'key': step['key'], 'receipt': step['receipt']} for step in parent.steps
-        if step['key'] not in {'review', 'relationship-notify'} and step['status'] == 'complete'
+        if step['key'] not in {'review', 'relationship-notify', group_jobs.SOURCE} and step['status'] == 'complete'
         and not (redo_capture and step['key'] == 'report-capture'))
 
 
@@ -119,11 +122,13 @@ def plan_data(plan, *, version=EXECUTION_VERSION):
         "maximum_external_requests": None if social else metered_requests,
         "paid_api": False, "request_network_access": False,
         "disclosure": [{"source": key, "target_sent": key in PROVIDERS or key == social_jobs.SOURCE,
-                        "commercial_use": PROVIDERS[key]["commercial_use"] if key in PROVIDERS else "social_platform_and_tool_terms_apply" if key == social_jobs.SOURCE else "publisher_terms_apply" if key.startswith("news:") or key == "publisher" else "local_derived_evidence" if key in {"reports", "report-capture", "relationship-notify"} else "curated_lists_reviewed"}
+                        "commercial_use": PROVIDERS[key]["commercial_use"] if key in PROVIDERS else "social_platform_and_tool_terms_apply" if key == social_jobs.SOURCE else "publisher_terms_apply" if key.startswith("news:") or key == "publisher" else "local_derived_evidence" if key in {"reports", "report-capture", "relationship-notify", group_jobs.SOURCE} else "curated_lists_reviewed"}
                        for key in plan["sources"]],
         "notes": ["İş kabulü ağ kullanmaz; kaynak isteğini açık worker çalıştırır.",
             "Süre sınırı adımlar arasında uygulanır; açık isteğin kendi zaman aşımı korunur.",
             "İptal devam eden isteği geri alamaz; sonraki adımları durdurur."]}
+    if group_jobs.SOURCE in plan['sources']:
+        result['notes'].append('Grup kontrolü saklı grubun değişmez araştırma kapsamını ve çalışma anındaki kanıtı kullanır; dış istek göndermez.')
     if social:
         result.update(maximum_metered_source_requests=metered_requests,
             request_limit_scope='metered_source_steps_excludes_social_collection')
@@ -149,6 +154,8 @@ def validate_receipt(key, value, plan):
                 or value['source_status'] == 'blocked' and (original['usage']['attempted'] or original['usage']['receipt_reused'])
                 or value['source_status'] != 'blocked' and not (original['usage']['attempted'] or original['usage']['receipt_reused'])):
             raise ValidationError('Sosyal iş kullanım kaydı sonucu ile uyuşmuyor.')
+    elif key == group_jobs.SOURCE:
+        group_jobs.validate_receipt(value, plan)
     elif key in PROVIDERS:
         if set(value) != {"kind", "run_id", "provider", "indicator_type", "value", "source_status", "snapshot_sha256", "has_more"}:
             raise ValidationError("URL/hash işi kanıt alanları geçersiz.")
@@ -219,6 +226,8 @@ def validate_receipt(key, value, plan):
 
 
 def receipt_status(key, value):
+    if key == group_jobs.SOURCE:
+        return value['source_status']
     if key == social_jobs.SOURCE:
         return value['source_status'] if value['source_status'] in ('complete', 'partial') else 'failed'
     if key in PROVIDERS:
@@ -252,7 +261,7 @@ class SourceJobPayload:
 
     def to_json(self):
         if (source_plan(**self.plan) != self.plan or type(self.allow_uncertain) is not bool
-                or type(self.version) is not int or self.version not in {1, 2, 3, 4, 5, 6}):
+                or type(self.version) is not int or self.version not in {1, 2, 3, 4, 5, 6, 7}):
             raise ValidationError("Kaynak işi planı kanonik değil.")
         if self.version < 3 and (len(self.plan['sources']) > 2 or set(self.plan['sources']) - {'circl', 'urlscan', 'misp'}):
             raise ValidationError('Yeni kaynak seçenekleri iş modeli 3 gerektirir.')
@@ -260,6 +269,8 @@ class SourceJobPayload:
             raise ValidationError('Esnek akış ve yeni kaynak seçenekleri iş modeli 4 gerektirir.')
         if self.version < 5 and (({"publisher_documents", "notification_offset"} & self.plan.keys()) or set(self.plan["sources"]) & {"publisher", "relationship-notify"}):
             raise ValidationError("Yayıncı ve ilişki bildirimi işleri model 5 gerektirir.")
+        if self.version < 7 and group_jobs.SOURCE in self.plan['sources']:
+            raise ValidationError('Grup kontrol işi model 7 gerektirir.')
         if self.version < 6 and social_jobs.SOURCE in self.plan['sources']:
             raise ValidationError('Sosyal izleme işi model 6 gerektirir.')
         if self.retry_of is not None:
@@ -268,7 +279,7 @@ class SourceJobPayload:
             raise ValidationError("İlk işte önceki çalışma veya belirsiz tekrar olamaz.")
         seen = set()
         for step in self.reused:
-            if not isinstance(step, dict) or set(step) != {"key", "receipt"} or step["key"] in seen or step["key"] not in step_keys(self.plan) or step["key"] in {"review", "relationship-notify"}:
+            if not isinstance(step, dict) or set(step) != {"key", "receipt"} or step["key"] in seen or step["key"] not in step_keys(self.plan) or step["key"] in {"review", "relationship-notify", group_jobs.SOURCE}:
                 raise ValidationError("Yeniden kullanılan adım geçersiz.")
             seen.add(step["key"])
             validate_receipt(step["key"], step["receipt"], self.plan)
@@ -288,7 +299,7 @@ class SourceJobPayload:
             if not isinstance(text, str) or len(text) > 65536:
                 raise ValueError("Size")
             value = json.loads(text)
-            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6} or not isinstance(value["reused"], list):
+            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6, 7} or not isinstance(value["reused"], list):
                 raise ValueError("Shape")
             result = cls(value["plan"], value["retry_of"], value["allow_uncertain"], tuple(value["reused"]), value['version'])
             if result.to_json() != text:
@@ -311,7 +322,7 @@ def final_status(steps, cancelled=False):
     states = [row["status"] for row in steps]
     if all(state == "complete" for state in states):
         return "complete"
-    substantive = [row for row in steps if row['key'] not in {'review', 'relationship-notify'}]
+    substantive = [row for row in steps if row['key'] not in {'review', 'relationship-notify', group_jobs.SOURCE}]
     if not substantive:
         substantive = [row for row in steps if row['key'] != 'review']
     return "partial" if any(row['status'] in {'complete', 'partial'} for row in substantive) else "failed"
@@ -319,7 +330,7 @@ def final_status(steps, cancelled=False):
 
 def source_result_json(value):
     try:
-        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6}:
+        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6, 7}:
             raise ValueError("Shape")
         history_uuid(value["job_id"])
         if value["status"] not in {"complete", "partial", "failed", "cancelled"} or not isinstance(value["plan_sha256"], str) or len(value["plan_sha256"]) != 64:

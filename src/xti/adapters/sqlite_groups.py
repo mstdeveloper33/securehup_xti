@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from xti.adapters.sqlite import StorageError
 from xti.adapters.research_read_budget import ResearchReadBudget
+from xti.adapters.compressed_evidence import resolve_payload, journal_bytes
 from xti.domain.assets import ValidationError
 from xti.domain.engine_jobs import canonical_json, digest
 from xti.domain.group_ledger import project, summary, MAX_ENTRIES, MAX_BYTES
@@ -12,13 +13,14 @@ from xti.domain.research_groups import groups, NOTES
 from xti.domain.reports import ReportError
 
 
-def read_groups(connection):
+def read_groups(connection, *, change_proofs=None):
     if not ResearchReadBudget(connection, set(), rows=MAX_ENTRIES, size=MAX_BYTES).admit(('research_group_journal',), 'group_budget'):
         raise StorageError('Grup günlüğü okuma sınırını aşıyor; eksik başarı üretilmedi.')
     entries, chain = [], None
     try:
         for sequence, rid, subject, key, operation, text, checksum, next_chain in connection.execute(
                 'SELECT sequence,id,subject_id,request_key,operation,payload_json,payload_sha256,chain_sha256 FROM research_group_journal ORDER BY sequence'):
+            text = resolve_payload(connection, 'research_group_journal', sequence, text, checksum)
             if sequence != len(entries) + 1 or digest(text) != checksum or identity(chain, checksum) != next_chain:
                 raise ValueError('Group chain')
             row = json.loads(text)
@@ -28,7 +30,7 @@ def read_groups(connection):
         allocated = connection.execute("SELECT seq FROM sqlite_sequence WHERE name='research_group_journal'").fetchone()
         if (allocated is None and entries) or (allocated is not None and allocated[0] != len(entries)):
             raise ValueError('Deleted group tail')
-        return project(entries), entries, chain
+        return project(entries, change_proofs=change_proofs), entries, chain
     except (ValidationError, ReportError, ValueError, TypeError, KeyError, OverflowError, RecursionError) as error:
         raise StorageError('Grup günlüğü veya kanıtı bozuk; işlem durduruldu.') from error
 
@@ -55,6 +57,18 @@ def preview_in(connection, path, options, at):
 
 def read(connection, path, operation, options, at):
     from xti.adapters.sqlite_evidence import page
+    if operation in ('groups.notifications', 'groups.notification-show'):
+        from xti.adapters.sqlite_group_notifications import read_notifications
+        notifications = read_notifications(connection)[0]
+        if operation == 'groups.notification-show':
+            row = notifications.get(options['identifier'])
+            if row is None:
+                raise ReportError('not_found', 'Grup bildirimi seçili çalışma alanında bulunamadı.')
+            return {'notification': row, 'notes': NOTES}
+        rows = [{'id': row['id'], 'group_id': row['snapshot']['group_id'], 'created_at': row['created_at'],
+            'read_at': row['read_at'], 'snapshot_sha256': row['snapshot_sha256'],
+            'change': row['snapshot']['change']} for row in sorted(notifications.values(), key=lambda r: r['sequence'], reverse=True)]
+        return page(rows, options, 'group-notifications', extra={'notes': NOTES})
     records = read_groups(connection)[0]
     if operation == 'groups.show':
         record = records.get(options['identifier'])
@@ -120,14 +134,18 @@ def mutate(connection, path, operation, request, at):
             raise ReportError('source_changed', 'Önce grubun güncel kanıtını refresh ile kaydedin.')
     entry = {'version': 1, 'id': str(uuid4()), 'subject_id': request['identifier'], 'operation': operation,
         'request': request, 'recorded_at': at, 'snapshot': snapshot, 'limitations': limitations}
-    record = project([*entries, entry])[request['identifier']]
+    proofs = {}
+    record = project([*entries, entry], change_proofs=proofs)[request['identifier']]
     payload = canonical_json(entry)
-    size = connection.execute('SELECT COALESCE(SUM(LENGTH(payload_json)+512),0) FROM research_group_journal').fetchone()[0]
+    size = journal_bytes(connection, 'research_group_journal')
     if len(entries) >= MAX_ENTRIES or size + len(payload) + 512 > MAX_BYTES:
         raise ValidationError('Grup günlüğü 10000 olay / 64 MiB sınırını aşıyor; önceki kayıt korunur.')
     checksum = digest(payload)
     connection.execute('INSERT INTO research_group_journal (id,subject_id,request_key,operation,payload_json,payload_sha256,chain_sha256) VALUES (?,?,?,?,?,?,?)',
         (entry['id'], entry['subject_id'], request['idempotency_key'], operation, payload, checksum, identity(chain, checksum)))
+    if entry['id'] in proofs:
+        from xti.adapters.sqlite_group_notifications import emit
+        emit(connection, proofs[entry['id']], proofs=proofs)
     return {'replayed': False, 'record': record}
 
 

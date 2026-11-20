@@ -5,7 +5,7 @@ import zlib
 
 from xti.domain.engine_jobs import canonical_json
 
-JOURNALS = ('report_journal', 'evidence_journal', 'social_discovery_runs')
+JOURNALS = ('report_journal', 'evidence_journal', 'social_discovery_runs', 'research_group_journal')
 MAX_PAYLOAD = 2 * 1024 * 1024
 
 

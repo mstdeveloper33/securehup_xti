@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **20 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.176.0 / çekirdek 86 / iş kuyruğu 3**.
+Güncel çalışma: **0.177.0 / çekirdek 87 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,29 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-040 — Grup işleri, değişiklik bildirimi ve kayıpsız arşiv
+
+- **Durum:** Kullanıcı 20 Kasım 2026'da önerilen 1 ve 2 ile devam etmeyi
+  onayladı; uygulama ve yerel kabul tamam, son Linux/GitHub teslimi bekliyor.
+  Başlangıç 0.176.0 / çekirdek86; yeni0.177.0 / çekirdek87 / kaynak işi7.
+- **Kapsam:** Saklı grubun yeniden kontrolünü mevcut kaynak işlerine
+  bağlama, gerçek değişiklikleri mevcut inbox'a tekil teslim etme ve grup
+  günlüğünü mevcut kayıpsız arşive katma. Yeni kaynak/ücretli API yok.
+- **Korunacaklar:** Firma/kilit sınırı, eski insan kararı ve özgün işlem
+  makbuzu; kesinti sonrası aynı kontrolü çoğaltmadan kurtarma. Kısmi kanıt
+  kaybolma bildirimi üretmez. Arşiv eski olayları silmez, mantıksal okuma
+  veya olay sınırlarını kaldırmaz; sıkıştırma sınırsız kapasite sayılmaz.
+- **Kabul:** Terminal/firma JSON, kuyruk ve inbox, eski 86→yeni geçiş,
+  arşiv/geri açma, yedekten dönüş, gerçek süreç kesintisi ve ilgili testler.
+  Son paket kabulü ile teslim tamamlanacak; çelişki motoru/uzun canlı pilot
+  bu iki işe kendiliğinden eklenmez.
+- **Yerel sonuç:** Son özellik paketi14 test; inbox/firma/geçiş/sözleşme
+  paketi136 test geçti (iki Linux kontrolü macOS'ta atlandı). Gerçek86
+  üreticisinden87 geçişi173 tablo/16 satırı korudu; arşiv/yedek/old-code
+  rollback geçti. İki firmalı100'er grup/1.000'er olay kabulü geçti.
+  İlk denemeler ve son sonuçlar teslim kaydında ayrı; tam Linux bekleniyor.
+- **Dayanak:** [Teslim kapsamı](docs/roadmap/GROUP_OPERATIONS_DELIVERY.md).
 
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 

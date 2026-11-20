@@ -48,7 +48,7 @@ from xti.adapters.sqlite_cases import SQLiteCaseRepository
 base=Path(sys.argv[1])
 try: SQLiteAssetRepository(base/'old.db').inspect()
 except StorageError: pass
-else: raise AssertionError('Old reader accepted schema86')
+else: raise AssertionError('Old reader accepted current schema')
 SQLiteAssetRepository.restore(base/'before.db',base/'rollback.db')
 assert SQLiteAssetRepository(base/'rollback.db').inspect()['schema_version']==85
 with SQLiteAssetRepository(base/'rollback.db')._connection(readonly=True) as c:
@@ -101,6 +101,7 @@ def main():
             spec=importlib.util.spec_from_file_location('group_upgrade_manifest',ROOT/'scripts/check-linux-upgrade.py')
             helper=importlib.util.module_from_spec(spec); sys.modules[spec.name]=helper; spec.loader.exec_module(helper)
             from xti.adapters.sqlite import SQLiteAssetRepository
+            from xti.adapters.schema import SCHEMA_VERSION
             from xti.adapters.sqlite_evidence import SQLiteEvidenceRepository
             from xti.application.evidence import EvidenceService
             from xti.domain.engine_jobs import canonical_json,digest
@@ -110,11 +111,11 @@ def main():
             from xti.domain.group_ledger import project
             storage=SQLiteAssetRepository(base/'old.db'); before=helper.database_manifest(storage.path)
             migration=storage.migrate(); after=helper.database_manifest(storage.path)
-            require((migration['from_version'],migration['to_version'])==(85,86),'Schema migration')
+            require((migration['from_version'],migration['to_version'])==(85,SCHEMA_VERSION),'Schema migration')
             helper.require_preserved_tables(before,after)
             require(helper.database_manifest(Path(migration['backup']))==before,'Backup differs')
             (base/'before.db').write_bytes(Path(migration['backup']).read_bytes())
-            result['migration']={'from_schema':85,'to_schema':86,'preserved_tables':len(before[1]),
+            result['migration']={'from_schema':85,'to_schema':SCHEMA_VERSION,'preserved_tables':len(before[1]),
                 'preserved_rows':sum(len(t[1]) for t in before[1].values()),'rowids_preserved':True,**old_run(OLD_READ)}
             service=EvidenceService(SQLiteEvidenceRepository(storage.path))
             group=service.execute('groups.preview',indicator_type='domain',value='example.com')['records'][0]

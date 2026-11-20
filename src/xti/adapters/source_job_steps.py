@@ -7,12 +7,12 @@ from xti.domain.source_job_usage import RequestUsageMeter, request_ceiling
 
 
 class ExistingSourceJobOperations:
-    def __init__(self, enrichment, warninglists, research, *, news=None, investigations=None, reports=None, publishers=None, relationship_notifications=None, social_tracking=None):
+    def __init__(self, enrichment, warninglists, research, *, news=None, investigations=None, reports=None, publishers=None, relationship_notifications=None, social_tracking=None, groups=None):
         self.enrichment, self.warninglists, self.research = enrichment, warninglists, research
         self.news, self.investigations = news, investigations
         self.reports = reports
         self.publishers, self.relationship_notifications = publishers, relationship_notifications
-        self.social_tracking = social_tracking
+        self.social_tracking, self.groups = social_tracking, groups
 
     @staticmethod
     def _enrichment_receipt(data):
@@ -56,6 +56,8 @@ class ExistingSourceJobOperations:
             return {'kind': 'report_extractions', 'records': records, 'has_more': page.has_more}
         if key.startswith('publisher:'):
             return self.publishers(request_usage=meter).execute(key, plan, job_id)
+        if key == 'group-refresh':
+            return self.groups().execute(plan, job_id)
         if key == 'relationship-notify':
             return self.relationship_notifications().execute(plan)
         if key == 'report-capture':
@@ -80,6 +82,8 @@ class ExistingSourceJobOperations:
                 raise StorageError('Haber iş başvurusu özgün kaynakla uyuşmuyor.')
         elif key.startswith('publisher:'):
             self.publishers().verify(receipt, plan)
+        elif key == 'group-refresh':
+            self.groups().verify(receipt, plan)
         elif key == 'relationship-notify':
             self.relationship_notifications().verify(receipt, plan)
         elif key == 'report-capture':

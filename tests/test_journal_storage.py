@@ -42,7 +42,7 @@ class JournalStorageTests(unittest.TestCase):
     def test_archived_reads_observations_and_original_idempotency_are_identical(self):
         before = self.f.f.observe()
         with self.f.repo.storage._connection(readonly=True) as c:
-            logical_before = [journal_bytes(c, table) for table in ('report_journal', 'evidence_journal', 'social_discovery_runs')]
+            logical_before = [journal_bytes(c, table) for table in ('report_journal', 'evidence_journal', 'social_discovery_runs', 'research_group_journal')]
         result = self.archive()
         self.assertTrue(Path(result['backup']).is_file())
         self.assertEqual(self.f.f.show(self.second_report['id']), self.second_report)

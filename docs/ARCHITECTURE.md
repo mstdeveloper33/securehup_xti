@@ -1,5 +1,14 @@
 # XTI Motorunun Mimarisi
 
+0.177.0 saf `group_jobs` ve mevcut SourceJobService, kayıtlı grup kontrolünü
+ortak worker'a bağlar. GroupRefreshStep, kuyruk→çekirdek kilidi altında
+güncel insan kararını korur; core commit sonrası kesintide özgün işlem
+anahtarı/makbuzu bulunur. Yeni kaynak işi7, önceki1–6'yı okur. Şema87
+grup değişikliğinin özgün günlüğüne referanslı, atomik inbox tablosudur.
+Eski olay/hash biçimi değişmez. Grup gövdesi mevcut kayıpsız arşivden
+açılıp doğrulanır; boyut/olay sınırları açılmış kayıtla hesaplanır.
+[0182 kararı](decisions/0182-managed-group-checks-and-lossless-history.md).
+
 0.176.0 `research_groups` ortak DNS/TLS/rapor dayanağını ve gerçek gözlem
 zaman penceresini saf kurallarla türetir; `group_ledger` donmuş karar/fark
 geçmişini doğrular. Mevcut EvidenceService/port ve firma yazıcı kilidi
@@ -80,7 +89,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**20 Kasım 2026 — 0.176.0, çekirdek şema 86, iş kuyruğu şeması 3.**
+**20 Kasım 2026 — 0.177.0, çekirdek şema 87, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

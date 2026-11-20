@@ -1,8 +1,15 @@
 # Kaynak güncelleme işleri
 
-20 Kasım 2026 · 0.174.0 · çekirdek şema 84 · iş kuyruğu şeması 3.
+20 Kasım 2026 · 0.177.0 · çekirdek şema 87 · iş kuyruğu şeması 3.
 
-İş modeli **6**, aynı firma/domain ve izleme sürümüne bağlı ücretsiz
+Güncel iş modeli **7**, `group-refresh` ve zorunlu `group_id` alanını
+ekler (terminalde `--group`). Saklı grubun aynı firma/kök kapsamında yerel
+kontrolüdür; dış istek yapmaz. Kaynak adımlarından sonra yürütülür.
+Sonuç/bildirim birlikte saklanır; kesilen kuyruk ilerlemesi özgün grup
+makbuzuyla toparlanır. Eski modeller1–6 okunur. Yeni bağımlılık yoktur.
+[Grup işleri, monitor, bildirim ve arşiv](GROUP_OPERATIONS.md).
+
+İş modeli 6, aynı firma/domain ve izleme sürümüne bağlı ücretsiz
 `social-tracking` adımını ekler. Eski modeller 1–5 değişmeden okunur.
 Toplam sosyal araç HTTP sayısı ölçülemediğinden plan ve kullanım toplamı
 `null` olabilir; sosyal turun sayfa/süre sınırı ayrı korunur.

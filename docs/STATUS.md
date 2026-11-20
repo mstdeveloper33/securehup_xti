@@ -1,5 +1,23 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.177.0:** Kayıtlı grup kontrolü `group-refresh` ile mevcut kaynak
+kuyruğuna bağlandı. Aynı firma/kök, atomik fark bildirimi, eski insan
+kararının korunması ve sınırlı `groups monitor --queued` vardır. Grup
+günlüğü mevcut kayıpsız arşive eklendi; özgün olay, iş makbuzu, bildirim
+ve donmuş vaka değişmez. Şema87 ek bildirim tablosudur; yedekli geçiş,
+kuyruk3 ve dış JSONv1 korunur. Kaynak işi7, eski1–6'yı okur.
+Yeni bağımlılık, ücretli çağrı veya veri toplayıcı eklenmedi.
+[Kullanım](GROUP_OPERATIONS.md), [karar](decisions/0182-managed-group-checks-and-lossless-history.md).
+Son özellik paketi 14 test/13,551 sn geçti; inbox/platform/geçiş/sözleşme
+paketi 136 test/57,611 sn, iki Linux kontrolü macOS'ta atlandı.
+Gerçek86 üreticisinden87'ye 173 tablo/16 satır korundu; arşiv, yedekten
+dönüş ve eski kodla rollback geçti. İki firmada 100'er grup/1.000'er olay
+kabulünde p95 0,9555 sn, 62.308.352 byte tepe RSS, 13.934.875 byte veri
+ölçüldü. Gerçek süreç ölümü sonrası aynı kontrol/bildirim çoğalmadı.
+Arşiv mantıksal kapasiteyi artırmaz; 1.000 olay/4 MiB grup ve 10.000
+olay/64 MiB alan sınırı sürer. Son Linux/GitHub kabulü bekliyor;
+[koşuların ayrımı](roadmap/GROUP_OPERATIONS_DELIVERY.md) kaydedilir.
+
 **0.176.0:** İlk sekiz maddelik ilişki/grup paketi uygulandı: dört adıma
 kadar araştırma, gözlem zamanına dayanan ortak kanıt grubu, donmuş kayıt ve
 insan kararı, değişiklik/yeniden inceleme, ortak altyapı/kopya metin ayrımı,

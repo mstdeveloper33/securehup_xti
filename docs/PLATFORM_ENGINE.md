@@ -1,5 +1,14 @@
 # Çok firmalı platform motoru
 
+0.177.0 `sources.plan` ve `sources.jobs.submit`, `group-refresh` için
+`group_id` kabul eder. Aynı firma/kök doğrulanır; mevcut `platform worker`
+yerel kanıtı kontrol eder, dış istek göndermez. İş modeli7; eski1–6
+okunur. `groups.notifications/notification-show` firma okumaları ve grup
+günlüğünü de kapsayan `journals.*` aynı workspace sınırını kullanır.
+Çekirdek87 yedekli geçiş; kuyruk3 ve dış JSONv1 değişmez. Zamanlayıcı,
+oturum yönetimi ve UI yine tüketici platforma aittir.
+[Kullanım, kesinti ve JSON alanları](GROUP_OPERATIONS.md).
+
 0.176.0 `groups.preview/list/show/queue` okumalarını ve
 `groups.capture/review/refresh` firma yazmalarını ekler. Yazmalar
 `expected_workspace_id`, `expected_revision` ve `idempotency_key` ister;

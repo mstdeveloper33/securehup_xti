@@ -76,6 +76,7 @@ def read_events(connection):
 def journals(connection):
     from xti.adapters.sqlite_reports import read_reports
     from xti.adapters.sqlite_evidence import read_evidence
+    from xti.adapters.sqlite_groups import read_groups
     from xti.adapters.sqlite_social_discovery import COLUMNS, _receipt
     from xti.adapters.sqlite_social_tracking import audit
     from xti.adapters.compressed_evidence import logical_extra
@@ -85,7 +86,8 @@ def journals(connection):
     entries = [_receipt(row, connection) for row in connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs ORDER BY sequence')]
     audit(connection)
     return {'report_journal': read_reports(connection), 'evidence_journal': read_evidence(connection),
-        'social_discovery_runs': (None, entries, identity([(e['id'], e['scope'], e['report_sha256'], e['status']) for e in entries]))}
+        'social_discovery_runs': (None, entries, identity([(e['id'], e['scope'], e['report_sha256'], e['status']) for e in entries])),
+        'research_group_journal': read_groups(connection)}
 
 
 class SQLiteJournalStorageRepository:

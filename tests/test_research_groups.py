@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
+from xti.adapters.schema import SCHEMA_VERSION
 from xti.adapters.sqlite_evidence import SQLiteEvidenceRepository
 from xti.application.evidence import EvidenceService
 from xti.domain.assets import ValidationError
@@ -201,7 +202,7 @@ class GroupTests(ResearchFixture, unittest.TestCase):
         with self.assertRaises(StorageError):
             self.preview()
         result = self.repo.storage.migrate()
-        self.assertEqual((result['from_version'], result['to_version']), (85, 86))
+        self.assertEqual((result['from_version'], result['to_version']), (85, SCHEMA_VERSION))
         with closing(sqlite3.connect(result['backup'])) as c:
             self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0], 85)
             self.assertFalse(c.execute("SELECT name FROM sqlite_master WHERE name='research_group_journal'").fetchall())

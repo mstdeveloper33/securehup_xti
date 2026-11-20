@@ -5,7 +5,7 @@ from xti.domain.research import research_query
 from xti.domain.cases import normalize_case_reason
 from xti.domain.reports import sha
 
-READS = ('groups.preview', 'groups.list', 'groups.show', 'groups.queue')
+READS = ('groups.preview', 'groups.list', 'groups.show', 'groups.queue', 'groups.notifications', 'groups.notification-show')
 WRITES = ('groups.capture', 'groups.review', 'groups.refresh')
 ROOT = {'indicator_type', 'value', 'max_hops', 'time_window_hours'}
 PAGE = {'offset', 'limit', 'expected_snapshot'}
@@ -14,6 +14,8 @@ FIELDS = {
     'groups.preview': (ROOT | PAGE, {'indicator_type', 'value'}),
     'groups.list': (PAGE, set()),
     'groups.queue': (PAGE, set()),
+    'groups.notifications': (PAGE, set()),
+    'groups.notification-show': ({'identifier'}, {'identifier'}),
     'groups.show': ({'identifier'}, {'identifier'}),
     'groups.capture': (ROOT | WRITE | {'evidence_sha256'},
         {'indicator_type', 'value', 'identifier', 'expected_revision', 'idempotency_key', 'evidence_sha256'}),
@@ -40,7 +42,10 @@ def parameters(operation, options, *, scoped=False):
             raise ValidationError('Gözlem yakınlığı 0–168 saat arasında tamsayı olmalı.')
     for key in ('identifier', 'evidence_sha256', 'expected_snapshot'):
         if key in result:
-            sha(result[key])
+            if key == 'identifier' and operation == 'groups.notification-show':
+                result[key] = normalize_knowledge_id(result[key])
+            else:
+                sha(result[key])
     if 'expected_workspace_id' in result:
         result['expected_workspace_id'] = normalize_knowledge_id(result['expected_workspace_id'])
     if 'idempotency_key' in result:

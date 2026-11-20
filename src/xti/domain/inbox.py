@@ -37,6 +37,7 @@ class Notification:
     global_search_run_id: str | None = None
     relationship_review_id: str | None = None
     social_change_id: str | None = None
+    group_change_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,6 +91,7 @@ class InboxItem:
     global_search_change: GlobalSavedSearchRunReport | None = None
     relationship_change: dict | None = None
     social_change: dict | None = None
+    group_change: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,6 +119,7 @@ class InboxDetails:
     global_search_change: GlobalSavedSearchRunReport | None = None
     relationship_change: dict | None = None
     social_change: dict | None = None
+    group_change: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -31,7 +31,7 @@ def _configure(parser, operation):
 
 def register_evidence_parser(commands):
     for family, help_text, actions in (
-        ('groups', 'Kanıtlı inceleme grupları; kayıt, karar ve yerel yeniden kontrol.', ('preview', 'capture', 'list', 'show', 'queue', 'review', 'refresh')),
+        ('groups', 'Kanıtlı inceleme grupları; kayıt, karar ve yerel yeniden kontrol.', ('preview', 'capture', 'list', 'show', 'queue', 'review', 'refresh', 'notifications', 'notification-show')),
         ('sightings', 'Sensörün bildirdiği gerçek görülmeler; kaynak listelerinden ayrı.', ('record', 'list', 'show', 'revoke')),
         ('relationships', 'Kayıtlı kanıttan ilişki önerileri ve gerekçeli insan kararları.', ('candidates', 'review', 'show', 'queue', 'notify', 'notification-show')),
         ('identity', 'Kabul edilmiş kimlik bağlarını özgün kayıtlarla birlikte göster.', ('view',))):
@@ -45,6 +45,7 @@ def register_evidence_parser(commands):
             monitor.add_argument('identifier')
             monitor.add_argument('--rounds', type=int, default=1)
             monitor.add_argument('--interval-seconds', type=int, default=60)
+            monitor.add_argument('--queued', action='store_true', help='Her turu mevcut kaynak kuyruğunda kaydet ve worker ile çalıştır; kuyruk önceden kurulmuş olmalı.')
 
 
 def register_comparison_parser(commands):
@@ -113,8 +114,9 @@ def execute_evidence(database, args):
     operation = args.evidence_operation
     if operation == 'groups.monitor':
         from xti.interfaces.research_groups import monitor_group
-        data = monitor_group(database, args.identifier, rounds=args.rounds, interval_seconds=args.interval_seconds)
-        return data, [f"Grup takibi: {row['round']} | {row['status']} | değişiklik: {row['new_changes']}" for row in data['rounds']]
+        data = monitor_group(database, args.identifier, rounds=args.rounds, interval_seconds=args.interval_seconds, queued=args.queued)
+        return data, [f"Grup takibi: {row['round']} | {row['status']} | değişiklik: {row['new_changes']}" +
+            (f" | iş: {row['job_id']}" if 'job_id' in row else '') for row in data['rounds']]
     options = {key: getattr(args, key) for key in FIELDS[operation][0] if getattr(args, key, None) is not None}
     with LocalExecutionLock(database).acquire() if operation in WRITES else nullcontext():
         data = make_evidence_service(database).execute(operation, **options)

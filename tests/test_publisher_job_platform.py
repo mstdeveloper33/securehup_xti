@@ -38,7 +38,7 @@ class PublisherPlatformTests(unittest.TestCase):
         code, response = self.f.invoke(extra=('--describe',))
         self.assertEqual(code, 0)
         manifest = response['data']['source_jobs']
-        self.assertEqual(manifest['execution_version'], 6)
+        self.assertEqual(manifest['execution_version'], 7)
         self.assertEqual(manifest['schema_version'], 3)
         self.assertEqual(manifest['max_execution_steps'], 6)
         self.assertEqual(manifest['max_publisher_documents'], 5)

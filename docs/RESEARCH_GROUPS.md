@@ -1,6 +1,10 @@
 # Ortak kanıta dayanan inceleme grupları
 
-0.176.0 · çekirdek86 · grup modeli1 / `research-groups-v1` · dış JSONv1.
+0.177.0 · çekirdek87 · grup modeli1 / `research-groups-v1` · dış JSONv1.
+
+Kuyrukla düzenli kontrol, değişiklik bildirimi ve geçmişi sıkıştırma
+[grup işletimi belgesinde](GROUP_OPERATIONS.md). Aşağıdaki özgün grup
+kuralları ve karar biçimi korunur.
 
 Birbirine bağlanan domain, IP veya raporları tek tek takip etmek yerine
 ortak dayanağı olan kayıtları bir grup altında inceleyebilirsin. Örneğin
@@ -135,6 +139,8 @@ yazmalarını sunar. Motor hizmeti/depo portu aynıdır. Platform yazmalarında
 | `groups.list` | `offset,limit,expected_snapshot` | Saklı grupların son kayıt özeti |
 | `groups.show` | `identifier` | Tam donmuş kanıt, karar, sürüm ve değişiklik geçmişi |
 | `groups.queue` | `offset,limit,expected_snapshot` | Güncel kanıtla fark / yeniden inceleme penceresi |
+| `groups.notifications` | `offset,limit,expected_snapshot` | Bildirim özetleri; büyük önce/sonra gövdeleri ayrı açılır |
+| `groups.notification-show` | `identifier` (bildirim UUID'si) | Bildirim anındaki değişmez önce/sonra kanıtı |
 | `groups.capture` | `indicator_type,value,identifier,evidence_sha256,expected_revision,idempotency_key`; isteğe bağlı `max_hops,time_window_hours` | Yeni donmuş grup veya ilk işlemin tekrar sonucu |
 | `groups.review` | `identifier,evidence_sha256,decision,reason,expected_revision,idempotency_key` | Dayanağa bağlı insan kararı |
 | `groups.refresh` | `identifier,expected_revision,idempotency_key` | Yerel yeniden kontrol ve kalıcı fark |
@@ -144,8 +150,9 @@ Sığmayan grup `omitted_group_count` ve `group_size_limit` ile belirtilir;
 sessiz başarı veya tam tarama sayılmaz. Kaynak kayıt okuma limitleri de
 `limitations` içinde taşınır. Tek grubun geçmişi 1.000 olay/4 MiB, tüm
 çalışma alanının grup günlüğü 10.000 olay/64 MiB ile sınırlı. Sınırda eski
-kayıt silinmez; yeni yazma reddedilir. Otomatik arşiv/purge bu sürüme
-eklenmedi; döngü sıklığı ve disk sınırı bu kayıt maliyetiyle seçilir.
+kayıt silinmez; yeni yazma reddedilir. 0.177.0 mevcut `journals` ile açık
+arşiv/geri açmayı ekler; purge yoktur. Sıkıştırma bu mantıksal sınırları
+kaldırmaz; döngü sıklığı ve disk sınırı bu kayıt maliyetiyle seçilir.
 
 Geçerli ama bulunamayan kimlik `not_found`; eski sürüm `revision_changed`,
 değişmiş kanıt `source_changed`, farklı aynı anahtar `idempotency_conflict`,
@@ -160,9 +167,10 @@ git pull --ff-only
 ./xti doctor
 ```
 
-`migrate` önce benzersiz eski şema yedeğini alır; grup günlüğünü ekler,
-vaka kanıt türünü tek transaction'da genişletir. Eski kayıt, rowid ve hash
-korunur. Eski motor şema86'yı okuyamaz. Geri dönüş gerekiyorsa geçiş öncesi
+`migrate` önce benzersiz eski şema yedeğini alır. 85→86 grup günlüğünü
+ekler ve vaka kanıt türünü genişletir; 86→87 bildirim tablosu ekler.
+Eski kayıt, rowid ve hash korunur. Eski motor şema87'yi okuyamaz.
+Geri dönüş gerekiyorsa geçiş öncesi
 yedek eski kodla **yeni/boş** veri alanına açılır; güncel veritabanı üstüne
 yazılmaz. Geçiş sonrası yeni grup olayları eski yedekte bulunmaz.
 

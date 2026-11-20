@@ -1,5 +1,11 @@
 # Engine okuma sözleşmesi v1
 
+0.177.0 `groups.notifications` sayfalı özetini ve
+`groups.notification-show` özgün önce/sonra kanıtını ekler. Bildirim
+kimliği UUID; grup kimliği64hex'tir. `journals.*` grup geçmişini de
+okur. Kaynak işi7 aynı firma kapsamını korur; okuma girişinde worker
+başlatılmaz. [Alanlar, sonuçlar ve sınırlar](GROUP_OPERATIONS.md#firma-ve-json-bağlantısı).
+
 0.176.0 salt okunur `groups.preview/list/show/queue` işlemlerini ekler.
 `research.show/priorities` adım aralığı 1–4, varsayılan 2 olur. Grup modeli1
 ve `research-groups-v1` mevcut dış zarf v1 içindedir; eski kayıtlar
