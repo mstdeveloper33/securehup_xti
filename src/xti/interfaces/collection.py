@@ -137,6 +137,9 @@ def result_lines(result: CollectionResult, *, data_dir=None, summary=False) -> l
         lines.append(f"Geçmiş: ./xti collections show {safe_text(result.session_id)}")
     for step in result.steps:
         lines.append(f"{safe_text(step.task.label)}: {_STATUS[step.status]}")
+        if step.social is not None:
+            from xti.interfaces.collection_summary import social_lines
+            lines.extend(social_lines(step.social, data_dir=data_dir))
         if step.attempt is not None:
             attempt = step.attempt
             lines.append(f"  İş: {safe_text(attempt.job_id)} | Deneme: {safe_text(attempt.id)}")

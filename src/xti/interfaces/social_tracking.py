@@ -65,6 +65,8 @@ def review_lines(row):
     for evidence in row['provider_evidence']:
         result = evidence['result']
         lines.append('  Bright Data: ' + safe_text(evidence['status']) + (' / ' + safe_text(result['state']) if result else ''))
+    from xti.interfaces.research import comparison_lines
+    lines.extend(comparison_lines(row.get('source_comparisons', ())))
     lines.append('  Vaka kanıtı: social_discovery ' + row['case_evidence_id'])
     lines.append('  İnceleme: brand review-show ' + row['discovery_id'] + ' --url ' + profile['url'])
     return lines

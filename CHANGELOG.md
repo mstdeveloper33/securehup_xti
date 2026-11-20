@@ -1,5 +1,28 @@
 # Değişiklik Kaydı
 
+## 0.175.0 — 20 Kasım 2026
+
+- Birleşik sosyal profil, kaynak sayfası, sağlayıcı kanıtı, insan kararı
+  ve vaka bağı domain/URL araştırmasında görünür. Araştırma kuralı v9;
+  eski dondurulmuş incelemeler değişmez.
+- `source_comparisons` aynı anlamdaki kaynak kayıtlarını zaman ve
+  belirsizlikleriyle karşılaştırır; çoğunluktan tehdit/sahiplik çıkarmaz.
+- `profiles save --social-watch ID --only-social` ve `collect`
+  mevcut kalıcı işlere bağlanır. İzleme sürümü/kapsamı dondurulur;
+  zamanı gelmeyen tur atlanır; kesinti sonrası kaynak makbuzu korunur.
+- Sosyal keşifler mevcut kayıpsız `journals` arşivine katılır. En son
+  tamamlanmış keşif korunur; eski gövdeler hash/kimlik kaybı olmadan
+  sıkıştırılır. Mantıksal kapasite sınırı sıkıştırmayla aşılamaz.
+- 35 etiketli sayfa örneği içeren tekrarlanabilir doğruluk ölçümü eklendi.
+  X başlığında `@acme_support` ifadesinin `@acme` için kanıt sayılması
+  düzeltildi. Yeni kural v2; tarihî v1 kayıtları kendi kuralıyla okunur.
+- Çekirdek84 → 85 açık/yedekli geçiş toplama adımlarını ve makbuzlarını
+  genişletir; eski kolon değerleri/rowid/hash'ler korunur. Profil/plan v3,
+  yeni sosyal vaka kopyası v2; eski biçimler okunur. Dış JSONv1 ve kuyruk3
+  değişmez; yeni bağımlılık eklenmedi.
+- Tam Linux testi, kurulum/yükseltme ve sosyal kabul sürüm gönderimlerinde
+  otomatik başlar; normal kod gönderimlerinde ilgili kısa kontroller sürer.
+
 ## 0.174.0 — 20 Kasım 2026
 
 - Önceden bulunan sosyal adresler kaynak yanıtından kaybolsa da sınırlı,

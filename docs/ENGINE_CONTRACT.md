@@ -1,5 +1,12 @@
 # Engine okuma sözleşmesi v1
 
+0.175.0 eklemeleri: araştırma düğüm/kenarları isteğe bağlı
+`source_comparisons` taşır (`source-comparison-v1`); eski inceleme snapshot
+biçimi değişmez. Sosyal keşif kaydı `policy` alanında karar kuralını açıklar;
+v1/v2 okunur. Yeni sosyal vaka kopyası version2/discovery_policy taşır;
+tarihî version1 kanıtlar v1 kuralla doğrulanır. Dış contract_version1,
+araştırma model3 ve kuyruk3 korunur; öncelik kuralı v9'dur.
+
 0.174.0 takip turu v2 okumaları `watch_revision` ve dondurulmuş `tracking`
 penceresini taşır; eski tur JSON'u değişmez. Keşif scope içindeki bu bağlam
 yalnız izleme servisinden gelir, serbest JSON parametresi değildir.

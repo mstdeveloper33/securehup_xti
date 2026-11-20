@@ -1,7 +1,12 @@
 name: XTI stabilization acceptance
 
-# Expensive real installation and endurance checks are explicit release checks.
+# Real installation and endurance checks also run on versioned deliveries.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/stabilization.yml"
   workflow_dispatch:
     inputs:
       scope:
@@ -21,9 +26,9 @@ concurrency:
 
 jobs:
   verification:
-    if: ${{ inputs.scope != 'upgrade' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.scope != 'upgrade' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 60
     steps:
       - name: Check out the candidate
         uses: actions/checkout@v7

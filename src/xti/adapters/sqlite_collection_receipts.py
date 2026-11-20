@@ -30,6 +30,7 @@ RESULT_TABLES = {
     "public_notice_run": "public_notice_runs",
     "news_run": "news_runs",
     "saved_search_run": "global_saved_search_runs",
+    "social_tracking_run": "social_tracking_journal",
     "threatcluster_source_run": "ransomware_claim_runs", "ransomlook_source_run": "ransomlook_claim_runs",
     "threatcluster_watch_run": "ransomware_watch_runs", "ransomlook_watch_run": "ransomlook_watch_runs",
 }
@@ -157,10 +158,14 @@ def source_result(connection, unit, definition, step, *, result_kind: str, resul
         "username_watch": "username_run", "public_notice": "public_notice_run", "ransomware_refresh": f"{unit.source}_source_run",
         "ransomware_watch": f"{unit.source}_watch_run",
         "news_refresh": "news_run", "search_watch": "saved_search_run",
+        "social_tracking": "social_tracking_run",
     }.get(unit.kind)
     if result_kind != expected_kind:
         raise StorageError("Toplama kaynak sonucu seçilen birime ait değil.")
     row = _row(connection, RESULT_TABLES[result_kind], result_id)
+    if result_kind == 'social_tracking_run':
+        from xti.adapters.sqlite_collection_social import source_result as social_result
+        return social_result(connection, unit, step, result_id, result_status)
     if result_kind == 'news_run':
         from xti.adapters.sqlite_news import _audit
         from xti.domain.news import NEWS_POLICY

@@ -234,11 +234,16 @@ def apply_event(state, event, discovery):
 
 
 def validate_case_snapshot(value):
-    if (not isinstance(value, dict) or set(value) != {'kind', 'version', 'domain', 'scope', 'discovery_id', 'report_sha256',
-            'profile', 'provider_evidence', 'review_history', 'limitations'} or value['kind'] != 'social_discovery_evidence'
-            or type(value['version']) is not int or value['version'] != 1):
+    from xti.domain.social_discovery import POLICIES, validate_profile
+    if not isinstance(value, dict): raise ValidationError('Sosyal vaka kanıt biçimi geçersiz.')
+    required = {'kind', 'version', 'domain', 'scope', 'discovery_id', 'report_sha256',
+                'profile', 'provider_evidence', 'review_history', 'limitations'}
+    if value.get('version') == 2: required.add('discovery_policy')
+    if (set(value) != required or value['kind'] != 'social_discovery_evidence'
+            or type(value['version']) is not int or value['version'] not in (1, 2)):
         raise ValidationError('Sosyal vaka kanıt biçimi geçersiz.')
-    from xti.domain.social_discovery import validate_profile
+    policy = value.get('discovery_policy', 'social-discovery-v1')
+    if policy not in POLICIES: raise ValidationError('Sosyal vaka karar kuralı geçersiz.')
     from xti.domain.social_enrichment import validate_evidence, assess_record
     def sha(value):
         if not isinstance(value, str) or re.fullmatch('[0-9a-f]{64}', value) is None:
@@ -247,7 +252,7 @@ def validate_case_snapshot(value):
     scope = validate_scope(value['scope'])
     if scope != value['scope'] or scope['domain'] != value['domain']:
         raise ValidationError('Sosyal vaka firma kapsamı uyuşmuyor.')
-    validate_profile(value['profile'], scope)
+    validate_profile(value['profile'], scope, policy=policy)
     url = value['profile']['url']
     if not isinstance(value['review_history'], list) or len(value['review_history']) > 1001:
         raise ValidationError('Sosyal karar geçmişi sınırı geçersiz.')

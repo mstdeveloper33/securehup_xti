@@ -1,5 +1,12 @@
 # Çok firmalı platform motoru
 
+0.175.0 aynı firma alanında hazırlanmış sosyal seçimli toplama profillerini
+mevcut `jobs.submit`/worker akışında çalıştırır. Yeni profil/plan version3
+`social_watch_ids` taşır; iş sonucu receipt.kind=`social_tracking_run`
+olabilir. Eski profil ve plan biçimleri okunur. Kaynak turları ücretsiz
+ayarlarla çalışır; Bright Data/Tavily otomatik açılmaz. `journals.*` artık
+sosyal keşif gövdelerini de kapsar. Workspace sınırı ve dış JSONv1 aynıdır.
+
 0.174.0 `sources.plan` / `sources.jobs.submit`, `social-tracking` adımı için
 `social_watch_id`, `social_watch_revision` ve isteğe bağlı `social_force`
 kabul eder. Firma/domain ve izleme sürümü doğrulanır; mevcut `platform worker`

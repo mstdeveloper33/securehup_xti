@@ -5,8 +5,14 @@ import zlib
 
 from xti.domain.engine_jobs import canonical_json
 
-JOURNALS = ('report_journal', 'evidence_journal')
+JOURNALS = ('report_journal', 'evidence_journal', 'social_discovery_runs')
 MAX_PAYLOAD = 2 * 1024 * 1024
+
+
+def payload_columns(journal):
+    if journal not in JOURNALS:
+        raise ValueError('Unknown journal')
+    return ('report_json', 'report_sha256') if journal == 'social_discovery_runs' else ('payload_json', 'payload_sha256')
 
 
 def unpack(body, raw_size, sha, *, maximum=MAX_PAYLOAD):
@@ -51,9 +57,10 @@ def logical_extra(connection, journal):
         return 0
     from xti.adapters.sqlite_journal_storage import read_events
     read_events(connection)
+    payload_column, hash_column = payload_columns(journal)
     extra = 0
     for sequence, sha, raw_size, payload, stored_sha in connection.execute(
-            f'SELECT a.sequence,a.payload_sha256,a.raw_size,j.payload_json,j.payload_sha256 '
+            f'SELECT a.sequence,a.payload_sha256,a.raw_size,j.{payload_column},j.{hash_column} '
             f'FROM journal_payload_archives a LEFT JOIN {journal} j ON j.sequence=a.sequence WHERE a.journal=?', (journal,)):
         if (type(raw_size) is not int or not 1 <= raw_size <= MAX_PAYLOAD or stored_sha != sha or
                 payload != marker(journal, sequence, sha)):
@@ -65,4 +72,5 @@ def logical_extra(connection, journal):
 def journal_bytes(connection, journal):
     if journal not in JOURNALS:
         raise ValueError('Unknown journal')
-    return connection.execute(f'SELECT COALESCE(SUM(LENGTH(CAST(payload_json AS BLOB))+512),0) FROM {journal}').fetchone()[0] + logical_extra(connection, journal)
+    payload_column, _ = payload_columns(journal)
+    return connection.execute(f'SELECT COALESCE(SUM(COALESCE(LENGTH(CAST({payload_column} AS BLOB)),0)+512),0) FROM {journal}').fetchone()[0] + logical_extra(connection, journal)

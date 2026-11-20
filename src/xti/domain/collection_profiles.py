@@ -14,6 +14,7 @@ from xti.domain.news import NEWS_SOURCES, news_source
 
 PROFILE_DEFINITION_VERSION = 1
 NEWS_PROFILE_DEFINITION_VERSION = 2
+SOCIAL_PROFILE_DEFINITION_VERSION = 3
 MAX_PROFILE_DEFINITION_BYTES = 16_384
 MAX_PROFILE_WATCHES = 50
 PROFILE_ACTIONS = frozenset({"added", "updated", "reactivated", "revoked"})
@@ -56,6 +57,7 @@ class CollectionProfileDefinition:
     watch_item_limit: int = 100
     news_sources: tuple[str, ...] = ()
     search_watch_ids: tuple[str, ...] = ()
+    social_watch_ids: tuple[str, ...] = ()
 
 
 def normalize_news_selection(sources: Sequence[str], search_ids: Sequence[str], *,
@@ -91,9 +93,10 @@ def normalize_profile_definition(value: CollectionProfileDefinition) -> Collecti
         raise ValidationError("Geçerli bir toplama profil tanımı gerekli.")
     tasks = value.task_ids
     news_sources, search_ids = normalize_news_selection(value.news_sources, value.search_watch_ids)
+    social_ids = _watch_ids(value.social_watch_ids)
     if (
         not isinstance(tasks, Sequence) or isinstance(tasks, (str, bytes))
-        or not (0 if news_sources else 1) <= len(tasks) <= len(COLLECTION_TASK_IDS)
+        or not (0 if news_sources or social_ids else 1) <= len(tasks) <= len(COLLECTION_TASK_IDS)
         or any(not isinstance(task, str) or task not in COLLECTION_TASK_IDS for task in tasks)
     ):
         raise ValidationError(f"Profil için desteklenen 1–{len(COLLECTION_TASK_IDS)} temel görev seçilmeli.")
@@ -115,13 +118,13 @@ def normalize_profile_definition(value: CollectionProfileDefinition) -> Collecti
             value.username_watch_ids, value.ransomware_watch_ids, value.ransomlook_watch_ids,
         )
     )
-    if sum(map(len, (username, ransomware, ransomlook, search_ids))) > MAX_PROFILE_WATCHES:
+    if sum(map(len, (username, ransomware, ransomlook, search_ids, social_ids))) > MAX_PROFILE_WATCHES:
         raise ValidationError("Profilde toplam en fazla 50 açık izleme kimliği seçilebilir.")
     return CollectionProfileDefinition(
         normalize_domain(value.asset_value),
         tuple(task for task in COLLECTION_TASK_IDS if task in tasks),
         username, ransomware, ransomlook, value.typos, value.stale_after_hours,
-        value.finding_limit, value.watch_item_limit, news_sources, search_ids,
+        value.finding_limit, value.watch_item_limit, news_sources, search_ids, social_ids,
     )
 
 
@@ -132,6 +135,12 @@ def canonical_definition_json(value: CollectionProfileDefinition) -> str:
     else:
         del payload["news_sources"], payload["search_watch_ids"]
         payload["version"] = PROFILE_DEFINITION_VERSION
+    if payload['social_watch_ids']:
+        payload['version'] = SOCIAL_PROFILE_DEFINITION_VERSION
+        payload.setdefault('news_sources', [])
+        payload.setdefault('search_watch_ids', [])
+    else:
+        del payload['social_watch_ids']
     return json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
 
 
@@ -142,17 +151,19 @@ def parse_definition_json(value: str) -> CollectionProfileDefinition:
     try:
         payload = json.loads(value)
         keys = set(CollectionProfileDefinition.__dataclass_fields__) | {"version"}
+        if isinstance(payload, dict) and payload.get('version') in (1, 2):
+            keys -= {'social_watch_ids'}
         if isinstance(payload, dict) and payload.get("version") == PROFILE_DEFINITION_VERSION:
             keys -= {"news_sources", "search_watch_ids"}
         if (
             not isinstance(payload, dict) or set(payload) != keys
             or type(payload["version"]) is not int
-            or payload["version"] not in {PROFILE_DEFINITION_VERSION, NEWS_PROFILE_DEFINITION_VERSION}
+            or payload["version"] not in {PROFILE_DEFINITION_VERSION, NEWS_PROFILE_DEFINITION_VERSION, SOCIAL_PROFILE_DEFINITION_VERSION}
         ):
             raise ValueError("unsupported definition")
         payload.pop("version")
         for key in ("task_ids", "username_watch_ids", "ransomware_watch_ids", "ransomlook_watch_ids",
-                    "news_sources", "search_watch_ids"):
+                    "news_sources", "search_watch_ids", "social_watch_ids"):
             if key not in payload:
                 continue
             if not isinstance(payload[key], list):

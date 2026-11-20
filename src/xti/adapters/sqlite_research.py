@@ -19,6 +19,7 @@ from xti.adapters.sqlite_research_cases import StoredCaseContext
 from xti.adapters.sqlite_research_investigation import StoredInvestigationContext
 from xti.adapters.sqlite_research_reports import StoredReportContext
 from xti.adapters.sqlite_research_content import StoredContentContext
+from xti.adapters.sqlite_research_social import StoredSocialContext
 from xti.domain.research_discovery_status import status_evidence
 from xti.adapters.sqlite_warninglists import read_warninglists
 from xti.adapters.sqlite_enrichment import read_enrichment
@@ -98,6 +99,7 @@ class _Reader:
         self.report_context = StoredReportContext(connection, limitations=self.limitations, coverage=self.coverage)
         self.case_context = StoredCaseContext(connection, limitations=self.limitations, coverage=self.coverage)
         self.content_context = StoredContentContext(connection, limitations=self.limitations, coverage=self.coverage)
+        self.social_context = StoredSocialContext(path, connection, limitations=self.limitations, coverage=self.coverage)
 
     def _claims(self, kind, identifier):
         # The kind is internal, never a request SQL fragment. Bound histories
@@ -220,7 +222,9 @@ class _Reader:
         if key in self.nodes:
             return self.nodes[key]
         kind, value = key
-        for context in (self.case_context, self.content_context, self.investigation_context, self.report_context):
+        if key[0] == 'social_profile' and key[1].startswith('discovery:'):
+            self.social_context.load()
+        for context in (self.case_context, self.content_context, self.social_context, self.investigation_context, self.report_context):
             if key in context.nodes:
                 self.nodes[key] = context.nodes[key]
                 return self.nodes[key]
@@ -358,6 +362,7 @@ class _Reader:
         edges.extend(self.supplier_context.neighbors(key))
         edges.extend(self.discovery_links.neighbors(key))
         edges.extend(self.content_context.neighbors(key))
+        edges.extend(self.social_context.neighbors(key))
         edges.extend(self.case_context.neighbors(key))
         edges.extend(self.investigation_context.neighbors(key))
         edges.extend(self.report_context.neighbors(key))

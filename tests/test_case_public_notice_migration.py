@@ -7,7 +7,7 @@ import sqlite3
 import unittest
 from unittest.mock import patch
 
-from xti.adapters.collection_news_schema import COLLECTION_HISTORY_DDL
+from xti.adapters.collection_social_schema import COLLECTION_HISTORY_DDL
 from xti.adapters.case_public_notice_schema import (
     CASE_EVIDENCE_DDL, CASE_EVIDENCE_INDEX_DDL, CASE_EVIDENCE_V62_DDL,
     migrate_case_public_notice_schema,

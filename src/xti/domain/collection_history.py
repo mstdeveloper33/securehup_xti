@@ -28,7 +28,7 @@ RESULT_STATUSES = frozenset({"complete", "partial", "failed", "interrupted"})
 ANALYSIS_STATUSES = frozenset({"pending", "complete", "failed"})
 STOP_CODES = frozenset({
     "source_failed", "source_partial", "dependency_failed", "interrupted", "recovered",
-    "execution_failed", "analysis_failed",
+    "execution_failed", "analysis_failed", "not_due",
 })
 RESULT_KINDS = (
     "scan_attempt", "discovery_run", "feed_run", "username_run",
@@ -36,6 +36,7 @@ RESULT_KINDS = (
     "threatcluster_watch_run", "ransomlook_watch_run",
     "public_notice_run",
     "news_run", "saved_search_run",
+    "social_tracking_run",
 )
 
 
@@ -108,6 +109,8 @@ def _unit_payload(unit: CollectionFrozenUnit) -> dict:
         # Existing username/ransomware plans have no saved-search event field.
         # Preserve those historical unit bytes and target hashes exactly.
         del payload["watch"]["search_event_id"]
+    if payload['watch'] is not None and payload['watch']['revision'] is None:
+        del payload['watch']['revision']
     return payload
 
 
@@ -127,6 +130,7 @@ def expected_unit_keys(definition: CollectionProfileDefinition) -> tuple[str, ..
             keys.extend(f"ransomware-watch:{source}:{watch_id}" for watch_id in ids)
     keys.extend(f"news-refresh:{source}" for source in definition.news_sources)
     keys.extend(f"search-watch:{watch_id}" for watch_id in definition.search_watch_ids)
+    keys.extend(f"social-tracking:{watch_id}" for watch_id in definition.social_watch_ids)
     return tuple(keys)
 
 
@@ -169,8 +173,14 @@ def normalize_frozen_plan(plan: CollectionFrozenPlan) -> CollectionFrozenPlan:
         if not isinstance(watch, CollectionWatchTarget):
             raise ValidationError("Toplama izleme tanımı gerekli.")
         history_uuid(watch.watch_id)
-        if normalize_profile_name(watch.display_name) != watch.display_name:
+        if unit.kind != 'social_tracking' and normalize_profile_name(watch.display_name) != watch.display_name:
             raise ValidationError("Toplama izleme adı kanonik değil.")
+        if unit.kind != 'social_tracking' and watch.revision is not None:
+            raise ValidationError('Bu toplama türü sosyal izleme sürümü taşıyamaz.')
+        if unit.kind == 'social_tracking':
+            from xti.domain.collection_social import validate_unit
+            validate_unit(unit)
+            continue
         if unit.kind == "search_watch":
             history_uuid(watch.search_event_id)
             if (unit.step_key != f"search-watch:{watch.watch_id}" or unit.source != "local"
@@ -244,9 +254,9 @@ def freeze_collection_plan(
                     task.source, definition.asset_value, watch, contract,
                 ))
         else:
-            if task.kind in {"username_watch", "search_watch"} and len(task.watches) != 1:
+            if task.kind in {"username_watch", "search_watch", "social_tracking"} and len(task.watches) != 1:
                 raise ValidationError("Her sosyal toplama birimi bir izleme taşımalı.")
-            if task.kind not in {"username_watch", "search_watch"} and task.watches:
+            if task.kind not in {"username_watch", "search_watch", "social_tracking"} and task.watches:
                 raise ValidationError("Temel toplama birimi izleme taşıyamaz.")
             units.append(CollectionFrozenUnit(
                 task.id, task.kind, task.source, definition.asset_value,
@@ -258,7 +268,7 @@ def freeze_collection_plan(
 def canonical_plan_json(plan: CollectionFrozenPlan) -> str:
     normalize_frozen_plan(plan)
     return canonical_json({
-        "version": NEWS_PLAN_VERSION if plan.definition.news_sources else 1,
+        "version": 3 if plan.definition.social_watch_ids else NEWS_PLAN_VERSION if plan.definition.news_sources else 1,
         "executor_contract_version": plan.executor_contract_version,
         "origin": asdict(plan.origin) if plan.origin is not None else None,
         "units": [_unit_payload(unit) for unit in plan.units],
@@ -277,8 +287,8 @@ def parse_plan_json(value: str, definition: CollectionProfileDefinition) -> Coll
         if (
             not isinstance(payload, dict)
             or set(payload) != {"version", "executor_contract_version", "origin", "units"}
-            or type(payload["version"]) is not int or payload["version"] not in {1, 2}
-            or payload["version"] != (NEWS_PLAN_VERSION if definition.news_sources else 1)
+            or type(payload["version"]) is not int or payload["version"] not in {1, 2, 3}
+            or payload["version"] != (3 if definition.social_watch_ids else NEWS_PLAN_VERSION if definition.news_sources else 1)
             or not isinstance(payload["units"], list) or len(payload["units"]) > MAX_COLLECTION_UNITS
         ):
             raise ValueError("invalid plan")

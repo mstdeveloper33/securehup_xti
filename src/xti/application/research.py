@@ -10,6 +10,7 @@ from xti.domain.warninglists import catalog_data
 from xti.application.indicator_enrichment import state_data
 from xti.domain.research_priority import POLICY_VERSION, RULES, evidence_id, prioritize_research
 from xti.domain.research_discovery_status import status_data
+from xti.domain.source_comparison import comparisons
 
 
 class ResearchService:
@@ -146,6 +147,7 @@ def research_data(report) -> dict:
                    "references": [{key: ref[key] for key in ("kind", "record_type", "namespace", "record_id")}
                                   for ref in item.references],
                    "evidence": [evidence(row) for row in item.evidence],
+                   "source_comparisons": comparisons(item.evidence, total=item.evidence_total_count),
                    "evidence_total_count": item.evidence_total_count,
                    "enrichment": state_data(item.enrichment, report.checked_at, query.stale_after_hours) if item.enrichment else None,
                    "discovery": status_data(item.discovery, report.checked_at, query.stale_after_hours),
@@ -156,6 +158,7 @@ def research_data(report) -> dict:
         "edges": [{"id": item.id, "source_id": node_id(item.source), "target_id": node_id(item.target),
                    "relationship_type": item.relationship_type, "kind": item.kind,
                    "evidence": [evidence(row) for row in item.evidence],
+                   "source_comparisons": comparisons(item.evidence, total=item.evidence_total_count),
                    "evidence_total_count": item.evidence_total_count} for item in report.edges],
         "paths": [{"node_ids": list(nodes), "edge_ids": list(edges), "hops": len(edges)}
                   for nodes, edges in report.paths],

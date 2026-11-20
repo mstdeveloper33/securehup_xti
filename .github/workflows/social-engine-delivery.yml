@@ -1,0 +1,51 @@
+name: XTI social engine delivery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/social-engine-delivery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Select Python
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install reviewed parser dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/news.txt -r requirements/reports.txt
+      - name: Social source conflicts, saved profiles, actual process kill and archived evidence
+        run: >-
+          ./scripts/python -m unittest -q tests.test_social_engine_package tests.test_social_quality
+          tests.test_social_discovery tests.test_social_tracking tests.test_social_jobs tests.test_social_job_platform
+          tests.test_collection_social_migration
+      - name: Labelled accuracy corpus
+        run: ./scripts/python scripts/check-social-quality.py --output "$RUNNER_TEMP/social-quality.json"
+      - name: Actual schema84 upgrade and old-code restore
+        run: ./scripts/python scripts/check-social-upgrade.py --output "$RUNNER_TEMP/social-upgrade.json"
+      - name: Preserve synthetic acceptance evidence in run log
+        if: always()
+        run: |
+          for report in "$RUNNER_TEMP/social-quality.json" "$RUNNER_TEMP/social-upgrade.json"; do
+            if [ -f "$report" ]; then cat "$report"; fi
+          done

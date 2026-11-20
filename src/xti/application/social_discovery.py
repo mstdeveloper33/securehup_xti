@@ -67,10 +67,10 @@ class SocialDiscoveryService:
             raise SocialDiscoveryError('invalid_parameters', 'Sosyal keşif için toplama adaptörleri gerekli.')
         receipt = self.repository.reserve(options, key, self.clock())
         if receipt['replayed']: return receipt
-        report = self._collect(options)
+        report = self._collect(options, policy=receipt['record']['policy'])
         return self.repository.finish(receipt['record']['id'], report, self.clock())
 
-    def _collect(self, scope):
+    def _collect(self, scope, *, policy=POLICY):
         start = self.monotonic(); deadline = start + scope['budget_seconds']
         candidates, source_runs, ignored, truncated = {}, [], 0, False
         def add(url, source, *, claimed=False, platform=None, username=None):
@@ -157,7 +157,7 @@ class SocialDiscoveryService:
                 decision = {'state': 'inconclusive', 'reason': 'page_budget_exhausted', 'brand_relation': 'unverified'}
                 evidence = None
             else:
-                decision = assess(row, page, scope)
+                decision = assess(row, page, scope, policy=policy)
                 evidence = {'checked_at': page.checked_at, 'status': page.status, 'final_url': page.final_url,
                             'title': page.title, 'description': page.description, 'body_sha256': page.body_sha256,
                             'error': page.error, 'requests': page.requests, 'received_bytes': page.received_bytes,
@@ -180,7 +180,7 @@ class SocialDiscoveryService:
             except ValidationError:continue
             routes={urlsplit(row['url']).path.split('/')[1],urlsplit(target['url']).path.split('/')[1]}
             if routes!={'company','showcase'} or target['username']!=row['username']:continue
-            decision=assess(target,page,scope)
+            decision=assess(target,page,scope,policy=policy)
             if decision['state']!='found':continue
             other=by_url.get(target['url'])
             if other is not None and other['state']!='found':continue
@@ -207,7 +207,7 @@ class SocialDiscoveryService:
                    or any(r['status'] not in ('complete','unsupported') for r in source_runs)
                    or homepage.error is not None or homepage.status != 200)
         all_pages = [homepage, *[page for page in pages.values() if page is not None]]
-        return {'policy': POLICY, 'scope': scope, 'usernames': list(usernames(scope)),
+        return {'policy': policy, 'scope': scope, 'usernames': list(usernames(scope)),
             'status': 'partial' if partial else 'complete', 'profiles': ordered,
             'counts': {state: sum(r['state'] == state for r in ordered) for state in STATES},
             'coverage': coverage, 'sources': source_runs,

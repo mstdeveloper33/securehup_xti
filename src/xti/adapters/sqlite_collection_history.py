@@ -130,6 +130,10 @@ class SQLiteCollectionHistoryRepository:
             if unit.watch is None:
                 continue
             watch = unit.watch
+            if unit.kind == 'social_tracking':
+                from xti.adapters.sqlite_collection_social import validate_target
+                validate_target(connection, unit)
+                continue
             if unit.kind == "search_watch":
                 from xti.adapters.sqlite_collection_news import validate_search_target
                 validate_search_target(connection, watch)
@@ -177,7 +181,8 @@ class SQLiteCollectionHistoryRepository:
                 or (record.status == "running" and (record.started_at is None or record.error_code is not None))
                 or (record.status == "complete" and (record.started_at is None or record.error_code is not None))
                 or (record.status == "partial" and (record.started_at is None or record.error_code != "source_partial"))
-                or (record.status == "skipped" and (record.started_at is not None or record.error_code != "dependency_failed"))
+                or (record.status == "skipped" and (record.started_at is not None or record.error_code not in
+                    ({'dependency_failed', 'not_due'} if unit.kind == 'social_tracking' else {'dependency_failed'})))
                 or (record.status in {"failed", "interrupted"} and record.error_code is None)
                 or (session.status != "running" and record.status in {"pending", "running"})
             ):
@@ -257,7 +262,8 @@ class SQLiteCollectionHistoryRepository:
                 step = cls._step(_row(connection, "collection_session_steps", item[0]), unit, session)
                 if unit.watch is not None:
                     watch_table = (
-                        "global_saved_searches" if unit.kind == "search_watch"
+                        'social_tracking_journal' if unit.kind == 'social_tracking'
+                        else "global_saved_searches" if unit.kind == "search_watch"
                         else "brand_username_watches" if unit.kind == "username_watch"
                         else "ransomware_watches" if unit.source == "threatcluster"
                         else "ransomlook_watches"
@@ -426,7 +432,13 @@ class SQLiteCollectionHistoryRepository:
         with self._write() as connection:
             session, step, unit, _ = operation_context(connection, token, allow_pending=True)
             self._details(connection, session["id"])
-            if status == "skipped":
+            if status == 'skipped' and unit.kind == 'social_tracking' and error_code == 'not_due':
+                from xti.adapters.sqlite_collection_social import validate_target
+                from xti.domain.social_tracking import due_at
+                watch = validate_target(connection, unit)
+                if step['status'] != 'pending' or due_at(watch) is None or finished_at >= due_at(watch):
+                    raise ValidationError('Yalnız zamanı gelmemiş bekleyen sosyal takip atlanabilir.')
+            elif status == "skipped":
                 if step["status"] != "pending" or error_code != "dependency_failed" or (step["depends_on_step_id"] is None and unit.kind != "search_watch"):
                     raise ValidationError("Yalnız kaynak yenilemesi başarısız bekleyen üye atlanabilir.")
                 if unit.kind == "search_watch":
@@ -448,6 +460,10 @@ class SQLiteCollectionHistoryRepository:
         for step in details.steps:
             if step.status not in {"pending", "running"}:
                 continue
+            if step.kind == 'social_tracking' and step.status == 'running':
+                from xti.adapters.sqlite_collection_social import recover_step
+                if recover_step(connection, step, finished_at):
+                    continue
             cls._abandon_scan(connection, asdict(step), finished_at, reason)
             connection.execute(
                 "UPDATE collection_session_steps SET status='interrupted',finished_at=?,error_code=? WHERE id=?",

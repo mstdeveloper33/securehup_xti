@@ -20,6 +20,7 @@ from xti.adapters.document_storage_schema import create as create_document_stora
 from xti.adapters.social_discovery_schema import create as create_social_discovery_schema
 from xti.adapters.social_enrichment_schema import create as create_social_enrichment_schema
 from xti.adapters.social_tracking_schema import create as create_social_tracking_schema
+from xti.adapters.collection_social_schema import migrate_collection_social_schema
 from xti.adapters.relationship_notification_schema import create as create_relationship_notification_schema
 
 from xti.domain.assets import Asset
@@ -1109,8 +1110,8 @@ class SQLiteAssetRepository:
                     create_social_enrichment_schema(connection)
                 if version < 83:
                     create_social_tracking_schema(connection)
-                # Schema84 reserves the new receipt semantics. The explicit backup
-                # above protects rollback; all schema83 rows and DDL stay intact.
+                if version < 85:
+                    migrate_collection_social_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

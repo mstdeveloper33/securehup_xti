@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **20 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.174.0 / çekirdek 84 / iş kuyruğu 3**.
+Güncel çalışma: **0.175.0 / çekirdek 85 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,33 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-037 — Sosyal kanıt ve işletim paketi
+
+- **Durum:** Uygulandı; son genel/Linux teslim sonuçları takip ediliyor.
+  **Güncellendi:** 20 Kasım 2026.
+- **Kapsam:** Birleşik sosyal araştırma/vaka, aynı anlamdaki kaynak
+  karşılaştırması, mevcut profile/işe sosyal izleme seçimi, etiketli kalite
+  ölçümü ve mevcut journals arşivinde sosyal keşif gövdeleri.
+- **Veri:** Şema85 yedekli toplama tablosu geçişi; eski rowid/kolon/hash
+  korunur. Profil/plan v3 ve yeni vaka v2, eski biçimlerin okuyucusunu korur.
+  X tam kullanıcı adı kuralı keşif v2'dir; tarihî kararlar yeniden yazılmaz.
+- **Kanıt:** 45 özellik testi /16,553sn; gerçek SIGKILL sonrası keşfi tekrar
+  toplamadan tek makbuzla kurtarma dahil. Son teslim/hedefli paket34 test /
+  35,552sn. Gerçek `dbaf235` kodundan iki şema84 alanı (172'şer tablo;
+  13 sosyal,23 toplama fixture satırı) yükseldi; eski kayıt/rowid'ler ve
+  v1 vakalar korundu; eski motor iki eski yedeği geri okuyabildi (4,210sn).
+- **Doğruluk sınırı:** 35 etiketli kontrollü sayfa örneği:8 bulunan,
+  6 bulunmayan,21 belirsiz;35/35 beklenen karar. Tüm internet için yüzde
+  doğruluk ölçümü değildir. Yeni canlı ücretli istek yapılmadı.
+- **Linux:** GitHub CLI henüz giriş yapmış değil. Sürüm dosyası main'e
+  gönderildiğinde tam test ve kurulum/yükseltme kabulü artık otomatik başlar.
+  Akış tanımı koşunun geçtiği anlamına gelmez; sonuç/commit kaydı beklenir.
+- **Ayrı bekleyenler:** Bright Data anahtarı N-034; gelişmiş Nmap yetkili
+  IP/port N-005. Bu paketin fixture testleri bu canlı kabullerin yerine geçmez.
+- **Dayanak:** [Teslim kaydı](docs/roadmap/SOCIAL_ENGINE_DELIVERY.md),
+  [0180 karar](docs/decisions/0180-social-engine-delivery.md),
+  [kullanım](docs/SOCIAL_TRACKING.md).
 
 ### N-035 — Sosyal inceleme, vaka ve düzenli takip teslimi
 

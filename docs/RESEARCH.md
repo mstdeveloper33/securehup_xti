@@ -1,5 +1,15 @@
 # İlişkili kanıt araştırması
 
+0.175.0 birleşik sosyal keşifleri domain, tam profil URL'si, insan kararı
+ve vaka üzerinden araştırmaya bağlar. `social_page`, `social_source_claim`,
+`social_provider`, `social_review_decision` kanıtları ayrı kalır. Düğüm ve
+kenar JSON'undaki ek `source_comparisons` alanı kaynak/referans başına son
+gözlemi, zamanı, farklılığı veya doğrulama eksiğini gösterir. Bir araç
+bildirimi tek başına resmî hesap/taklit kararı değildir.
+Araştırma kuralı v9; geçmiş kayıtlı incelemeler değişmez. Sosyal kapsam
+5.000 satır/16MiB ön denetim ve1.000 profil sınırına sığmazsa `coverage`
+eksikliği açıkça belirtir. [Kullanım](SOCIAL_TRACKING.md).
+
 0.168.0 yerel sensör görülmelerini `local_sighting` kanıtı olarak, WHOIS
 kayıt bağlarını ayrı kaynak bağlamı olarak ekler. İlişki adayı/insan kararı
 `relationships`, birleşik kimlik `identity view`, kaynak farkı `ioc compare`

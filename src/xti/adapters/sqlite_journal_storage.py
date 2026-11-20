@@ -4,7 +4,7 @@ from uuid import uuid4
 import zlib
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
-from xti.adapters.compressed_evidence import JOURNALS, marker, unpack, journal_bytes
+from xti.adapters.compressed_evidence import JOURNALS, marker, unpack, journal_bytes, payload_columns
 from xti.adapters.research_read_budget import ResearchReadBudget
 from xti.domain.assets import ValidationError
 from xti.domain.cti_knowledge import normalize_knowledge_id
@@ -76,7 +76,16 @@ def read_events(connection):
 def journals(connection):
     from xti.adapters.sqlite_reports import read_reports
     from xti.adapters.sqlite_evidence import read_evidence
-    return {'report_journal': read_reports(connection), 'evidence_journal': read_evidence(connection)}
+    from xti.adapters.sqlite_social_discovery import COLUMNS, _receipt
+    from xti.adapters.sqlite_social_tracking import audit
+    from xti.adapters.compressed_evidence import logical_extra
+    count, size = connection.execute('SELECT COUNT(*),COALESCE(SUM(LENGTH(scope_json)+COALESCE(LENGTH(report_json),0)),0) FROM social_discovery_runs').fetchone()
+    if count > 10000 or size + logical_extra(connection, 'social_discovery_runs') > 64 * 1024 * 1024:
+        raise StorageError('Sosyal keşif arşiv okuma sınırı aşıldı.')
+    entries = [_receipt(row, connection) for row in connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs ORDER BY sequence')]
+    audit(connection)
+    return {'report_journal': read_reports(connection), 'evidence_journal': read_evidence(connection),
+        'social_discovery_runs': (None, entries, identity([(e['id'], e['scope'], e['report_sha256'], e['status']) for e in entries]))}
 
 
 class SQLiteJournalStorageRepository:
@@ -89,17 +98,22 @@ class SQLiteJournalStorageRepository:
         protected, recent, no_savings = 0, 0, 0
         for journal, (_, entries, _) in evidence.items():
             subject = 'report_id' if journal == 'report_journal' else 'subject_id'
-            latest = {entry[subject]: seq for seq, entry in enumerate(entries, 1)}
+            social = journal == 'social_discovery_runs'
+            latest = {(entry['scope']['domain'] if social else entry[subject]): seq for seq, entry in enumerate(entries, 1)
+                      if not social or entry['report'] is not None}
             for seq, entry in enumerate(entries, 1):
                 if (journal, seq) in active:
                     continue
-                if latest[entry[subject]] == seq:
+                if social and entry['report'] is None:
                     protected += 1
                     continue
-                if entry['recorded_at'] >= boundary:
+                if latest[entry['scope']['domain'] if social else entry[subject]] == seq:
+                    protected += 1
+                    continue
+                if entry['finished_at' if social else 'recorded_at'] >= boundary:
                     recent += 1
                     continue
-                text = canonical_json(entry)
+                text = canonical_json(entry['report'] if social else entry)
                 raw, checksum = text.encode('ascii'), digest(text)
                 packed = zlib.compress(raw, 6)
                 if len(packed) + len(marker(journal, seq, checksum)) + 128 >= len(raw):
@@ -180,7 +194,8 @@ class SQLiteJournalStorageRepository:
                     packed = connection.execute('SELECT body FROM journal_payload_archives WHERE journal=? AND sequence=?', (table, seq)).fetchone()[0]
                     payload = unpack(packed, item['raw_bytes'], item['sha256']).decode('ascii')
                     connection.execute('DELETE FROM journal_payload_archives WHERE journal=? AND sequence=?', (table, seq))
-                connection.execute(f'UPDATE {table} SET payload_json=? WHERE sequence=? AND payload_sha256=?', (payload, seq, item['sha256']))
+                payload_column, hash_column = payload_columns(table)
+                connection.execute(f'UPDATE {table} SET {payload_column}=? WHERE sequence=? AND {hash_column}=?', (payload, seq, item['sha256']))
             event = {'id': rid, 'action': action, 'archive_id': archive_id, 'created_at': at, 'policy': POLICY,
                 'items': selected, 'backup_name': backup.name, 'plan_token': token}
             self._append(connection, event, chain)

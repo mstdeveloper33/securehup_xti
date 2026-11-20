@@ -4,6 +4,7 @@ from xti.adapters.collection_news_schema import (
     COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V68_DDL, COLLECTION_RECEIPT_V68_COLUMNS,
 )
 from xti.adapters.collection_public_notice_schema import COLLECTION_STEP_COLUMNS
+from xti.adapters.collection_social_schema import COLLECTION_HISTORY_DDL as V85_DDL
 
 
 def collection_layout_v68(connection):
@@ -43,6 +44,11 @@ def legacy_collection_manifest_entry(table, entry):
     if table not in {'collection_session_steps', 'collection_step_receipts'}:
         return entry
     columns, rows, objects = entry
+    if table == 'collection_step_receipts' and any(column[1] == 'social_tracking_run_id' for column in columns):
+        if columns[-1][1] != 'social_tracking_run_id' or any(row[-1] is not None for row in rows):
+            raise AssertionError('Legacy fixture acquired social receipts')
+        columns, rows = columns[:-1], [row[:-1] for row in rows]
+        objects = [row for row in objects if not (row[0] == 'index' and row[1] == 'sqlite_autoindex_collection_step_receipts_13')]
     if table == 'collection_step_receipts' and any(column[1] == 'news_run_id' for column in columns):
         if [column[1] for column in columns[-2:]] != ['news_run_id', 'saved_search_run_id']:
             raise AssertionError('Unexpected news receipt columns')
@@ -56,7 +62,7 @@ def legacy_collection_manifest_entry(table, entry):
     normalized = []
     for kind, name, sql in objects:
         if kind == 'table' and sql != old:
-            if sql != new:
+            if sql not in (new, V85_DDL[1 if table == 'collection_session_steps' else 2]):
                 raise AssertionError('Unreviewed collection layout change')
             sql = old
         normalized.append((kind, name, sql))

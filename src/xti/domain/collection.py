@@ -25,6 +25,7 @@ class CollectionWatchTarget:
     match_mode: str
     platforms: tuple[str, ...] = ()
     search_event_id: str | None = None
+    revision: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,6 +81,7 @@ class CollectionStep:
     public_notices: PublicNoticeRefreshReport | None = None
     news: NewsRefreshReport | None = None
     search: GlobalSavedSearchRunReport | None = None
+    social: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)

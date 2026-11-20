@@ -34,13 +34,17 @@ from xti.adapters.collection_public_notice_schema import (
 )
 
 from xti.adapters.collection_news_schema import (
-    COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V68_DDL, COLLECTION_RECEIPT_V68_COLUMNS,
+    COLLECTION_HISTORY_V68_DDL, COLLECTION_RECEIPT_V68_COLUMNS,
     migrate_collection_news_schema,
+)
+from xti.adapters.collection_social_schema import (
+    COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V84_DDL, COLLECTION_RECEIPT_V84_COLUMNS,
 )
 
 
-# 84 gates the versioned retained-target receipts; table layouts are unchanged.
-SCHEMA_VERSION = 84
+# 85 gates social profile recipes and lossless discovery-body archives.
+# Collection tables gain one receipt type; historical rows/rowids survive.
+SCHEMA_VERSION = 85
 NMAP_MANAGEMENT_DDL = nmap_management_schema_metadata.NMAP_MANAGEMENT_DDL
 
 ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
@@ -3191,6 +3195,10 @@ FOREIGN_KEYS = {
 BRAND_USERNAME_WATCH_V49_COLUMNS = TABLES["brand_username_watches"][:-1]
 
 # Explicit layouts keep future tables out of the legacy validation path.
+TABLES['collection_step_receipts'].append(('social_tracking_run_id', 'TEXT', 0, 0))
+UNIQUE_KEYS['collection_step_receipts'].add(('social_tracking_run_id',))
+FOREIGN_KEYS['collection_step_receipts'].add(('social_tracking_journal', 'social_tracking_run_id', 'id', 'NO ACTION', 'RESTRICT'))
+
 VERSION_TABLES = {
     1: frozenset({"assets"}),
     2: frozenset({"assets", "observations", "findings", "finding_observations", "reviews"}),
@@ -3366,6 +3374,7 @@ VERSION_TABLES = {
     82: frozenset(TABLES),
     83: frozenset(TABLES),
     84: frozenset(TABLES),
+    85: frozenset(TABLES),
 }
 
 for _legacy_version in range(1, 83):
@@ -4168,6 +4177,9 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             column for column in TABLES["collection_step_receipts"]
             if column[0] in COLLECTION_RECEIPT_V68_COLUMNS
         ]
+    if 69 <= version < 85:
+        tables['collection_step_receipts'] = [column for column in TABLES['collection_step_receipts']
+                                              if column[0] in COLLECTION_RECEIPT_V84_COLUMNS]
     if 56 <= version < 61:
         tables["collection_step_receipts"] = [
             column for column in TABLES["collection_step_receipts"]
@@ -4357,7 +4369,8 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
                 raise SchemaError("Kuruluş kayıt düzeni beklenen biçimde değil.")
     if "collection_sessions" in tables:
         collection_ddl = (COLLECTION_HISTORY_V60_DDL if version < 61 else
-                          COLLECTION_HISTORY_V68_DDL if version < 69 else COLLECTION_HISTORY_DDL)
+                          COLLECTION_HISTORY_V68_DDL if version < 69 else
+                          COLLECTION_HISTORY_V84_DDL if version < 85 else COLLECTION_HISTORY_DDL)
         for statement in collection_ddl:
             words = statement.split()
             object_type, name = words[1].lower(), words[2]
@@ -4956,6 +4969,8 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             if row[2] and not row[4]
         }
         expected_unique = UNIQUE_KEYS[name]
+        if name == 'collection_step_receipts' and version < 85:
+            expected_unique = expected_unique - {('social_tracking_run_id',)}
         if name == "collection_step_receipts" and version < 69:
             expected_unique = expected_unique - {("news_run_id",), ("saved_search_run_id",)}
         if name == "collection_step_receipts" and version < 61:
@@ -4967,6 +4982,8 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             "FROM pragma_foreign_key_list(?)", (name,)
         )}
         expected_keys = FOREIGN_KEYS[name]
+        if name == 'collection_step_receipts' and version < 85:
+            expected_keys = expected_keys - {('social_tracking_journal', 'social_tracking_run_id', 'id', 'NO ACTION', 'RESTRICT')}
         if name == "collection_step_receipts" and version < 69:
             expected_keys = expected_keys - {
                 ("news_runs", "news_run_id", "id", "NO ACTION", "RESTRICT"),

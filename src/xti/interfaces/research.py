@@ -30,6 +30,10 @@ def _discovery_lines(states, value, data_dir):
 def _surface_detail_commands(rows, data_dir):
     commands = set()
     for row in rows:
+        if row['record_type'] in {'social_page', 'social_source_claim', 'social_discovery_scope', 'social_review_state', 'social_review_decision'}:
+            commands.add(xti_command('brand', 'discovery-show', row['source_run_id'], data_dir=data_dir))
+        if row['record_type'] == 'social_provider':
+            commands.add(xti_command('brand', 'enrichment-show', row['record_id'], data_dir=data_dir))
         if row['record_type'] in {'report_document', 'report_text_mention', 'report_search_scope', 'report_link_decision'}:
             rid, revision = row['record_id'].split(':')
             commands.add(xti_command('reports', 'show', rid, '--document-revision', revision, data_dir=data_dir))
@@ -75,6 +79,23 @@ def _surface_detail_commands(rows, data_dir):
                 'ransomware', 'status', '--source', row['source'])
             commands.add(xti_command(*command, data_dir=data_dir))
     return commands
+
+
+def comparison_lines(comparisons):
+    labels = {'different_observations': 'Kaynak gözlemleri farklı', 'identity_mismatch': 'Sağlayıcı farklı profil döndürmüş',
+        'verification_gap': 'Sayfa/sağlayıcı doğrulaması eksik', 'compatible_observations': 'Gözlemler uyumlu',
+        'lifecycle_difference': 'Kaynak iddialarının durumları farklı', 'same_reported_state': 'Kaynak durumları aynı',
+        'single_source': 'Tek kaynak kanıtı'}
+    lines = []
+    for comparison in comparisons:
+        lines.append('  Kaynak karşılaştırması: ' + labels[comparison['state']])
+        for row in comparison['observations']:
+            lines.append('    ' + safe_text(row['source']) + ': ' + safe_text(row['value']) +
+                ' | ' + safe_text(row['observed_at']) + ' | kanıt: ' + safe_text(row['record_id']))
+        lines.append('    ' + comparison['meaning'])
+        if not comparison['evidence_complete']:
+            lines.append('    Kapsam kısmi; bazı kanıtlar gösterim sınırının dışında.')
+    return lines
 
 
 def _record_detail_command(ref, value, data_dir):
@@ -258,6 +279,7 @@ def research_lines(data, *, data_dir=None):
                      f"{safe_text(nodes[edge['target_id']]['label'])} | " +
                      relations.get(edge['relationship_type'], safe_text(edge['relationship_type'])))
         show_evidence(edge["evidence"])
+        lines.extend(comparison_lines(edge.get('source_comparisons', ())))
         for command in sorted(_surface_detail_commands(edge["evidence"], data_dir)):
             lines.append("  Ayrıntı: " + command)
         if edge["evidence_total_count"] > len(edge["evidence"]):
@@ -268,6 +290,7 @@ def research_lines(data, *, data_dir=None):
         lines.append("Kayıt: " + safe_text(node["label"]))
         lines.extend(_discovery_lines(node.get('discovery', []), node['value'], data_dir))
         show_evidence(node["evidence"])
+        lines.extend(comparison_lines(node.get('source_comparisons', ())))
         for command in sorted(_surface_detail_commands(node["evidence"], data_dir)):
             lines.append("  Ayrıntı: " + command)
         if node.get("enrichment") and node["enrichment"]["latest_run"]:

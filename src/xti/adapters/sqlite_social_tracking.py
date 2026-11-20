@@ -28,11 +28,13 @@ def _bounded(connection, table, columns):
 def discovery_in(connection, identifier):
     row = connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?', (identifier,)).fetchone()
     if row is None: raise SocialDiscoveryError('not_found', 'Sosyal keşif bu çalışma alanında bulunamadı.')
-    return _receipt(row)
+    return _receipt(row, connection)
 
 
 def audit(connection):
     count, size = connection.execute('SELECT COUNT(*),COALESCE(SUM(LENGTH(scope_json)+COALESCE(LENGTH(report_json),0)),0) FROM social_discovery_runs').fetchone()
+    from xti.adapters.compressed_evidence import logical_extra
+    size += logical_extra(connection, 'social_discovery_runs')
     allocated = connection.execute("SELECT seq FROM sqlite_sequence WHERE name='social_discovery_runs'").fetchone()
     if count > 10000 or size > 64 * 1024 * 1024 or (allocated is None and count) or (allocated is not None and allocated[0] != count):
         raise StorageError('Sosyal kaynak geçmişi okuma kapasitesi veya sıra bütünlüğü geçersiz.')
@@ -110,7 +112,12 @@ def review_in(connection, discovery, url, state, enrichment_repository, *, provi
         providers.append({'id': record['id'], 'receipt_sha256': record['receipt_sha256'],
                           'status': record['state']['status'], 'checked_at': record['state']['checked_at'],
                           'result': result})
+    from xti.domain.research_social import profile_evidence, provider_evidence
+    from xti.domain.source_comparison import comparisons
+    proof = profile_evidence(discovery, profile, current=True)
+    proof.extend(provider_evidence(record, url) for record in records if url in record['scope']['targets'])
     return {'domain': discovery['scope']['domain'], 'discovery_id': discovery['id'],
+            'source_comparisons': comparisons(proof, total=len(proof) + int(truncated)),
             'report_sha256': discovery['report_sha256'], 'checked_at': discovery['finished_at'],
             'profile': profile, 'provider_evidence': providers, 'provider_evidence_truncated': truncated,
             'review': history[-1] if history else None, 'revision': len(history), 'review_history': history,
@@ -187,49 +194,62 @@ class SQLiteSocialTrackingRepository:
             record = public_watch(rows[identifier]) if operation == 'brand.tracking.show' else rows[identifier]
             return {'record': record}
 
-    def write(self, operation, request, at):
-        request = dict(request); key = history_key(request.pop('idempotency_key')); mention_time(at)
+    def write(self, operation, request, at, *, collection_operation=None):
         with self.storage._connection() as connection:
             connection.execute('BEGIN IMMEDIATE')
             try:
-                state, chain, previous_at = audit(connection)
-                notifications_in(connection, state)
-                for event in state['events'].values():
-                    if event['key'] == key:
-                        previous_request = {name: value for name, value in event['request'].items() if name != '_version'}
-                        if event['operation'] != operation or previous_request != request:
-                            raise SocialDiscoveryError('idempotency_conflict', 'Tekrar anahtarı farklı sosyal işleme ait.')
-                        record = state['runs'][event['id']] if operation == 'brand.tracking.run' else state['responses'][event['id']]
-                        connection.rollback()
-                        return {'record': record, 'replayed': True}
-                if previous_at is not None and at < previous_at:
-                    raise SocialDiscoveryError('clock_regressed', 'Saat kayıt geçmişinin gerisinde; işlem yapılmadı.')
-                count, size = _bounded(connection, 'social_tracking_journal', 'LENGTH(request_json)+LENGTH(request_key)+LENGTH(operation)+256')
-                if operation == 'brand.tracking.run': request['_version'] = 2
-                text = canonical(request)
-                if count >= MAX_EVENTS or size + len(text) + 512 > MAX_BYTES:
-                    raise StorageError('Sosyal izleme günlük kapasitesi doldu.')
-                did = request.get('discovery_id')
-                discovery = discovery_in(connection, did) if did else None
-                rid = str(uuid4()); dsha = discovery['report_sha256'] if discovery else None
-                event = {'id': rid, 'key': key, 'operation': operation, 'request': request, 'recorded_at': at}
-                result = apply_event(state, event, discovery)
-                chain = fingerprint([POLICY, chain, count + 1, rid, key, operation, request, did, dsha, at])
-                connection.execute('INSERT INTO social_tracking_journal '
-                    '(id,request_key,operation,request_json,discovery_id,discovery_sha256,chain_sha256,recorded_at) VALUES (?,?,?,?,?,?,?,?)',
-                    (rid, key, operation, text, did, dsha, chain, at))
-                if operation == 'brand.tracking.finish':
-                    count, _ = _bounded(connection, 'social_tracking_notifications', '256')
-                    if count + len(result['changes']) > MAX_EVENTS: raise StorageError('Sosyal bildirim kapasitesi doldu.')
-                    for change in result['changes']:
-                        connection.execute('INSERT INTO social_tracking_notifications '
-                            '(sequence,id,run_id,change_id,created_at) VALUES (?,?,?,?,?)',
-                            (next_notification_sequence(connection), notification_id(result['id'], change['id']), result['id'], change['id'], at))
-                notifications_in(connection, state)
+                result = write_in(connection, operation, request, at, collection_operation=collection_operation)
                 connection.commit()
-                return {'record': result, 'replayed': False}
+                return result
             except BaseException:
-                connection.rollback(); raise
+                connection.rollback()
+                raise
+
+
+def write_in(connection, operation, request, at, *, collection_operation=None):
+    """Same transaction for social completion, notices and optional collection receipt."""
+    request = dict(request); key = history_key(request.pop('idempotency_key')); mention_time(at)
+    if collection_operation is not None:
+        from xti.adapters.sqlite_collection_social import validate_operation, attach_result
+        validate_operation(connection, collection_operation, operation, request, key)
+    state, chain, previous_at = audit(connection)
+    notifications_in(connection, state)
+    for event in state['events'].values():
+        if event['key'] == key:
+            previous_request = {name: value for name, value in event['request'].items() if name != '_version'}
+            if event['operation'] != operation or previous_request != request:
+                raise SocialDiscoveryError('idempotency_conflict', 'Tekrar anahtarı farklı sosyal işleme ait.')
+            record = state['runs'][event['id']] if operation == 'brand.tracking.run' else state['responses'][event['id']]
+            if collection_operation is not None and record.get('status') != 'running':
+                attach_result(connection, collection_operation, record)
+            return {'record': record, 'replayed': True}
+    if previous_at is not None and at < previous_at:
+        raise SocialDiscoveryError('clock_regressed', 'Saat kayıt geçmişinin gerisinde; işlem yapılmadı.')
+    count, size = _bounded(connection, 'social_tracking_journal', 'LENGTH(request_json)+LENGTH(request_key)+LENGTH(operation)+256')
+    if operation == 'brand.tracking.run': request['_version'] = 2
+    text = canonical(request)
+    if count >= MAX_EVENTS or size + len(text) + 512 > MAX_BYTES:
+        raise StorageError('Sosyal izleme günlük kapasitesi doldu.')
+    did = request.get('discovery_id')
+    discovery = discovery_in(connection, did) if did else None
+    rid = str(uuid4()); dsha = discovery['report_sha256'] if discovery else None
+    event = {'id': rid, 'key': key, 'operation': operation, 'request': request, 'recorded_at': at}
+    result = apply_event(state, event, discovery)
+    chain = fingerprint([POLICY, chain, count + 1, rid, key, operation, request, did, dsha, at])
+    connection.execute('INSERT INTO social_tracking_journal '
+        '(id,request_key,operation,request_json,discovery_id,discovery_sha256,chain_sha256,recorded_at) VALUES (?,?,?,?,?,?,?,?)',
+        (rid, key, operation, text, did, dsha, chain, at))
+    if operation == 'brand.tracking.finish':
+        count, _ = _bounded(connection, 'social_tracking_notifications', '256')
+        if count + len(result['changes']) > MAX_EVENTS: raise StorageError('Sosyal bildirim kapasitesi doldu.')
+        for change in result['changes']:
+            connection.execute('INSERT INTO social_tracking_notifications '
+                '(sequence,id,run_id,change_id,created_at) VALUES (?,?,?,?,?)',
+                (next_notification_sequence(connection), notification_id(result['id'], change['id']), result['id'], change['id'], at))
+    notifications_in(connection, state)
+    if collection_operation is not None and operation == 'brand.tracking.finish':
+        attach_result(connection, collection_operation, result)
+    return {'record': result, 'replayed': False}
 
 
 def case_snapshot(connection, path, evidence_id):
@@ -244,7 +264,8 @@ def case_snapshot(connection, path, evidence_id):
     if profile is None: raise SocialDiscoveryError('not_found', 'Sosyal vaka profil kanıtı bulunamadı.')
     view = review_in(connection, discovery, profile['url'], audit(connection)[0], SQLiteSocialEnrichmentRepository(path))
     payload = {key: view[key] for key in ('domain', 'discovery_id', 'report_sha256', 'profile', 'provider_evidence', 'review_history')}
-    payload.update(kind='social_discovery_evidence', version=1, scope=discovery['scope'], limitations=[
+    payload.update(kind='social_discovery_evidence', version=2, discovery_policy=discovery['policy'],
+                   scope=discovery['scope'], limitations=[
         'Seçilen keşif ve ek kanıtın vakaya ekleme anındaki kopyasıdır; sonraki tarama bunu değiştirmez.',
         'Profil varlığı veya sağlayıcı kaydı marka sahipliği/taklit hükmü değildir; karar insana aittir.',
         'Ek sağlayıcı kapsamı bu keşfin son 20 işlemidir; eski kayıtlar ayrıca açılabilir.' if view['provider_evidence_truncated'] else 'İlgili ek sağlayıcı geçmişi tamdır.'])

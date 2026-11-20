@@ -10,12 +10,16 @@ from xti.domain.research import (
 from xti.domain.surface_discovery_status import StoredDiscoveryStatus
 
 
-POLICY_VERSION = "research-priority-v8"
+POLICY_VERSION = "research-priority-v9"
 PRIORITIES = ("review_first", "verify", "context")
 
 # Order is explicit and ordinal. Confidence, source popularity and duplicated
 # observations do not vote, add points, or change an analyst's decision.
 RULES = {
+    'social_source_difference': ('verify', 'Aynı sosyal adres için kaynak kayıtları farklı; sayfa kanıtını ve zamanlarını karşılaştırın.'),
+    'social_verification_gap': ('verify', 'Sosyal profil kontrolü tamamlanamamış; kaynak iddiası hesap varlığını doğrulamaz.'),
+    'social_review_pending': ('verify', 'Birleşik sosyal profil bu keşif kesitinde insan incelemesi bekliyor.'),
+    'social_review_outdated': ('verify', 'İnsan kararı önceki keşif kesitine ait; yeni kanıtla birlikte yeniden değerlendirin.'),
     'open_case': ('verify', 'İlgili açık vaka var; karar gerekçesini ve özgün vaka kanıtını inceleyin.'),
     'closed_case': ('context', 'İlgili vaka kapatılmış; bu karar kaynak iddiasını geri çekmez.'),
     'social_impersonation_review': ('review_first', 'Bu profil kesiti insan tarafından olası taklit olarak işaretlenmiş; özgün incelemeyi doğrulayın.'),
@@ -145,10 +149,24 @@ def _reasons(rows, total, matches, related, checked_at, hours, discovery=()):
         reasons.append(ReviewReason(code, tuple(sorted({evidence_id(row) for row in evidence}))))
 
     now = datetime.fromisoformat(checked_at)
+    from xti.domain.source_comparison import comparisons
+    for comparison in comparisons(rows, total=total):
+        if comparison['predicate'] != 'profile_presence':
+            continue
+        ids = {item['evidence_id'] for item in comparison['observations']}
+        selected = [row for row in rows if evidence_id(row) in ids]
+        if comparison['state'] in ('different_observations', 'identity_mismatch'):
+            add('social_source_difference', selected)
+        elif comparison['state'] == 'verification_gap':
+            add('social_verification_gap', selected)
     for code, selected in (
         ('open_case', [row for row in rows if row.record_type == 'case_activity' and row.current and row.status in {'open', 'investigating', 'monitoring'}]),
         ('closed_case', [row for row in rows if row.record_type == 'case_activity' and row.current and row.status in {'closed', 'resolved'}]),
-        ('social_impersonation_review', [row for row in rows if row.record_type == 'social_decision' and row.current and row.status == 'possible_impersonation']),
+        ('social_impersonation_review', [row for row in rows if row.current and (
+            row.record_type == 'social_decision' and row.status == 'possible_impersonation' or
+            row.record_type == 'social_review_decision' and row.status == 'suspected_impersonation')]),
+        ('social_review_pending', [row for row in rows if row.record_type == 'social_review_state' and row.status == 'pending']),
+        ('social_review_outdated', [row for row in rows if row.record_type == 'social_review_state' and row.status == 'outdated']),
         ('content_candidate', [row for row in rows if row.record_type == 'company_content']),
         ('investigation_pending', [row for row in rows if row.record_type in {'identity_proposal', 'report_candidate'} and row.status in {'pending', 'uncertain'}]),
         ('report_text_context', [row for row in rows if row.record_type == 'report_text_mention']),

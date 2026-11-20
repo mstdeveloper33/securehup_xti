@@ -15,13 +15,17 @@ from xti.interfaces.text import safe_text
 _OPTION_FIELDS = (
     "tasks", "typos", "stale_after_hours", "finding_limit",
     "username_watch_ids", "ransomware_watch_ids", "ransomlook_watch_ids", "watch_item_limit",
-    "news_sources", "search_watch_ids", "only_news",
+    "news_sources", "search_watch_ids", "only_news", "social_watch_ids", "only_social",
 )
 _ACTIONS = {"added": "Kaydedildi", "updated": "Güncellendi", "reactivated": "Yeniden etkin",
             "revoked": "Geri çekildi", "unchanged": "Değişmedi"}
 
 
 def add_collection_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument('--social-watch', action='append', dest='social_watch_ids', metavar='ID',
+        help='Aynı domaine ait birleşik sosyal takip tanımını ekle; tekrarlanabilir.')
+    parser.add_argument('--only-social', action='store_true', default=None,
+        help='Yalnız --social-watch ile seçilen birleşik sosyal takipleri çalıştır.')
     # None distinguishes an omitted option from an explicit attempt to override
     # a saved profile, even when the supplied value equals today's default.
     parser.add_argument(
@@ -90,16 +94,23 @@ def validate_profile_selection(args) -> None:
 
 def definition_from_arguments(args) -> CollectionProfileDefinition:
     only_news = getattr(args, "only_news", False)
+    only_social = getattr(args, 'only_social', False)
+    social = getattr(args, 'social_watch_ids', None)
+    if only_social and (only_news or args.tasks is not None or args.news_sources or args.search_watch_ids
+            or args.username_watch_ids or args.ransomware_watch_ids or args.ransomlook_watch_ids or args.typos):
+        raise ValidationError('--only-social başka toplama seçenekleriyle birlikte kullanılamaz.')
+    if only_social and not social:
+        raise ValidationError('--only-social için en az bir --social-watch seçin.')
     if only_news and (
         args.tasks is not None or args.username_watch_ids or args.ransomware_watch_ids
-        or args.ransomlook_watch_ids or args.typos
+        or args.ransomlook_watch_ids or args.typos or social
     ):
         raise ValidationError("--only-news ile başka toplama işleri, sosyal/sızıntı izlemeleri veya --typos seçilemez.")
     if only_news and not args.news_sources:
         raise ValidationError("--only-news için en az bir --news-source seçin.")
     return normalize_profile_definition(CollectionProfileDefinition(
         asset_value=args.domain,
-        task_ids=() if only_news else tuple(args.tasks) if args.tasks is not None else DEFAULT_COLLECTION_TASKS,
+        task_ids=() if only_news or only_social else tuple(args.tasks) if args.tasks is not None else DEFAULT_COLLECTION_TASKS,
         username_watch_ids=tuple(args.username_watch_ids or ()),
         ransomware_watch_ids=tuple(args.ransomware_watch_ids or ()),
         ransomlook_watch_ids=tuple(args.ransomlook_watch_ids or ()),
@@ -109,6 +120,7 @@ def definition_from_arguments(args) -> CollectionProfileDefinition:
         watch_item_limit=args.watch_item_limit if args.watch_item_limit is not None else 100,
         news_sources=tuple(args.news_sources or ()),
         search_watch_ids=tuple(args.search_watch_ids or ()),
+        social_watch_ids=tuple(social or ()),
     ))
 
 
@@ -118,7 +130,7 @@ def profile_lines(profile: CollectionProfile) -> list[str]:
         f"Profil: {safe_text(profile.display_name)} | {'Etkin' if profile.active else 'Geri çekilmiş'}",
         f"Kimlik: {safe_text(profile.id)} | Sürüm: {profile.revision}",
         f"Domain: {safe_text(definition.asset_value)}",
-        f"İşler: {safe_text(', '.join(definition.task_ids) or 'Yalnız haber toplama')}",
+        f"İşler: {safe_text(', '.join(definition.task_ids) or 'Yalnız seçili izleme/yayın işleri')}",
         f"Haber kaynakları: {safe_text(', '.join(definition.news_sources) or 'Seçilmedi')}",
         f"Yazım varyantları: {'açık' if definition.typos else 'kapalı'}",
         f"Güncellik: {definition.stale_after_hours} saat | Analiz görünümü: {definition.finding_limit}",
@@ -129,6 +141,7 @@ def profile_lines(profile: CollectionProfile) -> list[str]:
         ("ThreatCluster", definition.ransomware_watch_ids),
         ("RansomLook", definition.ransomlook_watch_ids),
         ("Haber araması", definition.search_watch_ids),
+        ('Birleşik sosyal', definition.social_watch_ids),
     ):
         lines.append(f"{label} izlemeleri: {len(ids)}")
         lines.extend(f"  {safe_text(watch_id)}" for watch_id in ids)

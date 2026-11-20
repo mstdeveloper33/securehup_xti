@@ -34,7 +34,7 @@ class SQLiteSocialEnrichmentRepository:
     def _discovery(self, connection, identifier):
         row = connection.execute(f'SELECT {DISCOVERY_COLUMNS} FROM social_discovery_runs WHERE id=?', (identifier,)).fetchone()
         if row is None: raise SocialDiscoveryError('not_found', 'Bu çalışma alanında sosyal keşif bulunamadı.')
-        return discovery_receipt(row)
+        return discovery_receipt(row, connection)
 
     def discovery(self, identifier):
         mention_uuid(identifier)

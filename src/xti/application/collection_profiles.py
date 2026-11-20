@@ -16,7 +16,7 @@ from xti.ports.jobs import ExecutionLock
 
 def collection_options(definition: CollectionProfileDefinition) -> dict:
     """Pass an explicit saved selection, including defaults frozen at save time."""
-    return {
+    result = {
         "tasks": definition.task_ids,
         "typos": definition.typos,
         "stale_after_hours": definition.stale_after_hours,
@@ -28,6 +28,9 @@ def collection_options(definition: CollectionProfileDefinition) -> dict:
         "news_sources": definition.news_sources,
         "search_watch_ids": definition.search_watch_ids,
     }
+    if definition.social_watch_ids:
+        result['social_watch_ids'] = definition.social_watch_ids
+    return result
 
 
 class CollectionProfileService:

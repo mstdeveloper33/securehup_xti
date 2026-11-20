@@ -9,6 +9,21 @@ from xti.interfaces.surface_freshness import item_summary_line as freshness_summ
 _STATUS = {"complete": "Tamamlandı", "partial": "Kısmi", "failed": "Başarısız", "skipped": "Atlandı"}
 
 
+def social_lines(run, *, data_dir=None):
+    if run['status'] == 'not_due':
+        return ['  Sosyal izlemenin zamanı gelmedi; ağ isteği yapılmadı.',
+            '  İzleme: ' + xti_command('brand', 'tracking-show', run['watch_id'], data_dir=data_dir)]
+    lines = ['  Sosyal çalışma: ' + safe_text(run['id']),
+        '  Ayrıntı: ' + xti_command('brand', 'tracking-run-show', run['id'], data_dir=data_dir)]
+    if run['baseline']:
+        lines.append('  İlk ölçüm sessiz başlangıçtır; yeni alarm sayılmaz.')
+    for change in run['changes'][:20]:
+        lines.append('  ' + safe_text(change['url']) + ' | ' + safe_text(change['kind']))
+    if len(run['changes']) > 20:
+        lines.append('  Diğer değişiklikler çalışma ayrıntısında korunur.')
+    return lines
+
+
 def _step_lines(step: CollectionStep, *, data_dir=None) -> list[str]:
     def command(*args):
         return "  Ayrıntı: " + xti_command(*args, data_dir=data_dir)
@@ -67,6 +82,8 @@ def _step_lines(step: CollectionStep, *, data_dir=None) -> list[str]:
         lines.append(command("search-watch", "run-show", report.run.id))
     elif step.task.kind == "search_watch" and step.status == "skipped":
         lines.append("  Haber yenilemesi tamamlanamadı; eski katalogdan yeni bildirim üretilmedi.")
+    elif step.social is not None:
+        lines.extend(social_lines(step.social, data_dir=data_dir))
     elif step.username is not None:
         report = step.username
         lines.append(f"  İzleme: {safe_text(report.watch.display_name)} | kullanıcı adı: @{safe_text(report.watch.username)}")

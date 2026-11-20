@@ -140,6 +140,50 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual({c[1] for c in self.sources.calls},{'acme'})
         self.assertFalse(any(c[0]=='web' for c in self.sources.calls))
 
+    def test_legacy_policy_receipts_and_case_snapshots_remain_readable_without_reinterpreting(self):
+        from copy import deepcopy
+        from xti.domain.social_discovery import fingerprint, canonical, POLICY
+        from xti.adapters.sqlite_social_tracking import case_snapshot
+        from xti.domain.social_tracking import case_id, validate_case_snapshot
+        scope = parameters('brand.discovery.plan', {**SCOPE, 'platforms': ['Twitter']})
+        target = 'https://x.com/acme'
+        original = self.pages.fetch
+        self.pages.fetch = lambda url, **kw: (page(url,
+            '<title>Acme (@acme_support) / X</title><link rel="canonical" href="https://x.com/acme">')
+            if url == target else original(url, **kw))
+        reserved = self.repo.reserve(scope, 'legacy-rule', AT)['record']
+        # A genuine old reservation: the scope hash selects v1, even before finish.
+        with self.storage._connection() as c, c:
+            c.execute('UPDATE social_discovery_runs SET scope_sha256=? WHERE id=?',
+                (fingerprint(['social-discovery-v1', scope]), reserved['id']))
+        report = self.service._collect(scope, policy='social-discovery-v1')
+        self.assertEqual(report['profiles'][0]['state'], 'found')
+        self.repo.finish(reserved['id'], report, AT)
+        with self.storage._connection(readonly=True) as c:
+            snapshot = case_snapshot(c, self.path, case_id(reserved['id'], target))
+        legacy = json.loads(snapshot.snapshot_json)
+        legacy['version'] = 1; del legacy['discovery_policy']
+        frozen = canonical(legacy)
+        validate_case_snapshot(legacy)
+        self.assertEqual(canonical(legacy), frozen)
+        before = self.path.read_bytes()
+        self.assertEqual(self.repo.show(reserved['id'])['record']['report'], report)
+        self.assertEqual(self.service._run(scope, 'legacy-rule')['record']['report'], report)
+        self.assertEqual(self.path.read_bytes(), before)
+        fresh = self.service._run(scope, 'new-rule')['record']['report']
+        self.assertEqual(fresh['policy'], POLICY)
+        self.assertEqual(fresh['profiles'][0]['state'], 'inconclusive')
+        forged = deepcopy(legacy); forged.update(version=2, discovery_policy=POLICY)
+        with self.assertRaises(ValidationError): validate_case_snapshot(forged)
+
+    def test_reservation_does_not_accept_a_different_decision_policy(self):
+        scope = parameters('brand.discovery.plan', SCOPE)
+        record = self.repo.reserve(scope, 'pending-policy', AT)['record']
+        report = self.service._collect(scope, policy='social-discovery-v1')
+        before = self.path.read_bytes()
+        with self.assertRaises(SocialDiscoveryError): self.repo.finish(record['id'], report, AT)
+        self.assertEqual(self.path.read_bytes(), before)
+
     def test_corporate_about_redirect_discovers_a_different_handle_without_extra_crawling(self):
         original=self.pages.fetch
         target='https://instagram.com/acmeprivacy'

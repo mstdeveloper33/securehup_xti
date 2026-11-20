@@ -1,5 +1,15 @@
 # XTI Motorunun Mimarisi
 
+0.175.0 `research_social` ve `source_comparison` saf kanıt gösterim
+kurallarıdır. `StoredSocialContext` aynı salt-okunur transaction içinde
+sınırlı sosyal kanıt okur. Araştırma önceliği v9, araştırma modeli3'tür.
+`CollectionSocial` portu mevcut kalıcı toplama işini sosyal takip servisine
+bağlar; sonuç, değişiklik bildirimi ve toplama makbuzu atomik yazılır.
+Şema85 iki toplama tablosunu eski satır/rowid'leri koruyarak genişletir;
+önce yedek alınır. Aynı kayıpsız arşiv sosyal keşif gövdelerini de çözer.
+Keşif karar kuralı v2 ve vaka kopyası v2 açık sürümlüdür; tarihî v1 kanıt
+yeniden yorumlanmaz. [0180 kararı](decisions/0180-social-engine-delivery.md).
+
 0.174.0 saf `social_retained` kuralları önceki kaynak destekli adresleri
 izleme günlüğünden türetir. Turv2 kontrol penceresini keşif scope/hash'ine
 dondurur; eski günlük/keşif/vaka biçimleri korunur. Çekirdek84 yeni kayıt

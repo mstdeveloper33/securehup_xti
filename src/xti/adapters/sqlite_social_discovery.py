@@ -7,24 +7,26 @@ from xti.domain.assets import ValidationError
 from xti.domain.mentions import mention_time, mention_uuid
 from xti.domain.research_history import history_key
 from xti.domain.social_discovery import (
-    POLICY, MAX_REPORT_BYTES, SocialDiscoveryError, canonical, fingerprint, parameters, validate_report,
+    POLICY, POLICIES, MAX_REPORT_BYTES, SocialDiscoveryError, canonical, fingerprint, parameters, validate_report,
 )
 from xti.domain.social_retained import MAX_SCOPE_BYTES, validate_scope
+from xti.adapters.compressed_evidence import logical_extra, resolve_payload
 
 MAX_RUNS = 10_000
 MAX_TOTAL_BYTES = 64 * 1024 * 1024
 COLUMNS = 'id,request_key,domain,scope_json,scope_sha256,status,report_json,report_sha256,started_at,finished_at'
 
 
-def _receipt(row):
+def _receipt(row, connection=None):
     try:
         identifier, key, domain, scope_json, scope_hash, status, payload, digest, started, finished = row
         mention_uuid(identifier); history_key(key); mention_time(started)
         if not isinstance(scope_json,str) or len(scope_json) > MAX_SCOPE_BYTES:
             raise ValueError('Scope size')
         scope = json.loads(scope_json)
+        policy = next((p for p in POLICIES if fingerprint([p,scope]) == scope_hash), None)
         if (validate_scope(scope) != scope or canonical(scope) != scope_json
-                or fingerprint([POLICY,scope]) != scope_hash or scope['domain'] != domain):
+                or policy is None or scope['domain'] != domain):
             raise ValueError('Scope changed')
         if 'tracking' in scope and key != 'social-tracking-' + scope['tracking']['run_id']:
             raise ValueError('Tracking operation key')
@@ -32,13 +34,17 @@ def _receipt(row):
         if status == 'running':
             if payload is not None or digest is not None or finished is not None: raise ValueError('Pending state')
         else:
+            if connection is not None and isinstance(payload, str) and payload.startswith('{"cold_payload_v1":'):
+                sequence = connection.execute('SELECT sequence FROM social_discovery_runs WHERE id=?', (identifier,)).fetchone()[0]
+                payload = resolve_payload(connection, 'social_discovery_runs', sequence, payload, digest)
             if not isinstance(payload,str) or len(payload) > MAX_REPORT_BYTES: raise ValueError('Report size')
             report = validate_report(json.loads(payload))
-            if canonical(report) != payload or fingerprint(report) != digest or report['scope'] != scope or report['status'] != status:
+            if (canonical(report) != payload or fingerprint(report) != digest or report['scope'] != scope
+                    or report['status'] != status or report['policy'] != policy):
                 raise ValueError('Report integrity')
             mention_time(finished)
             if finished < started: raise ValueError('Report time')
-        return {'id': identifier, 'idempotency_key': key, 'scope': scope, 'status': status,
+        return {'id': identifier, 'idempotency_key': key, 'scope': scope, 'status': status, 'policy': policy,
                 'started_at': started, 'finished_at': finished, 'report_sha256': digest, 'report': report}
     except (ValueError, TypeError, KeyError, AttributeError, RecursionError) as error:
         raise StorageError('Sosyal keşif makbuzu doğrulanamadı; kayıt veya kanıt değiştirilmiş olabilir.') from error
@@ -48,10 +54,12 @@ class SQLiteSocialDiscoveryRepository:
     def __init__(self, path):
         self.storage = SQLiteAssetRepository(path)
 
-    def _capacity(self, connection, *, extra=0, new=False):
+    @staticmethod
+    def _capacity(connection, *, extra=0, new=False):
         count, size, largest = connection.execute(
             'SELECT COUNT(*), COALESCE(SUM(LENGTH(scope_json)+COALESCE(LENGTH(report_json),0)),0), '
             'COALESCE(MAX(LENGTH(report_json)),0) FROM social_discovery_runs').fetchone()
+        size += logical_extra(connection, 'social_discovery_runs')
         if count+int(new) > MAX_RUNS or size+extra > MAX_TOTAL_BYTES or largest > MAX_REPORT_BYTES:
             raise StorageError('Sosyal keşif saklama sınırına ulaştı; kayıtlar değiştirilmedi.')
         allocated=connection.execute("SELECT seq FROM sqlite_sequence WHERE name='social_discovery_runs'").fetchall()
@@ -72,7 +80,7 @@ class SQLiteSocialDiscoveryRepository:
                 self._capacity(connection)
                 existing = connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE request_key=?',(key,)).fetchone()
                 if existing:
-                    record = _receipt(existing)
+                    record = _receipt(existing, connection)
                     if record['scope'] != scope:
                         raise SocialDiscoveryError('idempotency_conflict','Tekrar anahtarı farklı bir sosyal keşif kapsamına ait.')
                     connection.rollback()
@@ -82,7 +90,7 @@ class SQLiteSocialDiscoveryRepository:
                 connection.execute('INSERT INTO social_discovery_runs '
                     '(id,request_key,domain,scope_json,scope_sha256,status,started_at) VALUES (?,?,?,?,?,?,?)',
                     (identifier,key,scope['domain'],canonical(scope),fingerprint([POLICY,scope]),'running',at))
-                record = _receipt(connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?',(identifier,)).fetchone())
+                record = _receipt(connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?',(identifier,)).fetchone(), connection)
                 connection.commit()
                 return {'record':record,'replayed':False}
             except BaseException:
@@ -95,14 +103,15 @@ class SQLiteSocialDiscoveryRepository:
             try:
                 row = connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?',(identifier,)).fetchone()
                 if row is None: raise SocialDiscoveryError('not_found','Sosyal keşif çalışması bulunamadı.')
-                record = _receipt(row)
-                if record['status'] != 'running' or record['scope'] != report['scope'] or at < record['started_at']:
+                record = _receipt(row, connection)
+                if (record['status'] != 'running' or record['scope'] != report['scope'] or at < record['started_at']
+                        or record['policy'] != report['policy']):
                     raise SocialDiscoveryError('invalid_state','Tamamlanan çalışma değiştirilemez; kapsam ve zaman eşleşmeli.')
                 payload = canonical(report)
                 self._capacity(connection,extra=len(payload))
                 connection.execute('UPDATE social_discovery_runs SET status=?,report_json=?,report_sha256=?,finished_at=? WHERE id=?',
                     (report['status'],payload,fingerprint(report),at,identifier))
-                result = _receipt(connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?',(identifier,)).fetchone())
+                result = _receipt(connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?',(identifier,)).fetchone(), connection)
                 connection.commit()
                 return {'record': result, 'replayed':False}
             except BaseException:
@@ -114,14 +123,14 @@ class SQLiteSocialDiscoveryRepository:
             self._capacity(connection)
             row = connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE id=?',(identifier,)).fetchone()
             if row is None: raise SocialDiscoveryError('not_found','Sosyal keşif çalışması bulunamadı.')
-            return {'record':_receipt(row),'replayed':False}
+            return {'record':_receipt(row, connection),'replayed':False}
 
     def find_key(self, key):
         history_key(key)
         with self.storage._connection(readonly=True) as connection:
             self._capacity(connection)
             row = connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs WHERE request_key=?', (key,)).fetchone()
-            return _receipt(row) if row is not None else None
+            return _receipt(row, connection) if row is not None else None
 
     def list(self, *, domain=None, offset=0, limit=20):
         options = parameters('brand.discovery.list',{'offset':offset,'limit':limit,**({'domain':domain} if domain else {})})
@@ -132,7 +141,7 @@ class SQLiteSocialDiscoveryRepository:
             total = connection.execute('SELECT COUNT(*) FROM social_discovery_runs'+where,values).fetchone()[0]
             records = []
             for row in connection.execute(f'SELECT {COLUMNS} FROM social_discovery_runs'+where+' ORDER BY sequence DESC LIMIT ? OFFSET ?',(*values,limit,offset)):
-                record = _receipt(row)
+                record = _receipt(row, connection)
                 report = record.pop('report')
                 record['counts'] = report['counts'] if report else None
                 records.append(record)

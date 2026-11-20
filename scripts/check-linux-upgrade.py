@@ -27,7 +27,7 @@ from typing import NamedTuple
 
 PROJECT = Path(__file__).resolve().parents[1]
 BASELINE = "9cdf32c7981b87532952ec2c6b8a3fb5bb142ba8"
-MAX_REVIEWED_SCHEMA = 84
+MAX_REVIEWED_SCHEMA = 85
 OUTPUT_LIMIT = 8 * 1024 * 1024
 
 
@@ -291,9 +291,9 @@ def require_preserved_tables(before, after):
     for name, expected in before[1].items():
         actual = after[1].get(name)
         reviewed_upgrade = (
-            before[0] <= 68 and 69 <= after[0] <= MAX_REVIEWED_SCHEMA
+            64 <= before[0] < after[0] <= MAX_REVIEWED_SCHEMA
             and name in ("collection_session_steps", "collection_step_receipts")
-            and _preserved_collection_upgrade(name, expected, actual)
+            and _preserved_collection_upgrade(name, expected, actual, before_schema=before[0], after_schema=after[0])
         )
         reviewed_case_upgrade = (
             63 <= before[0] < after[0] <= MAX_REVIEWED_SCHEMA and name == "case_evidence"
@@ -327,15 +327,18 @@ def _preserved_case_upgrade(expected, actual, *, before_schema, after_schema):
     return (expected[0], expected[2]) == shapes[0] and (actual[0], actual[2]) == shapes[1]
 
 
-def _preserved_collection_upgrade(name, expected, actual):
+def _preserved_collection_upgrade(name, expected, actual, *, before_schema=68, after_schema=85):
     """Allow only reviewed DDL changes, exact old values and NULL new links."""
     if actual is None:
         return False
-    from xti.adapters.collection_news_schema import (
-        COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V68_DDL,
-    )
+    from xti.adapters.collection_news_schema import COLLECTION_HISTORY_V68_DDL
+    from xti.adapters.collection_social_schema import COLLECTION_HISTORY_DDL, COLLECTION_HISTORY_V84_DDL
+    def layout(version):
+        if version <= 68: return COLLECTION_HISTORY_V68_DDL
+        if version <= 84: return COLLECTION_HISTORY_V84_DDL
+        return COLLECTION_HISTORY_DDL
     shapes = []
-    for statements in (COLLECTION_HISTORY_V68_DDL, COLLECTION_HISTORY_DDL):
+    for statements in (layout(before_schema), layout(after_schema)):
         with closing(sqlite3.connect(":memory:")) as connection:
             for statement in statements:
                 connection.execute(statement)

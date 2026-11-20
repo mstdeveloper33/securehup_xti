@@ -5,7 +5,7 @@ from xti.domain.collection_history import CollectionResumePlan, CollectionSessio
 from xti.interfaces.analysis import report_lines as analysis_lines
 from xti.interfaces.news import news_command
 from xti.interfaces.global_saved_searches import search_watch_command
-from xti.interfaces.text import safe_text
+from xti.interfaces.text import safe_text, xti_command
 
 _STATUS = {
     "pending": "Bekliyor", "running": "Çalışıyor", "complete": "Tamamlandı",
@@ -14,6 +14,8 @@ _STATUS = {
 
 
 def _source_receipt_lines(receipt, *, data_dir=None) -> list[str]:
+    if receipt.result_kind == 'social_tracking_run':
+        return ['    Sosyal kanıt: ' + xti_command('brand', 'tracking-run-show', receipt.result_id, data_dir=data_dir)]
     if receipt.result_kind == "news_run":
         return [
             "    Kapsam: yayıncı haberleri; sayaçlar seçilen domainin bulguları değildir.",

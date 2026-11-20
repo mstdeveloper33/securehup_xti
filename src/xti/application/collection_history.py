@@ -78,6 +78,8 @@ class CollectionHistoryService:
                 contract = NEWS_POLICY
             elif task.kind == "search_watch":
                 contract = GLOBAL_SEARCH_WATCH_VERSION
+            elif task.kind == 'social_tracking':
+                contract = collection.social.contract(task)
             else:
                 contract = f"collection-source-v1:{task.kind}:{task.source}"
             contracts[task.id] = contract
@@ -122,6 +124,7 @@ class CollectionHistoryService:
         username_watch_ids: Sequence[str] = (), ransomware_watch_ids: Sequence[str] = (),
         ransomlook_watch_ids: Sequence[str] = (), watch_item_limit: int = 100,
         news_sources: Sequence[str] = (), search_watch_ids: Sequence[str] = (),
+        social_watch_ids: Sequence[str] = (),
         progress: Callable[[str], None] | None = None,
         preflight: Callable[[], None] | None = None,
         profile: CollectionProfile | None = None,
@@ -134,6 +137,7 @@ class CollectionHistoryService:
             ransomware_watch_ids=ransomware_watch_ids, ransomlook_watch_ids=ransomlook_watch_ids,
             watch_item_limit=watch_item_limit,
             news_sources=news_sources, search_watch_ids=search_watch_ids,
+            social_watch_ids=social_watch_ids,
         )
         if profile is not None and profile.definition != definition:
             raise ValidationError("Toplama seçimi kaynak profille uyuşmuyor.")
@@ -178,6 +182,7 @@ class CollectionHistoryService:
             ransomlook_watch_ids=ids("ransomware_watch", "ransomlook"),
             news_sources=tuple(unit.source for unit in units if unit.kind == "news_refresh"),
             search_watch_ids=ids("search_watch"),
+            social_watch_ids=ids('social_tracking'),
         )
 
     def _resume_context(self, resume: CollectionResumePlan):
@@ -244,6 +249,11 @@ class CollectionHistoryService:
             ransomware_tasks = {task.source: task for task in plan.tasks if task.kind == "ransomware"}
             for stored_step in details.steps:
                 unit = units[stored_step.step_key]
+                if unit.kind == 'social_tracking' and not collection.social.due(tasks[unit.step_key], self._now()):
+                    token = CollectionOperationToken(session_id, stored_step.id, stored_step.target_sha256)
+                    self.repository.stop_step_without_result(token, status='skipped', error_code='not_due', finished_at=self._now())
+                    steps.append(CollectionStep(tasks[unit.step_key], 'skipped', social={'status': 'not_due', 'watch_id': unit.watch.watch_id}))
+                    continue
                 if unit.kind == "search_watch":
                     token = CollectionOperationToken(
                         session_id, stored_step.id, stored_step.target_sha256, stored_step.depends_on_step_id,
@@ -268,7 +278,7 @@ class CollectionHistoryService:
                 token = self.repository.start_step(session_id, stored_step.id, started_at=self._now())
                 if progress:
                     progress(f"Toplama: {unit.step_key}")
-                if unit.kind in {"scan", "discovery", "ioc", "public_notice", "news_refresh", "search_watch"}:
+                if unit.kind in {"scan", "discovery", "ioc", "public_notice", "news_refresh", "search_watch", "social_tracking"}:
                     steps.append(collection._collect(tasks[unit.step_key], plan, progress, operation=token))
                 elif unit.kind == "username_watch":
                     task = tasks[unit.step_key]

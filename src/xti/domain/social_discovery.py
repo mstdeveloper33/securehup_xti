@@ -11,7 +11,8 @@ from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.brand_username import ALL_PLATFORM_HOSTS, normalize_brand_username
 from xti.domain.cti_knowledge import normalize_knowledge_id
 
-POLICY = 'social-discovery-v1'
+POLICY = 'social-discovery-v2'
+POLICIES = ('social-discovery-v1', POLICY)
 READS = ('brand.discovery.plan', 'brand.discovery.list', 'brand.discovery.show')
 WRITES = ('brand.discovery.run',)
 PLATFORMS = tuple(sorted(ALL_PLATFORM_HOSTS))
@@ -209,8 +210,9 @@ class Page:
     elapsed_seconds: float = 0.0
 
 
-def assess(candidate, page, scope):
+def assess(candidate, page, scope, *, policy=POLICY):
     """A successful HTTP response or a tool claim alone cannot prove existence."""
+    if policy not in POLICIES: raise ValidationError('Bilinmeyen sosyal keşif karar kuralı.')
     result = {'state': 'inconclusive', 'reason': 'page_unavailable', 'brand_relation': 'unverified'}
     if page.error or page.status is None:
         result['reason'] = page.error or 'page_unavailable'
@@ -242,10 +244,14 @@ def assess(candidate, page, scope):
         except ValidationError: continue
     username = candidate['username']
     handle = re.compile(r'(?<![a-z0-9_.-])@?' + re.escape(username) + r'(?![a-z0-9_.-])', re.I)
+    # v1 is retained solely to read immutable historical decisions faithfully.
+    twitter_identity = (bool(handle.search(page.title)) and '@' + username.casefold() in title
+                        if policy == 'social-discovery-v1' else
+                        bool(re.search(r'(?<![a-z0-9_.@-])@' + re.escape(username)
+                                       + r'(?![a-z0-9_.-])', page.title, re.I)))
     identity = (candidate['url'].casefold() in {url.casefold() for url in same} and bool(page.title.strip())
                 and (page.profile_type or page.profile_username.casefold() == username.casefold()
-                     or (candidate['platform'] == 'Twitter' and bool(handle.search(page.title))
-                         and '@' + username.casefold() in title)))
+                     or (candidate['platform'] == 'Twitter' and twitter_identity)))
     if candidate['platform'] == 'HackerNews':
         identity = bool(re.search(r'\buser:\s*' + re.escape(username) + r'\b', page.visible_text[:4096], re.I)
                         and re.search(r'\bcreated:\s*', page.visible_text[:4096], re.I)
@@ -262,7 +268,7 @@ def assess(candidate, page, scope):
     return result
 
 
-def validate_profile(row, scope):
+def validate_profile(row, scope, *, policy=POLICY):
     """Validate one frozen page decision with the same rules as discovery reports."""
     from xti.domain.mentions import mention_time
     allowed_sources={'username_hypothesis','stored_company_search','company_homepage','maigret','sherlock','tavily','retained_profile'}
@@ -313,7 +319,7 @@ def validate_profile(row, scope):
                 title=evidence['title'],description=evidence['description'],profile_type=evidence['profile_type'],
                 canonical_urls=tuple(evidence['canonical_urls']),profile_username=evidence['profile_username'],
                 visible_text=evidence['identity_text'],links=tuple(evidence['company_links']),error=evidence['error'])
-            decision=assess(row,proof,scope)
+            decision=assess(row,proof,scope,policy=policy)
         if decision['state']=='inconclusive' and row['claimed_by']:decision['state']='candidate'
         if any(row[k]!=v for k,v in decision.items()):raise ValueError('Decision contradicts evidence')
         return row
@@ -326,7 +332,7 @@ def validate_report(report):
     from xti.domain.social_retained import validate_scope
     try:
         required={'policy','scope','usernames','status','profiles','counts','coverage','sources','homepage','metrics','notes'}
-        if (not isinstance(report,dict) or set(report)!=required or report['policy']!=POLICY
+        if (not isinstance(report,dict) or set(report)!=required or report['policy'] not in POLICIES
                 or len(canonical(report))>MAX_REPORT_BYTES or report['status'] not in ('complete','partial')):
             raise ValueError('Report structure')
         scope=validate_scope(report['scope'])
@@ -335,7 +341,7 @@ def validate_report(report):
             raise ValueError('Report scope')
         seen=set()
         for row in report['profiles']:
-            validate_profile(row, scope)
+            validate_profile(row, scope, policy=report['policy'])
             if row['url'] in seen: raise ValueError('Duplicate profile')
             seen.add(row['url'])
         expected={state:sum(row['state']==state for row in report['profiles']) for state in STATES}

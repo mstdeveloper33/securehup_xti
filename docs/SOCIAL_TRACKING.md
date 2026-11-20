@@ -1,14 +1,48 @@
 # Firma sosyal hesaplarını inceleme ve düzenli takip
 
-0.174.0 önceki hesap adreslerini dönüşümlü kontrol eder ve sosyal takibi
+0.175.0 ortak araştırma, kayıtlı toplama profili ve kayıpsız sosyal arşivi
+ekler. 0.174.0 önceki hesap adreslerini dönüşümlü kontrol eder ve sosyal takibi
 ortak iş kuyruğu/worker'a bağlar. 0.173.0, birleşik sosyal keşfi firma incelemesi, gerekçeli insan kararı,
 donmuş vaka kanıtı ve düzenli değişiklik takibine bağlar. Terminal ve
 firma kapsamlı JSON aynı servisleri kullanır. Bright Data anahtarı gerekmez.
 
-Mevcut kurulumda önce `./xti migrate` çalıştırılır. Çekirdek 83 → 84
-geçişi önce yedek alır; tablo yapısı, eski kayıtlar ve hash'ler değişmez.
-84, yeni kontrol kapsamını bilmeyen eski motorun bu alanı açmasını engeller.
+Mevcut kurulumda önce `./xti migrate` çalıştırılır. Çekirdek 84 → 85
+geçişi önce yedek alır; toplama tabloları genişler, eski satır/rowid ve
+hash'ler korunur. Eski motor yeni alanı açamaz; geri dönüş eski yedekten
+yeni bir alana yapılır.
 İş kuyruğu 3, engine/platform sözleşmesi v1 değişmez; kaynak işi modeli 6'dır.
+
+## Kayıtlı toplama profili ve ortak araştırma
+
+Önce `brand tracking-add` ile izleme oluşturulur. Aşağıdaki `<izleme-kimliği>`
+yerine onun kimliği yazılır; izleme ve profil aynı domaine ait olmalıdır.
+
+```sh
+./xti profiles save "Firma sosyal" securehup.com --only-social --social-watch <izleme-kimliği>
+./xti collect --profile "Firma sosyal" --plan
+./xti collect --profile "Firma sosyal" --summary
+./xti research securehup.com --type domain
+./xti journals status
+./xti journals archive-plan --older-than-days 90
+```
+
+Plan ağ isteği yapmaz. Çalıştırma kayıtlı platform/sayfa/süre sınırlarını
+kullanır. Aynı profil mevcut `jobs.submit`/worker yoluyla da çalışır.
+Zamanı gelmemiş izleme `not_due` olarak atlanır; yeni kontrol sayılmaz.
+İzleme değiştiyse eski iş yeni kapsamda sessizce çalışmaz; yeni plan gerekir.
+
+Araştırmada domain → profil → URL ve vaka bağlantısı görünür. Örneğin
+Sherlock adresi bildirmiş, sayfa404 dönmüşse iki sonuç tarihleriyle birlikte
+gösterilir. Timeout,404 ile aynı sayılmaz. Sahiplik/taklit kararı insandadır.
+
+Arşiv önizlemesinin verdiği `archive-apply` komutu önce yedek alır, seçilen
+eski gövdeleri kayıpsız sıkıştırır. Son tamamlanmış keşif korunur. Liste,
+ayrıntı, vaka ve tekrar anahtarları aynı kanıtı okur. İşlem kimliğiyle
+`journals restore` sıkıştırmayı geri alır; kayıt silmez. Bu işlem saklama
+politikasını sınırsız yapmaz ve SQLite dosyasının hemen küçülmesini vaat etmez.
+
+Keşif kuralı v2 X kullanıcı adını tam eşleştirir. Eski v1 kayıtlar kendi
+kuralıyla okunur; yeni kontrol için yeni bir keşif/tur çalıştırılmalıdır.
 
 ## 1. Bulunan hesapları birlikte inceleme
 

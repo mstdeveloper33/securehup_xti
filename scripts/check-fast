@@ -21,6 +21,9 @@ sh -n \
 exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
     tests/test_architecture.py \
     tests/test_social_discovery.py \
+    tests/test_social_quality.py \
+    tests/test_social_engine_package.py \
+    tests/test_collection_social_migration.py \
     tests/test_public_profile_pages.py \
     tests/test_publisher_jobs.py \
     tests/test_relationship_notifications.py \

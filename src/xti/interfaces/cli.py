@@ -3320,6 +3320,7 @@ def make_collection_service(
     ransomware_watch_ids: Sequence[str] = (), ransomlook_watch_ids: Sequence[str] = (),
     watch_item_limit: int = 100,
     news_sources: Sequence[str] = (), search_watch_ids: Sequence[str] = (),
+    social_watch_ids: Sequence[str] = (),
 ) -> CollectionService:
     username_watch_ids, ransomware_watch_ids, ransomlook_watch_ids = (
         CollectionWatchService.validate_selection(
@@ -3386,6 +3387,11 @@ def make_collection_service(
     if search_watch_ids:
         from xti.adapters.sqlite_collection_news import SQLiteCollectionNewsSearches
         news_searches = SQLiteCollectionNewsSearches(settings.database)
+    social = None
+    if social_watch_ids:
+        from xti.adapters.sqlite_collection_social import SQLiteCollectionSocial
+        from xti.interfaces.social_tracking import make_social_tracking_service
+        social = SQLiteCollectionSocial(settings.database, make_social_tracking_service(settings.database, network=True))
     return CollectionService(
         make_jobs(settings, repository), discoveries, feeds,
         make_analysis_service(settings, repository),
@@ -3395,6 +3401,7 @@ def make_collection_service(
         ) if "notices-hibp" in selected else None),
         news=make_news_service(settings.database, refresh=True) if news_sources else None,
         news_searches=news_searches,
+        social=social,
     )
 
 
@@ -3408,6 +3415,7 @@ def make_collection_history_service(settings: Settings, repository: SQLiteAssetR
             watch_item_limit=definition.watch_item_limit,
             news_sources=definition.news_sources,
             search_watch_ids=definition.search_watch_ids,
+            social_watch_ids=definition.social_watch_ids,
         )
     return CollectionHistoryService(
         SQLiteCollectionHistoryRepository(settings.database), collection_factory,

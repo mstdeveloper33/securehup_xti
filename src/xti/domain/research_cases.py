@@ -31,8 +31,10 @@ def case_subjects(link):
     payload = json.loads(link.snapshot_json)
     if link.evidence_type == 'social_discovery':
         from xti.domain.social_tracking import validate_case_snapshot
+        from xti.domain.research_social import social_key
         validate_case_snapshot(payload)
-        return (('domain', normalize_domain(payload['domain'])),)
+        return (('domain', normalize_domain(payload['domain'])),
+                social_key(payload['domain'], payload['profile']['url']))
     if link.evidence_type == 'relationship_review':
         from xti.domain.relationship_notifications import validate_snapshot
         validate_snapshot(payload)

@@ -1,5 +1,12 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+0.175.0, sosyal hesap kanıtlarını ortak araştırmaya ve kayıtlı toplama
+profillerine bağlar. Kaynaklar farklı sonuç verdiğinde adresi, zamanı ve
+gerekçeyi gösterir; erişim hatasını hesap yokluğu saymaz. Eski sosyal keşif
+gövdeleri silinmeden sıkıştırılabilir. Mevcut kurulumda `./xti migrate`
+şema85 geçişini yedekleyerek yapar. [Kullanım](docs/SOCIAL_TRACKING.md#kayıtlı-toplama-profili-ve-ortak-araştırma),
+[doğrulama ve teslim kaydı](docs/roadmap/SOCIAL_ENGINE_DELIVERY.md).
+
 0.174.0, daha önce bulunan sosyal hesapları kaynaklar yeniden bildirmese de
 dönüşümlü kontrol eder. Sosyal takip mevcut iş kuyruğu ve ortak worker ile
 çalışır; izleme duraklatılmış veya kapsamı değişmişse yeni istek göndermez.
