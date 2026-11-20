@@ -33,7 +33,19 @@ yeniden yorumlanarak yazılmayacak.
   etiketi;35/35 beklenen karar,0 yanlış varlık/yokluk,0 beklenen profili
   kaçırma. SHA256:`78ff1479b0267f554d6c46e4fd5603061fba37bf9c39cdf3773b980002ddc1d5`.
   Sentetik sayfalardır; canlı keşif ya da marka sahipliği doğruluk oranı değildir.
+- Son araştırma paketi **99 test / 50,786 sn** geçti. Geçmişte bulunan bir
+  hesabın son sayfası404 olduğunda, kaynak artık bağlantı vermese bile
+  bu son gözlemin araştırmada korunması ayrıca doğrulandı. Sayfa yokluğu
+  bütün hesabın kalıcı silinmesi veya marka sahipliği kararı sayılmaz.
 - Son tam yerel koşu sürüyor. Genel/Linux sonuçları kapanışta eklenecek.
+
+## İlk Linux teslim kanıtı
+
+`ed2b04b` üzerinde [sosyal motor kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697161402)
+Ubuntu24.04/Python3.11 ve3.13 ile geçti: gerçek süreç kesintisi,
+35 etiketli örnek, şema84 → 85 yükseltme ve eski motorla yedekten dönüş.
+Son araştırma düzeltmesi için yeni koşu başlatılacak; ilk commit'in
+başarısı sonraki kodun kabulü gibi gösterilmez.
 
 ## Tekrar üretme
 

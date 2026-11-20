@@ -106,6 +106,21 @@ class SocialEngineTests(unittest.TestCase):
         result = research_data(ResearchService(SQLiteResearchRepository(other)).show(value=IG, indicator_type='url'))
         self.assertFalse(any(n['record_type'] == 'social_profile' for n in result['nodes']))
 
+    def test_later_unclaimed_absence_is_kept_for_a_previously_found_profile(self):
+        from tests.test_social_discovery import page
+        old = self.f.pages.fetch
+        def fetch(url, **options):
+            if url == 'https://acme.example/': return page(url, '<title>Company</title>')
+            if url == IG: return page(url, 'Not found', 404)
+            return old(url, **options)
+        self.f.pages.fetch = fetch
+        self.f.later()
+        new = self.f.discovery.execute('brand.discovery.run', **SCOPE, idempotency_key='no-longer-linked')['record']
+        node = next(n for n in self.graph()['nodes'] if n['record_type'] == 'social_profile' and n['label'] == IG)
+        latest = [e for e in node['evidence'] if e['record_type'] == 'social_page' and e['current']]
+        self.assertEqual(len(latest), 1)
+        self.assertEqual((latest[0]['record_id'], latest[0]['status']), (new['id'], 'not_found'))
+
     def test_old_profile_and_plan_encodings_remain_unchanged(self):
         old = '{"asset_value":"acme.example","finding_limit":10,"ransomlook_watch_ids":[],"ransomware_watch_ids":[],"stale_after_hours":24,"task_ids":["ioc-feodo"],"typos":false,"username_watch_ids":[],"version":1,"watch_item_limit":100}'
         self.assertEqual(canonical_definition_json(parse_definition_json(old)), old)

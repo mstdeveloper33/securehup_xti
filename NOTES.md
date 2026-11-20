@@ -48,7 +48,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   doğruluk ölçümü değildir. Yeni canlı ücretli istek yapılmadı.
 - **Linux:** GitHub CLI henüz giriş yapmış değil. Sürüm dosyası main'e
   gönderildiğinde tam test ve kurulum/yükseltme kabulü artık otomatik başlar.
-  Akış tanımı koşunun geçtiği anlamına gelmez; sonuç/commit kaydı beklenir.
+  `ed2b04b` sosyal kabulü Ubuntu24.04/Python3.11 ve3.13 ile geçti
+  ([koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44697161402)).
+  Son araştırma düzeltmesi99 testle50,786sn'de geçti; yeni commit için
+  Linux kabulü ayrıca başlatılacak. Genel/işletim sonuçları kapanışta yazılır.
 - **Ayrı bekleyenler:** Bright Data anahtarı N-034; gelişmiş Nmap yetkili
   IP/port N-005. Bu paketin fixture testleri bu canlı kabullerin yerine geçmez.
 - **Dayanak:** [Teslim kaydı](docs/roadmap/SOCIAL_ENGINE_DELIVERY.md),

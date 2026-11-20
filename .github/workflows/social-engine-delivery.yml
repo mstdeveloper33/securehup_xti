@@ -6,6 +6,9 @@ on:
     paths:
       - "pyproject.toml"
       - ".github/workflows/social-engine-delivery.yml"
+      - "src/xti/adapters/sqlite_research_social.py"
+      - "src/xti/domain/research_social.py"
+      - "tests/test_social_engine_package.py"
   workflow_dispatch:
 
 permissions:

@@ -15,7 +15,8 @@ permissions:
 
 concurrency:
   group: xti-full-${{ github.ref }}
-  cancel-in-progress: false
+  # Keep release/tag runs; a newer main delivery replaces obsolete branch work.
+  cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
 jobs:
   test:

@@ -25,19 +25,31 @@ class StoredSocialContext:
             return
         coverage = self.coverage[-1]
         state = audit(self.connection)[0]
-        latest, profiles = {}, {}
+        latest, eligible, records = {}, set(), []
         for identifier, domain in self.connection.execute(
                 'SELECT id,domain FROM social_discovery_runs WHERE report_json IS NOT NULL ORDER BY sequence DESC'):
             record = discovery_in(self.connection, identifier)
+            records.append(record)
             latest.setdefault(domain, record)
             coverage['examined_count'] += 1
             for row in record['report']['profiles']:
                 if row['state'] not in ('found', 'candidate') and not row['claimed_by'] and 'retained_profile' not in row['discovered_by']:
                     continue
                 key = (domain, row['url'])
-                if key not in profiles and len(profiles) >= 1000:
+                if key not in eligible and len(eligible) >= 1000:
                     self.limitations.add('unified_social_profile_limit')
                     coverage['complete'] = False
+                    continue
+                eligible.add(key)
+        profiles = {}
+        # Identify real historical targets first, then include their newest
+        # negative/unknown page even when no current source links to it. Bare
+        # username hypotheses still cannot create thousands of research nodes.
+        for record in records:
+            domain = record['scope']['domain']
+            for row in record['report']['profiles']:
+                key = (domain, row['url'])
+                if key not in eligible:
                     continue
                 # Keep the latest and the most recent definitive observation.
                 bucket = profiles.setdefault(key, [])
