@@ -18,7 +18,7 @@ sh -n \
     scripts/verify-brand
 
 "$XTI_PROJECT_DIR/scripts/python" -m compileall -q src
-exec "$XTI_PROJECT_DIR/scripts/python" -m unittest -v \
+exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/check-test-shard.py" -v \
     tests/test_architecture.py \
     tests/test_social_discovery.py \
     tests/test_social_quality.py \

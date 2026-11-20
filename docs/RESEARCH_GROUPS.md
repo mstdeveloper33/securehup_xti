@@ -138,6 +138,11 @@ yazmalarını sunar. Motor hizmeti/depo portu aynıdır. Platform yazmalarında
 | `groups.preview` | `indicator_type,value`; isteğe bağlı `max_hops,time_window_hours,offset,limit,expected_snapshot` | Aday gruplar, özgün kanıt, zaman/yanıltıcı bağlam, kapsam ve saklı karar özeti |
 | `groups.list` | `offset,limit,expected_snapshot` | Saklı grupların son kayıt özeti |
 | `groups.show` | `identifier` | Tam donmuş kanıt, karar, sürüm ve değişiklik geçmişi |
+| `groups.current` | `identifier` | Geçmişten ayrı son kanıt, karar ve kontrol durumu |
+| `groups.history` | `identifier,offset,limit,expected_snapshot` | Bütün kontrol/karar olaylarını sayfalama |
+| `groups.changes` | `identifier,offset,limit,expected_snapshot` | Donmuş önceki/sonraki değişiklik kanıtını sayfalama |
+| `groups.audit` | Yok | Özgün geçmişten salt okunur tam doğrulama |
+| `groups.rebuild` | Firma JSON'da `expected_workspace_id` | Önce yedek, sonra türetilen durumları yeniden kurma |
 | `groups.queue` | `offset,limit,expected_snapshot` | Güncel kanıtla fark / yeniden inceleme penceresi |
 | `groups.notifications` | `offset,limit,expected_snapshot` | Bildirim özetleri; büyük önce/sonra gövdeleri ayrı açılır |
 | `groups.notification-show` | `identifier` (bildirim UUID'si) | Bildirim anındaki değişmez önce/sonra kanıtı |

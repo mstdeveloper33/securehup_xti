@@ -47,12 +47,34 @@ Bu veri kontrollü fixture'dır; canlı kaynak toplama veya ticari SLA
 ölçümü değildir. Yeni testler tek grupta 1.101 olayı, bunun ardından gerçek
 kuyruk/worker ile 1.102'nci kontrolü, eski tekrar sonucunu, bozuk projeksiyon
 ve özgün günlük ayrımını da kapsar.
+Ortak kuyruğun 10.000 saklı iş sınırı değişmedi; ölçülen 100.000 olay/firma,
+100.000 kuyruk işi kabulü değildir. Bu sınır geliştirme kabulünde açıkça
+kaydedildi; genel motor kapasitesiyle grup geçmişi kapasitesi karıştırılmadı.
 
 59 grup/arşiv/geçiş testi ve 125 entegrasyon/mimari testi geçti; ikinci
 pakette Linux'a özgü iki kontrol macOS'ta atlandı. 246 geçiş testinin ilk
 koşusunda bir testin beklenen tetikleyici listesi eskiydi; düzeltilen
-migration testi ilgili paket içinde tekrar geçti. Gerçek85 ve86 üreticileri
+geçiş testi ilgili paket içinde tekrar geçti. Son bağlantı kontrolünde
+76 test/77,695 saniye geçti. Son temizlikte eksilen bir `NOTES` importu da
+hedefli pakette yakalandı; bu son temiz 76 test koşusundan önce düzeltildi.
+Yerel kapasite ölçümü geliştirme çalışma ağacında alındı; sabit gönderim
+commit'inin Linux kabulü ayrıca izlenir. Gerçek85 ve86 üreticileri
 ile eski kabul araçları da şema88'e geçiş/geri dönüşü doğruladı.
 
 Linux sonucu ve son commit için kabul henüz bekleniyor. Bu yerel sonuçlar
 tam Linux paketinin geçtiği anlamına gelmez.
+
+## Linux süresi düzeltmesi
+
+`0efb3e0` grup kabulü iki Python sürümünde ve altı ilgili GitHub iş akışında
+başarılı. İlk hızlı kontrol 25 dakikalık iş süresiyle iptal oldu; GitHub
+annotation'ı `The job has exceeded the maximum execution time of 25m0s`
+nedeni verdi. Bu koşu başarılı veya test hatası sonucu sayılmadı.
+
+Hızlı kapının mevcut modül listesi değiştirilmeden iki ayrık parçaya
+bölündü. Yerel `scripts/check-fast` hâlâ tam hızlı listeyi çalıştırır;
+yalnız CI `XTI_CHECK_SHARD=1/2` ve `2/2` kullanır. Her parça 25 dakika
+bütçeli; kapasite/performans kabul eşikleri aynı. Eksik, örtüşen veya
+geçersiz parça seçimi denetimi ve 14 CI yapılandırma testi geçti.
+Motor kodu bu süre düzenlemesinde değişmedi; devam eden tam paket
+gereksiz yere yeniden başlatılmadı.

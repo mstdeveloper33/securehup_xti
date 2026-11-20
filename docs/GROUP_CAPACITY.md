@@ -59,6 +59,8 @@ geçersiz sayılır ve normal okuma durur. `rebuild` önce ayrı yedek alır,
 özgün günlükten güncel durum tablolarını yeniden kurar. Eski kanıtı,
 kararı, bildirim kimliğini veya okunma durumunu değiştirmez. Özgün günlük
 de bozuksa onarım başarı sayılmaz; transaction geri alınır ve yedek korunur.
+Yapısal SQLite/foreign-key bütünlüğü bozuksa genel yedek doğrulaması işlemi
+durdurur; bu komut her türlü bozuk veritabanını onaran bir araç değildir.
 
 Bu komutlar firma JSON yüzeyinde de vardır. `groups.rebuild` yazmadır;
 güncel `expected_workspace_id` ve mevcut firma yazıcı kilidi gerekir.
@@ -77,6 +79,12 @@ yoktur. `journals` eski gövdeleri kayıpsız sıkıştırabilir; işlem yedekle
 ayrıca alan kullanır. SQL sayımı, derin offset, arşiv planı ve tam denetim
 hacimden etkilenir. Bu sürüm sınırsız saklama veya bütün motor için sabit
 gecikme taahhüdü vermez.
+
+Ortak iş kuyruğunun bütün iş türleri için mevcut **10.000 saklı iş** sınırı
+ayrıdır ve korunur; otomatik iş silme yoktur. Buradaki 100.000 olay/firma
+ölçümü 100.000 kuyruk işi çalıştırıldığı anlamına gelmez. Kuyruk sınırının
+üzerinde kesintisiz yönetilen iş saklama bu teslimin kapasite iddiası
+değildir. [İş bütçeleri](SOURCE_JOBS.md).
 
 ## Yükseltme
 

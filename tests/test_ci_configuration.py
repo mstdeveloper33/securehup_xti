@@ -42,6 +42,25 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertIn("run: ./scripts/check-fast", workflow)
         self.assertNotIn("run: ./scripts/check\n", workflow)
         self.assertNotIn("setup-brand --check", workflow)
+        self.assertIn('shard: [1, 2]', workflow)
+        self.assertIn('XTI_CHECK_SHARD: ${{ matrix.shard }}/2', workflow)
+        self.assertIn('fail-fast: false', workflow)
+
+    def test_fast_gate_shards_preserve_the_complete_existing_module_list(self):
+        spec = importlib.util.spec_from_file_location('check_test_shard', PROJECT_ROOT / 'scripts/check-test-shard.py')
+        runner = importlib.util.module_from_spec(spec); spec.loader.exec_module(runner)
+        modules = re.findall(r'tests/[a-z0-9_]+\.py', (PROJECT_ROOT / 'scripts/check-fast').read_text())
+        self.assertGreater(len(modules), 20)
+        first = runner.select_modules(modules, '1/2')
+        second = runner.select_modules(modules, '2/2')
+        self.assertFalse(set(first) & set(second))
+        self.assertEqual(sorted(first + second), sorted(modules))
+        self.assertEqual(runner.select_modules(modules, None), modules)
+        for shard in ('0/2', '3/2', '1/0', 'all'):
+            with self.subTest(shard=shard), self.assertRaises(ValueError):
+                runner.select_modules(modules, shard)
+        with self.assertRaises(ValueError): runner.select_modules(modules + modules[:1], None)
+        with self.assertRaises(ValueError): runner.select_modules([], None)
 
     def test_brand_install_is_path_scoped_and_rechecks_without_download(self) -> None:
         workflow = (

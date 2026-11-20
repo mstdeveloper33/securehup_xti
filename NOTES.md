@@ -43,6 +43,12 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   sayfalama, kurtarma ve geçiş kabulü tasarım sırasında ele alınır (AGENTS.md).
 - **Kapsam:** Motorun Python/SQLite grup depolaması; .NET/PostgreSQL entegrasyonu,
   yeni ücretli kaynaklar ve canlı hedef taraması bu çalışmada yok.
+- **Linux izleme:** `0efb3e0` grup kabulü Python3.11/3.13, kurulum,
+  firma/sosyal kabulü ve işletim/yükseltme kontrollerinden geçti. Tam paket
+  sürüyor. İlk hızlı paket test sonucu üretmeden 25 dakika iş süresini
+  aştı ([koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716968));
+  GitHub açıklaması süre aşımını doğruladı. Aynı modül listesi iki ayrık
+  paralel parçaya bölündü; testler veya performans eşikleri çıkarılmadı.
 
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 

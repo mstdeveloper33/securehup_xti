@@ -16,6 +16,10 @@ concurrency:
 jobs:
   quick:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     timeout-minutes: 25
     steps:
       - name: Check out repository
@@ -34,5 +38,7 @@ jobs:
           --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
           -r requirements/news.txt -r requirements/reports.txt
       - name: Run fast offline checks
+        env:
+          XTI_CHECK_SHARD: ${{ matrix.shard }}/2
         run: ./scripts/check-fast
 
