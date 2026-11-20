@@ -22,18 +22,19 @@ def scope_matches(record, plan):
 
 
 def reference(record, notification_id):
-    event = record['history'][-1]
-    return {'kind': 'research_group_refresh', 'group_id': record['id'], 'event_id': event['id'],
+    event_id = record['last_event_id'] if 'last_event_id' in record else record['history'][-1]['id']
+    return {'kind': 'research_group_refresh', 'group_id': record['id'], 'event_id': event_id,
         'revision': record['revision'], 'state_sha256': record['state_sha256'],
         'group_status': record['status'], 'source_status': 'partial' if record['status'] == 'indeterminate' else 'complete',
         'notification_id': notification_id}
 
 
 def validate_receipt(value, plan):
+    from xti.domain.group_contract import MAX_REVISION
     if (not isinstance(value, dict) or set(value) != {'kind', 'group_id', 'event_id', 'revision',
             'state_sha256', 'group_status', 'source_status', 'notification_id'}
             or value['kind'] != 'research_group_refresh' or value['group_id'] != plan['group_id']
-            or type(value['revision']) is not int or not 2 <= value['revision'] <= 1000
+            or type(value['revision']) is not int or not 2 <= value['revision'] <= MAX_REVISION
             or value['group_status'] not in {'current', 'not_in_view', 'indeterminate'}
             or value['source_status'] != ('partial' if value['group_status'] == 'indeterminate' else 'complete')):
         raise ValidationError('Grup kontrol işi makbuzu geçersiz.')

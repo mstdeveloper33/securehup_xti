@@ -122,7 +122,7 @@ class GroupOperationsTests(unittest.TestCase):
             self.assertNotIn('cold_payload_v1', c.execute('SELECT payload_json FROM research_group_journal ORDER BY sequence DESC LIMIT 1').fetchone()[0])
             stored_case = c.execute('SELECT snapshot_json FROM case_evidence WHERE id=?', (link.id,)).fetchone()[0]
             self.assertEqual(stored_case, link.snapshot_json)
-        with patch('xti.adapters.sqlite_groups.MAX_BYTES', 1), self.assertRaises(StorageError): self.show()
+        with patch('xti.adapters.sqlite_group_projection.MAX_EVENT_BYTES', 1), self.assertRaises(StorageError): self.show()
         restored = self.f.root / 'archived-restore.db'
         backup = self.f.repo.storage.backup(self.f.root / 'archived-backup.db')
         SQLiteAssetRepository.restore(backup, restored)

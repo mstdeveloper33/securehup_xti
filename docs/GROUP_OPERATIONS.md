@@ -1,6 +1,6 @@
 # Kayıtlı grupların takibi ve geçmişinin korunması
 
-0.177.0 · çekirdek87 · kaynak işi modeli7 · kuyruk3 · dış JSONv1.
+0.178.0 · çekirdek88 · kaynak işi modeli7 · kuyruk3 · dış JSONv1.
 
 Kaydettiğin inceleme grubunu mevcut iş kuyruğuyla yeniden kontrol
 edebilirsin. Örneğin aynı IP'de gözlenen iki domaine üçüncüsü eklendiğinde
@@ -101,13 +101,12 @@ veritabanında sıkıştırılır; kimlik, sıra, özgün hash ve tekrar anahtar
 korunur. Uygula ve geri aç işlemleri önce ayrı doğrulanmış yedek alır.
 Eski kanıtlar, bildirimler ve vakalar arşivden aynı şekilde okunur.
 
-Sıkıştırma sınırsız saklama sağlamaz: grup başına **1.000 olay/4 MiB**,
-çalışma alanında **10.000 grup olayı/64 MiB** sınırı devam eder. Boyut
-açılmış gövdeler üzerinden sayılır. Sınırda geçmiş silinmez, yeni işlem
-reddedilir. Bir bildirim de özgün geçmişine bağlıdır; bu sürümde purge
-yoktur. Tur sıklığı buna göre seçilmelidir. SQLite boşalan sayfaları tekrar
-kullanabilir; dosya anında küçülmeyebilir ve işlem yedekleri ayrıca yer
-tutar. Büyük hacim için ayrı kapasite tasarımı gerekir.
+0.178.0'da yeni olayların toplam günlük sınırı yerine indeksli güncel durum
+ve sayfalı geçmiş kullanılır. Değişmeyen kontroller aynı kanıtı kopyalamaz.
+Eski tam `groups show` yanıtı 1000 olay/4 MiB ile sınırlıdır; büyük geçmiş
+`groups current/history/changes` ile açılır. Her kontrolün zamanı/anahtarı
+saklandığı için disk büyür. Kaynak okuma bütçeleri ve yedek maliyeti sürer.
+[Güncel kapasite ve denetim düzeni](GROUP_CAPACITY.md).
 
 ## Firma ve JSON bağlantısı
 

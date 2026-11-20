@@ -76,7 +76,7 @@ def read_events(connection):
 def journals(connection):
     from xti.adapters.sqlite_reports import read_reports
     from xti.adapters.sqlite_evidence import read_evidence
-    from xti.adapters.sqlite_groups import read_groups
+    from xti.adapters.sqlite_group_projection import JournalEntries
     from xti.adapters.sqlite_social_discovery import COLUMNS, _receipt
     from xti.adapters.sqlite_social_tracking import audit
     from xti.adapters.compressed_evidence import logical_extra
@@ -87,7 +87,9 @@ def journals(connection):
     audit(connection)
     return {'report_journal': read_reports(connection), 'evidence_journal': read_evidence(connection),
         'social_discovery_runs': (None, entries, identity([(e['id'], e['scope'], e['report_sha256'], e['status']) for e in entries])),
-        'research_group_journal': read_groups(connection)}
+        'research_group_journal': (None, JournalEntries(connection),
+            connection.execute('SELECT chain_sha256 FROM research_group_journal ORDER BY sequence DESC LIMIT 1').fetchone()[0]
+            if connection.execute('SELECT 1 FROM research_group_journal LIMIT 1').fetchone() else None)}
 
 
 class SQLiteJournalStorageRepository:
@@ -145,6 +147,8 @@ class SQLiteJournalStorageRepository:
     def execute(self, operation, options, at):
         with self.storage._connection(readonly=operation not in WRITES) as connection, connection:
             connection.execute('BEGIN IMMEDIATE' if operation in WRITES else 'BEGIN')
+            from xti.adapters.sqlite_group_projection import guard, audit as audit_groups, seal
+            guard(connection)
             events, active, chain = read_events(connection)
             evidence = journals(connection)
             if operation == 'journals.status':
@@ -204,5 +208,8 @@ class SQLiteJournalStorageRepository:
             read_events(connection)
             # Validate the full logical chains before commit, including every cold body.
             journals(connection)
+            if any(item['journal'] == 'research_group_journal' for item in selected):
+                audit_groups(connection, allow_dirty=True)
+                seal(connection)
             self.storage._check_integrity(connection)
             return {'changed_count': len(selected), 'backup': str(backup), 'event': event}

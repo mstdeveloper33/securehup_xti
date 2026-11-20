@@ -1,63 +1,78 @@
-"""Atomic inbox references to immutable group changes, including archived proof."""
+"""Indexed immutable group-change proofs; one selected proof per inbox item."""
 from uuid import uuid4
 
 from xti.adapters.sqlite import StorageError
-from xti.adapters.research_read_budget import ResearchReadBudget
 from xti.adapters.sqlite_notification_sequence import next_notification_sequence
-from xti.domain.assets import ValidationError
 from xti.domain.collection_history import history_uuid
 from xti.domain.cti_indicators import normalize_cti_timestamp
 from xti.domain.engine_jobs import canonical_json, digest
 from xti.domain.research import identity
+from xti.domain.reports import ReportError
 
 TABLE = 'research_group_notifications'
-MAX_NOTIFICATIONS = 10_000
+COLUMNS = 'ordinal,sequence,id,group_id,event_id,proof_sha256,chain_sha256,created_at,read_at'
+
+
+def notification_row(connection, row):
+    from xti.adapters.sqlite_group_projection import change_proof
+    ordinal, sequence, rid, group_id, event_id, checksum, chain, at, read_at = row
+    history_uuid(rid)
+    previous = connection.execute('SELECT sequence,chain_sha256 FROM research_group_notifications WHERE ordinal=?', (ordinal - 1,)).fetchone()
+    proof = change_proof(connection, event_id)
+    if (ordinal > 1 and previous is None or previous and sequence <= previous[0]
+            or proof['group_id'] != group_id or proof['change']['recorded_at'] != at
+            or digest(canonical_json(proof)) != checksum
+            or identity(previous[1] if previous else None, rid, sequence, group_id, event_id, checksum, at) != chain
+            or read_at is not None and normalize_cti_timestamp(read_at) != read_at):
+        raise StorageError('Grup bildirimi veya özgün değişiklik kanıtı bozuk.')
+    return {'id': rid, 'sequence': sequence, 'snapshot': proof, 'snapshot_sha256': checksum, 'created_at': at, 'read_at': read_at}
+
+
+def get_notification(connection, identifier):
+    row = connection.execute(f'SELECT {COLUMNS} FROM research_group_notifications WHERE id=?', (identifier,)).fetchone()
+    if row is None:
+        raise ReportError('not_found', 'Grup bildirimi seçili çalışma alanında bulunamadı.')
+    return notification_row(connection, row)
+
+
+def audit_notifications(connection):
+    count, previous = 0, 0
+    for row in connection.execute(f'SELECT {COLUMNS} FROM research_group_notifications ORDER BY ordinal'):
+        count += 1
+        if row[0] != count or row[1] <= previous:
+            raise StorageError('Grup bildirim sırası bozuk.')
+        notification_row(connection, row)
+        previous = row[1]
+    allocated = connection.execute('SELECT seq FROM sqlite_sequence WHERE name=?', (TABLE,)).fetchone()
+    if (allocated[0] if allocated else 0) != count:
+        raise StorageError('Grup bildirim günlüğünün son kaydı eksik.')
+    return count
 
 
 def read_notifications(connection, *, proofs=None):
-    if not ResearchReadBudget(connection, set(), rows=MAX_NOTIFICATIONS, size=16 * 1024 * 1024).admit((TABLE,), 'group_notification_budget'):
-        raise StorageError('Grup bildirim günlüğü okuma sınırını aşıyor.')
-    allocated = connection.execute('SELECT seq FROM sqlite_sequence WHERE name=?', (TABLE,)).fetchone()
-    if allocated is None and not connection.execute('SELECT 1 FROM research_group_notifications LIMIT 1').fetchone():
-        return {}, None
-    if proofs is None:
-        from xti.adapters.sqlite_groups import read_groups
-        proofs = {}
-        read_groups(connection, change_proofs=proofs)
-    rows, chain, last_sequence = {}, None, 0
-    try:
-        for ordinal, sequence, rid, group_id, event_id, checksum, next_chain, at, read_at in connection.execute(
-                'SELECT ordinal,sequence,id,group_id,event_id,proof_sha256,chain_sha256,created_at,read_at '
-                'FROM research_group_notifications ORDER BY ordinal'):
-            history_uuid(rid)
-            proof = proofs.get(event_id)
-            if (ordinal != len(rows) + 1 or sequence <= last_sequence or proof is None
-                    or proof['group_id'] != group_id or proof['change']['recorded_at'] != at
-                    or digest(canonical_json(proof)) != checksum
-                    or identity(chain, rid, sequence, group_id, event_id, checksum, at) != next_chain):
-                raise ValueError('Group notification proof or chain')
-            if read_at is not None and normalize_cti_timestamp(read_at) != read_at:
-                raise ValueError('Group notification read time')
-            rows[rid] = {'id': rid, 'sequence': sequence, 'snapshot': proof,
-                'snapshot_sha256': checksum, 'created_at': at, 'read_at': read_at}
-            chain, last_sequence = next_chain, sequence
-        if (allocated is None and rows) or (allocated is not None and allocated[0] != len(rows)):
-            raise ValueError('Deleted group notification tail')
-    except (ValueError, TypeError, KeyError, ValidationError) as error:
-        raise StorageError('Grup bildirimi veya özgün değişiklik kanıtı bozuk.') from error
-    return rows, chain
+    """Compatibility helper for bounded callers; ordinary reads use SQL paging."""
+    from xti.adapters.sqlite_group_projection import guard
+    state = guard(connection)
+    if state[4] > 10000:
+        raise ReportError('history_requires_pagination', 'Bildirimleri groups notifications ile sayfalayın.')
+    rows = {}
+    for row in connection.execute(f'SELECT {COLUMNS} FROM research_group_notifications ORDER BY ordinal'):
+        value = notification_row(connection, row)
+        rows[value['id']] = value
+    return rows, state[5]
 
 
-def emit(connection, proof, *, proofs):
-    existing, chain = read_notifications(connection, proofs=proofs)
+def emit(connection, proof, *, proofs=None):
     event_id, group_id, at = proof['change']['id'], proof['group_id'], proof['change']['recorded_at']
-    previous = next((row for row in existing.values() if row['snapshot']['change']['id'] == event_id), None)
-    if previous is not None:
-        return previous['id']
-    if len(existing) >= MAX_NOTIFICATIONS:
-        raise ValidationError('Grup bildirim kapasitesi doldu; kontrol ve bildirim birlikte geri alındı.')
+    previous = connection.execute('SELECT id FROM research_group_notifications WHERE event_id=?', (event_id,)).fetchone()
+    if previous:
+        value = get_notification(connection, previous[0])
+        if value['snapshot'] != proof:
+            raise StorageError('Grup bildirim tekrarı başka kanıta bağlı.')
+        return previous[0]
+    tail = connection.execute('SELECT chain_sha256 FROM research_group_notifications ORDER BY ordinal DESC LIMIT 1').fetchone()
     rid, sequence, checksum = str(uuid4()), next_notification_sequence(connection), digest(canonical_json(proof))
     connection.execute('INSERT INTO research_group_notifications '
         '(sequence,id,group_id,event_id,proof_sha256,chain_sha256,created_at) VALUES (?,?,?,?,?,?,?)',
-        (sequence, rid, group_id, event_id, checksum, identity(chain, rid, sequence, group_id, event_id, checksum, at), at))
+        (sequence, rid, group_id, event_id, checksum, identity(tail[0] if tail else None, rid, sequence, group_id, event_id, checksum, at), at))
     return rid

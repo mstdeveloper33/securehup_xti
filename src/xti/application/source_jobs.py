@@ -33,7 +33,7 @@ class SourceJobService:
             return
         if self.groups is None:
             raise EngineJobError('invalid_parameters', 'Grup işi için çalışma alanı kanıt servisi gerekli.')
-        record = self.groups.execute('groups.show', identifier=plan['group_id'])['record']
+        record = self.groups.execute('groups.current', identifier=plan['group_id'])['record']
         if not scope_matches(record, plan):
             raise EngineJobError('plan_changed', 'Kayıtlı grup farklı araştırma köküne bağlı.')
         return record

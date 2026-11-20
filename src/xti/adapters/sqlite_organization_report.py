@@ -168,9 +168,11 @@ class _SnapshotReader:
         coverage.append(public_coverage)
         case_keys.update(self.public_notice_case_keys(domain=domain))
         notices = self.domain_notices(asset_id, domain)
-        from xti.adapters.sqlite_groups import read_groups
+        from xti.adapters.sqlite_group_projection import guard, current
         group_records = []
-        for group_record in self.cached('research_groups', lambda c: read_groups(c)[0]).values():
+        guard(connection)
+        for (group_id,) in connection.execute('SELECT id FROM research_group_heads WHERE root_type=? AND root_value=? ORDER BY id', ('domain', domain)):
+            group_record = current(connection, group_id)
             group = group_record['group']
             if group['root'] != ['domain', domain]:
                 continue
@@ -180,7 +182,7 @@ class _SnapshotReader:
                 group_record['last_checked_at'], 'local-research-groups',
                 (group['rule'], group['temporal']['state'], 'Son kayıtlı grup; canlı yeniden kontrol değildir.',
                  'Karar: ' + (decision['value'] if decision else 'henüz yok')),
-                navigation=(_navigation('Grup kanıtı ve geçmişi', 'groups', 'show', group_record['id']),)))
+                navigation=(_navigation('Güncel grup kanıtı', 'groups', 'current', group_record['id']),)))
             case_keys.add(('research_group', group_record['id']))
         return OrganizationReportTarget(
             membership, (("domain", domain),), tuple(coverage),

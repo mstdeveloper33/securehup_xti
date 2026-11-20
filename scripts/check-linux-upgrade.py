@@ -27,7 +27,7 @@ from typing import NamedTuple
 
 PROJECT = Path(__file__).resolve().parents[1]
 BASELINE = "9cdf32c7981b87532952ec2c6b8a3fb5bb142ba8"
-MAX_REVIEWED_SCHEMA = 87
+MAX_REVIEWED_SCHEMA = 88
 OUTPUT_LIMIT = 8 * 1024 * 1024
 
 
@@ -299,8 +299,19 @@ def require_preserved_tables(before, after):
             63 <= before[0] < after[0] <= MAX_REVIEWED_SCHEMA and name == "case_evidence"
             and _preserved_case_upgrade(expected, actual, before_schema=before[0], after_schema=after[0])
         )
-        COMMON.require(actual == expected or reviewed_upgrade or reviewed_case_upgrade,
+        reviewed_group_projection = (
+            before[0] < 88 == after[0] and _preserved_group_guard_upgrade(name, expected, actual)
+        )
+        COMMON.require(actual == expected or reviewed_upgrade or reviewed_case_upgrade or reviewed_group_projection,
                        f"Schema migration changed pre-existing table/evidence: {name}.")
+
+
+def _preserved_group_guard_upgrade(name, expected, actual):
+    """Only exact schema88 guard triggers may be added; every old row stays exact."""
+    from xti.adapters.group_projection_schema import TRIGGERS
+    added = [('trigger', statement.split()[2], statement) for statement in TRIGGERS if statement.split()[6] == name]
+    return bool(added and actual is not None and expected[:2] == actual[:2]
+        and sorted(expected[2] + added, key=lambda row: row[1]) == actual[2])
 
 
 def _preserved_case_upgrade(expected, actual, *, before_schema, after_schema):

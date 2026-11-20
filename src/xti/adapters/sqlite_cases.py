@@ -131,7 +131,8 @@ class SQLiteCaseRepository:
             if record.evidence_type == 'research_group':
                 from xti.domain.group_ledger import validate_case_payload
                 payload = validate_case_payload(json.loads(snapshot_json))
-                if record.evidence_id != payload['group']['id'] or record.source_reference != 'groups show ' + record.evidence_id:
+                command = 'groups current ' if payload['version'] == 2 else 'groups show '
+                if record.evidence_id != payload['group']['id'] or record.source_reference != command + record.evidence_id:
                     raise ValueError('Group evidence reference differs')
             if record.evidence_type == 'social_discovery':
                 from xti.domain.social_tracking import validate_case_snapshot, case_id

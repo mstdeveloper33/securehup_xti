@@ -1,5 +1,13 @@
 # XTI Motorunun Mimarisi
 
+0.178.0 `group_state.transition` geçmiş uzunluğundan bağımsız saf geçiştir.
+Şema88 özgün günlükten türeyen son durum, olay sonucu ve fark kanıtını
+aynı transaction içinde günceller. Bir kontrol değişmeyen kanıta SHA ile
+başvurur; eski v1 önek hash'leri yeniden yazılmaz. Seçili okumalar indeksli,
+tam denetim akış halindedir. Koruma tetikleyicileri olağan işlem dışı SQL
+yazımını işaretler; yedekli açık yeniden kurma dışında sessiz onarım yoktur.
+[0183 kararı](decisions/0183-indexed-group-state-and-incremental-history.md).
+
 0.177.0 saf `group_jobs` ve mevcut SourceJobService, kayıtlı grup kontrolünü
 ortak worker'a bağlar. GroupRefreshStep, kuyruk→çekirdek kilidi altında
 güncel insan kararını korur; core commit sonrası kesintide özgün işlem
@@ -89,7 +97,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**20 Kasım 2026 — 0.177.0, çekirdek şema 87, iş kuyruğu şeması 3.**
+**20 Kasım 2026 — 0.178.0, çekirdek şema 88, iş kuyruğu şeması 3.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

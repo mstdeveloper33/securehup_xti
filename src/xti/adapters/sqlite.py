@@ -22,6 +22,7 @@ from xti.adapters.social_enrichment_schema import create as create_social_enrich
 from xti.adapters.social_tracking_schema import create as create_social_tracking_schema
 from xti.adapters.group_schema import create as create_group_schema
 from xti.adapters.group_operations_schema import create as create_group_operations_schema
+from xti.adapters.group_projection_schema import create as create_group_projection_schema
 from xti.adapters.collection_social_schema import migrate_collection_social_schema
 from xti.adapters.relationship_notification_schema import create as create_relationship_notification_schema
 
@@ -257,6 +258,7 @@ class SQLiteAssetRepository:
                 create_mentions_schema(connection)
                 upgrade_global_saved_search_scopes(connection)
                 create_mention_group_schema(connection)
+                create_group_projection_schema(connection)
                 connection.execute(f"PRAGMA application_id={APPLICATION_ID}")
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
@@ -1120,6 +1122,8 @@ class SQLiteAssetRepository:
                     create_group_schema(connection)
                 if version < 87:
                     create_group_operations_schema(connection)
+                if version < 88:
+                    create_group_projection_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

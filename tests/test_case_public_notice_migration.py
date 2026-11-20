@@ -148,6 +148,10 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
             from xti.adapters.group_schema import DDL as GROUP_DDL
             for statement in (*GROUP_DDL, *SOCIAL_TRACKING_DDL, *NOTIFICATION_DDL, *COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
                 expected_connection.execute(statement)
+            from xti.adapters.group_projection_schema import TRIGGERS
+            for statement in TRIGGERS:
+                if expected_connection.execute("SELECT 1 FROM sqlite_schema WHERE type='table' AND name=?", (statement.split()[6],)).fetchone():
+                    expected_connection.execute(statement)
             expected_added = {
                 (kind, name): declaration for kind, name, declaration in expected_connection.execute(
                     "SELECT type,name,sql FROM sqlite_schema ORDER BY type,name"

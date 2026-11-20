@@ -19,7 +19,7 @@ def summary(record):
         'rule': group['rule'], 'member_count': len(group['members']), 'temporal': group['temporal'],
         'noise_reasons': group['noise_reasons'], 'decision': record['decision'], 'status': record['status'],
         'review_current': record['review_current'], 'evidence_sha256': group['evidence_sha256'],
-        'last_checked_at': record['last_checked_at'], 'change_count': len(record['changes']),
+        'last_checked_at': record['last_checked_at'], 'change_count': record.get('change_count', len(record.get('changes', []))),
         'state_sha256': record['state_sha256']}
 
 
@@ -31,7 +31,7 @@ def difference(before, after):
         'temporal_changed': after is not None and before['temporal'] != after['temporal']}
 
 
-def project(entries, *, change_proofs=None):
+def legacy_project(entries, *, change_proofs=None):
     records, sizes, keys = {}, {}, set()
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != {'version', 'id', 'subject_id', 'operation', 'request', 'recorded_at', 'snapshot', 'limitations'}:
@@ -118,7 +118,7 @@ def project(entries, *, change_proofs=None):
 
 
 def case_payload(record):
-    return {'kind': 'research_group', 'version': 1, 'group': record['group'],
+    return {'kind': 'research_group', 'version': record.get('state_version', 1), 'group': record['group'],
         'revision': record['revision'], 'decision': record['decision'], 'review_current': record['review_current'],
         'status': record['status'], 'last_checked_at': record['last_checked_at'], 'state_sha256': record['state_sha256']}
 
@@ -129,7 +129,8 @@ def validate_case_payload(value):
     validate_group(value['group'])
     from xti.domain.reports import sha
     sha(value['state_sha256'])
-    if value['kind'] != 'research_group' or type(value['version']) is not int or value['version'] != 1 or type(value['revision']) is not int or not 1 <= value['revision'] <= 1000:
+    from xti.domain.group_contract import MAX_REVISION
+    if value['kind'] != 'research_group' or type(value['version']) is not int or value['version'] not in (1, 2) or type(value['revision']) is not int or not 1 <= value['revision'] <= (1000 if value['version'] == 1 else MAX_REVISION):
         raise ValidationError('Vakadaki grup sürümü geçersiz.')
     if value['status'] not in ('captured', 'current', 'indeterminate', 'not_in_view') or type(value['review_current']) is not bool:
         raise ValidationError('Vakadaki grup durumu geçersiz.')
@@ -146,3 +147,32 @@ def validate_case_payload(value):
     if value['review_current'] != expected:
         raise ValidationError('Vakadaki karar ile grup dayanağı uyuşmuyor.')
     return value
+
+
+def project(entries, *, change_proofs=None):
+    """Compatibility/full-history projection. Hot paths use transition, not replay."""
+    from xti.domain.group_state import transition
+    records, histories, changes = {}, {}, {}
+    keys = set()
+    for entry in entries:
+        key, identifier = entry['request']['idempotency_key'], entry['subject_id']
+        if key in keys:
+            raise ValidationError('Grup tekrar anahtarı çoğalmış.')
+        keys.add(key)
+        history = histories.setdefault(identifier, [])
+        history.append(entry)
+        if entry['version'] == 1:
+            if records.get(identifier, {}).get('state_version', 1) != 1:
+                raise ValidationError('Grup günlüğü sürümü geriye gidemez.')
+            record = legacy_project(history, change_proofs=change_proofs)[identifier]
+            record.update(state_version=1, last_event_id=entry['id'], last_recorded_at=entry['recorded_at'], change_count=len(record['changes']))
+            changes[identifier] = list(record['changes'])
+        else:
+            record, proof = transition(records.get(identifier), entry)
+            if proof:
+                changes.setdefault(identifier, []).append(proof['change'])
+                if change_proofs is not None:
+                    change_proofs[entry['id']] = proof
+            record.update(history=list(history), changes=list(changes.get(identifier, [])))
+        records[identifier] = record
+    return records

@@ -153,6 +153,13 @@ class SQLiteEvidenceRepository:
                           'Güncellik yalnız kayıtlı dayanak karşılaştırmasıdır. Görünmeyen önceki kararlar silinmez; show ile okunur.']})
 
     def mutate(self, operation, request, at):
+        if operation == 'groups.rebuild':
+            destination = self.storage.path.parent / 'backups' / f'{self.storage.path.stem}.pre-group-rebuild-{uuid4()}.db'
+            backup = self.storage.backup(destination)
+            from xti.adapters.sqlite_group_projection import rebuild
+            with self.storage._connection() as connection, connection:
+                connection.execute('BEGIN IMMEDIATE')
+                return {**rebuild(connection), 'backup': str(backup)}
         with self.storage._connection() as connection, connection:
             connection.execute('BEGIN IMMEDIATE')
             if operation.startswith('groups.'):

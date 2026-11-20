@@ -1,5 +1,19 @@
 # Değişiklik Kaydı
 
+## 0.178.0 — 20 Kasım 2026
+
+- Güncel grup, idempotent sonuç ve seçilen bildirim artık tüm geçmişi
+  tekrar oynatmadan okunur; geçmiş/değişiklikler SQL'de sayfalanır.
+- Değişmeyen kontrol aynı kanıt gövdesine başvurur. Her kontrolün zamanı
+  ve tekrar anahtarı korunur; disk büyümesi sıfır değildir.
+- `groups current/history/changes/audit/rebuild`, isteğe bağlı
+  `response_mode=current` ve yedekli bozuk projeksiyon kurtarması eklendi.
+- Şema87→88 eski satır/rowid/JSON/hash ve vaka/makbuzları korur; yeni olay2
+  artımlı durum SHA'sı kullanır. Kaynak işi7 ve dış JSONv1 korunur.
+- Biriken geçmiş ve değişmeyen düzenli işler geliştirme kabul ölçütüne
+  eklendi. [Kullanım](docs/GROUP_CAPACITY.md),
+  [teslim kanıtı](docs/roadmap/GROUP_CAPACITY_DELIVERY.md).
+
 ## 0.177.0 — 20 Kasım 2026
 
 - Kayıtlı gruplar `group-refresh` adımıyla ortak kaynak kuyruğunda

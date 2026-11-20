@@ -174,13 +174,14 @@ class GroupTests(ResearchFixture, unittest.TestCase):
         before = self.path.read_bytes()
         from xti.domain.engine_jobs import canonical_json
         budget = len(canonical_json(first['history'][0])) + 100
-        with patch('xti.domain.group_ledger.MAX_RECORD_BYTES', budget), self.assertRaises(ValidationError):
+        with patch('xti.adapters.sqlite_group_projection.FULL_RECORD_BYTES', budget), self.assertRaises(ReportError):
             self.refresh(first)
         self.assertEqual(self.path.read_bytes(), before)
-        with patch('xti.adapters.sqlite_groups.MAX_BYTES', 1), self.assertRaises(StorageError):
+        with patch('xti.adapters.sqlite_group_projection.MAX_EVENT_BYTES', 1), self.assertRaises(StorageError):
             self.groups.execute('groups.list')
         self.refresh(first)
         with self.repo.storage._connection() as c, c:
+            c.execute('PRAGMA foreign_keys=OFF')
             c.execute('DELETE FROM research_group_journal WHERE sequence=2')
         with self.assertRaises(StorageError):
             self.groups.execute('groups.list')

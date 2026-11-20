@@ -1,5 +1,15 @@
 # XTI — Güncel Uygulama Durumu
 
+**0.178.0:** Grup güncel durumu, olay sonuçları ve değişiklik kanıtı
+indeksli okunur. `groups current/history/changes/audit/rebuild` eklendi.
+Yeni olay2 önceki durum SHA'sıyla ilerler; aynı kanıt yeniden saklanmaz.
+Eski olay1, vaka, iş makbuzu ve bildirim okunma durumu korunur. Şema88
+geçişi yedekli; kuyruk3, kaynak işi7, dış JSONv1 aynı. Eski tam `show`
+yanıtı sınırlı tutulur; büyük geçmiş ayrı sayfalanır. Önceki toplam günlük
+kapasite sınırları yeni olay yazımından kaldırıldı; tek olay/istek ve
+araştırma bütçeleri korunur. [Kullanım](GROUP_CAPACITY.md),
+[kabul sürüyor](roadmap/GROUP_CAPACITY_DELIVERY.md).
+
 **0.177.0:** Kayıtlı grup kontrolü `group-refresh` ile mevcut kaynak
 kuyruğuna bağlandı. Aynı firma/kök, atomik fark bildirimi, eski insan
 kararının korunması ve sınırlı `groups monitor --queued` vardır. Grup

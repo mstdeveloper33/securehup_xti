@@ -30,6 +30,21 @@ class GroupJobPlatformTests(unittest.TestCase):
         self.assertEqual(code, 0, result)
         return result['data']
 
+    def test_current_history_audit_and_rebuild_keep_company_write_fence(self):
+        for operation in ('groups.current', 'groups.history', 'groups.changes'):
+            code, result = self.f.invoke(operation=operation, parameters={'identifier': self.group['id']})
+            self.assertEqual(code, 0, result)
+        code, audit = self.f.invoke(operation='groups.audit')
+        self.assertEqual(code, 0, audit)
+        self.assertEqual(audit['data']['integrity'], 'verified')
+        code, rejected = self.f.invoke(operation='groups.rebuild', parameters={'expected_workspace_id': '00000000-0000-4000-8000-000000000000'})
+        self.assertNotEqual(code, 0)
+        self.assertEqual(rejected['error']['code'], 'scope_mismatch')
+        code, rebuilt = self.f.invoke(operation='groups.rebuild', parameters={'expected_workspace_id': self.f.context.workspace_id})
+        self.assertEqual(code, 0, rebuilt)
+        self.assertEqual(rebuilt['data']['event_count'], 1)
+        self.assertEqual(self.f.invoke(operation='groups.show', parameters={'identifier': self.group['id']})[1]['data']['record'], self.group)
+
     def test_actual_worker_notification_reads_and_company_scope(self):
         submitted = self.submit()
         self.helper.dns('third.example', path=self.f.context.database)

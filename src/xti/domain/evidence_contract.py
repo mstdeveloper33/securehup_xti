@@ -29,7 +29,7 @@ FIELDS = {
     'ioc.compare': (ROOT | PAGE, ROOT),
 }
 READS += group_contract.READS
-WRITES += group_contract.WRITES
+WRITES += group_contract.WRITES + group_contract.MAINTENANCE
 FIELDS.update(group_contract.FIELDS)
 
 

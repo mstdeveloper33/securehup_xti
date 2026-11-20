@@ -125,7 +125,8 @@ _COMBINED_NOTIFICATIONS = (
     "'research_group_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,id "
     "FROM research_group_notifications"
 )
-from xti.adapters.sqlite_group_notifications import read_notifications as read_group_notifications
+from xti.adapters.sqlite_group_notifications import get_notification as get_group_notification
+from xti.adapters.sqlite_group_projection import guard as group_guard, seal as group_seal
 from xti.adapters.sqlite_social_tracking import notifications_in as social_notifications_in
 from xti.adapters.sqlite_relationship_notifications import read_notifications as read_relationship_notifications
 _TIMESTAMP = re.compile(
@@ -173,7 +174,8 @@ class SQLiteInboxRepository:
         ).fetchone()
         if duplicate is not None:
             raise StorageError("Bildirim sırası çakışıyor; işlem durduruldu.")
-        return {**read_relationship_notifications(connection)[0], **social_notifications_in(connection), **read_group_notifications(connection)[0]}
+        group_guard(connection)
+        return {**read_relationship_notifications(connection)[0], **social_notifications_in(connection)}
 
     @staticmethod
     def _notification(row) -> Notification:
@@ -476,7 +478,7 @@ class SQLiteInboxRepository:
             items = []
             for notification in notifications:
                 if notification.group_change_id is not None:
-                    items.append(InboxItem(notification, None, group_change=relationship_evidence[notification.id]))
+                    items.append(InboxItem(notification, None, group_change=get_group_notification(connection, notification.id)))
                 elif notification.social_change_id is not None:
                     items.append(InboxItem(notification, None, social_change=relationship_evidence[notification.id]))
                 elif notification.relationship_review_id is not None:
@@ -566,7 +568,7 @@ class SQLiteInboxRepository:
             relationship_evidence = self._validate_sequences(connection)
             notification = self._get(connection, notification_id)
             if notification.group_change_id is not None:
-                result = InboxDetails(notification, None, group_change=relationship_evidence[notification.id])
+                result = InboxDetails(notification, None, group_change=get_group_notification(connection, notification.id))
             elif notification.social_change_id is not None:
                 result = InboxDetails(notification, None, social_change=relationship_evidence[notification.id])
             elif notification.relationship_review_id is not None:
@@ -731,7 +733,12 @@ class SQLiteInboxRepository:
                 for notification in selected:
                     if notification.ransomlook_run_id is not None:
                         SQLiteRansomLookWatchRepository.notification_evidence(connection, notification.id)
+                for notification in selected:
+                    if notification.group_change_id is not None:
+                        get_group_notification(connection, notification.id)
                 changed = self._mark_rows(connection, identifiers, read, now)
+                if changed and any(notification.group_change_id is not None for notification in selected):
+                    group_seal(connection)
                 notifications = tuple(
                     self._get(connection, identifier) for identifier in identifiers
                 )

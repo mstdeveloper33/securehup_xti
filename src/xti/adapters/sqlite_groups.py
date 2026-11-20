@@ -4,10 +4,10 @@ from uuid import uuid4
 
 from xti.adapters.sqlite import StorageError
 from xti.adapters.research_read_budget import ResearchReadBudget
-from xti.adapters.compressed_evidence import resolve_payload, journal_bytes
+from xti.adapters.compressed_evidence import resolve_payload
 from xti.domain.assets import ValidationError
 from xti.domain.engine_jobs import canonical_json, digest
-from xti.domain.group_ledger import project, summary, MAX_ENTRIES, MAX_BYTES
+from xti.domain.group_ledger import project, MAX_ENTRIES, MAX_BYTES
 from xti.domain.research import research_query, build_research, identity
 from xti.domain.research_groups import groups, NOTES
 from xti.domain.reports import ReportError
@@ -56,68 +56,31 @@ def preview_in(connection, path, options, at):
 
 
 def read(connection, path, operation, options, at):
-    from xti.adapters.sqlite_evidence import page
-    if operation in ('groups.notifications', 'groups.notification-show'):
-        from xti.adapters.sqlite_group_notifications import read_notifications
-        notifications = read_notifications(connection)[0]
-        if operation == 'groups.notification-show':
-            row = notifications.get(options['identifier'])
-            if row is None:
-                raise ReportError('not_found', 'Grup bildirimi seçili çalışma alanında bulunamadı.')
-            return {'notification': row, 'notes': NOTES}
-        rows = [{'id': row['id'], 'group_id': row['snapshot']['group_id'], 'created_at': row['created_at'],
-            'read_at': row['read_at'], 'snapshot_sha256': row['snapshot_sha256'],
-            'change': row['snapshot']['change']} for row in sorted(notifications.values(), key=lambda r: r['sequence'], reverse=True)]
-        return page(rows, options, 'group-notifications', extra={'notes': NOTES})
-    records = read_groups(connection)[0]
-    if operation == 'groups.show':
-        record = records.get(options['identifier'])
-        if record is None:
-            raise ReportError('not_found', 'Grup seçili çalışma alanında bulunamadı.')
-        return {'model_version': 1, 'record': record, 'notes': NOTES}
-    if operation == 'groups.preview':
-        rows, extra = preview_in(connection, path, options, at)
-        for row in rows:
-            row['saved'] = summary(records[row['id']]) if row['id'] in records else None
-        return page(rows, options, {k: options[k] for k in ('indicator_type', 'value', 'max_hops', 'time_window_hours')}, extra=extra)
-    saved = [summary(records[key]) for key in sorted(records)]
-    if operation == 'groups.list':
-        return page(saved, options, 'saved-groups', extra={'notes': NOTES})
-    # Queue scans a bounded record window, sharing the same read snapshot.
-    selected = page(saved, options, 'group-queue-records')
-    cache, result = {}, []
-    for row in selected['records']:
-        record = records[row['id']]
-        group = record['group']
-        key = canonical_json([group['root'], group['scope']])
-        if key not in cache:
-            cache[key] = preview_in(connection, path,
-                dict(indicator_type=group['root'][0], value=group['root'][1], **group['scope']), at)
-        candidates, extra = cache[key]
-        current = next((candidate for candidate in candidates if candidate['id'] == record['id']), None)
-        state = ('indeterminate' if not extra['coverage_complete'] else 'not_in_view' if current is None else
-                 'changed' if current['evidence_sha256'] != group['evidence_sha256'] else
-                 'needs_review' if not record['review_current'] else 'current')
-        if state != 'current':
-            result.append({**row, 'queue_state': state, 'current_evidence_sha256': current['evidence_sha256'] if current else None,
-                'coverage_complete': extra['coverage_complete'], 'limitations': extra['limitations']})
-    return {**selected, 'records': result, 'examined_count': len(selected['records']),
-        'pagination_basis': 'saved_groups_examined', 'pending_in_window': len(result),
-        'notes': NOTES + ['Sayfalama saklı grup listesini sabitler; kanıt her pencerede yeniden okunur. Boş pencere sonraki sayfa yok demek değildir.']}
+    from xti.adapters.sqlite_group_reads import read as indexed_read
+    return indexed_read(connection, path, operation, options, at)
 
 
 def mutate(connection, path, operation, request, at):
-    records, entries, chain = read_groups(connection)
-    for index, entry in enumerate(entries):
-        if entry['request']['idempotency_key'] == request['idempotency_key']:
-            if (entry['operation'], entry['request']) != (operation, request):
-                raise ReportError('idempotency_conflict', 'Tekrar anahtarı başka grup işlemine bağlı.')
-            return {'replayed': True, 'record': project(entries[:index + 1])[entry['subject_id']]}
-    previous = records.get(request['identifier'])
-    if operation != 'groups.capture' and previous is None:
-        raise ReportError('not_found', 'Grup seçili çalışma alanında bulunamadı.')
+    from xti.adapters.sqlite_group_projection import guard, current, event_row, state_at, full_record, store, seal, JOURNAL_COLUMNS
+    from xti.domain.group_state import transition
+    mode = request.get('response_mode', 'full')
+    request = {key: value for key, value in request.items() if key != 'response_mode'}
+    state = guard(connection)
+    existing = connection.execute(f'SELECT {JOURNAL_COLUMNS} FROM research_group_journal WHERE request_key=?', (request['idempotency_key'],)).fetchone()
+    if existing is not None:
+        entry = event_row(connection, existing)
+        original_request = {key: value for key, value in entry['request'].items() if key != 'response_mode'}
+        if (entry['operation'], original_request) != (operation, request):
+            raise ReportError('idempotency_conflict', 'Tekrar anahtarı başka grup işlemine bağlı.')
+        record = state_at(connection, entry['id'])
+        if mode == 'full':
+            record = full_record(connection, entry['subject_id'], revision=record['revision'])
+        return {'replayed': True, 'record': record}
+    previous = current(connection, request['identifier'], required=operation != 'groups.capture')
     if request['expected_revision'] != (previous['revision'] if previous else 0):
         raise ReportError('revision_changed', 'Grup sürümü değişmiş; güncel kaydı alın.')
+    if mode == 'full' and previous and previous['revision'] >= 1000:
+        raise ReportError('history_requires_pagination', 'Güncel sonuç için --response-mode current kullanın; geçmiş groups history ile sayfalanır.')
     limitations = []
     if operation == 'groups.review' and request['decision'] == 'withdrawn':
         snapshot = previous['group']
@@ -132,29 +95,31 @@ def mutate(connection, path, operation, request, at):
             raise ReportError('source_changed', 'Grup kanıtı değişmiş veya görünümde yok; güncel önizlemeyi alın.')
         if operation == 'groups.review' and snapshot != previous['group']:
             raise ReportError('source_changed', 'Önce grubun güncel kanıtını refresh ile kaydedin.')
-    entry = {'version': 1, 'id': str(uuid4()), 'subject_id': request['identifier'], 'operation': operation,
+    if previous and snapshot == previous['group']:
+        snapshot = {'same_as_previous': digest(canonical_json(snapshot))}
+    entry = {'version': 2, 'id': str(uuid4()), 'subject_id': request['identifier'], 'operation': operation,
         'request': request, 'recorded_at': at, 'snapshot': snapshot, 'limitations': limitations}
-    proofs = {}
-    record = project([*entries, entry], change_proofs=proofs)[request['identifier']]
+    record, proof = transition(previous, entry)
     payload = canonical_json(entry)
-    size = journal_bytes(connection, 'research_group_journal')
-    if len(entries) >= MAX_ENTRIES or size + len(payload) + 512 > MAX_BYTES:
-        raise ValidationError('Grup günlüğü 10000 olay / 64 MiB sınırını aşıyor; önceki kayıt korunur.')
     checksum = digest(payload)
     connection.execute('INSERT INTO research_group_journal (id,subject_id,request_key,operation,payload_json,payload_sha256,chain_sha256) VALUES (?,?,?,?,?,?,?)',
-        (entry['id'], entry['subject_id'], request['idempotency_key'], operation, payload, checksum, identity(chain, checksum)))
-    if entry['id'] in proofs:
+        (entry['id'], entry['subject_id'], request['idempotency_key'], operation, payload, checksum, identity(state[3], checksum)))
+    store(connection, record, entry, proof)
+    if proof:
         from xti.adapters.sqlite_group_notifications import emit
-        emit(connection, proofs[entry['id']], proofs=proofs)
+        emit(connection, proof, proofs={entry['id']: proof})
+    seal(connection, event_added=True, notice_added=proof is not None)
+    if mode == 'full':
+        record = full_record(connection, record['id'])
     return {'replayed': False, 'record': record}
 
 
 def case_snapshot(connection, identifier):
     from xti.domain.cases import CaseEvidenceSnapshot, canonical_snapshot
     from xti.domain.group_ledger import case_payload
-    record = read_groups(connection)[0].get(identifier)
-    if record is None:
-        raise ReportError('not_found', 'Grup seçili çalışma alanında bulunamadı.')
+    from xti.adapters.sqlite_group_projection import guard, current
+    guard(connection)
+    record = current(connection, identifier)
     payload, checksum = canonical_snapshot(case_payload(record))
     return CaseEvidenceSnapshot('research_group', identifier, f"{record['group']['root'][1]} — {record['group']['rule']}"[:1000],
-        'groups show ' + identifier, payload, checksum)
+        ('groups current ' if record['state_version'] == 2 else 'groups show ') + identifier, payload, checksum)

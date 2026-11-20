@@ -2,11 +2,11 @@
 from datetime import datetime, timezone
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
-from xti.adapters.sqlite_groups import read_groups, mutate
+from xti.adapters.sqlite_groups import mutate
+from xti.adapters.sqlite_group_projection import guard, current, event, state_at
 from xti.domain.engine_jobs import EngineJobError
 from xti.domain.assets import ValidationError
 from xti.domain.group_jobs import SOURCE, reference, scope_matches
-from xti.domain.group_ledger import project
 
 
 class GroupRefreshStep:
@@ -20,10 +20,10 @@ class GroupRefreshStep:
 
     @staticmethod
     def _reference(connection, record):
-        from xti.adapters.sqlite_group_notifications import read_notifications
-        notices, _ = read_notifications(connection)
-        event_id = record['history'][-1]['id']
-        notice = next((row['id'] for row in notices.values() if row['snapshot']['change']['id'] == event_id), None)
+        from xti.adapters.sqlite_group_notifications import get_notification
+        event_id = record['last_event_id']
+        row = connection.execute('SELECT id FROM research_group_notifications WHERE event_id=?', (event_id,)).fetchone()
+        notice = get_notification(connection, row[0])['id'] if row else None
         return reference(record, notice)
 
     def _keys(self, job_id):
@@ -43,20 +43,19 @@ class GroupRefreshStep:
         # includes the recheck and inbox reference, never external source traffic.
         with self.storage._connection() as connection, connection:
             connection.execute('BEGIN IMMEDIATE')
-            records, entries, _ = read_groups(connection)
-            by_key = {entry['request']['idempotency_key']: index for index, entry in enumerate(entries)}
+            guard(connection)
             for key in keys:
-                if key in by_key:
-                    index = by_key[key]
-                    event = entries[index]
-                    record = project(entries[:index + 1])[event['subject_id']]
-                    if event['operation'] != 'groups.refresh' or not scope_matches(record, plan):
+                row = connection.execute('SELECT id FROM research_group_journal WHERE request_key=?', (key,)).fetchone()
+                if row:
+                    entry = event(connection, row[0])
+                    record = state_at(connection, row[0])
+                    if entry['operation'] != 'groups.refresh' or not scope_matches(record, plan):
                         raise StorageError('Grup işi makbuzu başka gruba veya köke bağlı.')
                     return self._reference(connection, record)
-            record = records.get(plan['group_id'])
+            record = current(connection, plan['group_id'], required=False)
             if record is None or not scope_matches(record, plan):
                 raise EngineJobError('plan_changed', 'Kayıtlı grup bu firma ve araştırma kökünde bulunamadı.')
-            request = dict(identifier=record['id'], expected_revision=record['revision'], idempotency_key=keys[0])
+            request = dict(identifier=record['id'], expected_revision=record['revision'], idempotency_key=keys[0], response_mode='current')
             from xti.domain.group_contract import parameters
             request = parameters('groups.refresh', request)
             now = self.clock()
@@ -69,11 +68,9 @@ class GroupRefreshStep:
     def verify(self, receipt, plan):
         with self.storage._connection(readonly=True) as connection:
             connection.execute('BEGIN')
-            records, _, _ = read_groups(connection)
-            record = records.get(plan['group_id'])
-            if record is None or not scope_matches(record, plan):
+            guard(connection)
+            original = state_at(connection, receipt['event_id'])
+            if not scope_matches(original, plan) or original['revision'] != receipt['revision']:
                 raise StorageError('Grup işi kanıtı seçili çalışma alanında bulunamadı.')
-            history = record['history'][:receipt['revision']]
-            original = project(history)[record['id']]
-            if original['history'][-1]['operation'] != 'groups.refresh' or self._reference(connection, original) != receipt:
+            if event(connection, receipt['event_id'])['operation'] != 'groups.refresh' or self._reference(connection, original) != receipt:
                 raise StorageError('Grup işi başvurusu özgün kontrol ve bildirimle uyuşmuyor.')

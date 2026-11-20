@@ -5,8 +5,10 @@ from xti.domain.research import research_query
 from xti.domain.cases import normalize_case_reason
 from xti.domain.reports import sha
 
-READS = ('groups.preview', 'groups.list', 'groups.show', 'groups.queue', 'groups.notifications', 'groups.notification-show')
+READS = ('groups.preview', 'groups.list', 'groups.show', 'groups.current', 'groups.history', 'groups.changes', 'groups.audit', 'groups.queue', 'groups.notifications', 'groups.notification-show')
 WRITES = ('groups.capture', 'groups.review', 'groups.refresh')
+MAINTENANCE = ('groups.rebuild',)
+MAX_REVISION = 2_147_483_647
 ROOT = {'indicator_type', 'value', 'max_hops', 'time_window_hours'}
 PAGE = {'offset', 'limit', 'expected_snapshot'}
 WRITE = {'identifier', 'expected_revision', 'idempotency_key'}
@@ -17,18 +19,26 @@ FIELDS = {
     'groups.notifications': (PAGE, set()),
     'groups.notification-show': ({'identifier'}, {'identifier'}),
     'groups.show': ({'identifier'}, {'identifier'}),
+    'groups.current': ({'identifier'}, {'identifier'}),
+    'groups.history': ({'identifier'} | PAGE, {'identifier'}),
+    'groups.changes': ({'identifier'} | PAGE, {'identifier'}),
+    'groups.audit': (set(), set()),
+    'groups.rebuild': (set(), set()),
     'groups.capture': (ROOT | WRITE | {'evidence_sha256'},
         {'indicator_type', 'value', 'identifier', 'expected_revision', 'idempotency_key', 'evidence_sha256'}),
     'groups.review': (WRITE | {'evidence_sha256', 'decision', 'reason'},
         WRITE | {'evidence_sha256', 'decision', 'reason'}),
     'groups.refresh': (WRITE, WRITE),
 }
+for _operation in WRITES:
+    _allowed, _required = FIELDS[_operation]
+    FIELDS[_operation] = (_allowed | {'response_mode'}, _required)
 
 
 def parameters(operation, options, *, scoped=False):
     from xti.domain.research_history import history_key
     allowed, required = FIELDS[operation]
-    if scoped and operation in WRITES:
+    if scoped and operation in WRITES + MAINTENANCE:
         allowed, required = allowed | {'expected_workspace_id'}, required | {'expected_workspace_id'}
     if not isinstance(options, dict) or set(options) - allowed or required - set(options):
         raise ValidationError('Grup işleminin alanları eksik veya bilinmiyor.')
@@ -51,14 +61,16 @@ def parameters(operation, options, *, scoped=False):
     if 'idempotency_key' in result:
         result['idempotency_key'] = history_key(result['idempotency_key'])
     if 'expected_revision' in result:
-        if type(result['expected_revision']) is not int or not 0 <= result['expected_revision'] < 1000:
-            raise ValidationError('Beklenen grup sürümü 0–999 arasında tamsayı olmalı.')
+        if type(result['expected_revision']) is not int or not 0 <= result['expected_revision'] < MAX_REVISION:
+            raise ValidationError('Beklenen grup sürümü desteklenen tamsayı aralığında olmalı.')
+    if 'response_mode' in result and result['response_mode'] not in ('full', 'current'):
+        raise ValidationError('Grup yanıtı full veya current olmalı.')
     if 'decision' in result and result['decision'] not in ('accepted', 'rejected', 'uncertain', 'withdrawn'):
         raise ValidationError('Grup kararı accepted, rejected, uncertain veya withdrawn olmalı.')
     if 'reason' in result:
         result['reason'] = normalize_case_reason(result['reason'])
     if PAGE <= allowed:
-        for key, default, low, high in (('offset', 0, 0, 1_000_000), ('limit', 20, 1, 20)):
+        for key, default, low, high in (('offset', 0, 0, MAX_REVISION), ('limit', 20, 1, 20)):
             result.setdefault(key, default)
             if type(result[key]) is not int or not low <= result[key] <= high:
                 raise ValidationError('Grup sayfalama sınırı geçersiz.')

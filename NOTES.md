@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
 Son güncelleme: **20 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.177.0 / çekirdek 87 / iş kuyruğu 3**.
+Güncel çalışma: **0.178.0 / çekirdek 88 / iş kuyruğu 3**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -27,6 +27,22 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
 ## Açık ve takip edilen notlar
+
+### N-041 — Biriken grup geçmişi ve bildirim okuma kapasitesi
+
+- **Durum:** Uygulama ve kabul çalışması sürüyor. **Tarih:** 20 Kasım 2026.
+- **Hedef:** Güncel grup/bildirim okumaları tüm geçmişi yeniden oynatmayacak;
+  değişmeyen kontroller özgün kanıta başvuracak. Geçmiş ve değişiklikler ayrı
+  sayfalanacak; eski v1 kayıtları, vaka kanıtları ve iş makbuzları korunacak.
+- **Kabul:** Gerçek şema87 üreticisiyle yedekli geçiş/geri dönüş; kesinti sonrası
+  tekrar; iki firma ayrımı; büyüyen ve değişmeyen kontrol yükü altında ölçüm;
+  bozuk projeksiyonun reddi ve özgün günlükten yeniden kurulması. Ölçüm sonucu
+  gelmeden kapasite veya Linux kabulü tamamlandı sayılmayacak.
+- **Kalıcı geliştirme kuralı:** Tek seferlik küçük örnek yeterli değildir.
+  Saklama büyümesi, istek başına çalışma sınırı, değişmeyen düzenli kontroller,
+  sayfalama, kurtarma ve geçiş kabulü tasarım sırasında ele alınır (AGENTS.md).
+- **Kapsam:** Motorun Python/SQLite grup depolaması; .NET/PostgreSQL entegrasyonu,
+  yeni ücretli kaynaklar ve canlı hedef taraması bu çalışmada yok.
 
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 

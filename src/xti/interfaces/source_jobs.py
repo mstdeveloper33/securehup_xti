@@ -127,7 +127,7 @@ def source_job_lines(data, *, data_dir=None):
                 lines.append('    Önceki tamamlanmış adım kullanıldı; yeniden sorgulanmadı.')
             receipt = step['receipt']
             if receipt and step['key'] == 'group-refresh':
-                lines.append('    Grup: ' + xti_command('groups', 'show', receipt['group_id'], data_dir=data_dir))
+                lines.append('    Grup: ' + xti_command('groups', 'current', receipt['group_id'], data_dir=data_dir))
                 lines.append(f"    Kontrol sürümü: {receipt['revision']} | durum: {receipt['group_status']}")
                 if receipt['notification_id']:
                     lines.append('    Bildirim: ' + xti_command('inbox', 'show', receipt['notification_id'], data_dir=data_dir))

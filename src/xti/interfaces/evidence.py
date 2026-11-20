@@ -17,6 +17,8 @@ def _configure(parser, operation):
         kwargs = {}
         if key in ('offset', 'limit', 'expected_revision', 'max_hops', 'time_window_hours'):
             kwargs['type'] = int
+        if key == 'response_mode':
+            kwargs.update(choices=('current', 'full'), default='current')
         if key == 'decision':
             kwargs['choices'] = ('accepted', 'rejected', 'uncertain', 'withdrawn')
         if key == 'kind':
@@ -31,7 +33,7 @@ def _configure(parser, operation):
 
 def register_evidence_parser(commands):
     for family, help_text, actions in (
-        ('groups', 'Kanıtlı inceleme grupları; kayıt, karar ve yerel yeniden kontrol.', ('preview', 'capture', 'list', 'show', 'queue', 'review', 'refresh', 'notifications', 'notification-show')),
+        ('groups', 'Kanıtlı inceleme grupları; kayıt, karar ve yerel yeniden kontrol.', ('preview', 'capture', 'list', 'show', 'current', 'history', 'changes', 'audit', 'rebuild', 'queue', 'review', 'refresh', 'notifications', 'notification-show')),
         ('sightings', 'Sensörün bildirdiği gerçek görülmeler; kaynak listelerinden ayrı.', ('record', 'list', 'show', 'revoke')),
         ('relationships', 'Kayıtlı kanıttan ilişki önerileri ve gerekçeli insan kararları.', ('candidates', 'review', 'show', 'queue', 'notify', 'notification-show')),
         ('identity', 'Kabul edilmiş kimlik bağlarını özgün kayıtlarla birlikte göster.', ('view',))):

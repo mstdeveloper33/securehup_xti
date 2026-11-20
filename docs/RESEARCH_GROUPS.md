@@ -1,6 +1,6 @@
 # Ortak kanıta dayanan inceleme grupları
 
-0.177.0 · çekirdek87 · grup modeli1 / `research-groups-v1` · dış JSONv1.
+0.178.0 · çekirdek88 · grup kuralı1 / olay-durum2 / `research-groups-v1` · dış JSONv1.
 
 Kuyrukla düzenli kontrol, değişiklik bildirimi ve geçmişi sıkıştırma
 [grup işletimi belgesinde](GROUP_OPERATIONS.md). Aşağıdaki özgün grup
@@ -148,11 +148,11 @@ yazmalarını sunar. Motor hizmeti/depo portu aynıdır. Platform yazmalarında
 Sayfa 1–20 grup. En fazla 50 üye, 200 bağlantı ve 192 KiB grup kanıtı.
 Sığmayan grup `omitted_group_count` ve `group_size_limit` ile belirtilir;
 sessiz başarı veya tam tarama sayılmaz. Kaynak kayıt okuma limitleri de
-`limitations` içinde taşınır. Tek grubun geçmişi 1.000 olay/4 MiB, tüm
-çalışma alanının grup günlüğü 10.000 olay/64 MiB ile sınırlı. Sınırda eski
-kayıt silinmez; yeni yazma reddedilir. 0.177.0 mevcut `journals` ile açık
-arşiv/geri açmayı ekler; purge yoktur. Sıkıştırma bu mantıksal sınırları
-kaldırmaz; döngü sıklığı ve disk sınırı bu kayıt maliyetiyle seçilir.
+`limitations` içinde taşınır. 0.178.0'da yeni kontrol toplam geçmişi
+baştan okumaz; aynı kanıt tekrar saklanmaz. Eski tam `groups show` yanıtı
+1000 olay/4 MiB ile sınırlıdır, saklama bu sınırda durmaz. Büyük geçmiş
+`groups current/history/changes` ile sayfalanır; yazmalarda
+`response_mode=current` kullanılır. [Güncel sınırlar ve denetim](GROUP_CAPACITY.md).
 
 Geçerli ama bulunamayan kimlik `not_found`; eski sürüm `revision_changed`,
 değişmiş kanıt `source_changed`, farklı aynı anahtar `idempotency_conflict`,
@@ -168,8 +168,8 @@ git pull --ff-only
 ```
 
 `migrate` önce benzersiz eski şema yedeğini alır. 85→86 grup günlüğünü
-ekler ve vaka kanıt türünü genişletir; 86→87 bildirim tablosu ekler.
-Eski kayıt, rowid ve hash korunur. Eski motor şema87'yi okuyamaz.
+ekler ve vaka kanıt türünü genişletir; 86→87 bildirim tablosu, 87→88 indeksli güncel durum ve koruma tetikleyicileri ekler.
+Eski kayıt, rowid ve hash korunur. Eski motor şema88'i okuyamaz.
 Geri dönüş gerekiyorsa geçiş öncesi
 yedek eski kodla **yeni/boş** veri alanına açılır; güncel veritabanı üstüne
 yazılmaz. Geçiş sonrası yeni grup olayları eski yedekte bulunmaz.

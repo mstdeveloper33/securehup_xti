@@ -143,7 +143,10 @@ def main():
                         rows.append((entry['id'],proof['id'],request['idempotency_key'],operation,payload,checksum,chain))
                 require(len(project(entries))==100,'Fixture journal validation')
                 with SQLiteAssetRepository(context.database)._connection() as c,c:
+                    c.execute('BEGIN IMMEDIATE')
                     c.executemany('INSERT INTO research_group_journal (id,subject_id,request_key,operation,payload_json,payload_sha256,chain_sha256) VALUES (?,?,?,?,?,?,?)',rows)
+                    from xti.adapters.sqlite_group_projection import rebuild
+                    rebuild(c)
             metrics=[]
             def call(company,operation,options,expected_error=None,*,measure=True,action='request'):
                 path=base/(uuid4().hex+'.json')
