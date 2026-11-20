@@ -28,33 +28,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
-### N-042 — Kalıcı iş geçmişi ve kaynak çelişkisi değerlendirmesi
-
-- **Durum:** Uygulama/kabul sürüyor. **Tarih:** 20 Kasım 2026.
-- **Yetki/kapsam:** Kullanıcı önerilen 1 ve 3'ü seçti: ortak motor kuyruğunda
-  tamamlanan işleri etkin iş kapasitesinden ayırmak ve kaynak iddialarındaki
-  uyuşmazlığı kanıt/zaman/kapsamla değerlendirmek. Çok günlük canlı pilot
-  bu teslimin koşulu değildir; yeni kaynak veya ücretli çağrı açılmaz.
-- **Korunacaklar:** Özgün iş/istek/sonuç, tekrar anahtarı, yeniden deneme
-  zinciri ve firma sınırı; eski inceleme/vaka/insan kararının değişmemesi.
-  Kuyruk geçişi açık/yedekli; eski üreticiyle geri dönüş doğrulanır.
-- **Birikimli kullanım:** 10.000 sınırı yalnız bekleyen/çalışan işlere
-  uygulanacak. Biten işler otomatik kayıpsız geçmişe ayrılacak; seçilen
-  sonuç ve durum okunacak, tam denetim açık bakım olacak. Saklanan veri
-  yine büyür; arşivleme otomatik silme veya sınırsız disk değildir.
-- **Çelişki anlamı:** Tam profil adresinde yakın zamanlı karşıt varlık
-  iddiaları inceleme adayıdır. Eski gözlem, erişim hatası, farklı profil
-  ve CTI iddiasının geri çekilmesi ayrı açıklanır. Metinlerden genel
-  anlamsal çıkarım, çoğunluk oyu veya otomatik tehdit/kimlik hükmü yoktur.
-- **Kabul:** Eski ve arşivli tekrar/sonuç; iptal/kesinti/retry/restore;
-  eşzamanlı yazma; 10.000'i aşan geçmişte seçili okuma ve yeni iş;
-  iki firma; tam/eksik/zaman farkı içeren karşıt kanıt; terminal ve JSON.
-- **Yerel sonuç:** Son ilgili paketler173/45/26 test başarılı; iki firmada
-  50.000'er geçmiş iş, p95 0,396655 sn / tepe RSS49.577.984 byte. Gerçek
-  kuyruk3 üreticisiyle kayıpsız geçiş/rollback ve iki v9 donmuş inceleme
-  korunması geçti. Linux sonuçları bekleniyor; ayrıntı teslim kaydında.
-- **Dayanak:** [Sabit teslim](docs/roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
-
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 
 - **Durum:** Kaynak değerlendirmesi tamam; aşağıdaki kaynaklar yazılı/veri
@@ -861,6 +834,36 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Kapanan notlar ve kanıtları
 
+### N-042 — Kalıcı iş geçmişi ve kaynak çelişkisi değerlendirmesi
+
+- **Durum:** Kapandı; uygulama ve Linux teslimi tamamlandı. **Tarih:** 20 Kasım 2026.
+- **Yetki/kapsam:** Kullanıcı önerilen 1 ve 3'ü seçti: ortak motor kuyruğunda
+  tamamlanan işleri etkin iş kapasitesinden ayırmak ve kaynak iddialarındaki
+  uyuşmazlığı kanıt/zaman/kapsamla değerlendirmek. Çok günlük canlı pilot
+  bu teslimin koşulu değildir; yeni kaynak veya ücretli çağrı açılmaz.
+- **Korunacaklar:** Özgün iş/istek/sonuç, tekrar anahtarı, yeniden deneme
+  zinciri ve firma sınırı; eski inceleme/vaka/insan kararının değişmemesi.
+  Kuyruk geçişi açık/yedekli; eski üreticiyle geri dönüş doğrulanır.
+- **Birikimli kullanım:** 10.000 sınırı yalnız bekleyen/çalışan işlere
+  uygulanır. Biten işler otomatik kayıpsız geçmişe ayrılır; seçilen
+  sonuç ve durum okunur; tam denetim açık bakım işlemidir. Saklanan veri
+  yine büyür; arşivleme otomatik silme veya sınırsız disk değildir.
+- **Çelişki anlamı:** Tam profil adresinde yakın zamanlı karşıt varlık
+  iddiaları inceleme adayıdır. Eski gözlem, erişim hatası, farklı profil
+  ve CTI iddiasının geri çekilmesi ayrı açıklanır. Metinlerden genel
+  anlamsal çıkarım, çoğunluk oyu veya otomatik tehdit/kimlik hükmü yoktur.
+- **Kabul:** Eski ve arşivli tekrar/sonuç; iptal/kesinti/retry/restore;
+  eşzamanlı yazma; 10.000'i aşan geçmişte seçili okuma ve yeni iş;
+  iki firma; tam/eksik/zaman farkı içeren karşıt kanıt; terminal ve JSON.
+- **Yerel sonuç:** Son ilgili paketler 173/45/26 test başarılı; iki firmada
+  50.000'er geçmiş iş, p95 0,396655 sn / tepe RSS 49.577.984 byte. Gerçek
+  kuyruk3 üreticisiyle kayıpsız geçiş/rollback ve iki v9 donmuş inceleme
+  korunması geçti. `ab2996b` üzerinde dokuz GitHub çalışması başarılı;
+  tam Linux paketi ve Python 3.11/3.13 yeni kabul dahil. Test envanteri
+  3.438; koşu bağlantıları ve ölçüm sınırları teslim kaydında. Son kapanış
+  yalnız belgeleri günceller; test edilen motor kodu aynıdır.
+- **Dayanak:** [Sabit teslim](docs/roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
+
 ### N-041 — Biriken grup geçmişi ve bildirim okuma kapasitesi
 
 - **Durum:** Kapandı; uygulama, kapasite ve Linux kabulü tamamlandı.
@@ -872,7 +875,8 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   tekrar, iki firma ayrımı, bozuk projeksiyonun reddi ve özgün günlükten
   yeniden kurulması geçti. Yerel 100.000'er olay/firma ölçümünde 36 platform
   okumasının p95'i 0,543845 sn; tepe RSS 47.349.760 byte. Tam denetim iki
-  firmada da geçti. Ortak kuyruğun 10.000 saklı iş sınırı ayrı ve korunuyor.
+  firmada da geçti. O sürümde ortak kuyruğun 10.000 saklı iş sınırı ayrı
+  kalmıştı; 0.179.0 / N-042 bu sınırı etkin işlere ayırdı.
 - **Kalıcı geliştirme kuralı:** Tek seferlik küçük örnek yeterli değildir.
   Saklama büyümesi, istek başına çalışma sınırı, değişmeyen düzenli kontroller,
   sayfalama, kurtarma ve geçiş kabulü tasarım sırasında ele alınır (AGENTS.md).
@@ -1304,6 +1308,12 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.179.0 — 20 Kasım:** Kullanıcının seçtiği 1 ve 3 N-042 kapsamında
+tamamlandı. Kuyruk geçmişi etkin kapasiteden ayrıldı; kaynak uyuşmazlığı
+kanıt/zaman/kapsamla açıklanıyor. Kayıpsız geçiş, iki firma kapasitesi,
+tam Linux paketi ve diğer sekiz GitHub kabulü başarılı.
+[Teslim kapandı](docs/roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
 
 **0.178.0 — 20 Kasım:** Kullanıcının onayladığı grup kapasitesi iyileştirmesi
 N-041 kapsamında tamamlandı. Gerçek eski koddan geçiş/geri dönüş, iki

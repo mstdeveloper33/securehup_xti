@@ -1,6 +1,6 @@
 # 0184 — Etkin kuyruk ile kalıcı geçmiş; açık kaynak iddiası uyuşmazlığı
 
-20 Kasım 2026. Durum: uygulandı, teslim kabulü sürüyor.
+20 Kasım 2026. Durum: uygulandı, yerel ve Linux teslim kabulü tamamlandı.
 
 Kuyruk3 bütün saklı işlere 10.000 sınırı uyguluyor ve platform kabulünde
 bütün olayları yeniden oynatıyordu. Kuyruk4 özgün tabloları korur;

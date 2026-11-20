@@ -4,9 +4,11 @@
 
 Kuyruk geçmişi ve kaynak değerlendirmesinin sabit kapsamı, son yerel
 173/45/26 test, gerçek eski üreticiyle kuyruk3→4 geçiş/geri dönüş ve iki
-firmada50.000'er geçmiş iş ölçümü [tek teslim kaydında](roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
-Eski v9 donmuş incelemeler aynı kalır. Linux sonucu ayrıca kaydedilecek;
-kontrollü geçmiş yükü çok günlük canlı pilot yerine sunulmaz.
+firmada 50.000'er geçmiş iş ölçümü [tek teslim kaydında](roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
+Eski v9 donmuş incelemeler aynı kalır. `ab2996b` üzerindeki dokuz GitHub
+çalışması, tam Linux paketi ve Python 3.11/3.13 yeni özellik kabulü dahil
+başarılıdır. Test envanteri 3.438. Kontrollü geçmiş yükü çok günlük canlı
+pilot yerine sunulmaz; son kapanış yalnız belgelerdedir.
 
 ## 0.178.0 — Biriken grup geçmişi ve bildirim kapasitesi
 

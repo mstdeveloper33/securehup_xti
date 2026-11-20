@@ -9,9 +9,13 @@ geçmiş kesite bağlı sayfalı; bütünlük denetimi açık bakım işlemidir.
 zaman/kapsam/kanıtla değerlendirir. Öncelik v10; eski incelemeler değişmez.
 [İş geçmişi](JOB_HISTORY.md), [çelişki anlamı](SOURCE_CONFLICTS.md).
 İki firmada 50.000'er sentetik geçmiş iş üzerine yeni iş kabulü, gerçek
-eski üreticiden3→4 geçişi ve yedekten eski kodla dönüş yerelde geçti.
-Linux teslim sonucu [sabit kabul kaydında](roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md)
-ayrıca izleniyor; çok günlük canlı pilot bu teslimin kapsamında değildir.
+eski üreticiden 3→4 geçişi ve yedekten eski kodla dönüş yerelde geçti.
+Son ölçümde p95 0,396655 sn ve tepe RSS 49.577.984 byte. `ab2996b`
+motor kodunda dokuz GitHub çalışması başarılı: tam/hızlı Linux paketi,
+Python 3.11/3.13 yeni kabul, grup/firma/sosyal kabulü, kurulum ve işletim.
+Test envanteri 3.438; Linux sonucu ve yerel ölçümler
+[sabit kabul kaydında](roadmap/JOB_HISTORY_CONFLICT_DELIVERY.md).
+İki iş teslim edildi; çok günlük canlı pilot kapsam dışındadır.
 
 **0.178.0:** Grup güncel durumu, olay sonuçları ve değişiklik kanıtı
 indeksli okunur. `groups current/history/changes/audit/rebuild` eklendi.

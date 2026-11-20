@@ -1,8 +1,8 @@
 # İş geçmişi ve kaynak çelişkileri — sabit teslim
 
 20 Kasım 2026. Başlangıç 0.178.0 / çekirdek88 / kuyruk3.
-Durum: uygulama ve yerel kabul tamam; Linux teslimi bekleniyor.
-Kullanıcının seçtiği 1 ve 3. Hedef 0.179.0 / çekirdek88 / kuyruk4.
+Durum: **teslim tamamlandı**. Kullanıcının seçtiği 1 ve 3.
+Teslim: 0.179.0 / çekirdek 88 / kuyruk 4.
 
 1. Ortak profil/kaynak kuyruğunun tamamlanan geçmişini etkin kapasiteden
    ayır. Özgün iş, olay, sonuç, anahtar ve retry bağlarını değiştirme.
@@ -81,7 +81,30 @@ kabulü başarılıydı; yukarıdaki ölçümler son değişikliklerden sonradı
 50.000'er geçmiş iş ve ilgili regresyonları çalıştırır. Ortak kuyruk
 şeması/platform kabulü değiştiğinden bu sürümde tam Linux paketi bir kez
 gerekir; her küçük değişiklikte tam paketi tekrar çalıştırma kuralı yoktur.
-Son commit ve koşu bağlantıları sonuç alınınca buraya işlenecek.
+Motor commit'i `ab2996b6d6139d7680e86aa949201034391a17b0`.
+[Yeni özelliklerin Linux kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656728)
+Python3.11/3.13'te başarılıdır: ilgili regresyonlar, gerçek eski üretici,
+iki firma/50.000'er geçmiş iş ve geri dönüş. Yerel sayısal ölçümler yukarıda;
+Linux ayrıntılı ölçümleri koşu günlüğündedir. Aynı commit'in dokuz
+GitHub çalışması başarılıdır:
+
+| Kontrol | Sonuç |
+| --- | --- |
+| [Tam Linux paketi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656584) | Başarılı, Python 3.13 |
+| [Hızlı paket](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656664) | İki parça da başarılı, Python 3.11 |
+| [Yeni kuyruk/çelişki kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656728) | Python 3.11/3.13 başarılı |
+| [Grup geçişi ve kapasitesi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656604) | Python 3.11/3.13 başarılı |
+| [Firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656474) | Başarılı |
+| [Sosyal motor kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656558) | Başarılı |
+| [Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656526) | Başarılı |
+| [Marka araçlarının kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656812) | Başarılı |
+| [Yükseltme, kurtarma ve işletim](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44758656517) | Brand/Harvester yükseltme, systemd, dayanıklılık ve disk baskısı başarılı |
+
+Test keşfi 3.438'dir; bu sayı CI günlüklerinden alınmış koşu sayısı
+yerine kullanılmaz. İş/koşu sonuçları GitHub'ın herkese açık API'sinden
+aynı tam commit ile doğrulandı. Tag yayını ve ayrıca elle tetiklenen ikinci
+tam kontrol bu push'ta tasarım gereği atlandı; ayrı tam paket çalıştı.
+Son kapanış yalnız belgeleri günceller; test edilen motor kodu değişmez.
 
 ## Ölçümün sınırı
 

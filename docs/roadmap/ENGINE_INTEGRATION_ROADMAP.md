@@ -5,7 +5,9 @@ tamamlanan geçmiş etkin kapasiteden ayrıldı; kaynakların açık karşıt
 iddiaları zaman ve kanıtıyla değerlendiriliyor. Eski iş/sonuç/tekrar bağı,
 inceleme ve insan kararı korunuyor. Yedekli kuyruk4 geçişi ve iki firmada
 50.000'er geçmiş iş kabulü [sabit teslimde](JOB_HISTORY_CONFLICT_DELIVERY.md)
-izlenir. Çok günlük canlı pilot ve ertelenmiş entegrasyonlar bu kapsama
+kaydedildi. `ab2996b` üzerinde dokuz GitHub çalışması, tam Linux paketi
+ve Python 3.11/3.13 yeni özellik kabulü geçti. İki işin teslimi tamamlandı.
+Çok günlük canlı pilot ve ertelenmiş entegrasyonlar bu kapsama
 eklenmez. Yeni veri kaynağı veya ücretli çağrı açılmadı.
 
 **0.178.0:** Biriken grup geçmişi güncel okumadan ayrıldı; değişmeyen
