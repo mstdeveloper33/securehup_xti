@@ -1,6 +1,6 @@
 # 0183 — Biriken grup geçmişini güncel okumadan ayırma
 
-Tarih: 20 Kasım 2026. Durum: uygulama ve kabul sürüyor.
+Tarih: 20 Kasım 2026. Durum: uygulandı; yerel ve Linux kabulü tamamlandı.
 
 Grup listesi, ayrıntısı, bildirim kutusu ve her yeni kontrol bütün grup
 günlüğünü okuyordu. Değişmeyen kontrol bile aynı kanıtı tekrar saklıyordu.
@@ -37,4 +37,7 @@ araştırma ve kaynak bütçeleri korunur. Sınırsız kapasite iddiası yoktur.
 
 Geçiş, kaynak günlüklerini, eski vaka JSON'unu, bildirim kimliği/okunma
 durumunu veya eski iş makbuzlarını yeniden yazmaz. Yedek eski kodla geri
-okunur. Kabul ölçümü ve sınırlar teslim belgesine kaydedilecektir.
+okunur. Kabul ölçümü, sınırlar ve başarılı Linux koşuları
+[teslim belgesine](../roadmap/GROUP_CAPACITY_DELIVERY.md) kaydedildi.
+Biriken veri, değişmeyen kontrol, sayfalama, tekrar güvenliği ve geri dönüş
+kabulü yeni geliştirmelerin tasarım aşamasında ele alınır (AGENTS.md).

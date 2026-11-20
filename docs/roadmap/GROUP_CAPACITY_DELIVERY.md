@@ -1,6 +1,6 @@
 # Grup kapasitesi — sabit teslim kapsamı
 
-20 Kasım 2026 · 0.178.0 / çekirdek88. Durum: kabul sürüyor.
+20 Kasım 2026 · 0.178.0 / çekirdek88. Durum: teslim ve Linux kabulü tamamlandı.
 
 Kapsam: indeksli güncel durum ve geçmiş sayfalama; aynı kanıtı tekrar
 saklamayan kontrol; seçilen bildirim kanıtı; idempotent kuyruk/kurtarma;
@@ -61,8 +61,8 @@ Yerel kapasite ölçümü geliştirme çalışma ağacında alındı; sabit gön
 commit'inin Linux kabulü ayrıca izlenir. Gerçek85 ve86 üreticileri
 ile eski kabul araçları da şema88'e geçiş/geri dönüşü doğruladı.
 
-Linux sonucu ve son commit için kabul henüz bekleniyor. Bu yerel sonuçlar
-tam Linux paketinin geçtiği anlamına gelmez.
+Yerel ölçümler ile sabit commit'in aşağıdaki Linux sonuçları ayrı kanıtlardır;
+yerel süre/RSS değerleri Linux ölçümü olarak sunulmaz.
 
 ## Linux süresi düzeltmesi
 
@@ -76,5 +76,38 @@ bölündü. Yerel `scripts/check-fast` hâlâ tam hızlı listeyi çalıştırı
 yalnız CI `XTI_CHECK_SHARD=1/2` ve `2/2` kullanır. Her parça 25 dakika
 bütçeli; kapasite/performans kabul eşikleri aynı. Eksik, örtüşen veya
 geçersiz parça seçimi denetimi ve 14 CI yapılandırma testi geçti.
-Motor kodu bu süre düzenlemesinde değişmedi; devam eden tam paket
-gereksiz yere yeniden başlatılmadı.
+Motor kodu bu süre düzenlemesinde değişmedi; tam paket gereksiz yere
+yeniden başlatılmadı. `f515df5` üzerinde iki parça da geçti: gerçek test
+adımları 13 dakika 40 saniye ve 7 dakika 30 saniye sürdü. Her parça 88
+modül çalıştırır; aynı 176 modülün eksiksiz ve ayrık bölündüğü doğrulandı.
+
+## Son GitHub/Linux kabulü
+
+Motor commit'i: `0efb3e05b9dc1ebb00b1d8bd949cc80659d092a6`.
+Yalnız CI bölme düzenlemesi: `f515df593e581440e0fb623e6db80534fb0afa9c`.
+İki commit arasında `src/` ve `pyproject.toml` aynıdır. Güncel yerel test
+envanteri 3.415'tir; CI günlükleri indirilmediğinden bu sayı tam Linux
+koşusunun ölçülmüş test adedi diye sunulmaz. Sonuçlar GitHub'ın koşu/iş
+durumlarından doğrulandı; tam paket adımı başarılı, etiket olmayan
+gönderimde release adımı beklendiği gibi atlandı.
+
+| Kontrol | Commit | Sonuç / kanıt |
+| --- | --- | --- |
+| Tam Linux test paketi | `0efb3e0` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716983) |
+| Grup kabulü, gerçek85/86/87 geçişi ve geri dönüş; Python3.11/3.13 | `0efb3e0` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716994) |
+| Firma izolasyonu/kurtarma | `0efb3e0` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746717005) |
+| Sosyal motor kabulü | `0efb3e0` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716945) |
+| İşletim, yükseltme ve kurtarma | `0efb3e0` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716955) |
+| Linux kurulumu | `0efb3e0` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716987) |
+| Marka araçları kurulumu | `0efb3e0` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746717133) |
+| İlk tek parçalı hızlı kontrol | `0efb3e0` | [25 dakika sınırında iptal; başarı sayılmadı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716968) |
+| İki parçalı hızlı kontrol | `f515df5` | [İki parça da başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44750998349) |
+| Son Linux kurulumu | `f515df5` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44750998341) |
+| Son marka araçları kurulumu | `f515df5` | [Başarılı](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44750998273) |
+
+Son kapanış yalnız bu kanıtları ve mevcut durumu belgelere işler; test
+edilen motor, test ve CI kodu değişmez. Grup kapasitesi teslimi tamamlandı.
+AGENTS.md artık birikimli kullanım, değişmeyen kontroller, istek başına
+bütçe, sayfalama, tekrar/kurtarma ve geçiş kabulünü geliştirmeden önce
+tanımlamayı ister. Bu kayıt başka modüller için sınırsız kapasite veya
+canlı kaynak doğruluğu iddiası değildir.

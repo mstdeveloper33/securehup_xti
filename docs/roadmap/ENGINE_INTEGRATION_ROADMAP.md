@@ -1,5 +1,15 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**0.178.0:** Biriken grup geçmişi güncel okumadan ayrıldı; değişmeyen
+kanıt tekrar kopyalanmaz, geçmiş ve değişiklikler sayfalanır. Eski karar,
+vaka, bildirim ve iş makbuzu korunur. Yedekli şema87→88 geçişi, eski kodla
+geri dönüş, iki firmada 100.000'er olay kabulü ve tam Linux paketi geçti.
+İlk hızlı test süre aşımı aynı modülleri iki parçaya bölerek giderildi;
+son iki parça da başarılı. [Tamamlanan kapsam ve kanıtlar](GROUP_CAPACITY_DELIVERY.md).
+Birikimli kullanım kabulü artık geliştirme başlangıcında tanımlanır.
+Ortak kuyruğun 10.000 saklı iş sınırı ayrı kalır; bu teslim genel motor
+kapasitesinin sınırsız olduğu anlamına gelmez.
+
 **0.177.0:** Onaylanan iki devam işi uygulandı: kayıtlı grup kontrolü
 mevcut kaynak kuyruğuna/bildirim kutusuna bağlandı; grup geçmişi mevcut
 kayıpsız arşive katıldı. Terminal ve firma JSON aynı davranışı kullanır.

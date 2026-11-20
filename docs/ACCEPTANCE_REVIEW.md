@@ -1,5 +1,19 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.178.0 — Biriken grup geçmişi ve bildirim kapasitesi
+
+İndeksli güncel durum, sayfalı geçmiş, aynı kanıtı yeniden saklamayan
+kontrol ve yedekli yeniden kurma teslim edildi. Gerçek87→88 geçişinde
+174 eski tablo/27 fixture satırı, arşiv, vaka, iş makbuzu ve okunma durumu
+korundu; eski kodla geri dönüş geçti. Yerel iki firma/100.000'er olay
+ölçümü ile `0efb3e0` sabit motor kodunun Linux tam paket, grup ve firma
+kabulü, kurulum/işletim sonuçları [tek teslim kaydında](roadmap/GROUP_CAPACITY_DELIVERY.md).
+İlk hızlı koşu 25 dakika sınırında iptal edildi. Aynı 176 modül iki ayrık
+parçaya bölündü; motor kodunu değiştirmeyen `f515df5` üzerinde ikisi de
+geçti. Son kapanış yalnız belgelerdedir. Test envanteri 3.415; yerel
+ölçüm, envanter ve GitHub iş sonuçları ayrı kanıtlar olarak tutulur.
+Grup olay kapasitesi kabulü, ortak kuyrukta 100.000 iş kabulü değildir.
+
 ## 0.177.0 — Yönetilen grup kontrolü, bildirim ve kayıpsız arşiv
 
 Yerel kabul, gerçek86 üreticisinden87'ye yükseltme/geri dönüş, core commit

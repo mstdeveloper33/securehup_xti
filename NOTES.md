@@ -28,28 +28,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
-### N-041 — Biriken grup geçmişi ve bildirim okuma kapasitesi
-
-- **Durum:** Uygulama ve kabul çalışması sürüyor. **Tarih:** 20 Kasım 2026.
-- **Hedef:** Güncel grup/bildirim okumaları tüm geçmişi yeniden oynatmayacak;
-  değişmeyen kontroller özgün kanıta başvuracak. Geçmiş ve değişiklikler ayrı
-  sayfalanacak; eski v1 kayıtları, vaka kanıtları ve iş makbuzları korunacak.
-- **Kabul:** Gerçek şema87 üreticisiyle yedekli geçiş/geri dönüş; kesinti sonrası
-  tekrar; iki firma ayrımı; büyüyen ve değişmeyen kontrol yükü altında ölçüm;
-  bozuk projeksiyonun reddi ve özgün günlükten yeniden kurulması. Ölçüm sonucu
-  gelmeden kapasite veya Linux kabulü tamamlandı sayılmayacak.
-- **Kalıcı geliştirme kuralı:** Tek seferlik küçük örnek yeterli değildir.
-  Saklama büyümesi, istek başına çalışma sınırı, değişmeyen düzenli kontroller,
-  sayfalama, kurtarma ve geçiş kabulü tasarım sırasında ele alınır (AGENTS.md).
-- **Kapsam:** Motorun Python/SQLite grup depolaması; .NET/PostgreSQL entegrasyonu,
-  yeni ücretli kaynaklar ve canlı hedef taraması bu çalışmada yok.
-- **Linux izleme:** `0efb3e0` grup kabulü Python3.11/3.13, kurulum,
-  firma/sosyal kabulü ve işletim/yükseltme kontrollerinden geçti. Tam paket
-  sürüyor. İlk hızlı paket test sonucu üretmeden 25 dakika iş süresini
-  aştı ([koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716968));
-  GitHub açıklaması süre aşımını doğruladı. Aynı modül listesi iki ayrık
-  paralel parçaya bölündü; testler veya performans eşikleri çıkarılmadı.
-
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 
 - **Durum:** Kaynak değerlendirmesi tamam; aşağıdaki kaynaklar yazılı/veri
@@ -856,6 +834,35 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Kapanan notlar ve kanıtları
 
+### N-041 — Biriken grup geçmişi ve bildirim okuma kapasitesi
+
+- **Durum:** Kapandı; uygulama, kapasite ve Linux kabulü tamamlandı.
+  **Tarih:** 20 Kasım 2026. Sürüm 0.178.0 / çekirdek88 / kuyruk3.
+- **Teslim:** Güncel grup/bildirim okumaları tüm geçmişi yeniden oynatmaz;
+  değişmeyen kontroller özgün kanıta başvurur. Geçmiş ve değişiklikler ayrı
+  sayfalanır; eski v1 kayıtları, vaka kanıtları ve iş makbuzları korunur.
+- **Kabul:** Gerçek şema87 üreticisiyle yedekli geçiş/geri dönüş, kesinti sonrası
+  tekrar, iki firma ayrımı, bozuk projeksiyonun reddi ve özgün günlükten
+  yeniden kurulması geçti. Yerel 100.000'er olay/firma ölçümünde 36 platform
+  okumasının p95'i 0,543845 sn; tepe RSS 47.349.760 byte. Tam denetim iki
+  firmada da geçti. Ortak kuyruğun 10.000 saklı iş sınırı ayrı ve korunuyor.
+- **Kalıcı geliştirme kuralı:** Tek seferlik küçük örnek yeterli değildir.
+  Saklama büyümesi, istek başına çalışma sınırı, değişmeyen düzenli kontroller,
+  sayfalama, kurtarma ve geçiş kabulü tasarım sırasında ele alınır (AGENTS.md).
+- **Kapsam:** Motorun Python/SQLite grup depolaması; .NET/PostgreSQL entegrasyonu,
+  yeni ücretli kaynaklar ve canlı hedef taraması bu çalışmada yok.
+- **Linux kanıtı:** `0efb3e0` tam paket, grup kabulü Python3.11/3.13,
+  kurulum, firma/sosyal kabulü ve işletim/yükseltme kontrollerinden geçti.
+  İlk hızlı paket 25 dakika iş süresini aştı
+  ([koşu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44746716968));
+  GitHub açıklaması süre aşımını doğruladı. Aynı 176 modül iki ayrık paralel
+  parçaya bölündü; testler veya performans eşikleri çıkarılmadı. `f515df5`
+  üzerinde [iki parça da geçti](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44750998349).
+  Motor kodu değişmedi. Güncel test envanteri 3.415; CI günlüğünden sayılmış
+  koşu adedi değildir. Son kapanış yalnız belgeler içindir.
+- **Dayanak:** [Teslim ve tüm koşular](docs/roadmap/GROUP_CAPACITY_DELIVERY.md),
+  [kullanım ve sınırlar](docs/GROUP_CAPACITY.md).
+
 ### N-040 — Grup işleri, değişiklik bildirimi ve kayıpsız arşiv
 
 - **Durum:** Kapandı; kullanıcının birlikte onayladığı iki iş ve Linux
@@ -1270,6 +1277,13 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.178.0 — 20 Kasım:** Kullanıcının onayladığı grup kapasitesi iyileştirmesi
+N-041 kapsamında tamamlandı. Gerçek eski koddan geçiş/geri dönüş, iki
+firmada biriken geçmiş, tam Linux paketi ve son hızlı testin iki parçası
+başarılı. [Teslim kapandı](docs/roadmap/GROUP_CAPACITY_DELIVERY.md).
+Birikimli kullanımın tasarımda ele alınması AGENTS.md'ye eklendi; yeni
+bir özellik paketi kendiliğinden açılmadı.
 
 **0.176.0 — 20 Kasım:** Kullanıcının onayladığı ilk sekiz motor işi ve
 iki kaynak değerlendirmesi N-038 kapsamında tamamlandı; son kodda tam ve

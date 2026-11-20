@@ -8,7 +8,16 @@ geçişi yedekli; kuyruk3, kaynak işi7, dış JSONv1 aynı. Eski tam `show`
 yanıtı sınırlı tutulur; büyük geçmiş ayrı sayfalanır. Önceki toplam günlük
 kapasite sınırları yeni olay yazımından kaldırıldı; tek olay/istek ve
 araştırma bütçeleri korunur. [Kullanım](GROUP_CAPACITY.md),
-[kabul sürüyor](roadmap/GROUP_CAPACITY_DELIVERY.md).
+[teslim tamamlandı](roadmap/GROUP_CAPACITY_DELIVERY.md).
+İki firmada 100'er grup/100.000'er olayla yerel kabul geçti; 36 platform
+okumasında p95 0,543845 sn, tepe RSS 47.349.760 byte ölçüldü. `0efb3e0`
+motor kodunda tam Linux paketi, Python3.11/3.13 grup/geçiş/geri dönüş ve
+firma kabulü, sosyal kabul, kurulum ve işletim kontrolleri başarılı.
+İlk hızlı koşu 25 dakika sınırında iptal edildi; aynı 176 modül iki ayrık
+parçaya bölündü ve `f515df5` üzerinde ikisi de geçti. Motor kodu değişmedi.
+Güncel test envanteri 3.415; bu sayı CI günlüklerinden alınmış koşu sayısı
+değildir. Ortak kuyruğun 10.000 saklı iş sınırı ayrı kalır. Son kapanış
+yalnız belgeleri günceller; birikimli kullanım kabulü geliştirme kuralıdır.
 
 **0.177.0:** Kayıtlı grup kontrolü `group-refresh` ile mevcut kaynak
 kuyruğuna bağlandı. Aynı firma/kök, atomik fark bildirimi, eski insan
