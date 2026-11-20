@@ -57,6 +57,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   ölçülen teslim. crt.sh yeni hata/başarı kanıtı ile ticari kaynak kararları
   ayrıca kaydedildi. Gerçek 85→86 yükseltme/geri dönüş ve iki firmalı
   kapasite/kesinti ölçümü geçti. [Sabit teslim listesi](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
+- **Kurtarma doğrulaması:** Disk taşmasıyla yarım SQLite işlemi üretildi;
+  salt-okunur platform ön denetiminin recovery'yi engellemesi düzeltildi.
+  Açık `platform recover` firma/kuyruk/çekirdek kilitleriyle toparlar;
+  normal okumalar onarım yapmaz. Eski makbuz ve bütün kayıtlar korunur.
 - **Korunan sınır:** Sağlayıcı izni veya sözleşmesi gerektiren kararlar
   araştırmayla alınmış sayılmaz; belirsiz ticari kaynaklar onaylı listesine
   geçirilmez. Ücretli çağrı veya sağlayıcıyla iletişim başlatılmaz.

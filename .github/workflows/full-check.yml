@@ -7,6 +7,12 @@ on:
     paths:
       - "pyproject.toml"
       - ".github/workflows/full-check.yml"
+      # These cross-cutting boundaries require the full gate even without a
+      # version bump; ordinary feature changes still use the fast checks.
+      - "src/xti/adapters/schema.py"
+      - "src/xti/adapters/*_schema.py"
+      - "src/xti/adapters/sqlite.py"
+      - "src/xti/domain/research.py"
     tags:
       - "v*"
 

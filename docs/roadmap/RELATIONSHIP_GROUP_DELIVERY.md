@@ -39,9 +39,18 @@ Yeni özellik fikirleri bu on maddelik teslimin bitiş şartını büyütmez.
   sınandı. İlk tanı testinin ortam mock'u düzeltildi; üretim kodu değişmedi.
 - Son mimari, CI, engine sözleşmesi ve dondurulmuş araştırma geçmişi
   paketi **69 test /30,728 sn**, hata yok.
-- Genel koşu hâlen sürüyor. İlk yüklenen eski şema fixture beklentilerindeki
-  hatalar saklanır; düzeltilmiş hedefli testler ilk genel koşuyu başarılı
-  yapmaz. Son Linux sonucu ayrıca bu kayda eklenecek.
+- İlk yerel genel koşu **3.384 test /1.644,784 sn**: 16 başarısız beklenti,
+  bir hata, dört Linux/macOS atlaması. 16 sorun eski şema fixture/DDL
+  beklentilerinde, biri eski `max_hops=3` ret beklentisindeydi. Tam koşu
+  bu yardımcıları düzeltmeden önce yükledi; sonraki başarılı modüller
+  ilk koşuyu temiz yapmaz. Son Linux sonucu ayrıca aşağıya kaydedilir.
+- Kurtarma düzeltmesiyle firma/backup/CI/araştırma önceliği paketi
+  **69 test /28,729 sn**, hata yok. Üç yeni test gerçek disk taşması ve
+  süreç ölümünde çekirdek/kuyruk kurtarmasını; salt okumada değişiklik
+  olmamasını ve busy/disabled firma reddini doğrular.
+- Genel koşunun son tedarikçi eski-şema beklentilerini içeren modülün
+  tamamı **5 test /1,706 sn** ile geçti. Genel koşudaki 17 hata/beklenti
+  sorununun bulunduğu bütün modüller düzeltmelerden sonra ayrıca çalıştı.
 
 `scripts/check-group-delivery.py` gerçek `d3fd773` /0.175.0 kodundan
 üretilmiş şema85 verisini 86'ya geçirdi. **172 eski tablo, 14 dolu fixture
@@ -53,16 +62,39 @@ commit öncesi süreç ölümü sınandı.
 
 | Yerel ölçüm | Sonuç | Baştan belirlenmiş eşik |
 | --- | --- | --- |
-| 12 JSON okuması p95 | 0,6103 sn | ≤5 sn |
-| En yüksek alt süreç RSS | 62.406.656 byte | ≤256 MiB |
-| İki firmanın toplam veri boyutu | 13.964.683 byte | ≤128 MiB |
-| Kabul betiği süresi | 15,594 sn | İş akışı 15 dakika |
+| 12 JSON okuması p95 | 0,6452 sn | ≤5 sn |
+| En yüksek alt süreç RSS | 62.210.048 byte | ≤256 MiB |
+| İki firmanın toplam veri boyutu | 13.902.107 byte | ≤128 MiB |
+| Kabul betiği süresi | 16,870 sn | İş akışı 15 dakika |
 
 Bu ölçüm kontrollü kapasite kabulüdür; bütün internet doğruluğu veya 7/24
 hizmet garantisi değildir. İlk iki betik koşusu denetim/fixture hazırlık
-hatasında durdu; düzeltilmiş üçüncü koşu geçti. Motor verisi kaybı yoktur.
-Özel çıktılar `/tmp/xti-0176-group-delivery-3.json` ve test günlüklerindedir;
+hatasında durdu; üçüncü koşu geçti. Son ölçüm, aşağıdaki disk taşması
+eksikliğini de zorlayan `/tmp/xti-0176-group-recovery-2.json` koşusudur.
+Önceki yerel ölçüm `/tmp/xti-0176-group-delivery-3.json` içinde ayrı tutuldu;
 çalışma veritabanları veya toplanan kaynak gövdeleri repoya konmadı.
+
+## İlk Linux koşusu ve kurtarma düzeltmesi
+
+`c159619` üzerindeki [grup kabulünde](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44716040100)
+Python3.11/3.13 işlev testleri geçti; son kapasite/kesinti adımı başarısızdı.
+İş günlüğü indirme ucu normal GitHub oturumu olmadan HTTP403 döndü; ayrıntılı
+Linux traceback'i elde edilmiş sayılmaz. Sonraki betik hataları check
+annotation'a da yazılır; erişim için kimlik bilgisi çıkarılmadı.
+
+Yerelde SQLite cache'i bir sayfaya indirerek gerçek disk taşması zorlandı.
+Önce salt-okunur manifest `attempt to write a readonly database`, ardından
+platform isteği `storage_error` verdi. Açık `platform recover` da salt-okunur
+ön kontrolde duruyordu. Bu kurtarma eksiği giderildi: yalnız açık recover
+komutu, mevcut firma kaydı ve kuyruk→çekirdek kilitleriyle iki mevcut veritabanını
+yazılabilir açar; SQLite yarım işlemi geri alır. Normal okumalar onarım
+yapmaz, iş yeniden çalıştırılmaz. Sonrasında aynı anahtar eski makbuzu
+döndürür; olay/rowid/veri manifesti değişmez. Son betik iki firmada bu yolu
+gerçekten çalıştırarak geçti; önceki hafızada kalan kesintiyle karıştırılmaz.
+
+Tam CI, sürüm değişimine ek olarak çekirdek şema/araştırma sınırı
+değişikliklerinde çalışır. Sıradan özellik düzenlemeleri hızlı paketi
+kullanır; her küçük değişiklikte bütün testler tekrar başlatılmaz.
 
 ## Kaynak ve ticari karar kapanışı
 

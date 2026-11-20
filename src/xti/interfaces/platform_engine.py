@@ -254,6 +254,9 @@ def run_platform(args, *, stream=None, output=None):
         else:
             context = resolve_company_workspace(args.root, args.company)
             scope = context.scope
+            if action == 'recover':
+                from xti.interfaces.platform_jobs import recover_storage
+                recover_storage(context)
             # Refuse incomplete platform provisioning, including read operations.
             from xti.interfaces.platform_jobs import validate_jobs
             validate_jobs(context)

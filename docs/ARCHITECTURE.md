@@ -7,6 +7,9 @@ kullanılır; grafiğin ve günlüğün okunması aynı transaction içindedir.
 Şema86 yeni journal ve vaka CHECK genişlemesidir; eski satır/rowid/hash
 korunur. Grup sınırları, kısmi kontrol, tekrar güvenliği ve aynı kanıta bağlı
 karar [0181 kararında](decisions/0181-evidence-backed-research-groups.md).
+Platformun açık `recover` işlemi, salt-okunur ön denetimden önce mevcut
+kuyruk→çekirdek kilitleriyle SQLite rollback günlüklerini toparlar;
+normal okumalar ve istekler onarım yapmaz. Kaynak/iş yeniden başlatılmaz.
 
 0.175.0 `research_social` ve `source_comparison` saf kanıt gösterim
 kurallarıdır. `StoredSocialContext` aynı salt-okunur transaction içinde

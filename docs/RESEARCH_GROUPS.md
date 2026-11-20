@@ -166,6 +166,15 @@ korunur. Eski motor şema86'yı okuyamaz. Geri dönüş gerekiyorsa geçiş önc
 yedek eski kodla **yeni/boş** veri alanına açılır; güncel veritabanı üstüne
 yazılmaz. Geçiş sonrası yeni grup olayları eski yedekte bulunmaz.
 
+Yazma sırasında süreç kesilip SQLite geri alma günlüğü bıraktıysa,
+salt-okunur açılış toparlamayı gerçekleştiremeyebilir. Firma alanında önce
+`./xti platform recover --root PLATFORM_KÖKÜ --company FIRMA` çalıştırın.
+Bu açık yönetici işlemi mevcut kuyruk→çekirdek kilit sırasıyla SQLite'ı
+toparlar; kesilmiş işleri mevcut kurala göre işaretler, yeniden çalıştırmaz.
+Ardından aynı yazma isteğini özgün işlem anahtarıyla tekrar göndermek,
+tamamlanmış istek için yeni olay üretmeden ilk makbuzu döndürür. Bu yol
+gerçek disk taşması ve süreç ölümüyle sınanır; normal okumalar onarım yapmaz.
+
 [Sabit kapsam ve test sonuçları](roadmap/RELATIONSHIP_GROUP_DELIVERY.md),
 [mimari karar](decisions/0181-evidence-backed-research-groups.md),
 [ticari kaynak kararları](COMMERCIAL_SOURCE_REVIEW.md).

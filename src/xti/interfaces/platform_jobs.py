@@ -22,6 +22,24 @@ def validate_jobs(context):
     SQLiteEngineJobRepository(jobs_database(context)).validate()
 
 
+def recover_storage(context):
+    """Explicit administrative recovery, before read-only admission validation.
+
+    SQLite must open a hot rollback journal with write permission. Hold the
+    established queue -> core locks; ordinary reads never repair either DB.
+    This neither creates a missing database nor claims/restarts a job.
+    """
+    from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+    queue = jobs_database(context)
+    with LocalExecutionLock(queue).acquire(), LocalExecutionLock(context.database).acquire():
+        with SQLiteEngineJobRepository(queue)._connection():
+            pass
+        storage = SQLiteAssetRepository(context.database)
+        with storage._connection() as connection:
+            storage._check_integrity(connection)
+        validate_jobs(context)
+
+
 def make_job_service(context):
     from xti.adapters.engine_job_collection import CollectionProfileJobRunner
     from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository

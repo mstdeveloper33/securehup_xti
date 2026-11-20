@@ -144,10 +144,10 @@ def main():
                 with SQLiteAssetRepository(context.database)._connection() as c,c:
                     c.executemany('INSERT INTO research_group_journal (id,subject_id,request_key,operation,payload_json,payload_sha256,chain_sha256) VALUES (?,?,?,?,?,?,?)',rows)
             metrics=[]
-            def call(company,operation,options,expected_error=None):
+            def call(company,operation,options,expected_error=None,*,measure=True,action='request'):
                 path=base/(uuid4().hex+'.json')
                 command=[sys.executable,str(ROOT/'tests/platform_acceptance_worker.py'),'--metrics',str(path),'--',
-                    'platform','request','--root',str(base/'platform'),'--company',company]
+                    'platform',action,'--root',str(base/'platform'),'--company',company]
                 request={'contract_version':1,'request_id':uuid4().hex,'operation':operation,'parameters':options}
                 start=time.perf_counter()
                 child=subprocess.run(command,input=json.dumps(request),text=True,capture_output=True,cwd=ROOT,timeout=30)
@@ -157,8 +157,9 @@ def main():
                     return None
                 require(child.returncode==0 and not child.stderr,'Platform request: '+str(response.get('error')))
                 require(response['scope']['company_id']==company,'Company scope')
-                metrics.append({'company':company,'operation':operation,'seconds':time.perf_counter()-start,
-                    'rss_bytes':json.loads(path.read_text())['peak_rss_bytes']})
+                if measure:
+                    metrics.append({'company':company,'operation':operation,'seconds':time.perf_counter()-start,
+                        'rss_bytes':json.loads(path.read_text())['peak_rss_bytes']})
                 return response['data']
             for company,context in contexts.items():
                 first=call(company,'groups.list',{'limit':20})
@@ -182,16 +183,28 @@ def main():
                 require(recovered==full,'Backup lost group/decision history')
                 # An uncommitted write interrupted by process death must roll back.
                 before_db=helper.database_manifest(context.database)
-                crash="import sqlite3,os,sys; c=sqlite3.connect(sys.argv[1]); c.execute('BEGIN IMMEDIATE'); c.execute('DELETE FROM research_group_journal'); os._exit(17)"
+                # Force a disk spill on every SQLite build; otherwise a large
+                # page cache can make the crash look recovered without a hot journal.
+                crash="import sqlite3,os,sys; c=sqlite3.connect(sys.argv[1]); c.execute('PRAGMA cache_size=1'); c.execute('BEGIN IMMEDIATE'); c.execute('DELETE FROM research_group_journal'); os._exit(17)"
                 child=subprocess.run([sys.executable,'-c',crash,str(context.database)],capture_output=True,timeout=10)
-                require(child.returncode==17 and helper.database_manifest(context.database)==before_db,'Interrupted transaction lost records')
+                require(child.returncode==17,'Crash fixture did not interrupt the writer')
+                require(context.database.with_name(context.database.name+'-journal').stat().st_size>0,'Crash fixture left no rollback journal')
+                # Administrative recovery opens the SQLite journals as a writer;
+                # ordinary JSON reads must never silently repair storage.
+                recovered=call(company,'platform.recover',{},measure=False,action='recover')
+                require(recovered==[],'Recovery unexpectedly changed an empty job queue')
+                replay=call(company,'groups.capture',{**full['history'][0]['request'],
+                    'expected_workspace_id':context.workspace_id},measure=False)
+                require(replay['replayed'] and replay['record']['revision']==1,'Recovery did not return original receipt')
+                require(helper.database_manifest(context.database)==before_db,'Interrupted transaction lost records')
             seconds=sorted(m['seconds'] for m in metrics); p95=seconds[math.ceil(.95*len(seconds))-1]
             rss=max(m['rss_bytes'] for m in metrics)
             disk=sum(p.stat().st_size for context in contexts.values() for p in context.database.parent.rglob('*') if p.is_file())
-            require(p95<=5 and rss<=256*1024*1024 and disk<=128*1024*1024,'Fixed capacity budget exceeded')
-            result.update(status='passed',measurements=metrics,read_p95_seconds=round(p95,4),peak_rss_bytes=rss,
+            result.update(measurements=metrics,read_p95_seconds=round(p95,4),peak_rss_bytes=rss,
                 company_data_bytes=disk,checks=['real_old_producer','preserved_case_rowids','old_code_rollback',
-                    'paged_company_reads','cross_company_rejected','workspace_write_fence','group_backup_restore','process_death_rollback'])
+                    'paged_company_reads','cross_company_rejected','workspace_write_fence','group_backup_restore','process_death_rollback','authorized_idempotent_recovery'])
+            require(p95<=5 and rss<=256*1024*1024 and disk<=128*1024*1024,'Fixed capacity budget exceeded')
+            result['status']='passed'
     except Exception as error:
         result.update(status='failed',error=type(error).__name__+': '+str(error))
     result['elapsed_seconds']=round(time.monotonic()-started,3)
@@ -199,6 +212,9 @@ def main():
     descriptor=os.open(output,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
     with os.fdopen(descriptor,'w') as stream: stream.write(content)
     print(content)
+    if result['status']!='passed' and os.environ.get('GITHUB_ACTIONS')=='true':
+        error=result.get('error','Acceptance failed').replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+        print('::error title=Group delivery acceptance::'+error)
     return int(result['status']!='passed')
 
 

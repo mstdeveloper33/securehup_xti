@@ -305,7 +305,7 @@ class ResearchPriorityTests(ResearchFixture, unittest.TestCase):
         self.assertEqual((code, err), (0, ""))
         self.assertIn("research.priorities", json.loads(out)["data"]["operations"])
         for options in ({"company": "other"}, {"data_dir": "/tmp/other"}, {"limit": True}, {"offset": -1},
-                        {"node_limit": 101}, {"max_hops": 3}, {"indicator_type": []}, {"stale_after_hours": 0},
+                        {"node_limit": 101}, {"max_hops": 5}, {"indicator_type": []}, {"stale_after_hours": 0},
                         {"expected_snapshot": "bad"}, {"value": "*.example.com"}):
             code, out, err = self.invoke(args, self.request(**options))
             self.assertEqual((code, err), (2, ""), out)

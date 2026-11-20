@@ -13,6 +13,7 @@ on:
       - "scripts/check-source-evidence.py"
       - "tests/test_research_groups.py"
       - "tests/test_source_evidence_diagnostic.py"
+      - "tests/test_platform_storage_recovery.py"
   pull_request:
     paths:
       - "src/xti/**"
@@ -20,6 +21,7 @@ on:
       - "scripts/check-group-delivery.py"
       - "scripts/check-source-evidence.py"
       - "tests/test_source_evidence_diagnostic.py"
+      - "tests/test_platform_storage_recovery.py"
       - ".github/workflows/group-delivery.yml"
   workflow_dispatch:
 
@@ -58,6 +60,7 @@ jobs:
           ./scripts/python -m unittest -q tests.test_research_groups
           tests.test_research_history tests.test_research_case_content
           tests.test_linux_upgrade_acceptance tests.test_source_evidence_diagnostic
+          tests.test_platform_storage_recovery
       - name: Schema85 producer, migration, rollback and measured capacity
         run: ./scripts/python scripts/check-group-delivery.py --output "$RUNNER_TEMP/groups-delivery.json"
       - name: Preserve synthetic acceptance measurements
