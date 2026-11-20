@@ -13,7 +13,11 @@ fixture satırı/rowid korundu, eski yedek eski kodla açıldı. İki firmada
 Gerçek disk taşması sonrası `platform recover` SQLite yarım işlemini
 toparlar; firma/kilit sınırı ve eski işlem makbuzu korunur.
 Bu kontrollü yük kabulüdür, gerçek dünya doğruluk oranı veya 7/24 garanti
-değildir. Genel/Linux doğrulamasının durumu [teslim kaydında](roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
+değildir. `6f52634` son kodunda tam Linux paketi (Python3.13), hızlı paket
+(Python3.11), grup/geçiş/kurtarma ve firma izolasyonu (Python3.11/3.13)
+başarılıdır. Test envanteri 3.392; ilk yerel koşu ve son temiz Linux sonucu
+[teslim kaydında](roadmap/RELATIONSHIP_GROUP_DELIVERY.md) ayrılır.
+On maddelik teslim tamamlandı; kapanış güncellemesi yalnız belgelerdedir.
 crt.sh yeni motor ve bağımsız HTTP isteğinde başarılı; eski kesintinin
 kesin nedeni bilinmiyor. Ticari kaynak/bileşen kararları tamamlandı;
 yazılı izin gerektiren kaynaklar ticari profilde kapalı tutuluyor.

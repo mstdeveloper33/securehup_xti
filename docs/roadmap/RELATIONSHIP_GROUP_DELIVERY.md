@@ -12,8 +12,8 @@ Başlangıç: 0.175.0 / çekirdek85 / kuyruk3. Bu kayıt uygulama ile kabulü ay
 | 4. Karar/geçmiş | Dondurulmuş grup kanıtı, gerekçeli karar, tekrar güvenliği, sürüm denetimi ve yeniden kontrol geçmişi. | Uygulandı; değişim/kısmi kontrol/tekrar testleri geçti |
 | 5. Yanlış bağlantı | Paylaşımlı altyapı bağlamı, kopya belge ve aynı kanıt tekrarı ayrılır; kaynak sayısıyla güven oylaması yok. | Uygulandı; kopya belge, benzer ad ve geçişli bağ sınandı |
 | 6. Akış bağlantısı | Mevcut araştırma, firma incelemesi, vaka, rapor ve kayıtlı yerel takip; CLI ve firma JSON aynı servis. | Uygulandı; gerçek CLI/JSON ve HTML sınandı |
-| 7. Kalite/kapasite | Olumlu/olumsuz/belirsiz örnekler; bütçe, firma ayrımı, kesinti ve büyüyen veri için ölçülen kabul. | Yerel kabul geçti; ölçümler aşağıda |
-| 8. Teslim | Açık yedekli geçiş, eski kayıt/karar uyumu, kurtarma, ilgili testler ve son kodda genel/Linux kabulü; kullanım belgeleri. | Yerel yükseltme geçti; genel koşu ve son Linux teslimi sürüyor |
+| 7. Kalite/kapasite | Olumlu/olumsuz/belirsiz örnekler; bütçe, firma ayrımı, kesinti ve büyüyen veri için ölçülen kabul. | Yerel ve Python3.11/3.13 Linux kabulü geçti; ölçümler aşağıda |
+| 8. Teslim | Açık yedekli geçiş, eski kayıt/karar uyumu, kurtarma, ilgili testler ve son kodda genel/Linux kabulü; kullanım belgeleri. | Tamam; son kodda Linux tam/hızlı paket, grup ve firma kabulü geçti |
 | 9. Kaynak hata kanıtı | crt.sh yeni motor ve doğrudan HTTP denemesinde UTC zaman, süre, URL, durum/yanıt özeti; eski raporun eksik HTTP200 kanıtı tarihî kalır. | Tamam; iki HTTP200 yanıtı ayrı kaydedildi |
 | 10. Ticari kaynak/bileşen | Kurulu sürümler ve resmî koşullar; sunucumuzdaki hizmet, saklama, müşteriye gösterme ve dağıtım için kaynak bazlı karar. Belgeyle kapanmayan izin, alınmış sayılmaz. | Değerlendirme/kararlar tamam; dış izin bekleyen kaynaklar ticari seçim dışında |
 
@@ -95,6 +95,35 @@ gerçekten çalıştırarak geçti; önceki hafızada kalan kesintiyle karışt�
 Tam CI, sürüm değişimine ek olarak çekirdek şema/araştırma sınırı
 değişikliklerinde çalışır. Sıradan özellik düzenlemeleri hızlı paketi
 kullanır; her küçük değişiklikte bütün testler tekrar başlatılmaz.
+
+## Son kodun GitHub/Linux doğrulaması
+
+`6f52634146977dbb46ab7118bcc963c38fd12f6f` /0.176.0, çekirdek86,
+kuyruk3. Son yerel test envanteri 3.392; ilk genel koşu yeni eklenen
+kontrolleri içermediğinden 3.384 ile ayrı kaydedilir.
+
+| Kontrol | Sonuç | Kanıt |
+| --- | --- | --- |
+| Grup kuralları, 85→86, disk taşması/kurtarma, 2 firma kapasitesi — Python3.11/3.13 | Başarılı; her iki matris işi geçti | [Linux grup kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674909) |
+| Firma izolasyonu ve süreç kurtarma | Başarılı | [Platform kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674920) |
+| Tam çevrimdışı test paketi — Python3.13 | Başarılı | [Genel kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674818) |
+| Hızlı çevrimdışı test paketi — Python3.11 | Başarılı; seçili profil envanteri 2.091 test | [Hızlı kontrol](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674867) |
+
+20 Kasım 2026 10:59 UTC'de GitHub çalışma metaverisi dört kontrol için de
+aynı tam commit SHA ve `completed/success` sonucunu doğruladı. Tam paketin
+son güncellemesi 10:57:40 UTC. Test sayıları yerel envanterdir; indirilemeyen
+Linux günlüğünden kesin test süresi veya atlama sayısı çıkarılmadı.
+Son kapanış commit'i yalnız bu kabul kaydını, STATUS ve NOTES'i günceller;
+test edilen uygulama ve test kodu değişmez. On maddelik kapsam kapandı.
+
+Aynı kurulum/araç/sosyal kodunun `c159619` kabulünde
+[temiz Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44716039995),
+[Sherlock/Maigret kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44716040047) ve
+[sosyal motor/geçmiş veri kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44716040292)
+geçti. Aynı kurulum/işletim kodu
+[araç yükseltme, düşük disk, systemd ve dayanıklılık kabulünden](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44716039978)
+de başarılı geçti. İlk commit'in genel/hızlı koşuları yeni kod gönderilince otomatik
+iptal edildi; başarılı veya tamamlanmış başarısız paket olarak sayılmaz.
 
 ## Kaynak ve ticari karar kapanışı
 

@@ -47,24 +47,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Firmalar arası Tavily ortak önbelleği de bu teslimde seçilmedi. Mevcut
   kişisel kullanım kaldırılmadı; yeni ücretli çağrı/iletişim yapılmadı.
 
-### N-038 — İlişki grupları, kaynak kanıtı ve ticari değerlendirme teslimi
-
-- **Durum:** Kullanıcı 20 Kasım 2026'da sekiz motor maddesi ile iki kaynak
-  değerlendirmesini birlikte yetkilendirdi; uygulama ve hedefli kabul
-  tamam, son genel/Linux teslim kontrolü sürüyor.
-- **Kapsam:** Dört adıma kadar araştırma, gözlem zamanına dayanan ilişki
-  grupları, karar/değişim geçmişi, gürültü ayrımı, mevcut motor akışları ve
-  ölçülen teslim. crt.sh yeni hata/başarı kanıtı ile ticari kaynak kararları
-  ayrıca kaydedildi. Gerçek 85→86 yükseltme/geri dönüş ve iki firmalı
-  kapasite/kesinti ölçümü geçti. [Sabit teslim listesi](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
-- **Kurtarma doğrulaması:** Disk taşmasıyla yarım SQLite işlemi üretildi;
-  salt-okunur platform ön denetiminin recovery'yi engellemesi düzeltildi.
-  Açık `platform recover` firma/kuyruk/çekirdek kilitleriyle toparlar;
-  normal okumalar onarım yapmaz. Eski makbuz ve bütün kayıtlar korunur.
-- **Korunan sınır:** Sağlayıcı izni veya sözleşmesi gerektiren kararlar
-  araştırmayla alınmış sayılmaz; belirsiz ticari kaynaklar onaylı listesine
-  geçirilmez. Ücretli çağrı veya sağlayıcıyla iletişim başlatılmaz.
-
 ### N-034 — Bright Data LinkedIn şirket kanıtı
 
 - **20 Kasım 2026 ticari karar:** 12 Ekim 2026 tarihli genel sözleşme
@@ -852,6 +834,32 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Kapanan notlar ve kanıtları
 
+### N-038 — İlişki grupları, kaynak kanıtı ve ticari değerlendirme teslimi
+
+- **Durum:** Kapandı; kullanıcının 20 Kasım 2026'da birlikte yetkilendirdiği
+  sekiz motor işi, iki kaynak değerlendirmesi ve Linux kabulü tamamlandı.
+  **Güncellendi:** 20 Kasım 2026. Sürüm 0.176.0, çekirdek86, kuyruk3.
+- **Kapsam:** Dört adıma kadar araştırma, gözlem zamanına dayanan ilişki
+  grupları, karar/değişim geçmişi, gürültü ayrımı, mevcut motor akışları ve
+  ölçülen teslim. crt.sh yeni hata/başarı kanıtı ile ticari kaynak kararları
+  ayrıca kaydedildi. Gerçek 85→86 yükseltme/geri dönüş ve iki firmalı
+  kapasite/kesinti ölçümü geçti. [Sabit teslim listesi](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
+- **Kurtarma doğrulaması:** Disk taşmasıyla yarım SQLite işlemi üretildi;
+  salt-okunur platform ön denetiminin recovery'yi engellemesi düzeltildi.
+  Açık `platform recover` firma/kuyruk/çekirdek kilitleriyle toparlar;
+  normal okumalar onarım yapmaz. Eski makbuz ve bütün kayıtlar korunur.
+- **Son kodun Linux kanıtı:** `6f52634146977dbb46ab7118bcc963c38fd12f6f`
+  üzerinde [tam paket](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674818),
+  [hızlı paket](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674867),
+  [Python3.11/3.13 grup/geçiş/kurtarma kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674909) ve
+  [firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44717674920)
+  başarılı. Son test envanteri 3.392; ilk yerel başarısız koşu ve düzeltmeler
+  teslim kaydında ayrı tutulur. Kapanış güncellemesi yalnız belgelerdedir.
+- **Korunan sınır:** Sağlayıcı izni veya sözleşmesi gerektiren kararlar
+  araştırmayla alınmış sayılmaz; belirsiz ticari kaynaklar onaylı listesine
+  geçirilmez. N-039 ve ilgili kaynak notları açık kalır. Yeni ücretli çağrı
+  veya sağlayıcıyla iletişim başlatılmadı.
+
 ### N-006 — Kaynak erişim hatalarının kanıtı
 
 - **Durum:** Güncel crt.sh yeniden değerlendirmesi kapandı.
@@ -1214,10 +1222,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 ## Sıradaki çalışma
 
 **0.176.0 — 20 Kasım:** Kullanıcının onayladığı ilk sekiz motor işi ve
-iki kaynak değerlendirmesi N-038 kapsamında uygulanıyor. Sabit liste
-[teslim kaydında](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md); kapsam yeni
-fikirlerle genişletilmeyecek. Dış izin bekleyen ticari kapsam N-039 ve
-ilgili sabit notlarda, uygulanmış motor işiyle ayrı izlenir.
+iki kaynak değerlendirmesi N-038 kapsamında tamamlandı; son kodda tam ve
+hızlı Linux testleri, grup/geçiş/kurtarma ve firma izolasyonu geçti.
+[Sabit teslim listesi kapandı](docs/roadmap/RELATIONSHIP_GROUP_DELIVERY.md).
+Yeni bir özellik paketi kendiliğinden açılmaz. Dış izin bekleyen ticari
+kapsam N-039 ve ilgili sabit notlarda ayrı izlenir.
 
 **0.174.0 — 20 Kasım:** Kullanıcının devam onayıyla önceki sosyal adreslerin
 yeniden kontrolü, mevcut ortak kuyruk bağlantısı ve ücretsiz farklı kuruluş
