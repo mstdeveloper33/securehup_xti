@@ -5,10 +5,10 @@ Kullanıcı önerilen ilk iki işi birlikte onayladı.
 
 | İş | Tamamlanma ölçütü | Durum |
 | --- | --- | --- |
-| Yönetilen grup kontrolü | Saklı, açıkça seçilmiş grup aynı firma/kök kapsamında planlanır. Mevcut kaynak kuyruğu, worker, iptal ve kurtarma kullanılır. Kalıcı kontrol sonrası kuyruk ilerlemesi kesilirse özgün sonuç bulunur. CLI ve firma JSON aynı servisi kullanır. | Uygulandı; yerel kabul geçti |
-| Değişiklik bildirimi | İlk kayıt/aynı kanıt sessizdir. Tam kontroldeki üye/dayanak/zaman veya görünürlük farkı tekil inbox kaydı üretir. Kısmi kanıt kaybolma sayılmaz; insan kararı korunur, okundu ayrı kalır. | Uygulandı; yerel kabul geçti |
-| Kayıpsız grup arşivi | Eski grup gövdeleri mevcut plan/uygula/geri aç düzeniyle sıkıştırılır. Kimlik, sıra, hash, işlem makbuzu ve donmuş vaka değişmez. Yedek ve arşiv aynı veri alanındadır. Açılmış boyut/satır sınırı korunur. | Uygulandı; yerel kabul geçti |
-| Teslim | Gerçek eski kodla geçiş/geri dönüş, firma ayrımı, kuyruk–çekirdek kesintisi, arşiv bozulması ve ilgili regresyon testleri; Linux kabulü ve kullanım belgeleri. | Belgeler/yerel kabul tamam; Linux bekliyor |
+| Yönetilen grup kontrolü | Saklı, açıkça seçilmiş grup aynı firma/kök kapsamında planlanır. Mevcut kaynak kuyruğu, worker, iptal ve kurtarma kullanılır. Kalıcı kontrol sonrası kuyruk ilerlemesi kesilirse özgün sonuç bulunur. CLI ve firma JSON aynı servisi kullanır. | Uygulandı; Linux kabulü geçti |
+| Değişiklik bildirimi | İlk kayıt/aynı kanıt sessizdir. Tam kontroldeki üye/dayanak/zaman veya görünürlük farkı tekil inbox kaydı üretir. Kısmi kanıt kaybolma sayılmaz; insan kararı korunur, okundu ayrı kalır. | Uygulandı; Linux kabulü geçti |
+| Kayıpsız grup arşivi | Eski grup gövdeleri mevcut plan/uygula/geri aç düzeniyle sıkıştırılır. Kimlik, sıra, hash, işlem makbuzu ve donmuş vaka değişmez. Yedek ve arşiv aynı veri alanındadır. Açılmış boyut/satır sınırı korunur. | Uygulandı; Linux kabulü geçti |
+| Teslim | Gerçek eski kodla geçiş/geri dönüş, firma ayrımı, kuyruk–çekirdek kesintisi, arşiv bozulması ve ilgili regresyon testleri; Linux kabulü ve kullanım belgeleri. | Tamamlandı; sekiz GitHub çalışması başarılı |
 
 Periyodik yürütmeyi güvenilir sunucu zamanlayıcısı veya sınırlı terminal
 monitor'ü başlatır. Yeni daemon, .NET/UI, ücretli kaynak, çelişki motoru
@@ -27,6 +27,7 @@ isteği yok. Gruplar gerçek firma/hedef tehdit bulgusu değildir.
 | Kontrol | Sonuç |
 | --- | --- |
 | Son grup işletimi/firma/CLI paketi | 14 test / 13,551 sn; hata/atlama yok |
+| Mimari ve otomatik kabul yapılandırması | 14 test / 10,197 sn; hata/atlama yok |
 | Inbox, platform, geçiş, yedek ve engine sözleşmesi | 136 test / 57,611 sn; hata yok, Linux `/proc` gerektiren iki test macOS'ta atlandı |
 | Gerçek86 üreticisi →87 | `3f0366d97cef763aec4f899cfe91f8a7f372ecb1` eski koduyla173 tablo/16 satır/rowid korundu; 3,930 sn |
 | Arşivli geçmiş ve geri dönüş | Eski grup/insan kararı/vaka/makbuz aynı; arşivli yedek açıldı, gövde geri açıldı, eski yedek86 koduyla okundu; eski kod87'yi reddetti |
@@ -57,6 +58,23 @@ ister. Kullanım [GROUP_OPERATIONS](../GROUP_OPERATIONS.md), karar
 
 ## GitHub / Linux
 
-Son kodun gönderimi ve otomatik hızlı/tam paket, Python3.11/3.13 grup
-kabulü ile firma izolasyonu sonuçları bekliyor. Yerel sonuçlar Linux
-kabulü veya uzun süreli canlı hizmet ölçümü yerine geçmez.
+Test edilen son kod: `3578503d80fc6d8fc07c89222cb581028a1d1a7e`.
+Bu commit `main` dalına gönderildi. Aynı kodun yerel test envanteri
+3.406'dır; aşağıdaki koşuların sonuçları ayrı izlenir. Genel paket şema
+geçişi nedeniyle bu teslimde bir kez çalıştırıldı.
+
+| GitHub çalışması | Kapsam | Sonuç |
+| --- | --- | --- |
+| [Tam paket](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731934891) | Python3.13, bütün çevrimdışı testler | Başarılı |
+| [Hızlı paket](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731934890) | İlgili motor regresyonları | Başarılı |
+| [Grup teslimi](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731934908) | Python3.11/3.13; grup, kuyruk, bildirim, arşiv, gerçek eski üretici/geçiş/rollback ve iki firma kapasitesi | Başarılı |
+| [Firma izolasyonu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731934886) | Python3.11/3.13, iki firma ve süreç kurtarma | Başarılı |
+| [Sosyal motor](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731934867) | Python3.11/3.13 sosyal kurallar ve gerçek eski sürüm verisi | Başarılı |
+| [Linux kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731935029) | Temiz kurulum ve yerel kullanım kabulü | Başarılı |
+| [Marka kurulumu](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731935181) | Python3.11/3.12, Sherlock/Maigret kurulumu | Başarılı |
+| [İşletim kabulü](https://github.com/mstdeveloper33/securehup_xti/actions/runs/44731934721) | Brand/Harvester gerçek yükseltme/kurtarma; systemd, düşük disk, kaynak hatası ve 600 saniyelik kontrollü dayanıklılık | Başarılı |
+
+Bu kontrollü kabul, uzun süreli canlı pilot veya 7/24 hizmet garantisi
+değildir. Sekiz çalışma aynı commit üzerinde tamamlandı; sonuçlar
+GitHub çalışma ve iş durumlarından doğrulandı. Son kapanış güncellemesi
+yalnız belgelere aittir; test edilen motor kodu değişmez. N-040 kapandı.

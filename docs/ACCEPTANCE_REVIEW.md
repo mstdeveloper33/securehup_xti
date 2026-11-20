@@ -1,5 +1,15 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.177.0 — Yönetilen grup kontrolü, bildirim ve kayıpsız arşiv
+
+Yerel kabul, gerçek86 üreticisinden87'ye yükseltme/geri dönüş, core commit
+sonrası gerçek süreç ölümü, iki firma kapasitesi ve son GitHub sonuçları
+[tek teslim kaydında](roadmap/GROUP_OPERATIONS_DELIVERY.md).
+`3578503` için tam/hızlı paket dahil sekiz GitHub çalışması başarılı.
+Test envanteri 3.406; ilk başarısız yerel denemeler, düzeltmeler ve son
+başarılı koşular ayrı tutulur. Kapanış yalnız belgeleri günceller;
+arşiv mantıksal kapasite sınırını kaldırmaz.
+
 ## 0.176.0 — İlişki grupları, kaynak kanıtı ve ticari kararlar
 
 Uygulama, hedefli testler, gerçek eski koddan 85→86 geçiş/geri dönüş,

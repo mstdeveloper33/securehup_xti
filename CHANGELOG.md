@@ -1,5 +1,22 @@
 # Değişiklik Kaydı
 
+## 0.177.0 — 20 Kasım 2026
+
+- Kayıtlı gruplar `group-refresh` adımıyla ortak kaynak kuyruğunda
+  kontrol edilir. `groups monitor --queued` sınırlı düzenli kontrolü
+  aynı worker ile yürütür; grup kontrolü dış istek göndermez.
+- Tam kontroldeki gerçek değişiklik önceki/sonraki kanıtıyla atomik
+  inbox bildirimi üretir. İlk/aynı/kısmi sonuç sessizdir. İnsan kararı
+  ve bildirim okunma durumu ayrıdır; eski makbuzlar değişmez.
+- Grup geçmişi mevcut kayıpsız `journals` arşivine katıldı. Kimlik,
+  hash, sıra ve donmuş vaka korunur. Mantıksal kayıt/boyut sınırları
+  sıkıştırmayla kaldırılmaz; geçmiş silme yoktur.
+- Şema86→87 yedekli ek tablo geçişi; kaynak işi modeli7 eski1–6'yı okur.
+  Dış JSONv1 ve kuyruk3 aynıdır; yeni bağımlılık/ücretli kaynak yoktur.
+- Gerçek süreç kesintisi, eski kodla yükseltme/geri dönüş ve iki firmalı
+  kontrollü yük sınandı. [Kullanım](docs/GROUP_OPERATIONS.md),
+  [kabul ve Linux teslim kaydı](docs/roadmap/GROUP_OPERATIONS_DELIVERY.md).
+
 ## 0.175.0 — 20 Kasım 2026
 
 - Birleşik sosyal profil, kaynak sayfası, sağlayıcı kanıtı, insan kararı

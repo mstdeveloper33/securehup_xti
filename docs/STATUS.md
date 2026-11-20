@@ -15,8 +15,13 @@ dönüş ve eski kodla rollback geçti. İki firmada 100'er grup/1.000'er olay
 kabulünde p95 0,9555 sn, 62.308.352 byte tepe RSS, 13.934.875 byte veri
 ölçüldü. Gerçek süreç ölümü sonrası aynı kontrol/bildirim çoğalmadı.
 Arşiv mantıksal kapasiteyi artırmaz; 1.000 olay/4 MiB grup ve 10.000
-olay/64 MiB alan sınırı sürer. Son Linux/GitHub kabulü bekliyor;
-[koşuların ayrımı](roadmap/GROUP_OPERATIONS_DELIVERY.md) kaydedilir.
+olay/64 MiB alan sınırı sürer. `3578503` üzerinde sekiz GitHub çalışması
+başarılı: tam/hızlı Linux paketi, grup ve firma kabulü (Python3.11/3.13),
+sosyal kabul, Linux/marka kurulumu ve işletim/yükseltme/kurtarma.
+Test envanteri 3.406; ilk denemeler ile son temiz Linux sonucu
+[teslim kaydında](roadmap/GROUP_OPERATIONS_DELIVERY.md) ayrılır.
+İki işin teslimi tamamlandı. Kapanış yalnız belgeleri günceller;
+test edilen motor kodu değişmez.
 
 **0.176.0:** İlk sekiz maddelik ilişki/grup paketi uygulandı: dört adıma
 kadar araştırma, gözlem zamanına dayanan ortak kanıt grubu, donmuş kayıt ve

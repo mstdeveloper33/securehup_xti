@@ -3,8 +3,9 @@
 **0.177.0:** Onaylanan iki devam işi uygulandı: kayıtlı grup kontrolü
 mevcut kaynak kuyruğuna/bildirim kutusuna bağlandı; grup geçmişi mevcut
 kayıpsız arşive katıldı. Terminal ve firma JSON aynı davranışı kullanır.
-Yerel geçiş/rollback, kesinti ve kapasite kabulü geçti; son Linux teslimi
-[sabit kapsam kaydından](GROUP_OPERATIONS_DELIVERY.md) izlenir.
+Yerel geçiş/rollback, kesinti ve kapasite kabulü ile `3578503` üzerindeki
+sekiz GitHub/Linux kontrolü geçti; bu iki işin teslimi tamamlandı.
+[Sabit kapsam ve kanıtlar](GROUP_OPERATIONS_DELIVERY.md).
 Çelişki motoru ve uzun canlı pilot bu iki işin parçası değildir.
 LLM, geniş STIX/TAXII, Firecrawl ve backend/UI ertelemeleri sürer.
 

@@ -28,29 +28,6 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
-### N-040 — Grup işleri, değişiklik bildirimi ve kayıpsız arşiv
-
-- **Durum:** Kullanıcı 20 Kasım 2026'da önerilen 1 ve 2 ile devam etmeyi
-  onayladı; uygulama ve yerel kabul tamam, son Linux/GitHub teslimi bekliyor.
-  Başlangıç 0.176.0 / çekirdek86; yeni0.177.0 / çekirdek87 / kaynak işi7.
-- **Kapsam:** Saklı grubun yeniden kontrolünü mevcut kaynak işlerine
-  bağlama, gerçek değişiklikleri mevcut inbox'a tekil teslim etme ve grup
-  günlüğünü mevcut kayıpsız arşive katma. Yeni kaynak/ücretli API yok.
-- **Korunacaklar:** Firma/kilit sınırı, eski insan kararı ve özgün işlem
-  makbuzu; kesinti sonrası aynı kontrolü çoğaltmadan kurtarma. Kısmi kanıt
-  kaybolma bildirimi üretmez. Arşiv eski olayları silmez, mantıksal okuma
-  veya olay sınırlarını kaldırmaz; sıkıştırma sınırsız kapasite sayılmaz.
-- **Kabul:** Terminal/firma JSON, kuyruk ve inbox, eski 86→yeni geçiş,
-  arşiv/geri açma, yedekten dönüş, gerçek süreç kesintisi ve ilgili testler.
-  Son paket kabulü ile teslim tamamlanacak; çelişki motoru/uzun canlı pilot
-  bu iki işe kendiliğinden eklenmez.
-- **Yerel sonuç:** Son özellik paketi14 test; inbox/firma/geçiş/sözleşme
-  paketi136 test geçti (iki Linux kontrolü macOS'ta atlandı). Gerçek86
-  üreticisinden87 geçişi173 tablo/16 satırı korudu; arşiv/yedek/old-code
-  rollback geçti. İki firmalı100'er grup/1.000'er olay kabulü geçti.
-  İlk denemeler ve son sonuçlar teslim kaydında ayrı; tam Linux bekleniyor.
-- **Dayanak:** [Teslim kapsamı](docs/roadmap/GROUP_OPERATIONS_DELIVERY.md).
-
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 
 - **Durum:** Kaynak değerlendirmesi tamam; aşağıdaki kaynaklar yazılı/veri
@@ -856,6 +833,34 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   ve pasif kaynak toplama sınırları korunacak.
 
 ## Kapanan notlar ve kanıtları
+
+### N-040 — Grup işleri, değişiklik bildirimi ve kayıpsız arşiv
+
+- **Durum:** Kapandı; kullanıcının birlikte onayladığı iki iş ve Linux
+  teslimi tamamlandı. **Güncellendi:** 20 Kasım 2026. Başlangıç 0.176.0 /
+  çekirdek 86; yeni 0.177.0 / çekirdek 87 / kaynak işi 7 / kuyruk 3.
+- **Kapsam:** Saklı grubun yeniden kontrolünü mevcut kaynak işlerine
+  bağlama, gerçek değişiklikleri mevcut inbox'a tekil teslim etme ve grup
+  günlüğünü mevcut kayıpsız arşive katma. Yeni kaynak/ücretli API yok.
+- **Korunacaklar:** Firma/kilit sınırı, eski insan kararı ve özgün işlem
+  makbuzu; kesinti sonrası aynı kontrolü çoğaltmadan kurtarma. Kısmi kanıt
+  kaybolma bildirimi üretmez. Arşiv eski olayları silmez, mantıksal okuma
+  veya olay sınırlarını kaldırmaz; sıkıştırma sınırsız kapasite sayılmaz.
+- **Kabul:** Terminal/firma JSON, kuyruk ve inbox, eski 86→yeni geçiş,
+  arşiv/geri açma, yedekten dönüş, gerçek süreç kesintisi ve ilgili testler.
+  Son paket kabulü tamamlandı; çelişki motoru/uzun canlı pilot bu iki işin
+  parçası değildir.
+- **Yerel sonuç:** Son özellik paketi 14 test; inbox/firma/geçiş/sözleşme
+  paketi 136 test geçti (iki Linux kontrolü macOS'ta atlandı). Gerçek 86
+  üreticisinden 87 geçişi 173 tablo/16 satırı korudu; arşiv, yedek ve eski
+  kodla geri dönüş geçti. İki firmada 100'er grup/1.000'er olay kabulü geçti.
+  İlk denemeler ve son sonuçlar teslim kaydında ayrı tutulur.
+- **Linux kanıtı:** `3578503d80fc6d8fc07c89222cb581028a1d1a7e` üzerinde
+  tam/hızlı paket, grup ve firma kabulü, sosyal kabul, Linux/marka kurulumu
+  ve işletim/yükseltme/kurtarma olmak üzere sekiz çalışma başarılıdır.
+  Test envanteri 3.406; koşu bağlantıları teslim kaydındadır. Kapanış
+  yalnız belgeleri günceller; test edilen motor kodu değişmez.
+- **Dayanak:** [Teslim kapsamı](docs/roadmap/GROUP_OPERATIONS_DELIVERY.md).
 
 ### N-038 — İlişki grupları, kaynak kanıtı ve ticari değerlendirme teslimi
 
