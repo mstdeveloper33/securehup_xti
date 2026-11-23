@@ -1,5 +1,379 @@
 # XTI — Güncel Uygulama Durumu
 
+Bugün kullanılabilen, özel gereksinim bekleyen ve henüz teslim edilmemiş
+bütün yeteneklerin sade listesi [özellik kataloğundadır](FEATURE_CATALOG.md).
+
+**23 Kasım 2026 — 0.192.0, P08/P12 / H05-H07-I03-J01-J03:** P12 normalize
+telemetrisi P08'in kuruluş kapsamlı saklama yaşam döngüsüne eklendi.
+`telemetry_records` artık süre/parti politikası, yazmasız token planı, tek
+kayıt veya kuruluş hold'u, aktif vaka kanıtı koruması, işlem öncesi yedek,
+kayıpsız sıkıştırma, normal okumada saydam açma, hash doğrulama, geri yükleme,
+recovery ve zincirli audit kullanır. Arşivden sonra değişen kayıt eski nesli
+bozmaz; yeni revision ayrı geri alınabilir nesil olur. Restore daha yeni
+güncel gövdeyi ezmez. Şema98→99 eski P08 kimlik, sequence ve audit verisini
+yedekli biçimde korur. Cowrie/CAPE kurulmadı; ağ veya yeni bağımlılık yoktur.
+
+Üç telemetri retention kabul testi hold, aktif vaka, firma izolasyonu, iki
+arşiv nesli, bozuk gövdede kapalı hata, saydam okuma, restore ve gerçek
+şema98→99 geçişini doğruladı. İki firma kapasite kabulünde firma başına1.000
+kayıt dört250'lik partide arşivlendi ve250 kayıt geri yüklendi. Sıkıştırma
+oranı0,051747/0,051751, en yavaş parti4,419557 saniye, tepe RSS106,42 MiB ve
+ağ isteği0 ölçüldü. Gerçek Cowrie/CAPE canlı kabulü, ticari veri kararı ve
+push sonrası Linux/CI kabulü açık kalır. [Saklama](DATA_RETENTION.md),
+[telemetri](TELEMETRY.md),
+[karar](decisions/0197-telemetry-retention-generations.md).
+
+**23 Kasım 2026 — 0.191.0, P12 / A05-A06-A07-B01-B02-C01-E01-E03-G02-H01-H03-H07-J01-J03:**
+Kuruluş kapsamlı sensör ve tamamlanmış sandbox telemetrisi eklendi. Kesin
+`xti-sensor-v1`, güvenli Cowrie JSONL ve tamamlanmış CAPE `report.json`
+adaptörleri; sürümlü kaynak, önizleme, hash onaylı atomik/idempotent içe alma,
+çalışma/kayıt sürümü, insan kararı, açık recovery ve kuruluş raporu aynı
+yaşam döngüsündedir. Global arama, Engine `record.get`, vaka kanıtı ve P07
+birleşik izleme ikinci bir alarm/vaka modeli açılmadan yeniden kullanılır.
+Engine salt okur; firma platformu workspace çitli yazabilir ve dosya yolu
+değil en çok1.000 kesin normalize kayıt kabul eder.
+
+Kullanıcı adı, parola, ham komut/mesaj, zararlı örnek, PCAP, bellek dökümü,
+ekran görüntüsü ve ham sandbox raporu saklanmaz. Kimlik bilgili URL reddedilir.
+XTI honeypot kurmaz, internete açmaz ve malware çalıştırmaz. Şema98, şema97'yi
+önce yedekleyerek geçirir ve mevcut vaka rowid'lerini korur.
+
+İki firma kapasite kabulünde firma başına5.000 kayıt10 sayfada kayıpsız
+okundu. Değişmeyen tur sıfır yeni/güncellenmiş kayıt, tek değişiklik yalnız
+bir revision artışı üretti. En yavaş5.000 kayıt içe alma0,706411 saniye,
+tepe RSS82,38 MiB, ağ0 ölçüldü. Hedefli 105 test ve gerçek terminal dosya
+akışı geçti. Eski şema/test varsayımlarına yönelik 92 regresyon testi ile
+son hızlı repo kapısındaki 2.341 test de hatasız geçti; macOS'ta yalnız Linux
+çalışma zamanı isteyen4 test beklendiği gibi atlandı. Bütün249 migration testi
+ayrıca geçti; son tam sürüm kapısındaki 3.686 test de hatasız tamamlandı ve aynı
+4 Linux-only test macOS'ta beklendiği gibi atlandı. Gerçek Cowrie/CAPE ortamı
+olmadığından canlı kaynak kabulü, ticari/dağıtım kararı ve Linux kabulü açıktır.
+[Kullanım](TELEMETRY.md), [teslim](roadmap/P12_DELIVERY.md),
+[karar](decisions/0196-safe-sensor-and-sandbox-telemetry.md).
+
+**23 Kasım 2026 — 0.190.0, P10 / A01-A07-A12-A13-E01-E03-I04-J01-J03:**
+Bluesky anahtarsız genel gönderi araması, yeni bir yaşam döngüsü açmadan
+P02 firma/tedarikçi içerik izleme akışına bağlandı. Kaynak tanımı, hedef
+adı/domain/alias sorguları, bütçeli ve kaldığı yerden devam eden pencere,
+sessiz ilk ölçüm, maskeli değişmez kanıt, tekrar ayıklama, değişiklik,
+insan kararı, inbox/vaka, kuruluş görünümü, kuyruk ve firma JSON'u mevcut
+servisleri kullanır. Şema97, iş kuyruğu4, kaynak işi12 ve JSONv1 değişmedi.
+
+Yalnız genel metin gönderileri okunur; medya, profil, özel hesap, DM,
+firehose ve tarihsel arşiv alınmaz. Resmî önbellekli AppView Türkiye
+çıkışında403 verdiği için adaptör yalnız resmî `api.bsky.app` AppView'e
+sınırlı failover yapar ve sonraki turda çalışan ucu checkpoint'ten kullanır.
+SecureHup canlı kabulü iki sorgu/üç istekle tamamlandı ve güncel pencerede
+eşleşme yoktu. Pozitif gerçek-yanıt kabulünde 10 genel metin işlendi; ikinci
+tur tek istek kullandı ve bir yeni kayıt üretti. Geçici kabul verisi repoya
+alınmadı. 56 hedefli içerik/platform/yönetişim testi hatasız geçti. Son
+kodun tam regresyon kapısı 3.671 testi 2.921,269 saniyede hatasız tamamladı;
+macOS'ta yalnız Linux çalışma zamanı isteyen 4 test beklendiği gibi atlandı.
+Ticari saklama/müşteriye gösterim kararı açıktır.
+[Kullanım](CONTENT_MONITORING.md), [teslim](roadmap/P10_DELIVERY.md).
+
+**23 Kasım 2026 — 0.189.1, tekrar yüzeyi konsolidasyonu:** Çıplak
+`sources` komutundaki eski katalog, pasif iş geçmişi ve cooldown birleşimi
+kaldırıldı; komut artık `sources catalog` ile bayt düzeyinde aynı P09
+manifest sözleşmesini kullanır. Kaynak sağlığı `sources status`, crt.sh/
+urlscan iş ayrıntısı `jobs list/show`, katkı `sources contribution` altında
+ayrı kalır. Eski veri veya tarama kanıtı silinmedi; şema97, engine/platform
+v1 ve kaynak adaptörleri değişmedi. Eski sürümsüz çıplak `sources --json`
+alanlarını okuyan yerel betikler için açık `catalog/status/jobs` geçişi
+[kaynak rehberinde](SOURCE_GOVERNANCE.md) belgelenmiştir.
+
+Pasif `scan/watch/monitor` ile ağsız P07 `monitoring`; sabit yayın `news`,
+firma hedefli `content` ve Tavily `mentions`; tek bulgu `report` ile yayıncı
+belgesi `reports` yardım metinlerinde ayrıştırıldı. HIBP kamu olay kataloğu
+XposedOrNot verified-domain görünümüyle birleştirilmedi; bunlar farklı veri
+anlamlarıdır. Kaynağa özel izleme yaşam döngüleri ayrı tutuldu; dokuz yolun
+ortak UTC/monotonic süre ve saat geriye-sarma koruması tek
+`foreground_monitor` çekirdeğine alındı.
+
+Kaynak aliası gerçek CLI'da iki çağrıda aynı 80.102 bayt JSON üretti ve eksik
+veri dizini oluşturmadı. Son kodda ortak izleme çekirdeği ve tüketicilerinin
+141 testi 99,799 saniyede; kaynak/mimari paketin 49 testi 24,025 saniyede
+hatasız geçti. Bundan önce komut ayrımının haber, mention, içerik, birleşik
+izleme ve rapor komşularını kapsayan 112 testi de 92,107 saniyede geçmişti;
+sekiz güncel yardım yüzeyi exit0 verdi. Tam repo kapısı bu küçük konsolidasyon
+için yeniden çalıştırılmadı.
+
+**23 Kasım 2026 — 0.189.0, P09 / A07 kontrol düzlemi ve A13-I04-J01
+desteği:** Mevcut 31 temel kaynak ile P01–P08'deki 18 connector/iş akışı,
+49 benzersiz sürümlü manifestte birleştirildi. Erişim, credential, maliyet,
+hedef teması, dil/bölge, normalleştirilmiş kayıt türü, altı provenance alanı,
+kota/tekrar/hata, ticari kullanım/saklama/gösterim/dağıtım, sağlık bağlantısı,
+ön koşul ve bilinçli sınırlar katı doğrulanır. 30 kaynak aktif, 12 kaynak
+gereksinim bekliyor, 7 eski zafiyet kaynağı kullanıcı kararıyla kapalıdır.
+
+`sources catalog/show/validate` ağ ve veri yazımı olmadan çalışır. Aynı
+`sources.catalog/get/validate` sözleşmesi yerel engine ve firma platformunda
+sayfalı/sınırlı okunur. Sağlık yalnız açık seçimle kayıtlı geçmişten eklenir;
+manifest canlı erişim veya ticari izin değildir. Yeni repo, paket, API,
+veritabanı şeması ya da migration yoktur.
+
+P09'un 12 hedefli testi ve yakın katalog/sağlık/engine/platform/mimari
+regresyonuyla toplam 71 test 28,206 saniyede geçti. Hızlı repo kapısı 2.314
+testi 1.817,137 saniyede hatasız tamamladı; macOS'ta yalnız Linux çalışma
+zamanı isteyen 4 test beklendiği gibi atlandı. Bu geniş kapı son manifest
+girdi sertleştirmesinden önce, 71 testlik yakın paket ise sonrasında koşuldu.
+Çevrimdışı birikimli kabul 10.000 manifesti 200'lük 50 sayfada kayıpsız
+okudu: 4,841745 sn kurulum, 2,935852 sn bütün sayfalar, 90.762.580 byte tepe
+`tracemalloc`. Tam repo kapısı ve gerçek Linux
+CI henüz bu çalışma ağacında çalıştırılmadı; her kaynağın kendi canlı kabulü ve
+ticari kararı ayrıca açık. [Kullanım](SOURCE_GOVERNANCE.md),
+[teslim](roadmap/P09_DELIVERY.md),
+[karar](decisions/0194-source-governance-manifests.md).
+
+**23 Kasım 2026 — 0.188.0, P08 / H05-H07-I03-J01 teknik kapsamı:**
+Kuruluş bazlı sürümlü saklama politikası, amaç/dayanak, 7–3650 günlük eşik,
+1–1000 kayıtlık parti ve açık hold yaşam döngüsü eklendi. İlk yönetilen aile
+P07 `unified_monitoring_runs` büyük JSON gövdeleridir. Aktif vaka kanıtına
+bağlı run ve açık organization/run hold plan dışında kalır; alarm, review,
+vaka, kimlik, zaman, hash ve provenance mantıksal olarak silinmez.
+
+Plan yazmasız/token bağlıdır. Uygulama ve restore önce kurtarma yedeği alır;
+zlib gövdesi kanonik JSON, boyut, kayıt bağı ve SHA-256 ile her okumada
+doğrulanır. P07 okuma yüzeyi arşivlenmiş kanıtı şeffaf açar. Politika/hold/
+archive/restore/recovery/hata mutasyonları aktör, gerekçe ve önceki hash ile
+audit zincirine girer. Engine salt okur; platform yazmaları workspace,
+revision ve idempotency çitlidir. Şema96→97 ve 95→97 geçiş zinciri geçti.
+
+P08 hedefli 9 test ile yakın engine/platform/vaka/storage/geçiş yüzeyinin
+124 testi geçti (macOS'ta 2 beklenen Linux atlaması). İki ayrı firma kapasite kabulünde firma başına
+13 değişen run iki partide arşivlendi ve 10 kayıt geri yüklendi; ham gövde
+8,93–8,96 MiB'den 2,07 MiB'ye, yaklaşık %23'e indi. En yavaş parti
+2,403419 sn, tepe RSS 89,86 MiB, ağ 0. CI ile aynı hızlı kapı 2.303 testi
+1.763,154 saniyede hatasız tamamladı; macOS'ta 4 Linux testi beklendiği gibi
+atlandı. Tam repo kapısı 3.644 testi 2.673,083 saniyede hatasız tamamladı;
+macOS'ta aynı 4 Linux testi beklendiği gibi atlandı. Otomatik mantıksal
+silme/VACUUM, bütün veri
+aileleri, okuma audit'i, güvenilir RBAC/actor ve mevzuat uygunluğu bu paketle
+tamamlanmış sayılmaz. [Kullanım](DATA_RETENTION.md),
+[teslim](roadmap/P08_DELIVERY.md),
+[karar](decisions/0193-organization-retention-and-audit.md).
+
+**22 Kasım 2026 — 0.187.0, P07 / E01-E03 ve E05-J01-J03 desteği:**
+Domain, marka, IP, kelime, kişi ve tedarikçi hedefleri kuruluş kapsamlı tek
+politikada; domain, finding, social, ransomware, public notice, case,
+supplier, organization, CTI, indicator, news ve mention saklı kayıtları
+üzerinde izlenir. Politika sürümü hedef/kayıt/eşleşme türü, added/updated/
+removed bildirimi, minimum değişiklik, öncelik, aralık ve kayıt sınırını
+dondurur. Domain hedefi etkin kuruluş bağı olmadan kaydedilemez.
+
+Çalışma tek yerel okuma snapshot'ıdır ve ağ kullanmaz. İlk tur sessiz
+baseline; sonraki tur hash bağlı added/updated/removed farkıdır. Alarm ortak
+inbox'a girer, okundu durumu ile useful/not_useful/uncertain insan kararı
+ayrıdır ve alarm `unified_monitoring` vaka kanıtına dondurulabilir. Engine v1
+salt okuma, platform v1 workspace çitli yazma, kuruluş görünümü, idempotency,
+revision, yarım iş recovery ve filtreli/sayfalı rapor aynı servistedir.
+Eşleşme otomatik tehdit hükmü değildir; öncelik risk olasılığı değildir.
+
+Şema 96, şema 95'ten yedekli/atomik geçer. Değişmeyen çalışma aynı büyük
+snapshot gövdesini yeniden yazmaz; küçük çalışma/fark geçmişi korunur.
+Eşleşme kanıtı kompakt kimlik/durum hash'i ve provenance taşır; tam eşleşme,
+kapsam ve değişiklik geçmişi ayrı sayfalanır. P07 hedefli 13 test geçti.
+Inbox, vaka, kuruluş, engine, platform, migration, backup ve storage yakın
+regresyonunda 192 test 151,840 saniyede hatasız tamamlandı. İki ayrı firmada
+5.000'er eşleşme ve 32'şer çalışma kapasite kabulü geçti: tepe RSS 115,02 MiB,
+en yavaş çalışma 1,401029 sn, ağ 0; değişmeyen 30 tur/firma snapshot veya alarm
+çoğaltmadı. CI ile aynı iki parçalı hızlı kapı 1.182 + 1.112 = 2.294 testi
+810,786 ve 969,958 saniyede; tam repo kapısı 3.635 testi 2.719,142 saniyede
+hatasız tamamladı. Her iki kapıda macOS'ta Linux'a özgü toplam 4 test
+beklendiği gibi atlandı. Yeni dış repo, ücretli API veya Python paketi yoktur.
+E-posta/SMS/Slack/Teams, gerçek zamanlı streaming ve platform scheduler bu
+paketin parçası değildir. [Kullanım](UNIFIED_MONITORING.md),
+[teslim](roadmap/P07_DELIVERY.md).
+
+**22 Kasım 2026 — 0.186.0, P06 / G01-G03-G04-G05 ve G02 desteği:**
+Vakanın etkin kanıtına bağlı sürümlü runbook planı, plan değişikliği
+koruması ve atomik/tekrar güvenli görev uygulaması eklendi. Tam vaka
+görünümü teknik JSON, yönetici HTML, kanıt CSV'si, manifest ve isteğe
+bağlı ağsız PDF olarak yeni dizine yayınlanır; dosya ve manifest
+bütünlüğü yeniden doğrulanır.
+
+Takedown akışı yalnız uygun etkin vaka kanıtından `draft` oluşturur;
+insan onayı olmadan `submitted` durumuna geçmez ve gönderim için insanın
+dış başvuru referansını ister. Motor hiçbir sağlayıcıya otomatik
+başvuru yapmaz. Olay zinciri, revision ve donmuş anlık görüntüler bozuk
+kaydı güvenli biçimde durdurur.
+
+IOC toplu akışı kesin CSV/JSON ve XTI STIX 2.1 indicator alt kümesini en
+fazla 32 MiB/50.000 kayıtla yazmasız önizler; bütün satırlar doğrulandıktan
+sonra tek transaction'da içe alır. Makbuz/kalem hash'leri ve tekrar anahtarı
+korunur; dışa aktarma mevcut dosyanın üzerine yazmaz.
+
+Şema 95, şema 94'ten önce kurtarma yedeği alarak geçer. Engine okuması
+ağsız; firma yazmaları workspace çitlidir. Keyfî sunucu dosya yolu
+platform JSON'una açılmaz. Yerel hedefli/komşu regresyon toplam 79 testte
+hatasızdır. Ağsız kapasite kabulü 5.000 eski görev/5.001 olay ve 20.000
+IOC'de tamamlandı; tekrar yeni kayıt 0, tepe RSS 175,52 MiB, toplam 4,676 sn.
+Son birleşik çalışma ağacında hızlı kapı 2.281 testi 1.654,541 sn'de, tam
+repo kapısı 3.622 testi 2.466,813 sn'de hatasız tamamladı; macOS'ta Linux'a
+özgü 4 test beklendiği gibi atlandı. Gerçek Linux CI/hizmet kabulü açıktır.
+
+Yeni üçüncü taraf bağımlılığı veya ücretli API yoktur. Haricî
+SIEM/SOAR/ticket bağlayıcıları kullanıcı kararıyla kapsam dışıdır;
+geniş STIX/TAXII, e-posta/SMS ve LLM ertelemeleri korunur.
+[Kullanım](ACTIONABILITY.md), [teslim](roadmap/P06_DELIVERY.md),
+[karar](decisions/0191-human-approved-actionability.md).
+
+**22 Kasım 2026 — 0.185.0, P05 / A02-A10-C07 ve destekleyen
+A07-A12-A13-C06-E01-E03-I03-I04-J01-J02-J03:** Seçilmiş saklı RansomLook ve
+ThreatCluster kayıtları kuruluş/tedarikçi kapsamında analiz edilir.
+XposedOrNot verified-domain adaptörü yalnız kuruluşa bağlı kesin domaini
+sorgular, sağlayıcının aynı yanıttaki diğer domainlerini reddeder ve ham aliası
+bellekte maskeler. SQLite/JSON/terminal yalnız maskeli görünüm, kuruluşa özel
+HMAC kimliği, domain ve ihlal adlarını taşır. Açık parola kontrolü parolayı
+yerelde legacy Keccak-512 ile özetler ve yalnız ilk10 hex karakteri gönderir;
+parola, tam hash, önek ve karakter bileşimi saklanmaz. HIBP verified-domain
+yeni profile/ağ çağrısına kapalıdır; şema93 geçmişi veri kaybı olmadan salt
+okunur kalır. Kaynak sonucu otomatik ihlal/incident, aktif hesap veya geçerli
+credential hükmü değildir.
+
+Sürümlü profil, dondurulmuş tur, değişmez kanıt, güncel bulgu, insan kararı,
+değişiklik, inbox, vaka kopyası, kuruluş görünümü, engine/firma JSON'u ve
+credential bütünlük zinciri aynı servise bağlıdır. İlk tur sessizdir;
+kaynak hatası boş başarı sayılmaz ve eski başarılı snapshot korunur.
+`darkweb-monitor` kaynak işi12 saklı analizi sıfır HTTP ile ortak kuyrukta
+çalıştırır; XposedOrNot domain çağrısı yalnız açık `credential.refresh`, parola
+kontrolü yalnız gizli terminal girişiyle açık `password-check` işlemidir.
+Şema94, eski92/93'ten yedekli/atomik geçer; kuyruk4 ve dış JSONv1 korunur.
+
+P05'in önceki davranış, gizlilik, firma, kuyruk, recovery ve backup/restore
+kapasite kabulü korunur. XposedOrNot sabit uç nokta, hata eşleme, kesin-domain
+filtreleme, secret izinleri, Keccak resmî vektörleri, kalıcılık yasağı ve
+92/93→94 geçişi hedefli testlerle doğrulanmıştır. İki firmada ayrı ayrı10.000 bulgu ve30
+değişmeyen tur yeni kanıt/değişiklik/bildirim üretmedi. Tek değişiklik firma
+başına1 kanıt,1 bulgu değişimi,1 bildirim üretti.40 adet100 kayıtlık gerçek
+platform okumasında en kötü p950,273171 sn; tepe RSS147,11 MiB. XposedOrNot
+odaklı25 test ve2.261 testlik hızlı çevrimdışı kapı hatasız geçti; hızlı
+kapıda macOS'ta Linux'a özgü4 kontrol beklendiği gibi atlandı. Bilinen `test`
+girdisiyle parola uç noktası canlı doğrulandı; gerçek kullanıcı parolası
+kullanılmadı ve sonuç saklanmadı. Tam repo
+regresyonu0.184.0 tabanında sıfırdan3.596 testi2.403,692 saniyede tamamladı:
+hata/başarısızlık yok, macOS'ta Linux'a özgü4 beklenen atlama var. Bu tarihî
+taban sonucu0.185.0 tam regresyonu değildir; bu turda tam kapı yeniden
+çalıştırılmamıştır.
+
+Canlı XposedOrNot domain kabulü API anahtarı ve sağlayıcı hesabında
+doğrulanmış domain bekler. Genel forum,
+pazar, Tor crawler ve stealer-log sağlayıcısı seçilmedi; bu nedenle A02/A10
+bütünü tamamlanmış veya bütün dark web kapsanmış sayılmaz. ThreatCluster
+yazılı izin olmadan ticari profilde kapalıdır. Push/Linux CI kullanıcı
+kararıyla sonraya bırakılmıştır. [Kullanım](DARKWEB_MONITORING.md),
+[ölçümler](roadmap/P05_DELIVERY.md),
+[kararlar](decisions/0189-darkweb-and-credential-evidence.md) ve
+[kaynak değişikliği](decisions/0190-xposedornot-credential-source.md).
+
+**21 Kasım 2026 — 0.183.0, P04 / B02-B05-B08-C02-C03-C05-D04-D05-E01-E03-J01-J03:**
+Saklı kaynaklı CTI/IOC, kuruluş domainleri ve yerel MITRE ATT&CK kataloğu
+ağsız analiz edilir. Kimlik çözümleme, TTP, sınırlı attribution, kontrollü
+coğrafya/sektör `source_claim` etiketi ve kuruluş önceliği yalnız inceleme
+adayıdır. Tek ortak IP attribution üretmez; skor risk olasılığı değildir.
+Profil/kaynak güveni/eşik/bütçeler sürümlüdür. Dondurulmuş tur, değişmez
+kanıt, güncel aday, insan kararı, fark, inbox ve vaka kopyası ayrıdır.
+Kaybolan aday silinmez; gözlem durumu açıkça gösterilir. İlk tur sessiz
+baseline, sonraki trend sinyal değişimi ile kaynak/ATT&CK kapsam değişimini
+ayırır. Graf kaynak iddiası ve aday katmanını ayrı verir; en fazla100
+düğüm/200 kenardır. Terminal, engine v1, firma platformu v1,
+`organization.content.cti_analysis` ve ağsız `cti-analysis` kaynak işi aynı
+servisi kullanır.
+
+Çekirdek şema92 yedekli açık geçiştir; kaynak işi11 eski1–10'u okur,
+kuyruk4 ve dış JSONv1 değişmez. Yeni dış araç, ücretli API veya LLM yoktur.
+İki firmada toplam20.000 aday, firma başına30 değişmeyen tur kabulünde yeni
+kanıt/değişiklik/bildirim0 kaldı.100 kayıt okumada en kötü p95 0,164618 sn;
+sentetik ana süreç tepe RSS204,95 MiB. P04 davranış, geçiş, yalıtım,
+kuyruk ve yedek/geri dönüş paketi 19 testtir. Son tam repo regresyonu
+3.577 testi2.183,963 saniyede tamamladı: hata/başarısızlık yok, macOS'ta
+Linux'a özgü4 beklenen atlama var. İlk tam koşuda bulunan üç eski migration
+beklentisi güncellendi ve sıfırdan ikinci tam koşuda tekrar etmedi. Push
+kullanıcı kararıyla sonraya bırakıldığı için gerçek Linux CI/release kabulü
+henüz yapılmadı. [Kullanım](CTI_ANALYSIS.md),
+[ölçümler](roadmap/P04_DELIVERY.md), [karar](decisions/0188-cti-analysis-candidates.md).
+
+**21 Kasım 2026 — 0.182.0, P03 / A08-A09-A11-C08:** Marka kimliği,
+sayfa/logo/statik ekran görüntüsü, sosyal profil ve mobil mağaza adayları
+tek kanıt/insan incelemesi/izleme akışına bağlandı. Terminal, engine/firma
+JSON, kuruluş görünümü, inbox, vaka ve kalıcı kaynak işi desteklenir.
+Sürüme bağlı kararlar ve özgün kanıt korunur; kaynak hatası eski sonucu
+silmez. Bayi/parodi/taklit ayrımı insan kararıdır; benzerlik otomatik
+taklit hükmü değildir. İsteğe bağlı kişi modeli kontrollü testlidir;
+kullanıcı yalnız SecureHup markasını seçtiği için gerçek VIP izlenmedi.
+
+Playwright1.65.2/Chromium1255, Pillow13.0.0, ImageHash4.3.2,
+google-play-scraper1.2.7 ve mevcut sosyal araçlar kullanılır. Normal
+`./setup` temiz macOS kopyasında geçti; tarayıcı yalnız önceden alınmış
+kaynakları ağsız/statik görüntüler. Metin/URL kontrolü Betterleaks ile,
+görseller OCR maskelemesi olmadan saklanır. Chromium arşiv hash pini
+ile yerel binary doğrulaması farkı N-046'da açık tutulur.
+
+Şema91 yedekli açık geçiştir; kaynak işi10 eski1–9'u okur. Kuyruk4 ve
+dış JSONv1 korunur. Gerçek0.181.0 üreticisinden90→91 geçişi197 tablo/41
+kayıt/rowid'i ve eski kodla geri dönüşü korudu. İki firmada20.000 aday ve
+30 değişmeyen turda yeni kanıt/görsel gövdesi0;100 kayıtlık firma JSON
+okuması p95 0,205478 sn. Son P03/ortak kaynak paketi55 test/15,738 sn hatasız.
+3.550 testlik tam çalışmada eski test beklentileri ve Linux kabul
+yardımcısının şema sınırı güncellendi; etkilenen81 test sonrasında
+79 başarılı/2 Linux atlamasıyla geçti. Güncel envanter3.558 test;
+tam tur ve hedefli tekrarın ayrımı teslim kaydında korunur.
+
+SecureHup son canlı kabulünde13 aday/24 ayrı PNG oluştu; kaynak erişim
+eksikleri nedeniyle sonuç **partial**. Mağaza sonuçları doğrulanmış sahte
+uygulama değildir. İş ortağı logoları referans marka logosundan ayrılır.
+Ücretli API çağrısı yapılmadı. Linux kurulumu, ticari
+veri hakları ve gerçek sunucu pilotu açık kalır. [Kullanım](BRAND_PROTECTION.md),
+[ölçümler ve kapsam](roadmap/P03_DELIVERY.md), [notlar](../NOTES.md).
+
+**21 Kasım 2026 — 0.181.0, P02 / A01-A04-A12:** Firma ve tedarikçi
+içerikleri için kayıtlı kaynak/kapsam, çok dilli isim eşleştirmesi,
+maskeli değişmez kanıt, insan kararı, tekrar izleme, inbox/vaka, kuruluş
+görünümü ve firma JSON/kuyruk akışı uygulandı. RSS/Atom için feedparser,
+Telegram için Telethon1.46.0, Discord için resmî RESTv10, IRC için
+irctokens2.0.2 kullanılır. Mevcut haber/Tavily/rapor verileri yeni ücretli
+çağrı olmadan okunabilir. A13/I04 dil ve kaynak bölgesi desteği yeraltı
+kaynağı veya çeviri kapsamı değildir.
+
+Şema90 yedekli açık geçiştir; kaynak işi9 eski1–8'i okur. Kuyruk4 ve
+dış JSONv1 korunur. Güncel kanal penceresi geçmiş taramasından önce
+kontrol edilir. Metin/bağlantı maskelemesi tamamlanmazsa yalnız metaveri
+saklanır. Tarihî içerik pencere dışında kaldığında silinmez.
+[Kullanım](CONTENT_MONITORING.md), [teslim kanıtı](roadmap/P02_DELIVERY.md).
+NCSC/CERT-FR canlı yayın kabulü geçti; incelenen pencerede SecureHup
+eşleşmesi yoktu. Telegram/Discord/IRC canlı hesap/kanal kabulü, Linux
+çalışması ve yeni kaynakların ticari veri kararları açık kalır.
+Yerel doğrulamada 3.513 testlik envanter çalıştı; beş eski test beklentisi
+güncellendi. Son iki davranış düzeltmesini ve bu beş testi kapsayan 300
+hedefli kontrol hatasız geçti; dört Linux kontrolü bu ortamda atlandı.
+İki firmada toplam 20.000 eşleşme ve 30 değişmeyen turda yeni kanıt
+gövdesi oluşmadı; 100 kayıtlık firma JSON okuması p95 0,171233 sn.
+Tam çalışma/son hedefli kontrolün ayrı kaynak kimlikleri teslim kaydındadır.
+
+**21 Kasım 2026 — 0.180.0, P01 / A03:** Kod/paste maruziyeti için kamu
+deposu keşfi, maskeli kanıt, insan incelemesi, tekrar izleme ve ortak
+bildirim/vaka/kuruluş raporu/firma JSON bağlantısı uygulandı. Hazır araç
+Betterleaks1.10.1; native kurulum sürüm/hash sabitlidir. Dosya veya secret
+değeri saklanmaz, bulunan credential denenmez. Şema88→89 yedekli açık
+geçiştir; kaynak işi8 eski1–7'yi okur, kuyruk4 ve dış JSONv1 korunur.
+Kaynak başına bütçe/cooldown, sayfalama, açık kesinti kurtarma ve aynı
+isteğin yeni ağ üretmemesi vardır. Aynı içerik yeniden görülürse eski
+insan kararı korunur ama yeniden inceleme gerekir.
+[Kullanım](CODE_EXPOSURE.md), [kabul ve açık bağımlılıklar](roadmap/P01_DELIVERY.md).
+GitHub/GitLab genel kod araması ve Pastebin canlı erişimi eksik olduğu
+için A03/P01'in bütünü tamamlanmış sayılmaz. Linux kabulü de ayrı açıktır.
+Son yerel tam envanter: 3.472 test; 3.468 başarılı, hata yok, Linux'a özgü
+4 atlama. Gerçek Betterleaks testi, temiz alandaki yedi CLI/JSON adımı ve
+şema 88→89 geçişi/yedekten dönüş geçti. İki firmada toplam 20.000 sentetik
+aday ve 30 değişmeyen turda yeni kanıt gövdesi oluşmadı; 100 kayıtlık
+platform okuması p95 0,176364 sn. Anahtarsız canlı GitHub denemesi bir
+README marka geçişi buldu; GitLab kamu proje sorgusu başarılı ve boştu.
+GitHub dosya bütçesi nedeniyle sonuç kısmi; tam internet kapsamı değildir.
+
+Kullanıcının A–K listesindeki76 gereksinim, altı ürün paketi ve teslim
+ölçütleri [tek ana planda](roadmap/MASTER_ROADMAP.md) tutulur. Önceki
+plan kayıtları tarihî olarak korunur.
+
 **0.179.0:** Ortak iş kuyruğunda tamamlanan geçmiş etkin kapasiteden
 ayrıldı. 10.000 sınırı bekleyen/çalışan işlere aittir; özgün sonuç,
 tekrar anahtarı ve retry zinciri korunur. Kuyruk4 yedekli açık geçiştir;

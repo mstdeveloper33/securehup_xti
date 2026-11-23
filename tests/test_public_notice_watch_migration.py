@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from xti.adapters.public_notice_watch_schema import PUBLIC_NOTICE_WATCH_DDL
 from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_DDL, CASE_EVIDENCE_V62_DDL
-from xti.adapters.group_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
+from xti.adapters.telemetry_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
 from xti.adapters.schema import SCHEMA_VERSION, VERSION_TABLES, SchemaError, validate_schema
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_collection_profiles import SQLiteCollectionProfileRepository

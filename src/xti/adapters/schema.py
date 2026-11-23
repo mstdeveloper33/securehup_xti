@@ -27,6 +27,7 @@ from xti.adapters import enrichment_schema
 from xti.adapters import research_history_schema
 from xti.adapters import investigation_schema
 from xti.adapters import report_schema, evidence_schema, document_storage_schema, relationship_notification_schema, social_discovery_schema
+from xti.adapters import code_exposure_schema, content_monitoring_schema, brand_protection_schema, cti_analysis_schema, darkweb_monitoring_schema, actionability_schema, unified_monitoring_schema, data_retention_schema, telemetry_schema
 from xti.adapters import social_enrichment_schema, social_tracking_schema, group_schema, group_operations_schema, group_projection_schema
 from xti.adapters.collection_public_notice_schema import (
     COLLECTION_HISTORY_V60_DDL,
@@ -46,7 +47,13 @@ from xti.adapters.collection_social_schema import (
 # 86 adds immutable research groups and frozen group case evidence.
 # 87 adds atomic group notifications and lossless archived group bodies.
 # 88 adds guarded current group states and indexed immutable event/change results.
-SCHEMA_VERSION = 88
+# 94 records XposedOrNot provenance while preserving schema93 HIBP history read-only.
+# 95 adds versioned response runbooks, human-approved takedown and IOC import receipts.
+# 96 adds organization-scoped unified monitoring policies and reviewed alerts.
+# 97 adds organization retention policies, holds, lossless archives and audit.
+# 98 adds normalized sensor/sandbox telemetry and frozen telemetry case evidence.
+# 99 extends P08 holds and lossless archives to normalized telemetry records.
+SCHEMA_VERSION = 99
 NMAP_MANAGEMENT_DDL = nmap_management_schema_metadata.NMAP_MANAGEMENT_DDL
 
 ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
@@ -1424,6 +1431,15 @@ TABLES = {
     **group_schema.TABLES,
     **group_operations_schema.TABLES,
     **group_projection_schema.TABLES,
+    **code_exposure_schema.TABLES,
+    **content_monitoring_schema.TABLES,
+    **brand_protection_schema.TABLES,
+    **cti_analysis_schema.TABLES,
+    **darkweb_monitoring_schema.TABLES,
+    **actionability_schema.TABLES,
+    **unified_monitoring_schema.TABLES,
+    **data_retention_schema.TABLES,
+    **telemetry_schema.TABLES,
     'public_notice_watches': [('id', 'TEXT', 1, 1), ('organization_id', 'TEXT', 1, 0), ('active', 'INTEGER', 1, 0), ('revision', 'INTEGER', 1, 0), ('created_at', 'TEXT', 1, 0), ('updated_at', 'TEXT', 1, 0)],
     'public_notice_watch_events': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('watch_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('action', 'TEXT', 1, 0), ('revision', 'INTEGER', 1, 0), ('reason', 'TEXT', 1, 0), ('recorded_at', 'TEXT', 1, 0)],
     'public_notice_watch_runs': [('sequence', 'INTEGER', 1, 1), ('id', 'TEXT', 1, 0), ('watch_id', 'TEXT', 1, 0), ('organization_id', 'TEXT', 1, 0), ('source_run_id', 'TEXT', 1, 0), ('watch_event_id', 'TEXT', 1, 0), ('previous_run_id', 'TEXT', 0, 0), ('recorded_at', 'TEXT', 1, 0), ('scope_json', 'TEXT', 1, 0), ('scope_sha256', 'TEXT', 1, 0), ('result_sha256', 'TEXT', 1, 0), ('matched_count', 'INTEGER', 1, 0), ('baseline_count', 'INTEGER', 1, 0), ('added_count', 'INTEGER', 1, 0), ('updated_count', 'INTEGER', 1, 0), ('removed_count', 'INTEGER', 1, 0), ('unchanged_count', 'INTEGER', 1, 0)],
@@ -2321,6 +2337,15 @@ UNIQUE_KEYS = {
     **group_schema.UNIQUE_KEYS,
     **group_operations_schema.UNIQUE_KEYS,
     **group_projection_schema.UNIQUE_KEYS,
+    **code_exposure_schema.UNIQUE_KEYS,
+    **content_monitoring_schema.UNIQUE_KEYS,
+    **brand_protection_schema.UNIQUE_KEYS,
+    **cti_analysis_schema.UNIQUE_KEYS,
+    **darkweb_monitoring_schema.UNIQUE_KEYS,
+    **actionability_schema.UNIQUE_KEYS,
+    **unified_monitoring_schema.UNIQUE_KEYS,
+    **data_retention_schema.UNIQUE_KEYS,
+    **telemetry_schema.UNIQUE_KEYS,
     'public_notice_watches': {('organization_id',), ('id',)},
     'public_notice_watch_events': {('id',), ('watch_id', 'revision')},
     'public_notice_watch_runs': {('id',), ('watch_id', 'source_run_id')},
@@ -2516,6 +2541,15 @@ INDEXES = {
     **group_schema.INDEXES,
     **group_operations_schema.INDEXES,
     **group_projection_schema.INDEXES,
+    **code_exposure_schema.INDEXES,
+    **content_monitoring_schema.INDEXES,
+    **brand_protection_schema.INDEXES,
+    **cti_analysis_schema.INDEXES,
+    **darkweb_monitoring_schema.INDEXES,
+    **actionability_schema.INDEXES,
+    **unified_monitoring_schema.INDEXES,
+    **data_retention_schema.INDEXES,
+    **telemetry_schema.INDEXES,
     'public_notice_watches_active_organization': ('public_notice_watches', ('active', 'organization_id')),
     'public_notice_watch_events_watch_sequence': ('public_notice_watch_events', ('watch_id', 'sequence')),
     'public_notice_watch_runs_watch_sequence': ('public_notice_watch_runs', ('watch_id', 'sequence')),
@@ -2827,6 +2861,15 @@ FOREIGN_KEYS = {
     **group_schema.FOREIGN_KEYS,
     **group_operations_schema.FOREIGN_KEYS,
     **group_projection_schema.FOREIGN_KEYS,
+    **code_exposure_schema.FOREIGN_KEYS,
+    **content_monitoring_schema.FOREIGN_KEYS,
+    **brand_protection_schema.FOREIGN_KEYS,
+    **cti_analysis_schema.FOREIGN_KEYS,
+    **darkweb_monitoring_schema.FOREIGN_KEYS,
+    **actionability_schema.FOREIGN_KEYS,
+    **unified_monitoring_schema.FOREIGN_KEYS,
+    **data_retention_schema.FOREIGN_KEYS,
+    **telemetry_schema.FOREIGN_KEYS,
     'public_notice_watches': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT')},
     'public_notice_watch_events': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watches', 'watch_id', 'id', 'NO ACTION', 'RESTRICT')},
     'public_notice_watch_runs': {('organizations', 'organization_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watches', 'watch_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watch_events', 'watch_event_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_watch_runs', 'previous_run_id', 'id', 'NO ACTION', 'RESTRICT'), ('public_notice_runs', 'source_run_id', 'id', 'NO ACTION', 'RESTRICT')},
@@ -3392,7 +3435,45 @@ VERSION_TABLES = {
     86: frozenset(TABLES),
     87: frozenset(TABLES),
     88: frozenset(TABLES),
+    89: frozenset(TABLES),
+    90: frozenset(TABLES),
+    91: frozenset(TABLES),
+    92: frozenset(TABLES),
+    93: frozenset(TABLES),
+    94: frozenset(TABLES),
+    95: frozenset(TABLES),
+    96: frozenset(TABLES),
+    97: frozenset(TABLES),
+    98: frozenset(TABLES),
+    99: frozenset(TABLES),
 }
+
+for _legacy_version in range(1, 98):
+    VERSION_TABLES[_legacy_version] -= telemetry_schema.TABLES.keys()
+
+for _legacy_version in range(1, 97):
+    VERSION_TABLES[_legacy_version] -= data_retention_schema.TABLES.keys()
+
+for _legacy_version in range(1, 96):
+    VERSION_TABLES[_legacy_version] -= unified_monitoring_schema.TABLES.keys()
+
+for _legacy_version in range(1, 95):
+    VERSION_TABLES[_legacy_version] -= actionability_schema.TABLES.keys()
+
+for _legacy_version in range(1, 93):
+    VERSION_TABLES[_legacy_version] -= darkweb_monitoring_schema.TABLES.keys()
+
+for _legacy_version in range(1, 92):
+    VERSION_TABLES[_legacy_version] -= cti_analysis_schema.TABLES.keys()
+
+for _legacy_version in range(1, 91):
+    VERSION_TABLES[_legacy_version] -= brand_protection_schema.TABLES.keys()
+
+for _legacy_version in range(1, 90):
+    VERSION_TABLES[_legacy_version] -= content_monitoring_schema.TABLES.keys()
+
+for _legacy_version in range(1, 89):
+    VERSION_TABLES[_legacy_version] -= code_exposure_schema.TABLES.keys()
 
 for _legacy_version in range(1, 88):
     VERSION_TABLES[_legacy_version] -= group_projection_schema.TABLES.keys()
@@ -4292,6 +4373,84 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
         objects -= relationship_objects
     if version >= 80:
         relationship_notification_schema.validate(connection)
+    brand_objects = {(statement.split()[2], statement.split()[1].lower()) for statement in brand_protection_schema.DDL}
+    if version < 91 and objects.intersection(brand_objects):
+        brand_protection_schema.validate(connection, empty=True)
+        objects -= brand_objects
+    if version >= 91:
+        brand_protection_schema.validate(connection)
+    analysis_objects = {(statement.split()[2], statement.split()[1].lower()) for statement in cti_analysis_schema.DDL}
+    if version < 92 and objects.intersection(analysis_objects):
+        cti_analysis_schema.validate(connection, empty=True)
+        objects -= analysis_objects
+    if version >= 92:
+        cti_analysis_schema.validate(connection)
+    darkweb_objects = {(statement.split()[2], statement.split()[1].lower()) for statement in darkweb_monitoring_schema.DDL}
+    if version < 93 and objects.intersection(darkweb_objects):
+        darkweb_monitoring_schema.validate(connection, empty=True)
+        objects -= darkweb_objects
+    if version == 93:
+        darkweb_monitoring_schema.validate_v93(connection)
+    if version >= 94:
+        darkweb_monitoring_schema.validate(connection)
+    action_objects = {
+        (statement.split()[2], statement.split()[1].lower())
+        for statement in actionability_schema.DDL
+    }
+    if version < 95 and objects.intersection(action_objects):
+        actionability_schema.validate(connection, empty=True)
+        objects -= action_objects
+    if version >= 95:
+        actionability_schema.validate(connection)
+    monitoring_objects = {
+        (statement.split()[2], statement.split()[1].lower())
+        for statement in unified_monitoring_schema.DDL
+    }
+    if version < 96 and objects.intersection(monitoring_objects):
+        unified_monitoring_schema.validate(connection, empty=True)
+        objects -= monitoring_objects
+    if version >= 96:
+        unified_monitoring_schema.validate(
+            connection,
+            case_ddl=(telemetry_schema.CASE_EVIDENCE_DDL if version >= 98 else None),
+        )
+    retention_objects = {
+        (statement.split()[2], statement.split()[1].lower())
+        for statement in data_retention_schema.DDL
+    }
+    if version < 97 and objects.intersection(retention_objects):
+        data_retention_schema.validate(connection, empty=True)
+        objects -= retention_objects
+    if 97 <= version < 99:
+        try:
+            data_retention_schema.validate_v98(connection)
+        except SchemaError:
+            # Test/recovery fixtures may contain the exact future layout only
+            # while it is still empty. Never accept populated future tables.
+            data_retention_schema.validate(connection, empty=True)
+    if version >= 99:
+        data_retention_schema.validate(connection)
+    telemetry_objects = {
+        (statement.split()[2], statement.split()[1].lower())
+        for statement in telemetry_schema.DDL
+    }
+    if version < 98 and objects.intersection(telemetry_objects):
+        telemetry_schema.validate(connection, empty=True, case_ddl=None)
+        objects -= telemetry_objects
+    if version >= 98:
+        telemetry_schema.validate(connection)
+    content_objects = {(statement.split()[2], statement.split()[1].lower()) for statement in content_monitoring_schema.DDL}
+    if version < 90 and objects.intersection(content_objects):
+        content_monitoring_schema.validate(connection, empty=True)
+        objects -= content_objects
+    if version >= 90:
+        content_monitoring_schema.validate(connection)
+    code_objects = {(statement.split()[2], statement.split()[1].lower()) for statement in code_exposure_schema.DDL}
+    if version < 89 and objects.intersection(code_objects):
+        code_exposure_schema.validate(connection, empty=True)
+        objects -= code_objects
+    if version >= 89:
+        code_exposure_schema.validate(connection)
     social_objects = {(statement.split()[2], statement.split()[1].lower()) for statement in social_discovery_schema.DDL}
     if version < 81 and objects.intersection(social_objects):
         social_discovery_schema.validate(connection, empty=True)
@@ -4634,7 +4793,7 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
                 "cases_status_priority_updated", "case_evidence_case_active_updated",
                 "case_tasks_case_status_due", "case_activities_case_sequence",
             ),
-            CASE_V62_DDL if version < 63 else tuple((group_schema.CASE_EVIDENCE_DDL if version >= 86 else social_tracking_schema.CASE_EVIDENCE_DDL if version >= 83 else relationship_notification_schema.CASE_EVIDENCE_DDL) if statement == CASE_EVIDENCE_DDL else statement for statement in CASE_DDL) if version >= 80 else CASE_DDL,
+            CASE_V62_DDL if version < 63 else tuple((telemetry_schema.CASE_EVIDENCE_DDL if version >= 98 else unified_monitoring_schema.CASE_EVIDENCE_DDL if version >= 96 else darkweb_monitoring_schema.CASE_EVIDENCE_DDL if version >= 93 else cti_analysis_schema.CASE_EVIDENCE_DDL if version >= 92 else brand_protection_schema.CASE_EVIDENCE_DDL if version >= 91 else content_monitoring_schema.CASE_EVIDENCE_DDL if version >= 90 else code_exposure_schema.CASE_EVIDENCE_DDL if version >= 89 else group_schema.CASE_EVIDENCE_DDL if version >= 86 else social_tracking_schema.CASE_EVIDENCE_DDL if version >= 83 else relationship_notification_schema.CASE_EVIDENCE_DDL) if statement == CASE_EVIDENCE_DDL else statement for statement in CASE_DDL) if version >= 80 else CASE_DDL,
         ):
             object_type = "index" if statement.startswith("CREATE INDEX") else "table"
             declaration = connection.execute(
@@ -5027,6 +5186,10 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
             "FROM pragma_foreign_key_list(?)", (name,)
         )}
         expected_keys = FOREIGN_KEYS[name]
+        if version < 99 and name in data_retention_schema.V97_FOREIGN_KEYS:
+            legacy_keys = data_retention_schema.V97_FOREIGN_KEYS[name]
+            if keys == legacy_keys:
+                expected_keys = legacy_keys
         if name == 'collection_step_receipts' and version < 85:
             expected_keys = expected_keys - {('social_tracking_journal', 'social_tracking_run_id', 'id', 'NO ACTION', 'RESTRICT')}
         if name == "collection_step_receipts" and version < 69:

@@ -26,6 +26,11 @@ from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepositor
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_supplier_history import read_supplier_history
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
+from xti.adapters.sqlite_telemetry import (
+    SQLiteTelemetryRepository,
+    _review_rows as read_telemetry_reviews,
+    read_record_in as read_telemetry_record,
+)
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.brand_username_reviews import brand_username_review_candidate_id
 from xti.domain.cases import canonical_snapshot
@@ -36,6 +41,7 @@ from xti.domain.engine import EngineContractError, EngineRecordReference
 from xti.domain.public_notices import HIBP_ATTRIBUTION, HIBP_LICENSE, HIBP_SOURCE_NAME, HIBP_SOURCE_URL
 from xti.domain.ransomlook_ransomware import RANSOMLOOK_SOURCE_NAME, RANSOMLOOK_SOURCE_URL, RANSOMLOOK_SOURCE_LICENSE
 from xti.domain.ransomware_claims import RANSOMWARE_SOURCE_NAME, RANSOMWARE_SOURCE_URL, RANSOMWARE_SOURCE_LICENSE
+from xti.domain.telemetry import TelemetryError
 
 
 MAX_DETAIL_ROWS = 50_000
@@ -50,6 +56,10 @@ _LOCAL_TYPES = {
     ('case', 'case'): 'local-case-management',
     ('supplier', 'supplier'): 'local-suppliers',
     ('organization', 'organization'): 'local-organizations',
+    **{('telemetry', kind): 'local-telemetry' for kind in (
+        'connection', 'authentication', 'dns_query', 'file_download',
+        'sandbox_analysis',
+    )},
 }
 
 # Contract v1 projections are deliberately frozen. A new internal dataclass
@@ -184,6 +194,8 @@ class SQLiteEngineRecordRepository:
                     record, sections, provenance, notes = self._news(connection, reference)
                 elif reference.kind == 'mention':
                     record, sections, provenance, notes = self._mention(connection, reference)
+                elif reference.kind == 'telemetry':
+                    record, sections, provenance, notes = self._telemetry(connection, reference)
                 elif reference.kind == 'report':
                     record, sections, provenance, notes = self._report(connection, reference)
                 else:
@@ -273,6 +285,44 @@ class SQLiteEngineRecordRepository:
             'Son deneme/başarı bu kaydın hedef tanımı, arama konusu ve sonuç sınırıyla eşleşir.',
             'Sıralama puanı sağlayıcının arama uygunluğudur; risk veya doğruluk puanı değildir.',
             'Sağlayıcı tarihi tahmini yayın/güncelleme bilgisidir; XTI toplama zamanından ayrıdır.',
+        )
+
+    @staticmethod
+    def _telemetry(connection, reference):
+        try:
+            record = read_telemetry_record(connection, reference.record_id)
+        except TelemetryError as error:
+            if error.code == 'not_found':
+                _not_found()
+            raise
+        if record['kind'] != reference.record_type:
+            _not_found()
+        versions = SQLiteTelemetryRepository._versions(
+            connection, reference.record_id, MAX_DETAIL_ROWS,
+        )
+        reviews = read_telemetry_reviews(connection, reference.record_id)
+        if versions['has_more'] or len(reviews) > MAX_DETAIL_ROWS:
+            raise StorageError(
+                'Telemetri kayıt ayrıntısı güvenli okuma sınırını aşıyor; eksik sonuç üretilmedi.'
+            )
+        return record, {
+            'versions': tuple(versions['items']),
+            'reviews': tuple(reviews),
+        }, {
+            'source': 'local-telemetry',
+            'source_id': record['source_id'],
+            'source_name': record['source']['name'],
+            'source_kind': record['source']['source_kind'],
+            'input_format': record['source']['input_format'],
+            'first_run_id': record['first_run_id'],
+            'last_run_id': record['last_run_id'],
+            'first_seen_at': record['first_seen_at'],
+            'last_seen_at': record['last_seen_at'],
+            'body_sha256': record['body_sha256'],
+        }, (
+            'Normalize kaynak gözlemidir; tek başına doğrulanmış saldırı, zararlılık veya atıf değildir.',
+            'XTI ham komut, parola, paket yakalama, bellek dökümü, zararlı örnek veya ham sandbox raporu saklamaz.',
+            'Kayıt değiştiğinde eski insan kararı korunur fakat needs_review alanı yeniden inceleme gerektiğini gösterir.',
         )
 
     @staticmethod

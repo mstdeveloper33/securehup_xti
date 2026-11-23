@@ -23,6 +23,21 @@ from xti.adapters.social_tracking_schema import create as create_social_tracking
 from xti.adapters.group_schema import create as create_group_schema
 from xti.adapters.group_operations_schema import create as create_group_operations_schema
 from xti.adapters.group_projection_schema import create as create_group_projection_schema
+from xti.adapters.code_exposure_schema import create as create_code_exposure_schema
+from xti.adapters.content_monitoring_schema import create as create_content_monitoring_schema
+from xti.adapters.brand_protection_schema import create as create_brand_protection_schema
+from xti.adapters.cti_analysis_schema import create as create_cti_analysis_schema
+from xti.adapters.darkweb_monitoring_schema import (
+    create as create_darkweb_monitoring_schema,
+    migrate_xposedornot as migrate_darkweb_xposedornot_schema,
+)
+from xti.adapters.actionability_schema import create as create_actionability_schema
+from xti.adapters.unified_monitoring_schema import create as create_unified_monitoring_schema
+from xti.adapters.data_retention_schema import (
+    create as create_data_retention_schema,
+    migrate_v99 as migrate_data_retention_v99,
+)
+from xti.adapters.telemetry_schema import create as create_telemetry_schema
 from xti.adapters.collection_social_schema import migrate_collection_social_schema
 from xti.adapters.relationship_notification_schema import create as create_relationship_notification_schema
 
@@ -259,6 +274,15 @@ class SQLiteAssetRepository:
                 upgrade_global_saved_search_scopes(connection)
                 create_mention_group_schema(connection)
                 create_group_projection_schema(connection)
+                create_code_exposure_schema(connection)
+                create_content_monitoring_schema(connection)
+                create_brand_protection_schema(connection)
+                create_cti_analysis_schema(connection)
+                create_darkweb_monitoring_schema(connection)
+                create_actionability_schema(connection)
+                create_unified_monitoring_schema(connection)
+                create_data_retention_schema(connection)
+                create_telemetry_schema(connection)
                 connection.execute(f"PRAGMA application_id={APPLICATION_ID}")
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
@@ -520,6 +544,49 @@ class SQLiteAssetRepository:
             case_activities = connection.execute(
                 "SELECT COUNT(*) FROM case_activities"
             ).fetchone()[0]
+            action_runbooks = connection.execute(
+                "SELECT COUNT(*) FROM action_runbooks"
+            ).fetchone()[0]
+            action_takedowns = connection.execute(
+                "SELECT COUNT(*) FROM action_takedowns"
+            ).fetchone()[0]
+            open_action_takedowns = connection.execute(
+                "SELECT COUNT(*) FROM action_takedowns "
+                "WHERE state IN ('draft','approved','submitted','acknowledged')"
+            ).fetchone()[0]
+            action_ioc_import_runs = connection.execute(
+                "SELECT COUNT(*) FROM action_ioc_import_runs"
+            ).fetchone()[0]
+            monitoring_policies = connection.execute(
+                "SELECT COUNT(*) FROM monitoring_policies"
+            ).fetchone()[0]
+            active_monitoring_policies = connection.execute(
+                "SELECT COUNT(*) FROM monitoring_policies WHERE enabled=1"
+            ).fetchone()[0]
+            monitoring_runs = connection.execute(
+                "SELECT COUNT(*) FROM monitoring_runs"
+            ).fetchone()[0]
+            monitoring_alerts = connection.execute(
+                "SELECT COUNT(*) FROM monitoring_alerts"
+            ).fetchone()[0]
+            unread_monitoring_alerts = connection.execute(
+                "SELECT COUNT(*) FROM monitoring_alerts WHERE read_at IS NULL"
+            ).fetchone()[0]
+            retention_policies = connection.execute(
+                "SELECT COUNT(*) FROM retention_policies"
+            ).fetchone()[0]
+            active_retention_policies = connection.execute(
+                "SELECT COUNT(*) FROM retention_policies WHERE enabled=1"
+            ).fetchone()[0]
+            active_retention_holds = connection.execute(
+                "SELECT COUNT(*) FROM retention_holds WHERE active=1"
+            ).fetchone()[0]
+            retention_runs = connection.execute(
+                "SELECT COUNT(*) FROM retention_runs"
+            ).fetchone()[0]
+            active_retention_archives = connection.execute(
+                "SELECT COUNT(*) FROM retention_archive_items WHERE active=1"
+            ).fetchone()[0]
             cti_indicators = connection.execute(
                 "SELECT COUNT(*) FROM cti_indicators"
             ).fetchone()[0]
@@ -732,6 +799,8 @@ class SQLiteAssetRepository:
             job_counts = dict(connection.execute(
                 "SELECT status, COUNT(*) FROM scan_jobs GROUP BY status"
             ).fetchall())
+            from xti.adapters.sqlite_notification_sequence import notification_counts
+            notification_total, notification_unread = notification_counts(connection)
         return {
             "schema_version": SCHEMA_VERSION,
             "organization_count": organization_count,
@@ -746,24 +815,8 @@ class SQLiteAssetRepository:
             "cleanup_count": cleanups,
             "monitor_count": monitors,
             "running_monitor_count": running_monitors,
-            "notification_count": (
-                notifications + candidate_notifications + surface_change_notifications
-                + vulnerability_change_notifications + cti_saved_search_notifications
-                + ransomware_watch_notifications + ransomlook_watch_notifications
-                + public_notice_watch_notifications + supplier_watch_notifications
-                + global_saved_search_notifications
-                + brand_username_review_notifications
-            ),
-            "unread_notification_count": (
-                unread_notifications + unread_candidate_notifications
-                + unread_surface_change_notifications
-                + unread_vulnerability_change_notifications
-                + unread_cti_saved_search_notifications
-                + unread_ransomware_watch_notifications + unread_ransomlook_watch_notifications
-                + unread_public_notice_watch_notifications + unread_supplier_watch_notifications
-                + unread_global_saved_search_notifications
-                + unread_brand_username_review_notifications
-            ),
+            "notification_count": notification_total,
+            "unread_notification_count": notification_unread,
             "surface_change_notification_count": surface_change_notifications,
             "vulnerability_change_notification_count": vulnerability_change_notifications,
             "allowlist_count": allowlist_entries,
@@ -825,6 +878,20 @@ class SQLiteAssetRepository:
             "active_case_evidence_count": case_evidence,
             "open_case_task_count": open_case_tasks,
             "case_activity_count": case_activities,
+            "action_runbook_count": action_runbooks,
+            "action_takedown_count": action_takedowns,
+            "open_action_takedown_count": open_action_takedowns,
+            "action_ioc_import_run_count": action_ioc_import_runs,
+            "monitoring_policy_count": monitoring_policies,
+            "active_monitoring_policy_count": active_monitoring_policies,
+            "monitoring_run_count": monitoring_runs,
+            "monitoring_alert_count": monitoring_alerts,
+            "unread_monitoring_alert_count": unread_monitoring_alerts,
+            "retention_policy_count": retention_policies,
+            "active_retention_policy_count": active_retention_policies,
+            "active_retention_hold_count": active_retention_holds,
+            "retention_run_count": retention_runs,
+            "active_retention_archive_count": active_retention_archives,
             "cti_indicator_count": cti_indicators,
             "active_cti_assertion_count": active_cti_assertions,
             "cti_feed_run_count": cti_feed_runs,
@@ -1124,6 +1191,28 @@ class SQLiteAssetRepository:
                     create_group_operations_schema(connection)
                 if version < 88:
                     create_group_projection_schema(connection)
+                if version < 89:
+                    create_code_exposure_schema(connection)
+                if version < 90:
+                    create_content_monitoring_schema(connection)
+                if version < 91:
+                    create_brand_protection_schema(connection)
+                if version < 92:
+                    create_cti_analysis_schema(connection)
+                if version < 93:
+                    create_darkweb_monitoring_schema(connection)
+                if version < 94:
+                    migrate_darkweb_xposedornot_schema(connection)
+                if version < 95:
+                    create_actionability_schema(connection)
+                if version < 96:
+                    create_unified_monitoring_schema(connection)
+                if version < 97:
+                    create_data_retention_schema(connection)
+                if version < 98:
+                    create_telemetry_schema(connection)
+                if version < 99:
+                    migrate_data_retention_v99(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

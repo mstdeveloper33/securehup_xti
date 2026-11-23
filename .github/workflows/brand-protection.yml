@@ -1,0 +1,56 @@
+name: XTI brand protection acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/xti/**'
+      - 'requirements/brand-protection.txt'
+      - 'scripts/setup_protection.py'
+      - 'scripts/setup-protection'
+      - 'tests/test_brand_protection*.py'
+      - 'tests/test_protection_installation.py'
+      - '.github/workflows/brand-protection.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xti-brand-protection-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-and-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Select Python
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install wheel-hash pinned visual and parser dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/brand-protection.txt
+      - name: Prepare browser system libraries on the disposable runner
+        run: python -m playwright install-deps chromium
+      - name: Verify browser installation without a public-page request
+        run: ./scripts/setup-protection
+      - name: Evidence, images, company boundary, queue and recovery
+        run: >-
+          ./scripts/python -m unittest -q tests.test_brand_protection
+          tests.test_brand_protection_sources tests.test_brand_protection_platform
+          tests.test_protection_installation tests.test_content_sources
+          tests.test_source_jobs_usage tests.test_organization_report
+      - name: Recheck installed offline browser
+        run: ./scripts/setup-protection --check

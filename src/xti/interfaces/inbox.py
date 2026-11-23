@@ -1,7 +1,7 @@
 """Plain, escaped views for local notices and their independent read state."""
 
 from xti.domain.inbox import InboxDetails, InboxPage
-from xti.interfaces.text import safe_text
+from xti.interfaces.text import safe_text, xti_command
 from xti.interfaces.public_notice_watches import change_lines as public_notice_change_lines
 from xti.interfaces.supplier_watches import watch_run_lines as supplier_watch_run_lines
 from xti.interfaces.global_saved_searches import run_lines as global_search_run_lines, search_watch_command
@@ -35,7 +35,7 @@ PORT_STATES = {
 }
 
 
-def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> list[str]:
+def page_lines(page: InboxPage, *, status: str, next_command: str | None, data_dir=None) -> list[str]:
     labels = {"unread": "Okunmamış", "read": "Okunmuş", "all": "Tüm"}
     lines = [
         f"Bildirim kutusu: {page.unread_count} okunmamış / {page.total_count} toplam.",
@@ -46,7 +46,32 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
     for item in page.items:
         notice = item.notification
         read_state = "Okundu" if notice.read_at is not None else "Okunmadı"
-        if item.group_change is not None:
+        if item.darkweb_change is not None:
+            proof = item.darkweb_change
+            body = proof['after']['body']
+            lines.extend(['', f"{read_state} | Dark web kaynak kanıtı değişti | {notice.id}",
+                '  Hedef: ' + safe_text(body['target']['label']),
+                '  Tür/öncelik: ' + proof['finding']['kind'] + ' / ' + proof['finding']['priority'],
+                '  Kaynak: ' + safe_text(body['source']['name']),
+                '  Bulgu: ' + xti_command('darkweb', 'finding-show', proof['change']['finding_id'], data_dir=data_dir),
+                '  Kaynak iddiasıdır; otomatik incident veya ihlal kararı değildir.'])
+            continue
+        if item.protection_change is not None:
+            proof=item.protection_change;body=proof['after']['body']
+            lines.extend(['', f"{read_state} | Marka kanıtı değişti | {notice.id}",safe_text(body['brand']['name']),
+                safe_text(body['candidate']['url']), 'Aday: '+xti_command('brand','protection','candidate-show',proof['change']['candidate_id'],data_dir=data_dir)])
+            continue
+        if item.content_change is not None:
+            proof = item.content_change
+            lines.extend(['', f"{read_state} | Firma içeriği değişti | {safe_text(proof['target']['name'])}",
+                          '  Bildirim: ' + notice.id, '  ' + safe_text(proof['after']['body']['title']),
+                          '  İçerik: ' + xti_command('content', 'show', proof['change']['match_id'], data_dir=data_dir)])
+        elif item.code_change is not None:
+            proof = item.code_change
+            lines.extend(['', f"{read_state} | Kod/paste kanıtı değişti | {safe_text(proof['domain'])}",
+                          '  Bildirim: ' + notice.id, '  ' + safe_text(proof['change']['kind']),
+                          '  Bulgu: ' + xti_command('code', 'show', proof['change']['finding_id'], data_dir=data_dir)])
+        elif item.group_change is not None:
             proof = item.group_change['snapshot']
             change = proof['change']
             lines.extend(['', f"{read_state} | İnceleme grubu değişti | {safe_text(proof['after']['group']['root'][1])}",
@@ -206,6 +231,35 @@ def page_lines(page: InboxPage, *, status: str, next_command: str | None) -> lis
 
 def detail_lines(item: InboxDetails, *, data_dir=None) -> list[str]:
     notice = item.notification
+    if item.darkweb_change is not None:
+        proof = item.darkweb_change
+        body = proof['after']['body']
+        lines = [f"Bildirim: {notice.id} | Dark web kaynak kanıtı değişti",
+            'Hedef: ' + safe_text(body['target']['label']),
+            'Tür/öncelik: ' + proof['finding']['kind'] + ' / ' + proof['finding']['priority'],
+            'Kaynak: ' + safe_text(body['source']['name']),
+            'Eşleşme: ' + '; '.join(safe_text(value) for value in body['match']['reasons']),
+            'Bulgu: ' + xti_command('darkweb', 'finding-show', proof['change']['finding_id'], data_dir=data_dir)]
+        if proof['before'] is not None:
+            lines.append('Önceki ve yeni değişmez kanıt bu bildirim kaydında birlikte korunuyor.')
+        lines.append('İnsan incelemesi gerekir; bu bildirim otomatik incident kararı değildir.')
+        return lines
+    if item.protection_change is not None:
+        proof=item.protection_change;body=proof['after']['body']
+        return [f"Bildirim: {notice.id} | Marka kanıtı değişti",safe_text(body['brand']['name']),safe_text(body['candidate']['url']),
+            'Aday: '+xti_command('brand','protection','candidate-show',proof['change']['candidate_id'],data_dir=data_dir)]
+    if item.content_change is not None:
+        proof = item.content_change
+        return [f"Bildirim: {notice.id} | Firma içeriği değişti", safe_text(proof['target']['name']),
+                safe_text(proof['after']['body']['title']), safe_text(proof['after']['body']['excerpt']),
+                safe_text(proof['after']['body']['url']),
+                'İçerik: ' + xti_command('content', 'show', proof['change']['match_id'], data_dir=data_dir)]
+    if item.code_change is not None:
+        proof = item.code_change
+        return [f"Bildirim: {notice.id} | Kod/paste kanıtı değişti", safe_text(proof['domain']),
+                safe_text(proof['change']['kind']), safe_text(proof['after']['body']['url']),
+                safe_text(proof['after']['body']['evidence']),
+                'Bulgu: ' + xti_command('code', 'show', proof['change']['finding_id'], data_dir=data_dir)]
     if item.group_change is not None:
         from xti.interfaces.research_groups import group_lines
         proof = item.group_change['snapshot']
@@ -221,14 +275,12 @@ def detail_lines(item: InboxDetails, *, data_dir=None) -> list[str]:
     if item.social_change is not None:
         from xti.interfaces.social_tracking import tracking_lines
         from xti.domain.social_tracking import case_id
-        from xti.interfaces.text import xti_command
         change = item.social_change['change']
         return [*tracking_lines({'record': item.social_change}),
             'Vakaya ekle: ' + xti_command('cases', 'evidence-add', 'VAKA_KIMLIGI', '--type', 'social_discovery',
                 '--evidence-id', case_id(change['after']['discovery_id'], change['url']), '--reason', 'İnceleme gerekçesi', data_dir=data_dir)]
     if item.relationship_change is not None:
         from xti.interfaces.evidence import evidence_lines
-        from xti.interfaces.text import xti_command
         proof = item.relationship_change['snapshot']
         change = proof['change']
         lines = [f"Bildirim: {notice.id} | İlişki dayanağı değişti",

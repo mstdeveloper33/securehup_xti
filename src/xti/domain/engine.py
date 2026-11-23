@@ -18,11 +18,26 @@ from xti.domain.social_discovery import READS as SOCIAL_READS, parameters as soc
 from xti.domain.social_enrichment import READS as SOCIAL_ENRICHMENT_READS, parameters as social_enrichment_parameters
 from xti.domain.social_tracking import READS as SOCIAL_TRACKING_READS, parameters as social_tracking_parameters
 
+from xti.domain.code_exposure import READS as CODE_READS, parameters as code_parameters
+
+from xti.domain.content_monitoring import READS as CONTENT_READS, parameters as content_parameters
+from xti.domain.brand_protection import READS as PROTECTION_READS, parameters as protection_parameters
+from xti.domain.cti_analysis import READS as CTI_ANALYSIS_READS, parameters as cti_analysis_parameters
+from xti.domain.darkweb_monitoring import READS as DARKWEB_READS, parameters as darkweb_parameters
+from xti.domain.actionability_contract import READS as ACTION_READS, parameters as action_parameters
+from xti.domain.unified_monitoring import READS as MONITORING_READS, parameters as monitoring_parameters
+from xti.domain.data_retention import READS as RETENTION_READS, parameters as retention_parameters
+from xti.domain.source_governance import (
+    READS as SOURCE_GOVERNANCE_READS,
+    parameters as source_governance_parameters,
+)
+from xti.domain.telemetry import READS as TELEMETRY_READS, parameters as telemetry_parameters
+
 ENGINE_CONTRACT_VERSION = 1
 ENGINE_OPERATIONS = ('search', 'record.get', 'sources.status', 'components.list', 'research.show', 'research.priorities', 'research.conflicts',
                      'research.history', 'research.review.get', 'company.review', 'ioc.lifecycle',
                      'warninglists.status', 'warninglists.lookup', 'warninglists.run.get',
-                     'enrichment.lookup', 'enrichment.history', 'enrichment.run.get') + INVESTIGATION_READS + REPORT_READS + EVIDENCE_READS + JOURNAL_READS + SOCIAL_READS + SOCIAL_ENRICHMENT_READS + SOCIAL_TRACKING_READS
+                     'enrichment.lookup', 'enrichment.history', 'enrichment.run.get') + INVESTIGATION_READS + REPORT_READS + EVIDENCE_READS + JOURNAL_READS + SOCIAL_READS + SOCIAL_ENRICHMENT_READS + SOCIAL_TRACKING_READS + CODE_READS + CONTENT_READS + PROTECTION_READS + CTI_ANALYSIS_READS + DARKWEB_READS + ACTION_READS + MONITORING_READS + RETENTION_READS + SOURCE_GOVERNANCE_READS + TELEMETRY_READS
 REQUEST_ID_PATTERN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', re.ASCII)
 # Deliberately versioned here: adding an internal record type does not silently
 # expose it on the external engine boundary.
@@ -40,6 +55,9 @@ RECORD_NAMESPACES = {
     ('case', 'case'): ('local-case-management',),
     ('supplier', 'supplier'): ('local-suppliers',),
     ('organization', 'organization'): ('local-organizations',),
+    **{('telemetry', kind): ('local-telemetry',) for kind in (
+        'connection', 'authentication', 'dns_query', 'file_download', 'sandbox_analysis',
+    )},
     **{('cti', kind): ('local-cti',) for kind in ('threat-actor', 'campaign', 'malware', 'report')},
     **{('indicator', kind): ('local-ioc',) for kind in ('domain', 'ipv4', 'ipv6', 'url', 'md5', 'sha1', 'sha256')},
 }
@@ -128,7 +146,27 @@ def parse_engine_request(value: object) -> EngineRequest:
         raise EngineContractError('unsupported_operation', 'Bu motor işlemi desteklenmiyor.')
     parameters = value['parameters']
     try:
-        if operation in SOCIAL_TRACKING_READS:
+        if operation in TELEMETRY_READS:
+            normalized = telemetry_parameters(operation, parameters)
+        elif operation in SOURCE_GOVERNANCE_READS:
+            normalized = source_governance_parameters(operation, parameters)
+        elif operation in RETENTION_READS:
+            normalized = retention_parameters(operation, parameters)
+        elif operation in MONITORING_READS:
+            normalized = monitoring_parameters(operation, parameters)
+        elif operation in ACTION_READS:
+            normalized = action_parameters(operation, parameters)
+        elif operation in DARKWEB_READS:
+            normalized = darkweb_parameters(operation, parameters)
+        elif operation in CTI_ANALYSIS_READS:
+            normalized = cti_analysis_parameters(operation, parameters)
+        elif operation in PROTECTION_READS:
+            normalized = protection_parameters(operation, parameters)
+        elif operation in CONTENT_READS:
+            normalized = content_parameters(operation, parameters)
+        elif operation in CODE_READS:
+            normalized = code_parameters(operation, parameters)
+        elif operation in SOCIAL_TRACKING_READS:
             normalized = social_tracking_parameters(operation, parameters)
         elif operation in SOCIAL_ENRICHMENT_READS:
             normalized = social_enrichment_parameters(operation, parameters)

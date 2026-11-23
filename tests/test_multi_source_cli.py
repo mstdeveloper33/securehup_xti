@@ -192,118 +192,42 @@ class MultiSourceCLITests(unittest.TestCase):
         self.assertEqual([item["status"] for item in history["attempts"]], ["failed", "complete"])
         self.assertEqual(history["attempts"][0]["queries"][0]["error"], "Geçici hata.")
 
-    def test_sources_shows_both_recorded_results_without_network_or_database_mutation(self):
+    def test_jobs_show_preserves_both_recorded_results_without_network_or_database_mutation(self):
         result = self.success("scan", "example.com")
         self.crt.calls.clear()
         self.urlscan.calls.clear()
         before = self.database.read_bytes()
-        sources = self.success("sources")["sources"]
-        by_provider = {item["provider"]: item for item in sources}
-        self.assertEqual(set(by_provider), {"crt.sh", "urlscan"})
         for item in result["results"]:
-            saved = by_provider[item["provider"]]
-            self.assertEqual(saved["job_id"], item["job_id"])
-            self.assertEqual(saved["attempt_id"], item["attempt_id"])
-            self.assertEqual(saved["queries"], item["queries"])
-            self.assertEqual(saved["source_status"], "responded")
+            saved = self.success("jobs", "show", item["job_id"])
+            self.assertEqual(saved["job"]["provider"], item["provider"])
+            self.assertEqual(saved["attempts"][0]["id"], item["attempt_id"])
+            self.assertEqual(saved["attempts"][0]["queries"], item["queries"])
+            self.assertEqual(saved["attempts"][0]["status"], "complete")
         self.assertEqual(self.crt.calls + self.urlscan.calls, [])
         self.assertEqual(self.database.read_bytes(), before)
 
-    def test_sources_includes_reviewed_catalog_without_network_activity(self):
+    def test_sources_is_the_canonical_governance_catalog_alias_without_network_activity(self):
         self.success("init")
         self.crt.calls.clear()
         self.urlscan.calls.clear()
         before = self.database.read_bytes()
         report = self.success("sources")
-        catalog = {item["identifier"]: item for item in report["catalog"]}
-        self.assertEqual(
-            set(catalog),
-            {
-                "crt.sh", "theharvester-archives", "urlscan", "google-public-dns",
-                "explicit-https-head", "explicit-tcp-connect", "feodo-tracker",
-                "certpl-warning-list", "threatcluster-ransomware-claims",
-                "ransomlook-ransomware-posts", "hibp-public-breach-catalog",
-                "mitre-attack-enterprise", "cisa-kev",
-                "first-epss", "nist-nvd-cve", "osv-dev", "canonical-ubuntu-osv",
-                "redhat-csaf-vex", "suse-csaf-vex",
-                "news:cisa", "news:ncsc", "news:cert-fr",
-                "mentions:tavily",
-                "warninglist:cloudflare", "warninglist:rfc1918", "warninglist:rfc3849", "warninglist:rfc6761",
-                "enrichment:circl", "enrichment:urlscan", "enrichment:ripestat", "enrichment:ripestat-whois",
-            },
-        )
-        self.assertFalse(catalog["crt.sh"]["contacts_monitored_target"])
-        self.assertFalse(
-            catalog["theharvester-archives"]["contacts_monitored_target"],
-        )
-        self.assertFalse(catalog["google-public-dns"]["contacts_monitored_target"])
-        self.assertTrue(catalog["explicit-https-head"]["contacts_monitored_target"])
-        self.assertTrue(catalog["explicit-tcp-connect"]["contacts_monitored_target"])
-        self.assertFalse(catalog["feodo-tracker"]["contacts_monitored_target"])
+        self.assertEqual(report, self.success("sources", "catalog"))
+        self.assertEqual(report["catalog_count"], 53)
+        self.assertEqual((len(report["sources"]), report["has_more"], report["next_offset"]),
+                         (50, True, 50))
+        remaining = self.success("sources", "catalog", "--offset", "50")
+        self.assertEqual((len(remaining["sources"]), remaining["has_more"]), (3, False))
+        catalog = {
+            item["identifier"]: item
+            for item in (*report["sources"], *remaining["sources"])
+        }
+        self.assertEqual(len(catalog), 53)
+        self.assertEqual(catalog["crt.sh"]["target_contact"], "provider_query")
+        self.assertEqual(catalog["explicit-https-head"]["target_contact"], "direct_authorized")
+        self.assertEqual(catalog["brand:brightdata-linkedin"]["cost_model"], "paid")
+        self.assertEqual(catalog["credential:xposedornot-domain"]["integration_state"], "conditional")
         self.assertIn("ioc sync --source feodo", catalog["feodo-tracker"]["commands"])
-        self.assertFalse(catalog["certpl-warning-list"]["contacts_monitored_target"])
-        self.assertFalse(
-            catalog["threatcluster-ransomware-claims"]["contacts_monitored_target"],
-        )
-        self.assertIn(
-            "ransomware recent",
-            catalog["threatcluster-ransomware-claims"]["commands"],
-        )
-        self.assertFalse(
-            catalog["ransomlook-ransomware-posts"]["contacts_monitored_target"],
-        )
-        self.assertIn(
-            "ransomware recent --source ransomlook",
-            catalog["ransomlook-ransomware-posts"]["commands"],
-        )
-        self.assertIn(
-            "ioc sync --source certpl",
-            catalog["certpl-warning-list"]["commands"],
-        )
-        self.assertFalse(catalog["mitre-attack-enterprise"]["contacts_monitored_target"])
-        self.assertIn(
-            "cti attack-sync", catalog["mitre-attack-enterprise"]["commands"],
-        )
-        self.assertFalse(catalog["cisa-kev"]["contacts_monitored_target"])
-        self.assertIn("vuln sync --source kev", catalog["cisa-kev"]["commands"])
-        self.assertFalse(catalog["first-epss"]["contacts_monitored_target"])
-        self.assertIn("vuln sync --source epss", catalog["first-epss"]["commands"])
-        self.assertFalse(catalog["nist-nvd-cve"]["contacts_monitored_target"])
-        self.assertIn(
-            "vuln sync --source nvd --cve CVE-YIL-SAYI",
-            catalog["nist-nvd-cve"]["commands"],
-        )
-        self.assertFalse(catalog["osv-dev"]["contacts_monitored_target"])
-        self.assertIn(
-            "vuln advisory-preview CVE-YIL-SAYI", catalog["osv-dev"]["commands"],
-        )
-        self.assertIn(
-            "vuln advisory-evidence-add INCELEME_KIMLIGI",
-            catalog["osv-dev"]["commands"],
-        )
-        self.assertFalse(catalog["redhat-csaf-vex"]["contacts_monitored_target"])
-        self.assertIn(
-            "vuln vendor-preview CVE-YIL-SAYI --provider redhat",
-            catalog["redhat-csaf-vex"]["commands"],
-        )
-        self.assertIn(
-            "vuln vendor-match PAKET_KIMLIGI CVE-YIL-SAYI --provider redhat",
-            catalog["redhat-csaf-vex"]["commands"],
-        )
-        self.assertIn(
-            "vuln vendor-evidence-add INCELEME_KIMLIGI PAKET_KIMLIGI",
-            catalog["redhat-csaf-vex"]["commands"],
-        )
-        self.assertIn(
-            "vuln vendor-evidence-check KANIT_KIMLIGI",
-            catalog["redhat-csaf-vex"]["commands"],
-        )
-        self.assertFalse(catalog["suse-csaf-vex"]["contacts_monitored_target"])
-        self.assertIn(
-            "vuln vendor-preview CVE-YIL-SAYI --provider suse",
-            catalog["suse-csaf-vex"]["commands"],
-        )
-        self.assertTrue(all(not item["paid_dependency"] for item in catalog.values()))
         self.assertEqual(self.crt.calls + self.urlscan.calls, [])
         self.assertEqual(self.database.read_bytes(), before)
 

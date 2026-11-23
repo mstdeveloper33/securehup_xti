@@ -2,9 +2,9 @@
 
 from collections.abc import Callable
 from datetime import datetime, timezone
-import math
 import time
 
+from xti.application.foreground_monitor import MonotonicBudget, utc_now
 from xti.application.ransomware_watch_refresh import RansomwareWatchRefreshService
 from xti.domain.assets import ValidationError
 from xti.domain.ransomware_watches import (
@@ -41,24 +41,7 @@ class RansomwareWatchMonitorService:
                 raise ValidationError(message)
 
     def _now(self) -> str:
-        value = self.clock()
-        try:
-            if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
-                raise ValueError("timezone required")
-            return value.astimezone(timezone.utc).isoformat()
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError("Ransomware izleme zamanı geçersiz.") from error
-
-    def _tick(self) -> float:
-        value = self.monotonic()
-        try:
-            if type(value) not in (int, float) or not math.isfinite(value):
-                raise ValueError("invalid monotonic clock")
-            return float(value)
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError(
-                "Ransomware izleme süresini ölçen saat geçersiz."
-            ) from error
+        return utc_now(self.clock, error_message="Ransomware izleme zamanı geçersiz.")
 
     def run(
         self, *, max_cycles: int = 3, interval_seconds: int = 3600,
@@ -76,20 +59,17 @@ class RansomwareWatchMonitorService:
         # Validate the complete active window before time starts or any source call.
         self.refresh_all.preflight(max_watches=max_watches)
         started_at = self._now()
-        started = self._tick()
-        previous = started
+        budget = MonotonicBudget(
+            self.monotonic,
+            invalid_message="Ransomware izleme süresini ölçen saat geçersiz.",
+            rollback_message=(
+                "Ransomware izleme süresini ölçen saat geriye gitti; "
+                "izleme durduruldu."
+            ),
+        )
+        budget.start()
         cycles: list[RansomwareWatchMonitorCycle] = []
-
-        def elapsed() -> float:
-            nonlocal previous
-            current = self._tick()
-            if current < previous or not math.isfinite(current - started):
-                raise ValidationError(
-                    "Ransomware izleme süresini ölçen saat geriye gitti; "
-                    "izleme durduruldu."
-                )
-            previous = current
-            return current - started
+        elapsed = budget.elapsed
 
         stop_reason = "cycles"
         for cycle in range(1, max_cycles + 1):

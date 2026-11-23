@@ -1,8 +1,8 @@
 """Bounded foreground monitoring; each cycle releases the shared writer lock."""
 
-import math
 import time
 
+from xti.application.foreground_monitor import MonotonicBudget
 from xti.application.global_saved_searches import GlobalSavedSearchService
 from xti.domain.assets import ValidationError
 from xti.domain.global_saved_searches import (
@@ -14,12 +14,6 @@ class GlobalSavedSearchMonitor:
     def __init__(self, service: GlobalSavedSearchService, *, monotonic=time.monotonic,
                  sleeper=time.sleep):
         self.service, self.monotonic, self.sleeper = service, monotonic, sleeper
-
-    def _tick(self):
-        value = self.monotonic()
-        if type(value) not in (int, float) or not math.isfinite(value):
-            raise ValidationError("İzleme süresini ölçen saat geçersiz.")
-        return float(value)
 
     def run(self, search_id, *, cycles=2, interval_seconds=60, duration_seconds=600,
             limit=50, progress=None):
@@ -37,16 +31,15 @@ class GlobalSavedSearchMonitor:
             )
         if not definition.saved_search.active:
             raise ValidationError("Kapalı kayıtlı arama izlenemez.")
-        started_at, started = self.service._now(), self._tick()
-        previous, results, stop_reason = started, [], "cycles"
-
-        def elapsed():
-            nonlocal previous
-            value = self._tick()
-            if value < previous or not math.isfinite(value - started):
-                raise ValidationError("İzleme saati geriye gitti; işlem durduruldu.")
-            previous = value
-            return value - started
+        started_at = self.service._now()
+        budget = MonotonicBudget(
+            self.monotonic,
+            invalid_message="İzleme süresini ölçen saat geçersiz.",
+            rollback_message="İzleme saati geriye gitti; işlem durduruldu.",
+        )
+        budget.start()
+        elapsed = budget.elapsed
+        results, stop_reason = [], "cycles"
 
         for cycle in range(cycles):
             if elapsed() >= duration_seconds:

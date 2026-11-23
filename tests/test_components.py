@@ -28,13 +28,14 @@ from tests.test_brand_username_watches import FakeSherlockSource, FakeSource
 
 
 NOW = datetime(2026, 11, 15, 12, tzinfo=timezone.utc)
-TOOL_IDS = {"maigret", "sherlock", "theharvester"}
+TOOL_IDS = {"maigret", "sherlock", "theharvester", "betterleaks"}
 
 
 class FakeInspector:
     def __init__(self, states=None):
         self.states = states or {
             "maigret": ComponentInstallation("ready", None),
+            "betterleaks": ComponentInstallation("ready", None),
             "sherlock": ComponentInstallation("missing", "Sherlock kurulmamış."),
             "theharvester": ComponentInstallation("invalid", "Kaynak commit'i uyuşmuyor."),
         }
@@ -89,7 +90,7 @@ class ComponentCatalogTests(unittest.TestCase):
         self.assertEqual(report["observed_at"], NOW.isoformat())
         self.assertEqual(report["scope"], "project-managed-tools")
         self.assertEqual(set(inspector.calls), TOOL_IDS)
-        self.assertEqual(len(inspector.calls), 3)
+        self.assertEqual(len(inspector.calls), 4)
         rows = {row["identifier"]: row for row in report["components"]}
         self.assertEqual(set(rows), TOOL_IDS)
         self.assertEqual(rows["maigret"]["expected"]["version"], "0.6.6")
@@ -110,7 +111,11 @@ class ComponentCatalogTests(unittest.TestCase):
                 self.assertNotIn("observed_version", row["installation"])
                 self.assertNotIn("latest_status", row["installation"])
                 self.assertNotIn("last_success_at", row["installation"])
-                self.assertTrue(row["source_status_ids"])
+                if row['identifier'] == 'betterleaks':
+                    self.assertEqual(row['source_status_ids'], [])  # Offline detector, not a network source.
+                    self.assertFalse(row['configuration']['validation'])
+                else:
+                    self.assertTrue(row["source_status_ids"])
                 self.assertTrue(row["runtime"]["python_requirement"])
                 self.assertTrue(row["runtime"]["deployment"])
                 self.assertTrue(row["configuration"])

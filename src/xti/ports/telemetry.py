@@ -1,0 +1,13 @@
+"""Ports for normalized sensor and sandbox telemetry."""
+
+from typing import Protocol
+
+from xti.domain.telemetry import TelemetryPreview, TelemetryRecord
+
+
+class TelemetryRepository(Protocol):
+    def read(self, operation: str, values: dict) -> dict: ...
+    def mutate(self, operation: str, values: dict, at: str) -> dict: ...
+    def reserve(self, source_id: str, expected_revision: int, preview: TelemetryPreview,
+                idempotency_key: str, at: str) -> tuple[dict, bool]: ...
+    def finish(self, run_id: str, records: tuple[TelemetryRecord, ...], at: str) -> dict: ...

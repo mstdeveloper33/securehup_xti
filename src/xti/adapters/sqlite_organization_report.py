@@ -184,12 +184,51 @@ class _SnapshotReader:
                  'Karar: ' + (decision['value'] if decision else 'henüz yok')),
                 navigation=(_navigation('Güncel grup kanıtı', 'groups', 'current', group_record['id']),)))
             case_keys.add(('research_group', group_record['id']))
+        code_total = connection.execute('SELECT COUNT(*) FROM code_findings WHERE domain=?', (domain,)).fetchone()[0]
+        code_rows = connection.execute('SELECT id,kind,state,last_seen FROM code_findings WHERE domain=? ORDER BY sequence DESC LIMIT ? OFFSET ?',
+            (domain, self.item_limit, self.item_offset)).fetchall()
+        code_records = [OrganizationReportRecord(row[0], 'code_exposure', domain + ' — ' + row[1], row[2], row[3],
+            'code-exposure', navigation=(_navigation('Maskeli kod kanıtı', 'code', 'show', row[0]),)) for row in code_rows]
+        for row in code_rows: case_keys.add(('code_exposure', row[0]))
+        code_page = OrganizationReportPage('code_exposures', tuple(code_records), code_total, self.item_offset,
+                                           self.item_limit, self.item_offset + len(code_rows) < code_total)
+        content_rows = connection.execute('SELECT m.id FROM content_matches m JOIN content_match_domains d ON d.match_id=m.id WHERE d.domain=? ORDER BY m.sequence DESC LIMIT ? OFFSET ?',
+            (domain, self.item_limit, self.item_offset)).fetchall()
+        content_total = connection.execute('SELECT COUNT(*) FROM content_match_domains WHERE domain=?', (domain,)).fetchone()[0]
+        from xti.adapters.sqlite_content_monitoring import match_in
+        previous_factory = connection.row_factory; connection.row_factory = sqlite3.Row
+        try:
+            content_matches = [match_in(connection, row[0]) for row in content_rows]
+        finally: connection.row_factory = previous_factory
+        content_records = [OrganizationReportRecord(row['id'], 'content_match', row['evidence']['body']['title'],
+            'review_candidate' if row['needs_review'] else row['review']['decision'], row['last_seen'],
+            'content-monitor', navigation=(_navigation('Firma içerik kanıtı', 'content', 'show', row['id']),)) for row in content_matches]
+        for row in content_rows: case_keys.add(('content_match', row[0]))
+        content_page = OrganizationReportPage('monitored_content', tuple(content_records), content_total,
+            self.item_offset, self.item_limit, self.item_offset + len(content_rows) < content_total)
+        from xti.adapters.sqlite_brand_protection import candidate_in as protection_candidate
+        brand_query='FROM brand_protection_candidates c JOIN brand_protection_domains d ON d.identity_id=c.identity_id WHERE d.domain=?'
+        brand_total=connection.execute('SELECT COUNT(*) '+brand_query,(domain,)).fetchone()[0]
+        brand_rows=connection.execute('SELECT c.id '+brand_query+' ORDER BY c.sequence DESC LIMIT ? OFFSET ?',
+            (domain,self.item_limit,self.item_offset)).fetchall()
+        previous_factory=connection.row_factory;connection.row_factory=sqlite3.Row
+        try:brand_candidates=[protection_candidate(connection,row[0]) for row in brand_rows]
+        finally:connection.row_factory=previous_factory
+        brand_records=[OrganizationReportRecord(row['id'],'brand_protection',row['evidence']['body']['candidate'].get('title') or row['url'],
+            'review_candidate' if row['needs_review'] else row['review']['decision'],row['last_seen'],'brand-protection',
+            ('Öncelik: '+row['priority'],'Kapsam güncel: '+str(row['scope_current'])),
+            navigation=(_navigation('Marka kanıtı','brand','protection','candidate-show',row['id']),)) for row in brand_candidates]
+        for row in brand_rows:case_keys.add(('brand_protection',row[0]))
+        brand_page=OrganizationReportPage('brand_protection',tuple(brand_records),brand_total,self.item_offset,self.item_limit,self.item_offset+len(brand_rows)<brand_total)
+        coverage.extend(self.protection_coverage(domain))
+        coverage.extend(self.content_coverage(domain))
+        coverage.extend(self.code_coverage(domain))
         return OrganizationReportTarget(
             membership, (("domain", domain),), tuple(coverage),
             (
                 self.page("findings", findings), self.page("surface_candidates", candidates),
                 self.page("public_notices", public_notices),
-                self.page('research_groups', sorted(group_records, key=lambda row: row.id)),
+                self.page('research_groups', sorted(group_records, key=lambda row: row.id)), code_page, content_page, brand_page,
                 self.page("notifications", notices), self.page("case_links", self.case_links(case_keys)),
             ),
             (
@@ -205,6 +244,85 @@ class _SnapshotReader:
                 "Vaka bağlantıları bu domainin bulgularına veya tam domain eşleşen tarihî kamu kanıtına verilmiş açık insan bağlantılarıdır.",
             ), surface,
         )
+
+    def protection_coverage(self, domain):
+        from xti.adapters.sqlite_brand_protection import watch_in, one, decoded
+        def run_in(c,i):return decoded(one(c,'runs',i),'snapshot','report')
+        previous = self.connection.row_factory; self.connection.row_factory = sqlite3.Row
+        try:
+            watches = self.connection.execute('SELECT id FROM brand_protection_watches WHERE identity_id IN (SELECT identity_id FROM brand_protection_domains WHERE domain=?) ORDER BY sequence DESC LIMIT ? OFFSET ?',
+                (domain, self.item_limit, self.item_offset)).fetchall()
+            if not watches: return [self.coverage('brand-protection', 'brand-protection', None, None, ('Bu sayfada marka izlemesi yok; kaynakların tarandığı anlamına gelmez.',))]
+            results = []
+            for row in watches:
+                watch = watch_in(self.connection, row[0])
+                latest = run_in(self.connection, watch['last_run_id']) if watch['last_run_id'] else None
+                complete_row = self.connection.execute("SELECT id FROM brand_protection_runs WHERE watch_id=? AND status='complete' ORDER BY sequence DESC LIMIT 1", (watch['id'],)).fetchone()
+                complete = run_in(self.connection, complete_row[0]) if complete_row else None
+                current_binding = watch['binding_state']
+                def attempt(run):
+                    return OrganizationReportAttempt(run['id'], run['status'], run['finished_at'] or run['started_at'],
+                        definition_matches_current=run['snapshot']['watch_revision'] == watch['revision'] and current_binding == 'ready') if run else None
+                notes = ['İzleme: ' + watch['scope']['name'], 'Kapsam: ' + current_binding, 'Marka adayları kaynak iddiasıdır; kesintiler eski kanıtı silmez.']
+                for source in ((latest or {}).get('report') or {}).get('sources', []): notes.append(source['provider'] + ': ' + source['status'])
+                results.append(self.coverage('brand-protection', 'brand-protection', attempt(latest), attempt(complete), notes))
+            return results
+        finally: self.connection.row_factory = previous
+
+    def content_coverage(self, domain):
+        from xti.adapters.sqlite_content_monitoring import watch_in, run_in, binding_state
+        previous = self.connection.row_factory; self.connection.row_factory = sqlite3.Row
+        try:
+            watches = self.connection.execute('SELECT id FROM content_watches WHERE id IN (SELECT watch_id FROM content_watch_domains WHERE domain=?) ORDER BY sequence DESC LIMIT ? OFFSET ?',
+                (domain, self.item_limit, self.item_offset)).fetchall()
+            if not watches: return [self.coverage('content-monitor', 'content-monitor', None, None, ('Bu sayfada içerik izlemesi yok; kaynakların tarandığı anlamına gelmez.',))]
+            results = []
+            for row in watches:
+                watch = watch_in(self.connection, row[0])
+                latest = run_in(self.connection, watch['last_run_id']) if watch['last_run_id'] else None
+                complete_row = self.connection.execute("SELECT id FROM content_runs WHERE watch_id=? AND status='complete' ORDER BY sequence DESC LIMIT 1", (watch['id'],)).fetchone()
+                complete = run_in(self.connection, complete_row[0]) if complete_row else None
+                current_binding = binding_state(self.connection, watch)
+                def attempt(run):
+                    return OrganizationReportAttempt(run['id'], run['status'], run['finished_at'] or run['started_at'],
+                        definition_matches_current=run['watch_revision'] == watch['revision'] and current_binding == 'ready') if run else None
+                notes = ['İzleme: ' + watch['scope']['name'], 'Kapsam: ' + current_binding, 'İçerik adayları kaynak iddiasıdır; kesintiler eski kanıtı silmez.']
+                for source in ((latest or {}).get('report') or {}).get('sources', []): notes.append(source['provider'] + ': ' + source['status'])
+                results.append(self.coverage('content-monitor', 'content-monitor', attempt(latest), attempt(complete), notes))
+            return results
+        finally: self.connection.row_factory = previous
+
+    def code_coverage(self, domain):
+        from xti.adapters.sqlite_code_exposure import _run, _watch
+        previous = self.connection.row_factory
+        self.connection.row_factory = sqlite3.Row
+        try:
+            watches = self.connection.execute('SELECT * FROM code_watches WHERE domain=? ORDER BY sequence DESC LIMIT ? OFFSET ?',
+                (domain, self.item_limit, self.item_offset)).fetchall()
+            if not watches:
+                return [self.coverage('code-exposure', 'code-monitor', None, None,
+                    ('Bu rapor sayfasında kod/paste izlemesi yok; eşleşme bulunmadığı veya kaynakların tarandığı anlamına gelmez.',))]
+            results = []
+            for raw in watches:
+                watch = _watch(raw)
+                latest = self.connection.execute('SELECT * FROM code_runs WHERE watch_id=? ORDER BY sequence DESC LIMIT 1', (watch['id'],)).fetchone()
+                complete = self.connection.execute("SELECT * FROM code_runs WHERE watch_id=? AND status='complete' ORDER BY sequence DESC LIMIT 1", (watch['id'],)).fetchone()
+                def attempt(row):
+                    if row is None: return None
+                    run = _run(row)
+                    return OrganizationReportAttempt(run['id'], run['status'], run['finished_at'] or run['started_at'],
+                        definition_matches_current=run['watch_revision'] == watch['revision'])
+                report = _run(latest)['report'] if latest is not None else None
+                notes = ['İzleme: ' + watch['name'] + ' (' + watch['id'] + ')',
+                         'Yalnız bu rapor sayfasındaki izlemeler; tümü: code watch-list --domain ' + domain,
+                         'Eski kanıt korunur; kaynak kesintisi veya anahtar eksikliği boş başarılı arama değildir.']
+                if not watch['enabled']: notes.append('İzleme duraklatılmış.')
+                for source in (report or {}).get('sources', []):
+                    notes.append(source['source'] + ': ' + source['status'])
+                results.append(self.coverage('code-exposure', 'code-monitor', attempt(latest), attempt(complete), notes))
+            return results
+        finally:
+            self.connection.row_factory = previous
 
     def public_notices(self, domain: str) -> tuple[list[OrganizationReportRecord], OrganizationReportCoverage]:
         snapshot = self.cached("public-notices", read_public_notice_snapshot)

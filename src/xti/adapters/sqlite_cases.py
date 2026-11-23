@@ -128,6 +128,45 @@ class SQLiteCaseRepository:
                 or record.active == (record.removed_reason is not None)
             ):
                 raise ValueError("invalid evidence")
+            if record.evidence_type == 'darkweb_monitoring':
+                from xti.adapters.sqlite_darkweb_monitoring import validate_case_snapshot
+                payload = validate_case_snapshot(json.loads(snapshot_json))
+                if (record.evidence_id != payload['finding']['id']
+                        or record.source_reference != 'darkweb finding-show ' + record.evidence_id):
+                    raise ValueError('Dark web evidence reference differs')
+            if record.evidence_type == 'telemetry':
+                from xti.adapters.sqlite_telemetry import validate_case_snapshot
+                payload = validate_case_snapshot(json.loads(snapshot_json))
+                if (record.evidence_id != payload['record']['id']
+                        or record.source_reference != 'telemetry record-show ' + record.evidence_id):
+                    raise ValueError('Telemetry evidence reference differs')
+            if record.evidence_type == 'unified_monitoring':
+                from xti.adapters.sqlite_unified_monitoring import validate_case_snapshot
+                payload = validate_case_snapshot(json.loads(snapshot_json))
+                if (record.evidence_id != payload['alert']['id']
+                        or record.source_reference != 'monitoring alert-show ' + record.evidence_id):
+                    raise ValueError('Unified monitoring evidence reference differs')
+            if record.evidence_type == 'cti_analysis':
+                from xti.adapters.sqlite_cti_analysis import validate_case_snapshot
+                payload = validate_case_snapshot(json.loads(snapshot_json))
+                if (record.evidence_id != payload['candidate']['id']
+                        or record.source_reference != 'cti analysis-candidate-show ' + record.evidence_id):
+                    raise ValueError('CTI analysis evidence reference differs')
+            if record.evidence_type == 'brand_protection':
+                from xti.adapters.sqlite_brand_protection import validate_case_snapshot
+                payload=validate_case_snapshot(json.loads(snapshot_json))
+                if record.evidence_id!=payload['candidate']['id'] or record.source_reference!='brand protection candidate-show '+record.evidence_id:
+                    raise ValueError('Brand evidence reference differs')
+            if record.evidence_type == 'content_match':
+                from xti.adapters.sqlite_content_monitoring import validate_case_snapshot
+                payload = validate_case_snapshot(json.loads(snapshot_json))
+                if record.evidence_id != payload['match']['id'] or record.source_reference != 'content show ' + record.evidence_id:
+                    raise ValueError('Content evidence reference differs')
+            if record.evidence_type == 'code_exposure':
+                from xti.adapters.sqlite_code_exposure import validate_case_snapshot
+                payload = validate_case_snapshot(json.loads(snapshot_json))
+                if record.evidence_id != payload['finding']['id'] or record.source_reference != 'code show ' + record.evidence_id:
+                    raise ValueError('Code exposure reference differs')
             if record.evidence_type == 'research_group':
                 from xti.domain.group_ledger import validate_case_payload
                 payload = validate_case_payload(json.loads(snapshot_json))
@@ -441,6 +480,34 @@ class SQLiteCaseRepository:
                 if case.status == "closed":
                     raise ValidationError("Kapalı vakaya kanıt eklemek için önce vakayı yeniden açın.")
                 read_case_evidence_links(connection)
+                if evidence_type == 'telemetry':
+                    from xti.adapters.sqlite_telemetry import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('Telemetri vaka kanıtı seçili normalize kaynak kaydıyla uyuşmuyor.')
+                if evidence_type == 'unified_monitoring':
+                    from xti.adapters.sqlite_unified_monitoring import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('Birleşik izleme vaka kanıtı seçili alarm kaydıyla uyuşmuyor.')
+                if evidence_type == 'darkweb_monitoring':
+                    from xti.adapters.sqlite_darkweb_monitoring import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('Dark web vaka kanıtı seçili firma kaydıyla uyuşmuyor.')
+                if evidence_type == 'cti_analysis':
+                    from xti.adapters.sqlite_cti_analysis import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('CTI analiz vaka kanıtı seçili firma kaydıyla uyuşmuyor.')
+                if evidence_type == 'brand_protection':
+                    from xti.adapters.sqlite_brand_protection import case_snapshot
+                    if case_snapshot(connection,evidence_id)!=snapshot:
+                        raise ValidationError('Marka vaka kanıtı seçili firma kaydıyla uyuşmuyor.')
+                if evidence_type == 'content_match':
+                    from xti.adapters.sqlite_content_monitoring import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('İçerik vaka kanıtı seçili firma kaydıyla uyuşmuyor.')
+                if evidence_type == 'code_exposure':
+                    from xti.adapters.sqlite_code_exposure import case_snapshot
+                    if case_snapshot(connection, evidence_id) != snapshot:
+                        raise ValidationError('Kod vaka kanıtı seçili firma kaydıyla uyuşmuyor.')
                 if evidence_type == 'research_group':
                     from xti.adapters.sqlite_groups import case_snapshot
                     if case_snapshot(connection, evidence_id) != snapshot:

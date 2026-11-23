@@ -35,6 +35,12 @@ _EVIDENCE = {
     "relationship_review": "İlişki dayanağı değişikliği",
     "social_discovery": "Firma sosyal keşif kanıtı",
     "research_group": "Ortak kanıta dayanan inceleme grubu",
+    "code_exposure": "Kod deposu maruziyet adayı",
+    "content_match": "Kuruluş içerik eşleşmesi",
+    "brand_protection": "Marka koruma adayı",
+    "cti_analysis": "CTI analiz adayı",
+    "darkweb_monitoring": "Dark web kaynak iddiası",
+    "unified_monitoring": "Birleşik izleme alarmı",
 }
 _TASK = {"open": "Açık", "done": "Tamamlandı", "cancelled": "İptal edildi"}
 _ACTIVITY = {

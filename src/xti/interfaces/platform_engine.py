@@ -12,6 +12,14 @@ from xti.adapters.company_workspaces import (
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.domain.assets import ValidationError
 from xti.domain.social_discovery import SocialDiscoveryError
+from xti.domain.code_exposure import CodeExposureError
+from xti.domain.content_monitoring import ContentError
+from xti.domain.brand_protection import BrandProtectionError
+from xti.domain.cti_analysis import CtiAnalysisError
+from xti.domain.darkweb_monitoring import DarkwebError
+from xti.domain.unified_monitoring import MonitoringError
+from xti.domain.data_retention import RetentionError
+from xti.domain.telemetry import TelemetryError
 from xti.domain.reports import ReportError
 from xti.domain.company_workspace import CompanyWorkspaceError
 from xti.domain.engine import ENGINE_OPERATIONS, EngineContractError, valid_request_id
@@ -55,13 +63,14 @@ def register_platform_parser(commands):
 def platform_manifest():
     from xti.domain.research import RESEARCH_MODEL_VERSION
     from xti.domain.research_history import READABLE_RESEARCH_MODELS
+    from xti.domain.source_jobs import EXECUTION_VERSION
     return {
         'operations': list(PLATFORM_OPERATIONS),
         'scope_selected_by': 'trusted_launcher',
         'storage_isolation': 'dedicated_company_workspace',
         'authentication_owner': 'consuming_platform',
         'request_network_access': True,
-        'request_network_operations': ['reports.fetch', 'brand.discovery.run', 'brand.enrichment.run', 'brand.enrichment.refresh', 'brand.tracking.run'],
+        'request_network_operations': ['brand.protection.run', 'content.run', 'code.run', 'reports.fetch', 'brand.discovery.run', 'brand.enrichment.run', 'brand.enrichment.refresh', 'brand.tracking.run', 'darkweb.credential.refresh'],
         'social_tracking': {'policy': 'social-tracking-v1', 'scheduling': 'trusted_host_or_foreground_monitor',
                             'paid_sources': False, 'first_run': 'silent_baseline', 'interval_min_seconds': 300},
         'social_enrichment': {'policy': 'social-enrichment-v1', 'provider': 'brightdata',
@@ -73,9 +82,13 @@ def platform_manifest():
         'job_type': 'saved_collection_profile',
         'additional_job_types': ['managed_nmap_plan', 'sources.refresh'],
         'source_jobs': {'schema_version': 4, 'plan_operation': 'sources.plan',
-                        'execution_version': 7, 'readable_execution_versions': [1, 2, 3, 4, 5, 6, 7],
+                        'execution_version': EXECUTION_VERSION,
+                        'readable_execution_versions': list(range(1, EXECUTION_VERSION + 1)),
                         'usage_unit': 'http_open_attempt', 'shared_quota_owner': 'consuming_platform',
-                        'sources': ['circl', 'urlscan', 'misp', 'ripestat', 'ripestat-whois', 'report-capture', 'news:cisa', 'news:ncsc', 'news:cert-fr', 'reports', 'publisher', 'relationship-notify', 'social-tracking', 'group-refresh'], 'review_opt_in': True,
+                        'sources': ['circl', 'urlscan', 'misp', 'ripestat', 'ripestat-whois', 'report-capture', 'news:cisa', 'news:ncsc', 'news:cert-fr', 'reports', 'publisher', 'relationship-notify', 'social-tracking', 'group-refresh', 'code-monitor', 'content-monitor', 'brand-protection', 'cti-analysis', 'darkweb-monitor'], 'review_opt_in': True,
+                        'cti_analysis': {'scope': 'company_profile_revision',
+                            'network_access': False, 'maximum_external_requests': 0,
+                            'current_evidence_at_execution': True},
                         'group_refresh': {'scope': 'saved_group_root', 'field': 'group_id', 'network_access': False,
                             'notifications': 'atomic_inbox', 'current_evidence_at_execution': True},
                         'social_tracking': {'scope': 'company_watch_revision', 'paid_sources': False,
@@ -91,6 +104,28 @@ def platform_manifest():
                         'automatic_deletion': False, 'audit_operation': 'jobs.audit'},
         'idempotency': 'company_and_key_bound_to_profile_revision',
         'submission_fence': 'expected_workspace_id',
+        'actionability': {
+            'policy': 'human-approved-actionability-v1',
+            'workspace_fence': 'expected_workspace_id',
+            'request_network_access': False,
+            'automatic_takedown_submission': False,
+            'case_package_file_paths': False,
+            'bulk_ioc_file_paths': False,
+            'external_connectors': False,
+        },
+        'unified_monitoring': {
+            'policy': 'unified-monitoring-v1', 'workspace_fence': 'expected_workspace_id',
+            'request_network_access': False, 'first_run': 'silent_baseline',
+            'automatic_threat_verdict': False, 'scheduler_owner': 'trusted_host',
+        },
+        'data_retention': {
+            'policy': 'organization-retention-v1',
+            'managed_families': ['unified_monitoring_runs'],
+            'automatic_logical_delete': False,
+            'case_evidence_auto_protected': True,
+            'workspace_fence': True,
+            'network_access': False,
+        },
         'automatic_replay_after_interruption': False,
         'research_history': {'record_operation': 'research.review.record', 'capture_network_access': False,
                              'model_version': RESEARCH_MODEL_VERSION, 'readable_model_versions': list(READABLE_RESEARCH_MODELS),
@@ -122,6 +157,50 @@ def _data(value):
 
 
 def execute_platform_request(context, request):
+    from xti.domain.telemetry import WRITES as TELEMETRY_WRITES
+    if request.operation in TELEMETRY_WRITES:
+        from xti.interfaces.telemetry import execute_platform_telemetry
+        return execute_platform_telemetry(context, request)
+    from xti.domain.data_retention import WRITES as RETENTION_WRITES
+    if request.operation in RETENTION_WRITES:
+        from xti.interfaces.data_retention import execute_platform_retention
+        return execute_platform_retention(context, request)
+    from xti.domain.unified_monitoring import WRITES as MONITORING_WRITES
+    if request.operation in MONITORING_WRITES:
+        from xti.interfaces.unified_monitoring import execute_platform_unified_monitoring
+        return execute_platform_unified_monitoring(context, request)
+    from xti.domain.actionability_contract import READS as ACTION_READS, WRITES as ACTION_WRITES
+    if request.operation in ACTION_READS:
+        from xti.interfaces.actionability import _service
+        return _service(context.database).execute(request.operation, **request.parameters)
+    if request.operation in ACTION_WRITES:
+        from xti.interfaces.actionability import _service
+        from xti.adapters.worker_lock import LocalExecutionLock
+        parameters = dict(request.parameters)
+        if parameters.pop("expected_workspace_id") != context.workspace_id:
+            raise EngineContractError("scope_mismatch", "Aksiyon isteği güncel firma veri alanına ait değil.")
+        with LocalExecutionLock(context.database).acquire():
+            return _service(context.database).execute(request.operation, **parameters)
+    from xti.domain.darkweb_monitoring import WRITES as DARKWEB_WRITES
+    if request.operation in DARKWEB_WRITES:
+        from xti.interfaces.darkweb_monitoring import execute_platform_darkweb
+        return execute_platform_darkweb(context, request)
+    from xti.domain.cti_analysis import WRITES as CTI_ANALYSIS_WRITES
+    if request.operation in CTI_ANALYSIS_WRITES:
+        from xti.interfaces.cti_analysis import execute_platform_cti_analysis
+        return execute_platform_cti_analysis(context, request)
+    from xti.domain.brand_protection import WRITES as PROTECTION_WRITES
+    if request.operation in PROTECTION_WRITES:
+        from xti.interfaces.brand_protection import execute_platform_brand_protection
+        return execute_platform_brand_protection(context, request)
+    from xti.domain.content_monitoring import WRITES as CONTENT_WRITES
+    if request.operation in CONTENT_WRITES:
+        from xti.interfaces.content_monitoring import execute_platform_content
+        return execute_platform_content(context, request)
+    from xti.domain.code_exposure import WRITES as CODE_WRITES
+    if request.operation in CODE_WRITES:
+        from xti.interfaces.code_exposure import execute_platform_code
+        return execute_platform_code(context, request)
     from xti.domain.social_tracking import WRITES as SOCIAL_TRACKING_WRITES
     if request.operation in SOCIAL_TRACKING_WRITES:
         from xti.interfaces.social_tracking import execute_platform_social_tracking
@@ -296,7 +375,7 @@ def run_platform(args, *, stream=None, output=None):
         from xti.domain.engine_jobs import EngineJobError
         if isinstance(error, EngineContractError):
             problem = error
-        elif isinstance(error, (ReportError, SocialDiscoveryError)):
+        elif isinstance(error, (ReportError, SocialDiscoveryError, CodeExposureError, ContentError, BrandProtectionError, CtiAnalysisError, DarkwebError, MonitoringError, RetentionError, TelemetryError)):
             problem = EngineContractError(error.code, str(error))
         elif isinstance(error, EngineJobError):
             problem = EngineContractError(error.code, {

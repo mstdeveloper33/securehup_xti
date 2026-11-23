@@ -162,7 +162,7 @@ class OperationsCLITests(unittest.TestCase):
         )
         before = self.database.read_bytes()
         with patch("xti.interfaces.cli.UrlscanSource") as factory:
-            status = self.success("sources")
+            status = self.success("sources", "history")
         factory.return_value.search.assert_not_called()
         self.assertEqual(status["sources"], [])
         self.assertEqual(len(status["cooldowns"]), 1)
@@ -170,7 +170,7 @@ class OperationsCLITests(unittest.TestCase):
         self.assertTrue(status["cooldowns"][0]["active"])
         self.assertGreater(status["cooldowns"][0]["remaining_seconds"], 3500)
         self.assertEqual(self.database.read_bytes(), before)
-        code, stdout, stderr = self.invoke("sources", as_json=False)
+        code, stdout, stderr = self.invoke("sources", "history", as_json=False)
         self.assertEqual(code, 0, stderr)
         self.assertIn("saniye kaldı", stdout)
 
@@ -194,7 +194,7 @@ class OperationsCLITests(unittest.TestCase):
         fresh_opener.assert_not_called()
         self.assertEqual(crt.calls, ["%example%", "example%"])
         self.assertIn("bekleme", data["results"][1]["queries"][0]["error"])
-        self.assertTrue(self.success("sources")["cooldowns"][0]["active"])
+        self.assertTrue(self.success("sources", "history")["cooldowns"][0]["active"])
 
     def test_scan_does_not_automatically_remove_old_unlinked_records(self):
         self.seed()

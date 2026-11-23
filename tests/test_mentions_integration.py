@@ -74,7 +74,7 @@ class MentionIntegrationTests(unittest.TestCase):
         return self.repository.apply(selected, MentionResponse(build_query(selected.target),
             'provider-request', tuple(hits), 1), started_at=at, finished_at=at)
 
-    def fail(self, *, selected=None):
+    def record_failure(self, *, selected=None):
         at = self.tick()
         return self.repository.record_failure(selected or request(), started_at=at,
             finished_at=at, error='Tavily sorgusu süre sınırına ulaştı.')
@@ -87,7 +87,7 @@ class MentionIntegrationTests(unittest.TestCase):
         before = self.path.read_bytes()
         with patch.dict('os.environ', {'TAVILY_API_KEY': 'private-key-not-for-output'}):
             report = self.search.search('Example')
-            self.assertEqual(report.kinds, PRE_MENTION_KINDS + ('mention',))
+            self.assertEqual(report.kinds, GLOBAL_SEARCH_KINDS)
             coverage = next(item for item in report.coverage if item.kind == 'mention')
             self.assertEqual((coverage.source, coverage.examined_count, coverage.latest_run_id), ('tavily', 0, None))
             status = next(item for item in self.readiness.snapshot().sources if item.identifier == 'mentions:tavily')
@@ -116,7 +116,7 @@ class MentionIntegrationTests(unittest.TestCase):
         selected = request(kind='organization')
         first = self.save(hit(), selected=selected)
         self.save(hit(title='A different company announcement'), selected=request(name='Another Company', domains=()))
-        failure = self.fail(selected=selected)
+        failure = self.record_failure(selected=selected)
         row = next(item for item in self.search.search('example.com', kinds=('mention',)).results
                    if item.record_id == result_id(selected, hit().url))
         reference = parse_record_reference(reference_for_result(row).to_dict())
@@ -145,7 +145,7 @@ class MentionIntegrationTests(unittest.TestCase):
         self.assertEqual((repeated.run.added_count, repeated.run.updated_count, repeated.run.unchanged_count), (0, 0, 1))
         self.assertIsNone(repeated.notification_id)
         self.save()
-        self.fail()
+        self.record_failure()
         absent = self.watch_run(watch.id)
         self.assertEqual((absent.run.unchanged_count, absent.run.removed_count), (1, 0))
         self.assertIsNone(absent.notification_id)
@@ -203,7 +203,7 @@ class MentionIntegrationTests(unittest.TestCase):
         status = next(item for item in self.readiness.snapshot().sources if item.identifier == 'mentions:tavily')
         self.assertEqual((status.latest_status, status.record_count, status.last_success_at), ('complete', 0, empty.finished_at))
         success = self.save(hit())
-        failure = self.fail()
+        failure = self.record_failure()
         SQLiteAssetRepository(self.path).add('unrelated.example')
         before = self.path.read_bytes()
         status = next(item for item in self.readiness.snapshot(domain='unrelated.example').sources if item.identifier == 'mentions:tavily')

@@ -1,5 +1,11 @@
 # XTI — Yetenek, Kapsam ve Eksik Alan Matrisi
 
+**21 Kasım 2026:** Bu dosya önceki 122 CAP hedefinin tarihî kaydıdır.
+Kullanıcının yeni 76 maddelik A–K listesi, bugünkü başlangıç durumu ve
+tamamlama yolu [tek ana plandadır](MASTER_ROADMAP.md). Aşağıdaki tarihli
+kapsam/geliştirme sırası ifadeleri güncel uygulama envanteri değildir.
+CAP kimlikleri eski iş ve kabul bağlantıları için korunur.
+
 **Güncel teslim tarihi:** 16 Kasım 2026 · **Sürüm:** 0.150.0 / çekirdek şema 72.
 
 **Ürün yönü:** Kendi platformumuzun kapalı kaynak motoru. Mevcut kapsam

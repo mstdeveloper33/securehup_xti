@@ -29,6 +29,8 @@ def component_lines(report: dict) -> list[str]:
         if configuration['kind'] == 'public_username_lookup':
             lines.append('  Platformlar: ' + ', '.join(
                 f"{safe_text(profile['name'])}={len(profile['platforms'])}" for profile in configuration['selection_profiles']))
+        elif configuration['kind'] == 'offline_secret_candidates':
+            lines.append('  Çevrimdışı inceleme; anahtar doğrulaması kapalı, çıktı maskeli.')
         else:
             lines.append('  Kaynaklar: ' + ', '.join(safe_text(source) for source in configuration['sources']))
         if installation['error']:

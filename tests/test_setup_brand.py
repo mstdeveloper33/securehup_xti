@@ -33,6 +33,7 @@ class BrandSetupTests(unittest.TestCase):
             "src/xti/__init__.py", "src/xti/adapters/__init__.py",
             "src/xti/adapters/tool_installation.py", "src/xti/adapters/installation_process.py",
             "src/xti/adapters/installation_transaction.py", "constraints/brand.txt", "pyproject.toml",
+            "requirements/channels.txt", "requirements/channels-build.txt", "requirements/brand-protection.txt", "README.md",
         ):
             destination = self.root / name
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -68,6 +69,8 @@ import time
 args = sys.argv[1:]
 stage = "venv" if args[:2] == ["-m", "venv"] else (
     "install" if "install" in args else "pip-check" if "check" in args else "verify")
+if stage == "install" and "--require-hashes" in args:
+    stage = "channel-build" if any(str(a).endswith("channels-build.txt") for a in args) else "protection-install" if any(str(a).endswith("brand-protection.txt") for a in args) else "channel-install"
 lock = Path(os.environ["XTI_TEST_ROOT"]) / ".brand-install.lock"
 with lock.open("rb") as stream:
     try:
@@ -157,12 +160,16 @@ elif stage == "verify":
     def test_fresh_install_uses_final_venv_and_pinned_project_constraints(self):
         self.assert_success(self.run_setup())
         calls = self.calls()
-        self.assertEqual([row["stage"] for row in calls], ["venv", "install", "pip-check", "verify"])
+        self.assertEqual([row["stage"] for row in calls], ["venv", "channel-build", "channel-install", "protection-install", "install", "pip-check", "verify"])
         self.assertEqual(calls[0]["args"], ["-m", "venv", str(self.venv)])
-        command = calls[1]["args"]
+        for row in calls[1:3]: self.assertIn('--require-hashes', row['args'])
+        self.assertIn('--only-binary=:all:', calls[1]['args'])
+        self.assertIn('--no-build-isolation', calls[2]['args'])
+        command = calls[4]["args"]
         self.assertIn("--isolated", command)
         self.assertEqual(command[command.index("--constraint") + 1], str(self.root / "constraints/brand.txt"))
-        self.assertEqual(command[-1], str(self.root) + "[brand,news,reports]")
+        self.assertTrue(command[-1].endswith('/package[brand,news,reports,channels,protection]'))
+        self.assertNotEqual(command[-1], str(self.root) + '[brand,news,reports,channels,protection]')
         self.assertIn(str(self.venv / "bin"), (self.venv / "bin/maigret").read_text())
 
     def test_force_preserves_exact_previous_environment_and_old_backups(self):
@@ -199,12 +206,13 @@ elif stage == "verify":
         self.assertEqual(self.snapshot(backups[0]), before)
         self.assertFalse((self.venv / "missing-news").exists())
         self.assertEqual([row["stage"] for row in self.calls()],
-                         ["pip-check", "verify", "pip-check", "verify", "venv", "install", "pip-check", "verify"])
+                         ["pip-check", "verify", "pip-check", "verify", "venv", "channel-build", "channel-install", "protection-install", "install", "pip-check", "verify"])
 
     def test_failed_create_install_dependency_check_or_verifier_restores_exact_old_environment(self):
         before = self.existing()
         for stage, label in (
             ("venv", "Python ortamı oluşturma"), ("install", "Paket kurulumu"),
+            ("channel-build", "Sabit kanal bağımlılıkları"), ("channel-install", "Sabit kanal bağımlılıkları"),
             ("pip-check", "Bağımlılık kontrolü"), ("verify", "Araç kimliği ve katalog doğrulaması"),
         ):
             with self.subTest(stage=stage):
@@ -215,7 +223,7 @@ elif stage == "verify":
                 self.assertEqual(self.snapshot(self.venv), before)
                 self.assertFalse((self.root / ".brand-install.json").exists())
                 self.assertEqual(self.evidence.read_bytes(), b"existing evidence\x00\xff")
-        self.assertEqual(len(list(self.root.glob(".venv-failed-*"))), 4)
+        self.assertEqual(len(list(self.root.glob(".venv-failed-*"))), 6)
 
     def test_stage_diagnostics_preserve_cleanup_and_interruption_exception_types(self):
         for error in (HELPER.ProcessCleanupError("child may still write"), HELPER.SetupInterrupted("signal")):

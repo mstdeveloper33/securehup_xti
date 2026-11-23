@@ -132,6 +132,41 @@ class SQLiteCaseEvidenceSourceRepository:
     def resolve(self, evidence_type: str, evidence_id: str) -> CaseEvidenceSnapshot:
         evidence_type = normalize_case_evidence_type(evidence_type)
         evidence_id = normalize_case_evidence_id(evidence_id)
+        if evidence_type == 'telemetry':
+            from xti.adapters.sqlite_telemetry import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
+        if evidence_type == 'unified_monitoring':
+            from xti.adapters.sqlite_unified_monitoring import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
+        if evidence_type == 'darkweb_monitoring':
+            from xti.adapters.sqlite_darkweb_monitoring import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
+        if evidence_type == 'cti_analysis':
+            from xti.adapters.sqlite_cti_analysis import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
+        if evidence_type == 'brand_protection':
+            from xti.adapters.sqlite_brand_protection import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
+        if evidence_type == 'content_match':
+            from xti.adapters.sqlite_content_monitoring import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
+        if evidence_type == 'code_exposure':
+            from xti.adapters.sqlite_code_exposure import case_snapshot
+            with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:
+                connection.execute('BEGIN')
+                return case_snapshot(connection, evidence_id)
         if evidence_type == 'research_group':
             from xti.adapters.sqlite_groups import case_snapshot
             with SQLiteAssetRepository(self.path)._connection(readonly=True) as connection:

@@ -1,905 +1,489 @@
-# XTI Platformu — Uçtan Uca Ana Yol Haritası
+# XTI — Ana geliştirme ve özellik tamamlama planı
+
+**Tarih:** 23 Kasım 2026 · **Plan:** 1 · **Başlangıç motoru:** 0.179.0 · **P01 çalışması:** 0.180.0 · **P02 çalışması:** 0.181.0 · **P03 çalışması:** 0.182.0 · **P04 çalışması:** 0.183.0 · **P05 çalışması:** 0.185.0 · **P06 çalışması:** 0.186.0 · **P07 çalışması:** 0.187.0 · **P08 çalışması:** 0.188.0/0.192.0 · **P09 çalışması:** 0.189.0 · **P10 çalışması:** 0.190.0 · **P12 çalışması:** 0.191.0/0.192.0.
+
+Bu belge yeni çalışmalar için tek ana plandır. Kullanıcının A–K listesindeki
+**76 gereksinimin tamamını** kaydeder; hiçbir satır sessizce kaldırılmaz.
+İlk planlama sonrasında P01/A03 uygulamasına başlandı. Yeni kod/paste
+akışı ve Betterleaks entegrasyonu [teslim kaydında](P01_DELIVERY.md)
+izlenir; dış erişim gerektiren kaynaklar ve Linux kabulü hâlâ açıktır.
+Kullanıcının 21 Kasım seçimiyle P02 uygulandı; NCSC/CERT-FR açık yayınlarıyla
+canlı kabul yapıldı. Hesap/kanal gerektiren canlı denemeler ayrı açıktır. [P02 teslim kartı](P02_DELIVERY.md).
+Kullanıcı aynı gün P03 ertelemesini kaldırdı; marka kimliği, sayfa/logo,
+mağaza ve sosyal adayların kanıt/inceleme/izleme/firma JSON zinciri uygulandı.
+SecureHup canlı denemesi kısmi kaynak erişimiyle kanıt üretti. Linux ve
+ticari kararlar açık; gerçek VIP kullanıcı seçimiyle canlı kapsamda yok.
+[P03 kapsam ve kabul kartı](P03_DELIVERY.md).
+P04'ün LLM gerektirmeyen motor kapsamı; kaynaklı CTI/IOC ve yerel ATT&CK
+üzerinde aday, açıklanabilir skor, graf/zaman/trend, insan kararı, inbox,
+vaka, firma JSON'u ve ağsız kuyruk olarak uygulandı. Yerel kapasite kabulü
+ve3.577 testlik tam regresyon geçti. Push sonraya bırakıldığı için gerçek
+Linux CI/release kaydı açık.
+[P04 kapsam ve kabul kartı](P04_DELIVERY.md).
+P05'in seçilmiş kaynak motoru uygulandı: saklı kamu iddiaları ile yalnız
+doğrulanmış kuruluş domainine ait XposedOrNot sonuçları kaynaklı, maskeli,
+insan incelemeli ve firma-izole yaşam döngüsünde birleşir. Açık parola kontrolü
+kalıcı secret/hash bırakmadan yerel önek kullanır. HIBP verified-domain yeni
+çalışmalarda kapalı, şema93 geçmişinde salt okunurdur. XposedOrNot canlı domain
+kabulü API anahtarı/doğrulanmış domain; genel forum/pazar kapsamı seçilmiş
+sağlayıcı beklediğinden A02/A10 bütünü tamamlandı sayılmaz.
+[P05 kapsam ve kabul kartı](P05_DELIVERY.md).
+P06'nın kullanıcı tarafından seçilen yerel motor kapsamı uygulandı:
+sürümlü vaka runbook'u, doğrulanabilir kanıt/yönetici paketi, insan
+onaylı ve otomatik gönderimsiz takedown yaşam döngüsü ile atomik
+CSV/JSON/STIX IOC alışverişi. Kullanıcı P06 listesindeki haricî
+SIEM/SOAR/ticket bağlayıcı maddesini kapsamdan çıkardı. Tam repo ve gerçek
+Linux CI kabulü açıktır. [P06 kapsam ve kabul kartı](P06_DELIVERY.md).
+P07'nin birleşik yerel motor kapsamı uygulandı: altı hedef türü ve 12 saklı
+kayıt ailesi tek kuruluş politikasında; sessiz baseline, sürümlü eşik/
+öncelik, açıklanabilir fark, inbox, insan kararı, vaka, firma JSON'u,
+due sözleşmesi, kurtarma ve snapshot tekilleştirme aynı zincirdedir. Yeni
+dış kaynak/ücretli API yoktur. E02 haricî kanallar ve E04 streaming
+açılmadı; E05'in gerçek platform scheduler/teslimi tüketici platformda
+kalır. İki firmalı 5.000 eşleşme/32 çalışma kapasite kabulü geçti. CI ile aynı
+iki parçalı hızlı kapı toplam 2.294 testte, tam repo kapısı 3.635 testte
+hatasız tamamlandı; macOS'ta Linux'a özgü 4 test beklendiği gibi atlandı.
+[P07 kapsam ve kabul kartı](P07_DELIVERY.md).
+P08'in kuruluş bazlı retention temeli uygulandı: P07 izleme gövdeleri için
+sürümlü yaş/parti politikası, açık hold, aktif vaka koruması, yazmasız plan,
+yedekli kayıpsız arşiv/restore, recovery ve zincirli mutasyon audit'i aynı
+firma sınırındadır. Bütün kayıt aileleri, otomatik mantıksal silme, okuma
+audit'i, güvenilir platform actor/RBAC ve mevzuat uygunluğu tamamlandı
+sayılmaz. İki firmalı kapasite ve 2.303 testlik hızlı kapı geçti; tam repo ve
+3.644 testlik tam repo kapısı hatasız geçti. Push sonrası gerçek Linux kabulü
+açıktır. [P08 kapsam ve kabul kartı](P08_DELIVERY.md).
+P09 kaynak/feed kontrol düzlemi uygulandı: 49 mevcut connector erişim,
+maliyet, secret, dil/bölge, ortak kayıt türü, provenance, kota/tekrar/hata,
+veri hakkı ve sağlık sözleşmesiyle tek manifest kataloğunda görünürdür.
+Terminal, engine ve firma platformu aynı ağsız okuma servisini kullanır.
+Bu teslim her kaynağın canlı/ticari kabulü veya bütün verilerin tek fiziksel
+formata taşındığı anlamına gelmez; geniş A07 satırı kısmi kalır.
+[P09 kapsam ve kabul kartı](P09_DELIVERY.md).
+P10 mevcut içerik yaşam döngüsünü çoğaltmadan Bluesky genel gönderi
+aramasını ekledi. P12 ise güvenli normalize sensör/sandbox telemetrisini
+aynı firma, kanıt, inceleme, izleme ve vaka zincirine bağladı. 0.192.0 ile
+P08'in kayıpsız saklama/hold/restore motoru P12 telemetri gövdelerini de
+yönetir. Cowrie ve CAPE bu motora kurulmaz veya bu motor tarafından
+çalıştırılmaz; gerçek sensör/sandbox işletimi ayrı ve şu an açık değildir.
+[P10 teslim kartı](P10_DELIVERY.md), [P12 teslim kartı](P12_DELIVERY.md).
+
+Gerçekte çalışan kapsam ve kabul kanıtı [STATUS](../STATUS.md), kaynak
+koşulları ve dış girdiler [NOTES](../../NOTES.md), mimari sınırlar
+[ARCHITECTURE](../ARCHITECTURE.md) üzerinden doğrulanır. Eski planlar
+tarihî başvuru olarak korunur; bu belgedeki sıra ile yarışan aktif planlar
+değildir. [Önceki ana plan](MASTER_ROADMAP_HISTORY_2026_11_20.md).
+
+## 1. Kullanıcının istediği çalışma biçimi
+
+Bir özellik seçildiğinde yalnız toplama komutu veya önizleme teslim edilmez.
+O özelliğin anlaşılmış kapsamı; kurulum, gerçek veri alma, işleme, kalıcı
+sonuç, inceleme, izleme, firma JSON bağlantısı, test ve kullanım belgesiyle
+birlikte tamamlanır. Bunlar ayrı ayrı “devam edelim mi?” adımları değildir.
+
+- Seçilen paket içindeki rutin tasarım, uygulama, düzeltme ve doğrulama
+  işleri mevcut yetki kapsamında sürdürülür; kullanıcıdan her alt adım
+  için yeniden onay istenmez. İlerleme kısa ve somut biçimde paylaşılır.
+- API hesabı, harcama, yeni hedef yetkisi veya insan kararı gerekiyorsa
+  bu bağımlılık geliştirme başında belirlenir. Erişim ve bütçe varmış gibi
+  davranılmaz; bağımsız işler tamamlanır, bağlı kabul açık bırakılır.
+- Bir paketin seçilmesi diğer paketleri, ertelenmiş tercihleri veya ücretli
+  kaynakları otomatik açmaz. Push/yayın işlemleri mevcut kullanıcı
+  yetkisine göre yürütülür ve gerçek gönderim durumu ayrıca belirtilir.
+- İç geliştirme adımlara bölünebilir. Ancak kullanıcıya tamamlanmış ürün
+  özelliği olarak sunulan teslim, bütün kullanım zinciridir.
+- “Tamamlandı”, belirlenmiş kaynak/işlev/kapasite kapsamının kabulünden
+  geçmesi demektir; bütün internetin kapsanması, hiç yeni hata bulunmaması
+  veya yüzde100 gerçek dünya doğruluğu anlamına gelmez.
+- Kapsam teslim sonunda daraltılarak başarı üretilmez. Değişiklik gerekirse
+  etkilenen gereksinim, neden ve kapanmayan ihtiyaç açıkça kaydedilir.
+  Özellikle bir birleşik A–K satırının yalnız bir parçası bitince satırın
+  bütünü tamamlanmış sayılmaz.
+
+### Başlangıç, ilerleme ve kapanış bilgilendirmesi
 
-19 Kasım 2026 / 0.169.0: izinli yayıncı tam metni, değişen ilişki dayanağı
-incelemesi ve geçmişi silmeyen günlük arşivi uygulandı.
-[Teslim kapsamı](REPORT_REVIEW_RETENTION_DELIVERY.md); canlı/yerel kabul
-ayrı kaydedilir. Sonraki GitHub/Linux teslimi `071a076` ile tamamlandı;
-altı workflow ve 3.187 testlik tam Linux paketi geçti.
-[Kanıt](../ACCEPTANCE_REVIEW.md#01690--github-ve-linux-teslimi).
-Geniş STIX/TAXII ve LLM bekler.
+Kullanıcı hangi gereksinimin nasıl geliştirildiğini süreç boyunca görebilmeli.
+Her paket başlarken kısa ve anlaşılır bir başlangıç bildirimi verilir:
 
-**19 Kasım 2026 / 0.168.0:** Kullanıcının yetkilendirdiği sekiz maddelik
-rapor/ilişki/kimlik/WHOIS/görülme/akış/karşılaştırma/kapasite paketi
-uygulandı ve tanımlı yerel kabul tamamlandı. Kapsam, iki test beklentisi
-düzeltmesi ve Linux atlamaları [bu tabloda](ENGINE_EIGHT_DELIVERY.md).
-Bu güncelleme önceki sürümlerin aşağıdaki tarihî plan notlarından sonradır.
-Geniş STIX/TAXII ve LLM kullanıcı kararıyla bekler.
-
-
-**Plan güncellemesi:** 19 Kasım 2026 · **Mevcut uygulama:** 0.169.0 / çekirdek şema 79 / iş kuyruğu 3.
-
-0.165.0 ilk IOC yaşam döngüsü değerlendirmesini ekler: kanıt yaşı,
-geçerlilik ve kaynak toplama ayrı, yerel eşikler sürümlü/değiştirilebilir.
-[Kapsam ve sınırlar](../IOC_LIFECYCLE.md). 0.166.0 ilk sürümlü rapor ve
-ayrıştırılmış gözlem modelini uygular: [kapsam](../REPORTS_OBSERVATIONS.md).
-0.167.0 rapor sürümlerini ve insan bağlarını ortak araştırmaya taşır.
-0.168.0 yönetilen kaynak işlerini sürümlü rapor yakalamaya bağlar;
-tanımlı dört kanıt kuralıyla ilişki adayları, birleşik kimlik görünümü
-ve ayarlanabilir adım sırası/hata davranışını ekler. Kapsam sınırları
-[kullanım belgesinde](../EVIDENCE_WORKFLOWS.md) ayrı belirtilir.
-
-**Son ürün netleştirmesi:** Kendi ticari platformumuz için kapalı kaynak
-motor geliştiriliyor. Yeni motor yeteneklerinin güncel sırası
-[MTR-00–08](ENGINE_INTEGRATION_ROADMAP.md) planıdır: ortak istihbarat,
-ilişki araştırması, kaynak genişletme, kalite/öncelik, yönetilebilir işler
-ve ölçülmüş üretim kabulü. Somut 1–7 motor paketi 0.164.0'da tamamlandı;
-teslim kapsamı [STATUS.md](../STATUS.md) içinde belirtilir.
-**Geniş STIX/TAXII**, 18 Kasım kullanıcı kararıyla somut dış sistem
-alışverişi ihtiyacına ertelendi; otomatik sıradaki iş değildir (N-024).
-Kendi platformunun JSON bağlantısı ve kaynak/araç adaptörleri ayrı kapsamdır.
-Mevcut temel STIX çıktısı korunur; LLM ayrıca bekler.
-Bu sıra aşağıdaki tarihî ürün/ENG kayıtlarını genişletir; gelecekteki işler
-uygulanmış sayılmaz. Bileşenlerin ticari kullanım ve veri
-hakları [seçim planında](COMPONENT_SELECTION_PLAN.md) ayrıca izlenir.
-
-**İlk ticari işletim:** Yalnız kendi sunucularımızda platform hizmeti.
-Merkezi kurulum/bakım, firma kapsamı ve kaynak bütçeleri ilk üretim
-kabulüne dahildir. Müşteri sunucusuna kurulum sonraki ayrı seçenektir.
-
-**Güncel karar:** Bu repo başka platformlara bağlanabilen profesyonel
-XTI veri toplama ve analiz motorudur. .NET adaptörü ve gerçek platform
-entegrasyonunu repoyu kullanacak ekip yapar. Uygulama backend'i,
-kullanıcı/oturum, roller ve web deneyimi de o ekibe aittir. Biz motoru,
-sürümlü sözleşmesini, örneklerini ve belgelerini sağlarız. Motor kaynaklı kanıt, analiz,
-ilişki ve iş geçmişini yönetir; yerel terminal kullanımı korunur.
-[Motor yol haritası](ENGINE_INTEGRATION_ROADMAP.md) güncel sırayı ve
-sınırları belirler; ENG kimlikleri korunur. Mevcut sağlamlaştırma paketi
-tamamlandı. Kaynaklar arası olay adaylarının ilk dilimi 0.141.0'da,
-kayıtlı genel arama ve yerel bildirimleri 0.142.0'da uygulandı. 0.143.0,
-üç yayıncıdan ilk RSS/Atom haber toplama dilimini ekler. 0.144.0–0.146.0
-Tavily firma/tedarikçi izlemesini, bütçeyi, RSS toplama bağlantısını ve
-kuruluş içerik raporunu ekledi. 0.147.0 firma kayıt alanı ayrımını, kalıcı
-profil işi sözleşmesini, sade içerik görünümünü ve platform yedek/kurtarmasını
-uygular. [Platform rehberi](../PLATFORM_ENGINE.md). Tavily canlı kabulü
-anahtar gelene kadar bekler. Yeni kaynaklar ölçülmüş ihtiyaçla seçilir.
-Geniş STIX/TAXII ve LLM bu teslimin dışındadır. Bu sıra önceki EIP
-sırasının ve bu belgedeki eski geniş
-ürün tasarımının yerine geçer. Hazır açık kaynak kütüphane/araçlar tercih
-edilir; OpenCTI/IntelOwl zorunlu platform veya ilk kurulum değildir.
-Yerel ücretsiz kullanım korunur; ücretli servis veya kurumsal dağıtım bu
-planla kendiliğinden etkinleşmez. Sunucu içi envanter, ürün/sürüm, paket ve
-CVE/KEV/EPSS kapsamı ile otomatik HTML rapor arşivi hâlâ aktif plan dışıdır.
-Gerçek teslimler [STATUS.md](../STATUS.md) içinde izlenir.
-
-Gelecekteki platform .NET ve PostgreSQL kullanacak. SQLite ile bugünkü
-geliştirme/deneme/kullanım sürer; PostgreSQL'e veri geçişi başlatılmaz. Yerel motor
-kabulü bu repoda; gerçek .NET/PostgreSQL bağlantısı, platform yerleşimi
-ve veri geçişi repoyu kullanan ekipte kalır.
-[Öncelik kararı](../decisions/0145-stabilization-first-local-engine.md).
-
-0.139.0, [engine v1 yerel okuma sözleşmesini](../ENGINE_CONTRACT.md) ekler:
-arama, kayıt/kanıt ayrıntısı ve kaynak durumu. ENG-01'in bu ilk teslimi
-tamamdır; .NET tüketicisi ENG-05'te dış ekibe ait teslim sınırıdır.
-0.147.0 ayrı platform protokolünde kalıcı profil işi sözleşmesini ve
-firma kapsamını ekler; eski yerel okuma sözleşmesi korunur.
-
-0.140.0, ENG-02'nin mevcut üç araç düzenini tamamlar: ortak incelenmiş
-pinler, kullanım kapsamı ve yerel kurulum kataloğu CLI/engine üzerinden
-okunur. Kurulum bilgisi canlı kaynak başarısından ayrıdır; tam bağımlılık
-bütünlüğü ve ileri işletim kabulü ayrı izlenir.
-[Kullanım ve sınırlar](../COMPONENTS.md).
-0.140.1 hızlı CI/belge tutarlılığını düzeltir. 0.140.2–0.140.3 araç
-kurulumlarının kilit, kesinti günlüğü ve kurtarma düzenini ekler. Gerçek
-temiz Ubuntu kurulumları, tekrar, kayıt koruma ve yedekten dönüş kabulü
-geçti. 0.140.4, önceki sürümden gerçek güncellemeyi ve araç ortamı
-yenilenirken kesinti/geri dönüş zincirini iki araçta doğrular. Veri, işletim
-ve genel testlerin kapsamı ve sonuçları [STATUS](../STATUS.md) içindedir.
-Tanımlanan 11 maddelik mevcut motor paketi tamamlandı; gerçek .NET/
-PostgreSQL platform kabulü repoyu kullanan ekibin sorumluluğudur.
-Kapasite kabulü 5.000 sentetik
-domain ve 10 dakikalık ölçüme dayanır; 7/24 hizmet seviyesi değildir.
-
-0.141.0, ENG-03'ün ilk dilimi olarak `events candidates` yerel CLI/JSON
-görünümünü ekler. ThreatCluster–RansomLook için kesin ad veya yalnız
-noktalama/boşluk/harf büyüklüğü düzenlemesiyle eşit ad, aynı grup ve en
-fazla 72 saat keşif farkı “aynı olay olabilir” adayıdır. Mevcut kesin
-karşılaştırmanın diğer eşleşmeleri yalnız kuruluş bağlamında kalır.
-ThreatCluster–HIBP tam website hostu/domain eşitliği yalnız ortak domain
-bağlamıdır; farklı anlamdaki tarihleri aynı olay zamanı saymaz.
-RansomLook–HIBP ve geçişli kaynak birleştirmesi yoktur. Önceki insan
-kararı özgün karşılaştırma ve kanıtıyla ayrı gösterilir; otomatik hüküm,
-birleştirme veya yeni alarm üretilmez.
-
-Bu görünüm son başarılı yerel kayıtları salt okunur karşılaştırır;
-kaynak yenileme ayrı komutlarla yapılır. Tam domain filtresi, sayfalama,
-özgün kaynak kayıtları ve kaynak sağlığı görünürdür. Yeni engine v1
-işlemi, şema değişikliği veya RapidFuzz bağımlılığı eklenmedi; 0.141.0'da
-şema 64 korundu. Yaklaşık ad eşleştirmesi ileride ölçülmüş ihtiyaçla ele alınır.
-
-0.142.0, `search-watch` ile genel aramayı kalıcı tanım, çalışma geçmişi,
-ortak yerel bildirim ve sonlu ön plan `monitor` akışına bağlar. İlk ölçüm,
-tanım değişikliği ve yeniden etkinleştirme sessiz başlangıçtır. Sonraki
-yeni veya anlamlı değişmiş eşleşmeler bildirim üretir; yalnız çıkarılma
-geçmişte gösterilir. Mevcut CTI arama bildirimleri değişmez. Tanım,
-tam sonuç ve kaynak kapsamı çalışma anında dondurulur; ekran sayfaları
-bu kanıtı daraltmaz. Monitor yerel aramayı tekrarlar; kaynak toplamaz.
-
-Şema 65 beş yeni tablo ekler; aynı tam kanıt `global_search_snapshots`
-içinde tekilleştirilir, ayrı sonuç öğeleri tablosu bulunmaz. Geçiş açık
-`migrate` ve önceki-sürüm yedeğiyle yapılır; `setup` veya okuma otomatik
-geçiş yapmaz. Eski koda dönüş eski yedeği yeni bir konuma restore etmeyi
-gerektirir; şema 65 verisi korunur ve geçiş sonrası kayıtlar eski şemaya
-kendiliğinden taşınmaz. Yeni bağımlılık, ağ API'si veya engine v1 işlemi
-eklenmedi; bu kayıt 0.142.0 teslimini anlatır.
-
-0.143.0, hazır `feedparser==6.0.14` ve `feedparser-sgmllib==2.1.0`
-paketleriyle CISA News, UK NCSC ve CERT-FR actualité haberlerini toplar.
-`news sources/refresh/list/show/status/run-show` kaynak, başlık, sınırlı
-düz metin özet, özgün bağlantı, yayıncı tarihi ve toplama zamanını gösterir.
-Haberin akıştan çıkması silinme/geri çekilme sayılmaz; önceki haberler
-aranabilir kalır. Kaynak hatası ile geçerli boş akış ayrı kaydedilir.
-
-Genel arama `news` türünü, engine v1 ise mevcut dört işlem içinde haber
-referansını/ayrıntısını ve kaynak durumunu destekler. Bildirim mevcut
-`search-watch → inbox` akışıdır; toplama ve aramayı çalıştırma ayrıdır.
-Eski kayıtlı aramalar somut tür listelerini korur; haberler kendiliğinden
-eski kapsama katılmaz. Şema 66 üç tablo ekler ve açık yedekli geçiş ister.
-Normal kurulum okuyucuyu kurar; `--core-only` paket indirmeyen çekirdeği
-korur. [0148 kararı](../decisions/0148-publisher-news-feeds.md).
-
-Bu ilk haber tesliminin ardından toplu kaynak yenilemesi, haberlerin
-`collect` profilleri/zamanlamasına katılması ve kuruluş raporuna eklenmesi
-ayrı sözleşme ve test gerektiren gelecek işlerdir. Yeni kaynak seçimi
-erişim, koşullar, farklı veri katkısı ve kesinti davranışı ölçülerek yapılır.
-
-Hazır araç/kütüphane tercihleri ve XTI'da kalacak görevler
-[bileşen seçim planında](COMPONENT_SELECTION_PLAN.md) kayıtlıdır.
-Haber okuyucusunun yukarıdaki iki sürümü uygulanmıştır; diğer araştırma
-tercihleri kendiliğinden kurulu veya kabul edilmiş sayılmaz.
-
-0.88.0, güncel yerel IOC kaynak iddialarını yedi gösterge türünde STIX 2.1 Indicator Bundle dosyasına ağsız, salt-okunur ve atomik çıkarır. CTI nesne/ilişki kapsamı, TLP, içe aktarma ve TAXII ile kalıcı sistem zamanlaması/dış kanal aboneliği açık kalır.
-
-0.89.0, seçilmiş birleşik yerel bildirimi hedefe özgü değişmez gövdeye tekilleştirir; HMAC-SHA256 imzalı HTTPS/443 gönderim ve her denemenin kalıcı sonucunu ekler. Otomatik olay aboneliği, toplu/due worker, zamanlayıcı ve sağlayıcıya özgü SIEM adaptörleri açık kalır.
-
-0.90.0, `analyze DOMAIN` ile kayıtlı marka adayını, pasif alt alan adı durumunu, dış yüzey kanıtını, güncellik/boşlukları, açıklanabilir adayları ve kesin domain/IP IOC eşleşmelerini tek ağsız ve salt-okunur görünümde birleştirir. Ürün, sürüm, paket veya CVE sonucu üretmez.
-
-0.91.0, kullanıcının açık seçimiyle Feodo IOC listesini aynı analiz akışında yeniler. Kaynak kesintisi eski geçerli kataloğu korur ve “eşleşme yok”tan ayrı raporlanır; varsayılan analiz ağsızdır.
-
-0.92.0, CERT Polska'nın son-ay etkin domain listesini ikinci bağımsız ücretsiz IOC kaynağı olarak ekler. Kaynak iddiaları/çalışmaları birbirinden ayrılır; birleşik analiz kök domain, bütün kayıtlı marka/domain adayları ve son kanıt IP'lerini tam değerle karşılaştırır. Bu kaynak Polonya/son-ay kapsamıdır, küresel phishing kapsamı değildir.
-
-0.93.0, resmî MITRE ATT&CK Enterprise v20.0 tam STIX paketinden etkin grup, kampanya, malware ve seçili ilişkileri atomik kaynak iddiaları olarak alır. Aynı veri çoğalmaz; geri çekme/yeniden etkinleşme geçmişi ve başka kaynaklar korunur. Teknik/taktik nesneleri, otomatik atıf ve TAXII bu ilk alt kümede yoktur.
-
-0.94.0, son pasif keşif, web, e-posta, sınırlı servis ve CNAME kanıtlarını tek salt-okunur dış yüzey boşluk görünümünde birleştirir. Tamamlanmış boş kaynak yanıtı, kesinti ve kısmi kapsam ayrılır; her eksik bölüm için kullanıcıya açık sonraki komut verilir.
-
-0.95.0, ThreatCluster'ın son 30 günlük anahtarsız kamu akışını `ransomware recent` ile güvenli canlı önizleme olarak bağlar. Kuruluş/domain/grup/ülke/sektör araması cihaz içinde yapılır; leak-site adresi ve ham metin çıktıya taşınmaz. Kayıt doğrulanmış ihlal sayılmaz ve bu ilk dilim geçmiş ya da bildirim yazmaz.
-
-0.96.0, açık `ransomware refresh` ile doğrulanmış tam snapshot'ı yerel çalışma/öğe geçmişine kaydeder; ilk başlangıç çizgisini, yeni, değişen, aynı, pencereden çıkan ve kaynak hatası durumlarını ayırır. Ham leak-site adresi saklanmaz. Kuruluş/domain izleme ve yerel değişiklik bildirimi sonraki dilimdir.
-
-0.97.0, kuruluş/domain ransomware izleme tanımlarını, sessiz ilk ölçümü ve sonraki yeni/değişen eşleşmelerin ortak yerel kutuya girişini ekler. Kuruluş yalnız kaynak kuruluş alanında, domain yalnız kaynak web hostunda eşleşir; pencereden çıkış kapatma sayılmaz ve tek başına bildirim üretmez.
-
-0.98.0, `ransomware watch-refresh-all` ile kaynağı bir kez yeniler ve yalnız başarılı yeni snapshot ardından bütün etkin izlemeleri kararlı sırada çalıştırır. Sınır aşımı ağdan önce durur; kaynak hatası eski snapshot üzerinde izleme üretmez. Her izleme ayrı atomik kayıttır ve komut zamanlayıcı kurmaz.
-
-0.99.0, `ransomware watch-monitor` ile aynı akışı terminal açıkken sınırlı tur, en az beş dakika aralık ve toplam süre bütçesiyle tekrarlar. Başarısız kaynak turu saklanır ve sonraki tur denenebilir; süre sınırı veya `Ctrl+C` tamamlanan kanıtı silmez. Kalıcı daemon kurulmaz.
-
-0.100.0, her monitor çalışmasını ve tamamlanan turu kaynak/izleme çalışma bağlarıyla kalıcılaştırır. Ağsız liste/ayrıntı; tam, kısmi, kesilmiş, hatalı ve ani kapanma sonrası açık durumu ayırır. Sonraki elle çalışma geçmiş oturum sayacını değiştirmez; daemon veya otomatik devam eklenmez.
-
-0.101.0, güncel kuruluş/domain izleme tanımını kayıtlı snapshot geçmişine uygulayan ağsız zaman çizelgesini ekler. Değişmeyen aynı kaynak kimliği yeni olay olmaz; güncelleme, eşleşme başlangıcı/bitişi, pencereden çıkış ve aynı kimliğin geri gelişi ayrılır. Kaynak kimlik alanı değişen benzer kayıtlar kanıtsız birleştirilmez.
-
-0.102.0, yakın başarılı snapshot geçişlerinde kaynak kimliği değişmiş olabilecek kayıtları insan inceleme adayı olarak gösterir. En az iki ortak açıklanabilir alan gerekir; eşzamanlı, uzak veya zayıf benzerlikler elenir. Adaylar kimlik, zaman çizelgesi, alarm veya veritabanı durumunu değiştirmez.
-
-0.103.0, kimlik değişimi adayına gerekçeli `aynı olay olabilir`, `farklı olay` veya `belirsiz` insan kararı ve silinmeyen olay zinciri ekler. Aynı karar idempotenttir; değişiklik önceki kararı korur. Karar kaynak kimliğini, zaman çizelgesini veya alarmı değiştirmez.
-
-0.104.0, ikinci açık ransomware kaynağı için sürümlü kabul kapısını ve RansomLook'un yazmasız son-yedi-gün önizlemesini ekler. Yalnız grup, başlık ve keşif zamanı gösterilir; eksik ülke/sektör/domain/durum uydurulmaz. RansomLook modeli ThreatCluster geçmişinden ayrıdır; kalıcı ikinci-kaynak geçmişi ve kaynaklar arası insan incelemesi sonraki dar teslimdir.
-
-0.105.0, RansomLook'un doğrulanmış yedi günlük tam snapshot'ını ayrı çalışma/fark tablolarına kaydeder. Başlangıç çizgisi, yeni, aynı, pencereden çıkış ve kaynak hatası ayrılır; son başarılı durum fark zincirinden yeniden kurulabilir. ThreatCluster geçmişiyle bağlantı veya otomatik birleştirme kurulmaz. Sonraki dar teslim RansomLook kuruluş-adı izlemesidir.
-
-0.106.0, RansomLook'un yalnız kaynak kuruluş başlığına bakan ayrı, kalıcı izleme yaşam döngüsünü ekler. İlk çalışma ve tanım değişimi sessiz başlangıçtır; sonraki yeni eşleşmeler inceleme adayı, pencereden çıkış yalnız görünürlük değişimidir. Domain izleme, ortak inbox ve otomatik kaynak birleştirme yoktur. Sonraki dar teslim açıklanabilir kaynaklar arası karşılaştırmadır.
-
-0.107.0, son başarılı yerel ThreatCluster ve RansomLook snapshot'larını ağsız ve salt-okunur karşılaştırır. Kuruluş adı tam aynı olmalı; ayrıca grup veya keşif zamanı eşleşmelidir. İki özgün claim, aynı/farklı alanlar ve kararlı karşılaştırma kimliği gösterilir; fuzzy eşleşme, otomatik birleştirme, alarm veya ihlal hükmü yoktur. Sonraki dar teslim kaynaklar arası insan inceleme adaylarıdır.
-
-0.108.0, kaynak karşılaştırma kimliğine gerekçeli `aynı olay olabilir`, `farklı olay` veya `belirsiz` insan kararı ve silinmeyen olay zinciri ekler. İlk kararın iki özgün kaynak claim/snapshot kanıtı dondurulur; yeni snapshot eski karar dayanağını değiştirmez. Karar kaynak kayıtlarını birleştirmez, alarm/inbox veya ihlal hükmü üretmez. Sonraki aktif program geniş marka korumasının ilk ücretsiz ve yasal dar kaynağını kabul kapısından geçirmektir.
-
-0.109.0, Maigret, Sherlock, theHarvester, Web-Check, Holehe ve olası telefon aracını sürümlü/ağsız kapıyla karşılaştırır. Maigret'in yalnız açık marka kullanıcı adını seçili sitelerde arayan ayrı ve isteğe bağlı adaptörü seçilir. Bu sürüm araç kurmaz, canlı sorgu veya veri yazımı yapmaz. Sonraki dar teslim sınırlı, yazmasız Maigret önizlemesidir.
-
-0.110.0, Maigret 0.6.6'yı resmî reponun tam commit'inden isteğe bağlı kurar ve açık kullanıcı adını yalnız seçilen platformlarda yazmasız önizler. Upstream site veritabanı hash ile doğrulanıp geçici olarak seçilen platformlara daraltılır; ham yanıt ve profil ayrıntıları atılır. Bulgu sahiplik veya taklit kararı değildir. Sonraki dar teslim sessiz başlangıçlı kalıcı fark ve gerekçeli insan incelemesidir.
-
-0.111.0, kullanıcı adı izlemesini kalıcı tanım, yaşam döngüsü, başarılı/başarısız çalışma ve platform sonucu olarak saklar. İlk çalışma sessizdir; sonraki yeni, değişen, artık raporlanmayan ve değişmeyen sonuçlar ayrılır. Kaynak hatası yokluk sayılmaz. Sonraki dar teslim gerekçeli insan incelemesi ve bilinen resmî/meşru profil ayrımıdır.
-
-0.112.0, son başarılı güncel izleme sonucundaki tam profile gerekçeli `known_official`, `possible_impersonation` veya `uncertain` insan kararı bağlar. İlk kanıt dondurulur, karar değişiklikleri eklenir ve profil adresi değişince eski karar yeni adrese taşınmaz. Bu katman otomatik alarm veya sahiplik doğrulaması üretmez. 0.113.0 ile kullanıcının olası taklit işaretlediği aday ortak yerel kutuya bağlanmıştır.
-
-0.113.0, yalnız yeni `possible_impersonation` insan kararını karar olayıyla aynı transaction içinde ortak yerel kutuya bağlar. Aday başına tek bildirim vardır; aynı profil tekrarında alarm çoğalmaz, profil adresi değişirse yeni aday ayrı bildirim olabilir. Bildirim tetikleyen karar kanıtını korur, güncel kararı ayrıca gösterir ve otomatik dış aksiyon üretmez. Sınır kontrollü toplu yürütme 0.114.0 ile tamamlanmıştır.
-
-0.114.0, bütün etkin sosyal kullanıcı adı izlemelerini görünen ad ve kimliğe göre kararlı sırada bir kez çalıştırır. Varsayılan 10 ve açık üst sınır 100'dür; bütün kapsam sığmazsa ağdan ve yazmadan önce durur. Kaynak hatası ayrı başarısız çalışma olarak kaydedilip sonraki izlemeye geçilir; bütünlük hatası yeni işi durdururken tamamlanmış önceki transaction'ları korur. Komut ortak kilit altında ön plandadır ve otomatik taklit kararı, bildirim, zamanlayıcı veya daemon üretmez. Sınırlı sosyal ön plan tekrarı 0.115.0 ile tamamlanmıştır.
-
-0.115.0, tek etkin sosyal kullanıcı adı izlemesini 1–1000 tur, en az beş dakika aralık ve en fazla yedi günlük yeni-tur bütçesiyle terminal ön planında tekrarlar. Monoton saat gerilemesi güvenli durur; kaynak hatası ayrı başarısız turdur ve sonraki tur denenebilir. Süre sınırı yeni turu engeller, `Ctrl+C` tamamlanan bağımsız çalışma kayıtlarını korur. Ortak kilit bütün monitor boyunca tutulur; kalıcı daemon, otomatik devam, taklit kararı veya bildirim yoktur. İkinci ücretsiz sosyal kaynak kapsam kapısı 0.116.0 ile tamamlanmıştır.
-
-0.116.0, sabit Maigret ve Sherlock kataloglarını etkin HTTPS kullanıcı adı tanımı, normalleştirilmiş ad ve Public Suffix List kayıt köküyle ağsız karşılaştırır. Sherlock'un 455 uygun tanımından 103'ü/101 kayıt kökü eşleşmeyen kapsamdır; mevcut 10 platformda yeni katkı yoktur. Bütün katalog taraması yerine sekiz platformluk kısa liste sınırlı adaptör için kabul edilmiştir. Komut araç kurmaz/çalıştırmaz, kullanıcı adı sorgulamaz ve depolama açmaz. Sonraki dar teslim sabit Sherlock 0.16.2 ile kısa listeli yazmasız önizlemedir.
-
-0.117.0, Sherlock 0.16.2'yi resmî tam commit'ten isteğe bağlı kurar; tam katalog özetini doğrulayıp yalnız sekiz platformluk kısa listeden seçilen tanımları geçici kapsama alır. Ek GitHub sürüm isteği yapan upstream CLI yerine sabit kütüphane işlevi yalıtılmış işçide çağrılır ve XTI kendi katı, dört alanlı NDJSON raporunu üretir. Önizleme veritabanı yazmaz; eşleşme sahiplik veya taklit hükmü değildir.
-
-0.118.0, kalıcı sosyal izlemeyi değiştirilemez Maigret veya Sherlock kaynak kimliğine bağlar. Aynı kullanıcı adı farklı yerel izlemelerde iki kaynakla çalışabilir; sessiz başlangıç, fark, kaynak hatası ve tam profil insan kararı birbirine karışmaz. Şema 49 geçmişi yeniden yazılmadan Maigret'e bağlanır. Sonraki dar teslim geniş marka kaynaklarının sıradaki ücretsiz, yasal ve veri-minimize dilimini değerlendirmektir.
-
-0.119.0, theHarvester'ın sabit upstream commit'indeki yalnız Common Crawl ve Wayback Archive P0 hostname sonuçlarını mevcut pasif alt alan adı aday akışına bağlar. Araç ayrı Python 3.14 ortamındadır; DNS, e-posta, kişi ve aktif işlemler kapalıdır. Katı JSONL doğrulaması kaynak kanıtlarını ayrı tutar. Şema 50→51 yalnız provider denetimlerini genişletir ve crt.sh geçmişini yedekli işlemsel geçişle korur.
-
-0.120.0, insanın açıkça onayladığı tedarikçiyi kuruluş adı, değiştirilemez ana domain, ilişki türü, iş önemi ve gerekçeyle yerel envantere alır. Aynı isim farklı domainlerde ayrı kalır; bütün yaşam döngüsü eklemeli geçmişte korunur. Otomatik aday, olay bağlantısı ve risk puanı bu ilk dilimde yoktur.
-
-0.121.0, etkin dış yüzey kapsamının kayıtlı son CNAME kanıtını ağsız inceleyerek farklı PSL kayıt kökünü yalnız teknik dış hizmet adayı olarak saklar. Aday kanıtları ve PSL profili eklemeli tutulur; artık görünmeyen aday tarihsel olur. Kabul yalnız önceden insan tarafından kaydedilmiş etkin tedarikçiye gerekçeli kararla bağlanır ve karar geri alınabilir. Kuruluş tahmini, otomatik birleşim, risk puanı ve alarm yoktur.
-
-0.122.0, etkin insan onaylı tedarikçileri ThreatCluster ve RansomLook'un son başarılı yerel snapshot'larıyla salt okunur eşleştirir. Tam kuruluş adı ve ThreatCluster ilk-taraf web domaini ayrı dayanaklardır; aynı isimli kuruluşlar birleşmez. Kaynak hiç toplanmadı, kullanılabilir, son deneme hatasından sonra eski başarılı veri ve başarılı verisi olmayan hata durumları ayrılır. İddia doğrulanmış ihlal, etki, alarm veya risk puanı değildir.
-
-0.123.0, tedarikçi envanteri, kabul edilmiş güncel CNAME bağı, iki kaynaklı iddia adayı, kaynak kapsamı ve iş önemini açıklanabilir inceleme kartında birleştirir. Beş sınırlı insan inceleme durumu; neden, eksik veri, zaman ve sonraki adımlarla gösterilir. Sayısal risk, doğrulanmış ihlal, alarm ve dış aksiyon yoktur. Bu sürüm tedarikçi çekirdek akışını tamamlar.
-
-0.124.0, domain/marka bulgusu, insan kararlı sosyal profil, iki ayrı ransomware iddiası ve tedarikçi kartını kaynak kayıtları değiştirmeden insan yönetimli yerel vakaya bağlar. Görev, not, durum, sonuç, kapanış/yeniden açma ve tek zaman çizelgesi ağsız terminal/JSON görünümündedir. Açık görev kapanışı engeller; vaka kaynakları birleştirmez veya ihlal hükmü üretmez. Atama/rol/SLA takım ürününde kalır.
-
-0.124.1, temiz klonda global Python ortamını değiştirmeden yerel kayıt alanını hazırlayan tekrar güvenli `./setup` akışını ve kısa kullanım belgesini ekler.
-
-0.125.0, normal kuruluma sabit commit/katalog doğrulamalı atomik Maigret ve Sherlock ortamını ekler. Kullanıcı adı önizleme ve izlemeleri mevcut dar `safe`, elle incelenmiş 30/26 sitelik `extended` veya özel `--site` kapsamını seçebilir; bütün upstream katalog, kota aşma ve profil çıkarımı kapalıdır. Kalıcı izleme çözülen tam listeyi saklar. Şema 54 değişmez.
-
-0.126.0, pasif yüzey sağlayıcılarını tek çalışma sözleşmesine bağlar; theHarvester kanıtının ayrıntıda okunmasını düzeltir ve crt.sh/theHarvester son kayıtlarını birbirinden bağımsız sağlık görünümünde gösterir. Sürümlü kabul kapısı Subfinder v2.17.0 normal CLI'sini makine-okunur kaynak hata/tamamlanma kanıtı ve bağımsız kapsam katkısı olmadığı için erteler. Komutlar ağsız/salt okunurdur; şema 54 değişmez.
-
-0.127.0, `sources status` ile 11 kaynak/iş akışının kurulum ve geçmiş durumunu
-birleştirir. Kısa tablo, ayrıntı, domain filtresi, kayıt yaşı ve sonraki komut
-mevcuttur. Günlük kullanım rehberi ile toplama, inceleme, vaka ve tekrar
-akışı test edilir. Yeni kaynak kapsamı veya arka plan zamanlayıcısı eklenmez.
-
-0.128–0.132, arşiv taşıması ve süre/hata ayrımını, açık kaynak/izleme
-seçimli birleşik toplamayı, sürümlü profilleri ve kesintide tamamlanan kanıtı
-koruyan kalıcı oturum/eksik adım tekrarını ekler. Common Crawl'ın dış indeks
-erişim sorunu açık kalır.
-
-0.133.0, açık kuruluş bağlantılarını, günlük/haftalık değişim raporunu,
-ATT&CK teknik/taktik kataloğunu, kaynakların gerçek katkı karşılaştırmasını,
-RansomLook yerel bildirimlerini ve Linux profil zamanlama dosyalarıyla
-doğrulanmış yedek/saklama bakımını tamamlar. Yeni sağlayıcı eklemek katkı
-kanıtına bağlı kalır. Linux hizmeti açık etkinleştirme ister; bu macOS
-ortamında canlı Linux çalışması doğrulanmış değildir. Sekiz teslimin kapsamı
-[sıralı plandadır](ORDERED_INTEGRATION_PLAN.md); bütün uzun vadeli roadmap'in
-bittiği anlamına gelmez.
-
-0.134.0, [kuruluş raporu ve ücretsiz devam dilimini](ORGANIZATION_WORKFLOW_PLAN.md)
-tamamlar: kuruluş birleşik görünümü, kapsamlı dönem/kaynak katkısı, kayıtlı
-önce/sonra kanıtları, bildirim/vaka gezinmesi, doğrudan CTI ilişki bağlamı ve
-HIBP kamu olay metadata kataloğu. Üyelikten sahiplik veya kaynak iddiasından
-ihlal kararı üretilmez. HIBP hesap/parola sorgusu içermez; geniş dark web,
-marka, LLM, React/API ve takım ürünü bu teslimle tamamlanmış sayılmaz.
-
-**Başlangıç koşulları:** Bugün kişisel ve ücretsiz terminal kullanımı; hedef
-kurumsal ürün. Python öncelikli geliştirme ve kolay kurulum korunur.
-Entegrasyon laboratuvarının donanımı, ilk pilot kullanıcı/kuruluş sayısı,
-günlük veri hacmi, işletim bütçesi ve destek süresi henüz belirlenmedi;
-kapasite ve takvim bunlar ölçülmeden taahhüt edilmez.
-
-0.135.0, HIBP kamu kataloğunu açık toplama görevi, profil ve mevcut Linux
-zamanlama akışına bağlar. Kesintide tamamlanan kaynak korunur; yalnız eksik
-işler tekrar edilir. 0.136.0 açık kuruluş HIBP izleme ve yerel bildirimlerini
-ekler; tarihî scope, kaynak ve önce/sonra metadata birlikte korunur. HIBP
-vaka bağları ve HTML rapor 0.137.0'da [uygulandı](PUBLIC_NOTICE_WORKFLOW_PLAN.md).
-0.138.0 yerel birleşik arama, üç kaynaklı açık tedarikçi bildirim izlemesi
-ve DNS/TLS/CNAME/insan tedarikçi ilişki geçmişini ekler.
-[Kullanım rehberi](../SEARCH_SUPPLIERS_AND_RELATIONS.md). Otomatik HTML rapor
-arşivi 15 Kasım 2026 kullanıcı kararıyla plandan çıkarıldı; komutla mevcut
-HTML dışa aktarımı kullanılabilir. Olay adayları ve kaydedilmiş genel
-arama bildirimlerinin ilk dilimleri ile üç kaynaklı RSS/Atom haber
-toplama uygulandı. Haberlerin toplama oturumuna bağlanması ve ölçülmüş
-kaynak genişlemesi sonraki işlerdir. Entegrasyon teslim hazırlığı ile
-geniş paylaşım/LLM en sondadır; .NET tüketicisini repoyu kullanan ekip
-geliştirir ve doğrular. Linux kullanım kabulü ve kaynak
-erişimi bu aşamaların doğrulama işleri olarak korunur. Common Crawl canlı
-erişim kabulü ayrıca açık kalır.
-
-**Uzun vadeli hedef:** SOCRadar'ın ürün ailelerini, OpenCTI'nin CTI araştırma
-ve paylaşımını, IntelOwl'un analiz entegrasyonlarını karşılaştırma noktası
-olarak kullanarak ölçülebilir kurumsal XTI iş akışları sunmak. Yazılımın
-kurulması, kaynak erişimi veya bütün ürünlerle eşdeğerlik kanıtı değildir.
-
-Bu belge uygulanacak tasarımı ve önerilen kabul hedeflerini tarif eder. Hiçbir performans değeri ölçülmüş mevcut ürün sonucu değildir. Rakibin özel verilerine, iç mimarisine veya bağımsız kalite ölçümlerine erişimimiz bulunmuyor. Kamuya açık özelliklerin bulunması, veri kapsamı ve hizmet kalitesinin eşdeğer olduğunu kanıtlamaz.
-
-Diğer belgeler: [Yetenek ve kapsam matrisi](CAPABILITY_MATRIX.md), [uygulanabilir iş listesi](BACKLOG.md), [ilk dört çalışma döngüsü](FIRST_ITERATIONS.md).
-
-## 1. Ürün neyi başarmalı?
-
-Kullanıcı bir domain, marka veya kuruluş tanımladığında platform dış kaynaklardaki ilgili gözlemleri toplamalı; bunları bağlama oturtmalı; incelenebilir kanıtlarla bulgu üretmeli; kullanıcının kararını ve yapılan aksiyonun sonucunu izlemeli.
-
-Uçtan uca akış:
-
-1. **İstihbarat ihtiyacı:** Hangi varlığı, hangi tehdide karşı, hangi sıklıkta izliyoruz?
-2. **Toplama:** Hangi kaynaktan, hangi erişim ve saklama koşullarıyla veri alıyoruz?
-3. **Normalleştirme:** Domain, IP, URL, zaman, kuruluş ve gösterge bilgilerini ortak biçime getiriyoruz.
-4. **Analiz:** İlişkileri, değişiklikleri, benzerlikleri ve risk işaretlerini değerlendiriyoruz.
-5. **Doğrulama:** Bulguyu kanıtıyla inceliyor, güven düzeyini ve sınırlarını belirtiyoruz.
-6. **Dağıtım:** Terminal, rapor, API veya entegrasyonla ilgili kişiye ulaştırıyoruz.
-7. **Aksiyon:** İzleme, düzeltme, vaka açma veya onaylı kaldırma talebi oluşturuyoruz.
-8. **Geri bildirim:** Yanlış alarmı, kapatılan riski ve kaynak sorununu kurallara yansıtıyoruz.
-
-Bugünkü kullanıcı tek kişidir. Yeni hedef sırası tek kuruluşta analist
-ekibi, ardından birden fazla müşteriye hizmet veren kurulumdur. Her
-profile geçiş ayrı kabul koşullarına bağlıdır; kişisel kuruluş grupları
-veya dış ürünün kurulması kendiliğinden müşteri yalıtımı sağlamaz.
-
-### 1.1. Değer ölçütleri
-
-Ana ölçüt, incelenen bulgular içinden kullanıcı için doğrulanabilir ve aksiyon alınabilir olanların sayısıdır. Bunun yanında inceleme süresi ve alarm yükü takip edilir. Daha çok veri veya daha çok alarm tek başına başarı değildir.
-
-İlk ürün soruları:
-
-- Markama benzeyen yeni bir domain gözlendi mi; neden şüpheli?
-- Bana ait bir DNS kaydı, TLS sertifikası veya internet servisi değişti mi?
-- İzlenen domain veya IP güncel IOC kaynaklarında tam olarak geçiyor mu; kaynak ne kadar güncel?
-- Aynı olay farklı kaynaklardan mı geliyor, yoksa ayrı olaylar mı?
-- Sonuç çıkmamasının nedeni tehdit görülmemesi mi, kaynağın çalışmaması mı?
-
-### 1.2. İlk sürümün sınırı
-
-İlk sürüm: varlık kaydı, kayıtlı örnek veri, bir CT kaynak adaptörü, domain aday tespiti, açıklanabilir bulgular, terminalden inceleme, tekrar önleme, yedekleme ve kaynak sağlığı.
-
-Dark web kaynak ağı, ücretli istihbarat, çok müşterili web uygulaması ve
-büyük ölçekli işletim sonraki aşamalardadır. Saldırı, istismar, otomatik
-engelleme veya yama yükleme yeni kurumsal hedefle kapsama eklenmez;
-takedown yalnız ayrı teslimde insan onaylı başvuru olarak ele alınır.
-
-## 2. SOCRadar ile karşılaştırma yöntemi
-
-SOCRadar'ın kamuya açık kapsamı; Cyber Threat Intelligence, Attack Surface Management, Brand Protection, Advanced Dark Web Monitoring ve Supply Chain Intelligence ürün ailelerini içerir. Alt özellikler ve paketler değişebildiğinden karşılaştırma tarihli tutulur. [Resmî modül listesi](https://socradar.io/modules/), [özellik ayrıntıları](https://socradar.io/product-features-details/)
-
-Bizim matriste her yetenek şu boyutlarda değerlendirilir:
-
-| Boyut | Sorulacak soru | Kabul kanıtı |
-|---|---|---|
-| İşlev | İlgili kullanıcı işi tamamlanabiliyor mu? | Uçtan uca kabul senaryosu |
-| Veri kapsamı | Hangi kaynaklar, bölgeler, diller ve varlık tipleri kapsanıyor? | Tarihli kaynak envanteri ve açık boşluklar |
-| Doğruluk | Doğru ve yanlış sonuçlar nasıl ölçülüyor? | Etiketli değerlendirme kümesi ve hata analizi |
-| Güncellik | Kaynaktaki gözlem ne zaman işleniyor? | Kaynak gecikmesi ve işlem gecikmesi ayrı ölçümler |
-| Operasyon | Kesinti, yedek, destek, vaka ve tekrar işleme nasıl yönetiliyor? | Tatbikat ve çalışma kayıtları |
-| Güvenlik | Veri erişimi, sırlar, izolasyon ve denetim nasıl korunuyor? | Yetki testleri, inceleme ve denetim kanıtı |
-
-Olgunluk ölçeği: **0 planlandı**, **1 prototip**, **2 tekrarlanabilir testlerle kullanılabilir**, **3 gerçek kullanımda ölçülmüş**, **4 desteklenebilir hizmet olarak işletiliyor**. Bir boyuttaki düşük değer diğerlerinin ortalamasıyla gizlenmez. Rakibin ilgili boyutu bilinmiyorsa karşılaştırma sonucu **bilinmiyor** olur.
-
-Bir özelliğe “kapsam tamamlandı” demek için kullanıcı senaryosu, veri sınırları, kabul testi ve ölçüm raporu gerekir. “Rakiple eşdeğer” demek için ayrıca aynı tanımlı kapsam üzerinde karşılaştırılabilir kanıt gerekir. Kamuya kapalı kaynak kapsamı için eşdeğerlik iddiası yapılmaz.
-
-Karşılaştırma üç ayda bir gözden geçirilir. Yeni özellik; kaynak adresi, görülme tarihi, mevcut/önizleme/planlanan durumu ve bizim karşılığımızla kaydedilir. Pazarlama sayfalarındaki araç sayıları doğrudan mühendislik hedefi yapılmaz.
-
-## 3. Başlangıç mimari kararları
-
-| Konu | İlk karar | Gerekçe / yeniden değerlendirme koşulu |
-|---|---|---|
-| Ana dil | Desteklenen bir Python sürümü; sürüm geliştirmeye başlarken sabitlenir | Tek dilde öğrenme ve bakım; CPU darboğazı ölçülürse ilgili işi ayır |
-| Uygulama | Modüler monolit, tek kod deposu | Sınırları koruyarak az operasyon yükü |
-| Giriş noktası | Typer komutları, Rich çıktıları | Terminalde anlaşılır kullanım; API aynı uygulama servislerine bağlanabilir |
-| Veri saklama | Yerel SQLite | Ayrı veritabanı sunucusu yönetmeden kalıcılık |
-| Kanıt | Yerel dosya deposu + veritabanında referans, boyut ve özet | Büyük içerik ile sorgulanabilir metaveriyi ayırma |
-| İş yönetimi | Kalıcı iş tablosu, başlangıçta sınırlı worker ve kısa yazma işlemleri | Yeniden başlatmada devam etme; yük ölçülmeden dağıtık sistem kurmama |
-| Ağ işlemleri | asyncio ve sınırlı HTTP istemcileri | Eşzamanlılık, zaman aşımı ve kaynak başına hız sınırı |
-| Sözleşmeler | Domain modelleri ve sınırda şema doğrulama | Bozuk veriyi iş mantığına taşımama |
-| Test | pytest; gerçek davranış ve hata senaryoları | Yeniden işleme, eşleştirme ve kayıt bütünlüğünü doğrulama |
-| Paketleme | pyproject.toml, kilitlenmiş bağımlılıklar; uv önerisi | Tekrarlanabilir kurulum |
-| İlk dağıtım | Kullanıcının bilgisayarı | Sunucu ve bulut maliyetini erteleme |
-
-Araçların resmî belgeleri: [Typer](https://typer.tiangolo.com/), [Rich](https://rich.readthedocs.io/en/stable/introduction.html), [Python SQLite](https://docs.python.org/3/library/sqlite3.html), [HTTPX async](https://www.python-httpx.org/async/), [Pydantic](https://docs.pydantic.dev/latest/), [pytest](https://docs.pytest.org/en/stable/), [uv](https://docs.astral.sh/uv/).
-
-Python uygulamayı yönetir; tüm bağımlılıkların Python ile yazılmış olması gerekmez. Nmap gibi bir motor gerektiğinde tanımlı girdi/çıktı sözleşmesi olan adaptör arkasında çalışır. Dış program bağımlılığı, lisansı ve desteklenen sürümü açıkça kaydedilir.
-
-asyncio ağ beklemelerini yönetir; CPU ağırlıklı eşleştirmeyi otomatik olarak çok çekirdeğe yaymaz. Önce aday azaltma, önbellek ve toplu işlem; sonra gerekiyorsa süreç tabanlı çalışanlar değerlendirilir.
-
-SQLite aynı anda tek yazıcıya izin verir. Kısa işlemler ve kontrollü yazma düzeni başlangıç için uygundur; eşzamanlı yazma baskısı ölçülür. WAL kullanımı okuyucu/yazıcı etkileşimini iyileştirebilir, ancak çoklu yazıcı sınırını kaldırmaz. [SQLite kullanım rehberi](https://www.sqlite.org/whentouse.html), [WAL](https://www.sqlite.org/wal.html)
-
-## 4. Modüller ve bağımlılık sınırları
-
-Önerilen gelecekteki depo düzeni; bu dosyalar henüz oluşturulmuş ürün kodu değildir:
-
-```text
-src/xti/
-  domain/                 # Varlık, gözlem, bulgu, olay ve temel kurallar
-  application/            # Kullanım senaryoları ve iş akışları
-  ports/                  # Depo, kuyruk, kaynak ve bildirim sözleşmeleri
-  modules/
-    assets/               # Varlık ve sahiplik
-    phishing/             # Domain ve marka adayları
-    easm/                 # Dış saldırı yüzeyi
-    vulnerability/        # Zafiyet bağlamı
-    cti/                  # IOC, aktör, kampanya, rapor
-    darkweb/              # İzinli kaynaklardan metin gözlemleri
-    identity/             # Kimlik maruziyeti bağlamı
-    brand/                # Sosyal hesap, uygulama, VIP ve dolandırıcılık
-    supply_chain/         # Tedarikçi ilişkileri ve risk olayları
-    cases/                # İnceleme ve vaka akışı
-    response/             # Onaylı aksiyonlar ve takedown
-  adapters/
-    storage/              # SQLite, ileride PostgreSQL
-    sources/              # Kaynak bağlantıları ve kaynak özel ayrıştırıcılar
-    evidence/             # Yerel kanıt, ileride nesne deposu
-    integrations/         # Bildirim ve dış sistem bağlantıları
-  interfaces/
-    cli/                  # İlk arayüz
-    tui/                  # İleride etkileşimli terminal
-    api/                  # İleride HTTP API
-  runtime/                # Worker, zamanlama, yaşam döngüsü
-tests/
-  fixtures/               # Sentetik veya paylaşım hakkı doğrulanmış örnekler
-  unit/
-  integration/
-  acceptance/
-  recovery/
-docs/
-  decisions/              # Mimari karar kayıtları
-  runbooks/               # İşletim ve kurtarma yönergeleri
-```
-
-Domain katmanı Typer, SQLite, HTTP istemcisi ve arama motorunu import etmez. Modüller birbirlerinin tablolarına doğrudan yazmaz. Ortak kurallar küçük tutulur; kaynağa özel bir HTML ayrıştırıcısı çekirdeğe konmaz.
-
-İlk sürümde dinamik eklenti pazarı kurulmaz. Modül kaydı açık bir liste olabilir. Yeni modül; kendi sözleşmesi, yapılandırması, veri dönüşümü, kabul örnekleri ve isteğe bağlı bağımlılıklarıyla eklenir. Playwright gibi ağır bir bağımlılık sıradan domain eşleştirme kurulumu için zorunlu olmaz.
-
-### 4.1. Bir özelliği eklemenin standart yolu
-
-1. Kullanıcı ihtiyacını ve kapsam dışı davranışı yaz.
-2. Gerekli veri kaynağını ve erişim koşullarını doğrula.
-3. Ortak modellere uyumu veya gerekçeli şema değişikliğini belirle.
-4. Ayrıştırıcı, analiz kuralı ve uygulama senaryosunu ilgili modüle ekle.
-5. Veritabanı değişikliği varsa sürümlü geçiş ve kurtarma planı ekle.
-6. Pozitif, negatif, bozuk veri ve tekrar işleme örneklerini doğrula.
-7. Kaynak sağlığı, maliyet ve hata ölçümlerini ekle.
-8. CLI/API çıktısı ile kullanım açıklamasını tamamla.
-9. Kabul kanıtını backlog ve yetenek matrisine bağla.
-
-## 5. Veri akışı ve güvenilir işleme
-
-```mermaid
-flowchart TD
-    A[Kaynak adaptörü] --> B[Doğrulama ve normalleştirme]
-    B --> C[Gözlem + kalıcı iş + kaynak konumu]
-    C --> D[Analiz worker]
-    D --> E[Bulgu + kanıt referansı]
-    E --> F[İnceleme ve vaka]
-    E --> G[Kalıcı bildirim kaydı]
-    G --> H[Terminal / bildirim / entegrasyon]
-    F --> I[Onaylı aksiyon]
-    I --> J[Sonuç doğrulama ve geri bildirim]
-```
-
-Kaynak geçmişi tekrar okunabiliyorsa son işlenen konum saklanır. Gözlem ve takip işi kalıcılaşmadan kaynak konumu ilerletilmez. Kaynak tekrar okumayı desteklemiyorsa kesinti aralığı ve olası veri boşluğu açıkça kaydedilir; olmayan replay güvencesi vaat edilmez.
-
-### 5.1. İş durumları
-
-`pending → running → succeeded`; geçici hata için `retry_wait`, deneme sınırı dolarsa `failed`, kullanıcı durdurduysa `cancelled`. Çalışan iş süreli bir sahiplik kaydı taşır. Süresi dolan iş kontrollü olarak yeniden alınır; eski worker'ın geç gelen sonucu sahiplik belirteciyle reddedilir.
-
-İşlerde kimlik, tür, şema sürümü, giriş referansı, çalışma zamanı, deneme sayısı, son hata sınıfı, lease süresi ve deduplication anahtarı tutulur. Sonsuz yeniden deneme ve sınırsız bellek kuyruğu kullanılmaz.
-
-Bulgu ile gönderilecek bildirim kaydı aynı veritabanı işlemi içinde oluşturulur. Bu kalıcı gönderim listesi, dış sisteme gönderme başarısız olduğunda tekrar denenir. Dış sağlayıcı idempotency desteklemiyorsa “gönderildi ama yanıt kayboldu” durumunda tam olarak bir kez gönderim garanti edilemez; belirsiz durum ve tekrar politikası görünür olur.
-
-### 5.2. Tekrarları ayıklama
-
-Gözlem tekrarı, bulgu tekrarı ve bildirim tekrarı ayrı problemdir. Aynı sertifikada domainin iki kez geçmesi bir gözlem tekrarına yol açabilir; aynı domainin yeni tarihte yeni bir davranış göstermesi yeni kanıt olabilir.
-
-Dosya deposu ile veritabanı tek bir transaction paylaşmaz. Kanıt önce geçici dosyaya yazılır, boyut/bütünlük kontrol edilir ve aynı dosya sistemi içinde atomik olarak son konumuna taşınır; ardından DB referansı kaydedilir. Yarım işlemlerin sahipsiz dosyaları kontrollü temizlenir; eksik referanslar tespit edilir. Gerekli kanıt güvenle saklanmadan ilgili checkpoint ilerletilmez. Kapatma noktaları ve kayıp dosya senaryoları G1/G3 testlerine dahildir.
-
-Bulgu anahtarı varlık/çalışma alanı, kural, özne ve tanımlı zaman bağlamını içerir. Yeni kanıt mevcut bulguyu güncelleyebilir. Kuralın yeni sürümüyle yeniden analiz yapıldığında eski değerlendirme izi korunur. Bütün geçmiş gözlemleri tek bir domain satırına ezmekten kaçınılır.
-
-### 5.3. Ortak veri modelleri
-
-| Model | Ne tutar? | Temel alanlar / ilişki |
-|---|---|---|
-| Workspace | Kişisel projeyi veya ileride kurum bağlamını | Kimlik, ad, tercih ve saklama politikası |
-| Asset | İzlenen domain, IP, marka, kişi veya uygulama | Tür, normalleştirilmiş değer, sahiplik durumu, kapsam |
-| AssetRelation | Varlıklar arası zamanlı ilişki | Kaynak/hedef, ilişki türü, dayanak, güven, geçerlilik |
-| Source | Veri kaynağı | Erişim yöntemi, koşullar, kota, sağlık, kapsam |
-| CollectionRun | Bir toplama çalışması | Başlangıç/bitiş, sayaçlar, hatalar, kapsam ve boşluk |
-| Observation | Kaynaktan gözlenen olay | Kaynak kaydı, özne, gözlem/alıntılama zamanı, içerik referansı |
-| Evidence | Bulguyu destekleyen içerik | Dosya referansı, özet, boyut, içerik türü, erişim ve saklama sınıfı |
-| DetectionRule | Sürümlü analiz kuralı | Kimlik, sürüm, eşikler, açıklama, test kümesi |
-| Finding | Değerlendirilmiş bulgu | Kural, varlık, neden, önem, güven, durum, ilk/son görülme |
-| FindingEvidence | Bulgu ile dayanak ilişkisi | Destekleyen/çelişen kanıt ve kaynak bilgisi |
-| Feedback | Kullanıcının değerlendirmesi | Karar, gerekçe, tarih, ilgili kural sürümü |
-| Job | Kalıcı iş | Durum, lease, deneme, zamanlama, girdi |
-| Notification | Bildirim teslim kaydı | Kanal, alıcı kapsamı, idempotency, teslim/başarısızlık |
-| Case | Birlikte incelenen bulgular | Sorumlu, durum, zaman çizelgesi, görev, sonuç |
-| Indicator | Paylaşılabilir tehdit göstergesi | Tür, değer, kaynak, güven, geçerlilik, geri çekme |
-| Entity / Relationship | Aktör, kampanya, malware, kuruluş ve bağlar | Kaynak atıfları, alternatif adlar, zaman ve güven |
-| VulnerabilityRecord | CVE ve ilgili bağlam | Kaynak sürümü, CVSS/EPSS/KEV bilgileri, güncelleme zamanı |
-| Exposure | Varlık ile zafiyet/yanlış yapılandırma ilişkisi | Eşleştirme dayanağı, doğrulama durumu, düzeltme |
-| Vendor | İzlenen tedarikçi | Kuruluş kimliği, ilişki, iş kritiklik düzeyi |
-| ResponseAction | Onaylı dış aksiyon | Taslak, onay, gönderim, sağlayıcı kaydı, sonuç |
-| AuditEvent | Kritik işlem geçmişi | Kim, ne yaptı, hangi kapsamda, ne zaman, sonuç |
-
-Bu tabloların tamamı ilk sürümde oluşturulmaz. Her faz ihtiyaç duyduğu modelleri sürümlü geçişle ekler. Workspace alanı ilk günden bulunabilir; tek başına kurumlar arası erişim izolasyonu sağlamaz.
-
-### 5.4. Sözleşme ve veri kalitesi kuralları
-
-- Kimlikler kararlı, zamanlar UTC ve zaman dilimi bilgili olur; ekranda kullanıcının saat dilimine çevrilir.
-- `observed_at`, `ingested_at` ve `analyzed_at` ayrı tutulur; bilinmeyen kaynak zamanı uydurulmaz.
-- Domain/URL normalleştirme kuralları sürümlenir; orijinal değer ve karşılaştırma değeri korunur.
-- Ortak olay zarfı: `event_id`, `event_type`, `schema_version`, `source_id`, `source_record_id`, zamanlar, `subject`, `payload_ref`, veri sınıfı, izleme kimliği.
-- Ortak kaynak gözlemleriyle kullanıcıya özel eşleşmeler ayrılır. Kullanıcıya ait kayıtlar kapsam taşır; genel gözlemler gelişigüzel tüm kullanıcılara açılmaz.
-- Bilinmeyen şema sürümü sessizce işlenmez; uyumluluk hatası veya kontrollü karantina kaydı oluşur.
-- Girdi boyutu, açılan arşiv boyutu, yönlendirme sayısı, metin uzunluğu ve çalışma süresi sınırlandırılır.
-- Hash içerik değişimini denetlemeye yardımcı olur; tek başına kaynağın doğru veya güvenilir olduğunu kanıtlamaz.
-
-## 6. Kaynak stratejisi ve veri ekonomisi
-
-Kaynak eklemek için bir kayıt formu doldurulur: sahip/sağlayıcı, URL, toplama yöntemi, API anahtarı ihtiyacı, erişim koşulları, yeniden dağıtım hakkı, kota, tazelik beklentisi, geçmişe dönüş, kişisel veri sınıfı, tutma süresi, devre dışı bırakma yöntemi ve bakım sorumlusu.
-
-Kaynağın ücretsiz görüntülenmesi, veriyi sınırsız çekme veya müşterilere yeniden satma izni anlamına gelmez. Erişim ve kullanım koşulları bağlayıcı entegrasyondan önce doğrulanır. Belirsiz koşul “doğrulanacak” olarak tutulur.
-
-| Kaynak sınıfı | İlk kullanım | Sınır / maliyet bağımlılığı |
-|---|---|---|
-| Sentetik örnek dosyalar | Tekrarlanabilir geliştirme ve değerlendirme | Gerçek dünya kapsamını kanıtlamaz |
-| CT logları veya erişilebilir CT akışı | Sertifikalarda görülen domainler | Tam yeni-domain kaydı değildir; uç nokta ve replay özellikleri doğrulanır |
-| DNS ve TLS gözlemleri | Kendi/izinli varlıkların değişiklikleri | Sorgu hacmi, zaman aşımı ve TTL dikkate alınır |
-| Resmî güvenlik duyuruları | Ürün ve zafiyet bağlamı | Ürün/sürüm eşleştirmesi ayrıca gerekir |
-| CVE/NVD, KEV, EPSS | Zafiyet önceliklendirme bağlamı | Farklı anlamlar ve güncellenme zamanları; kota ve lisans ayrı izlenir |
-| Kamuya açık rapor ve IOC kaynakları | CTI içeri alma ve kaynaklı ilişkilendirme | Güven düzeyi, izin ve paylaşım sınıfı farklı olabilir |
-| Kullanıcının sağladığı dosya | Yetkili inceleme, veri taşıma | Boyut, biçim, hassas veri ve paylaşım hakkı kontrolü |
-| Web, sosyal ağ ve mağaza kaynakları | Marka taklidi adayları | Resmî erişim, kota ve ücret bağımlılığı oluşabilir |
-| Yetkili topluluk/dark web kaynakları | İlgili duyuru ve tehdit iddiaları | Kaynak erişimi, güvenliği ve sürekliliği ayrı iş yüküdür |
-| Ticari istihbarat ve geçmiş DNS | Kapsam genişletme | Bütçe, sözleşme ve yeniden dağıtım koşulu gerektirir |
-
-CT, sertifika şeffaflığı sağlar; gözlenen sertifika zamanı domainin kuruluş tarihi olarak kullanılmaz. [Certificate Transparency](https://certificate.transparency.dev/)
-
-İlk sürümde bütün akış süresiz saklanmaz. Kontrollü ön eleme sonrası ilgili adaylar ve kanıtlar tutulur; elenen veri sayısı ve eleme kuralı sürümü kaydedilir. Saklanmayan veri üzerinde sonradan kapsamlı yeniden analiz yapılamayacağı raporda belirtilir.
-
-Önerilen kişisel başlangıç politikası: ilgisiz ham içerik saklama kapalı; ilgili ham içerik için 7 günlük başlangıç sınırı; bulgu ve gerekli kanıt için 90 günlük başlangıç sınırı; daha uzun saklama kullanıcı tercihi ve disk bütçesine bağlı. Bunlar teknik varsayılan adaylarıdır; hassas veri ve kaynak koşulları daha kısa süre gerektirebilir.
-
-Bir içerik bulgunun dayanağı olarak seçildiğinde kanıt saklama sınıfına alınır. Retention işlemi bekleyen işin girdisini veya aktif kanıt referansını sessizce silemez. Kaynak koşulu/silme talebi nedeniyle içerik kaldırılması gerekirse bulgu, silme nedeni ve tarihiyle “kanıt artık mevcut değil” durumunu taşır; hash üzerinden içerik yeniden varmış gibi sunulmaz.
-
-## 7. Fazlar, bağımlılıklar ve çıkış kapıları
-
-Fazlar tarih taahhüdü değildir. Bir fazın kapısı geçilmeden ona bağlı özellik üretime alınmaz. Arayüz, öğrenme, kaynak bakımı ve test çalışmaları fazlar boyunca sürer.
-
-| Faz | Teslimat | Önkoşul | Kapı |
-|---|---|---|---|
-| R0 | Ürün sınırı, örnek senaryolar, değerlendirme tasarımı | Yok | G0 |
-| R1 | Yerel omurga, varlık ve kalıcı veri | R0 | G1 |
-| R2 | Domain/marka adayları, ilk uçtan uca MVP | R1 | G2 |
-| R3 | Güvenilir toplama ve işletim | R2 | G3 |
-| R4 | EASM ve varlık değişiklikleri | R3 | G4 |
-| R5 | Aktif plan dışında: sunucu envanteri ve zafiyet eşleştirmesi | Kullanıcı kararıyla durduruldu | — |
-| R6 | CTI bilgi tabanı, IOC ve vaka ilişkileri | R3; varlık korelasyonu için R4 | G6 |
-| R7 | Dark web ve kimlik maruziyeti | R3, R6; kaynak/veri erişim kapısı | G7 |
-| R8 | Geniş marka, VIP ve dolandırıcılık kapsamı | R2, R3, R6; bazı özellikler R7 | G8 |
-| R9 | Tedarikçi risk ilişkileri | R4, R6; mevcutsa R7 | G9 |
-| R10 | API, paylaşım, vaka ve onaylı aksiyonlar | R3, R6; aksiyona göre R7/R8 | G10 |
-| R11 | Takım ürünü, web, çok kiracılı güvenlik | G3, G10; ürünleşme bütçesi | G11 |
-| R12 | Gelecekte isteğe bağlı LLM analiz desteği; henüz uygulanmadı | Kayıtlı kaynak/kanıt ve vaka akışı; ayrılmış değerlendirme verisi; cihaz kapasitesi | G12 |
-| R13 | Kaynak kapsamı ve hizmet olgunluğu | İlgili modül kapıları | G13 |
-
-R6'nın temel IOC ve rapor işleri R4 çalışmalarıyla kaynak izin verdiğinde paralel yürüyebilir. Tek geliştiricide aynı anda bir ana özellik ve bir bakım işi sınırı önerilir.
-
-### R0 — İhtiyaç, kapsam ve ilk doğrulama örnekleri
-
-**Amaç:** “XTI yapıyoruz” hedefini gözlenebilir kullanıcı işlerine dönüştürmek.
-
-**İşler:** Üç örnek izleme senaryosu; varlık ve sahiplik modeli; kişisel veri tercihleri; sıfır bütçe profili; ilk kabul örnekleri; belirsizlik listesi; kaynak seçim deneyi; veri sözlüğü; ilk mimari kararlar.
-
-**G0:** Her senaryonun girdisi, beklenen çıktısı ve başarısızlık örneği yazılı. İlk kaynak için erişim yöntemi ve kapsamadığı alanlar belli. İş listesinde ilk dört çalışma döngüsü bağımlılık sırasına konmuş. Donanım ve zaman bilinmiyorsa bu alanlar açık varsayım olarak kalmış.
-
-### R1 — Yerel omurga ve veri yaşam döngüsü
-
-**Amaç:** Program kapansa da güvenilir biçimde yaşayan küçük uygulama.
-
-**İşler:** Kurulum/paketleme; `init`, `doctor`, varlık ekle/listele; şema sürümü; repository sözleşmeleri; kalıcı işler; yerel kanıt deposu; yapılandırma; yapılandırılmış ve hassas verisi temizlenmiş log; backup/restore; migration hatası yönetimi.
-
-**G1:** Temiz ortamda belgelenmiş kurulum tamamlanıyor. Varlık yeniden başlatmada korunuyor. Bozuk veri anlaşılır hata veriyor. Tutarlı yedek ayrı dizine geri yükleniyor. İş ortasında kapatma sonrası tanımlı tekrar davranışı doğrulanıyor. Veritabanı dosyası kullanıcının elle düzenlemesini gerektirmiyor.
-
-### R2 — Domain ve phishing aday MVP'si
-
-**Amaç:** İzlenen markaya benzer domainleri kanıtlı adaylar olarak sunmak.
-
-**İşler:** CT adaptörü; domain/alt domain ayrımı; public suffix ve IDN normalleştirme; wildcard ve sertifika tekrarlarının yönetimi; marka anahtar kelimeleri; benzerlik ve ek sözcük kuralları; allowlist; kontrollü DNS/TLS zenginleştirme; aday gerekçesi; inceleme ve geri bildirim; JSON dışa aktarma.
-
-**G2:** Kayıtlı örneklerden ve seçilen canlı kaynaktan aynı veri modeli oluşuyor. Benzerlik tek başına “doğrulanmış phishing” olarak etiketlenmiyor. Test kümesinde hem yakalanan hem kaçırılan adaylar raporlanıyor. Aynı gözlem tekrar oynatıldığında mükerrer bulgu oluşmuyor. Kaynak kapalıysa durum ekranda anlaşılıyor.
-
-İlk kabul kümesi en az 100 çeşitli sentetik/etiketli örnekle başlar; sayı doğruluk güvencesi değildir. Kısa markalar, meşru benzer adlar, Türkçe karakterler, punycode, alt domain yanıltması ve tekrar sertifikaları bulunur. Alan adı benzerliği değerlendirmesi ile gerçek phishing doğrulaması ayrı görevler olarak ölçülür.
-
-### R3 — Güvenilir toplama, ölçüm ve kurtarma
-
-**Amaç:** Çalışan prototipi sürdürülebilir kişisel araca dönüştürmek.
-
-**İşler:** Kaynak kaydı; checkpoint ve kesinti aralıkları; sınırlandırılmış kuyruk; yeniden deneme ve karantina; denetimli kapatma; retention; disk sınırı; ölçümler; kaynak başına kota; yedekleme takvimi; geri yükleme tatbikatı; sabit veriyle benchmark.
-
-**G3:** Kontrollü uzun çalışma deneyi tamamlanmış; hedef başlangıçta 24 saat, sonra gerçek kullanımda 7 günlük gözlem. Sessiz iş kaybı yok; kaynak boşlukları raporlanıyor. Tekrar oynatma testinde beklenen sonuç sayıları tutarlı. Disk dolması ve API kesintisi kontrollü hataya dönüşüyor. Son yedeğin geri dönüş testi yapılmış. Bu sonuçlar 7/24 hizmet SLA'sı anlamına gelmez.
-
-### R4 — Dış saldırı yüzeyi ve varlık ilişkileri
-
-**Amaç:** İzlenen kuruluşun dışarıdan gözlenebilen varlıklarını ve değişikliklerini açıklamak.
-
-**İşler:** Domain/subdomain, DNS/IP ve TLS ilişkileri; keşif yolu; sahiplik adayı/onaylı sahiplik ayrımı; değişim geçmişi; DNS/TLS ve sertifika süre kontrolleri; e-posta DNS yapılandırması; izinli servis/port erişilebilirliği; açık yönetim adresi adayları; bulut/API varlık adayları. Port kanıtından ürün, sürüm veya CVE tahmini yapılmaz.
-
-**G4:** Her keşfedilen varlığın dayanağı ve kapsam durumu var. CDN veya paylaşımlı IP nedeniyle komşu kuruluşlar sahiplenilmiyor. Aktif tarama sadece tanımlı yetki kapsamına gidiyor. Bir portun açık olması “zafiyet doğrulandı” olarak sunulmuyor. Değişiklikler ilk/son gözlem zamanıyla izleniyor.
-
-Varlık/maruziyet durumları güncel, veri bayat, kapsamdan çıktı ve doğrulanarak giderildi olarak ayrılır. DNS/HTTP zaman aşımı, kaynak kesintisi veya geçici olarak görünmeme bulguyu otomatik kapatmaz. Kapanış için doğrulama kanıtı ya da açık kullanıcı kararı gerekir.
-
-### R5 — Aktif plan dışında
-
-Sunucu içi envanter, ürün/sürüm tespiti, Ubuntu/Red Hat paket takibi ve CVE/KEV/EPSS eşleştirmesi aktif ürün kapsamından çıkarıldı. Daha önce tamamlanan yerel kod ve kayıt şemaları kullanıcı verisini bozmamak için korunur; birleşik analiz bu veriyi kullanmaz. Bu kapsam ancak gelecekte açık bir kullanıcı kararıyla yeniden etkinleştirilebilir.
-
-### R6 — CTI bilgi tabanı, avcılık ve ilişkilendirme
-
-**Amaç:** Gözlemleri kaynaklı ve zamanlı istihbarat bağlamına dönüştürmek.
-
-**İşler:** IOC içeri alma/arama; güven ve geçerlilik; geri çekilen gösterge; actor/campaign/malware profilleri; kaynaklı raporlar; alternatif adlar; ATT&CK eşlemeleri; kaydedilmiş sorgular; izleme abonelikleri; vaka ilişkileri; ilişkisel depoda basit grafik sorguları; analist notları.
-
-İzlenen domain/IP için itibar ve blacklist değişimleri de izlenir. Listeye giriş, listeden çıkış ve sağlayıcıya erişilememesi ayrı olaydır; tek bir sağlayıcının sonucu kesin zararlılık kararı olarak sunulmaz.
-
-**G6:** Her önemli ilişki kaynağa dayanıyor. Birbirini kopyalayan iki rapor bağımsız iki teyit sayılmıyor. Aktör atfı belirsizliği korunuyor. Süresi dolan veya geri çekilen IOC yeni engelleme önerilerinde kullanılmıyor. İki ayrı olayın yanlış birleştirilmesi için negatif örnekler test edilmiş.
-
-Kuruluş, aktör, kampanya ve olay birleştirme/ayırma kararları geri alınabilir ve kaynaklı olur. Yanlış birleşme ayrıldığında eski atıflar korunur; etkilenen bulgu ve ilişkiler yeniden değerlendirilir. Aynı isimli iki kuruluşun yanlış birleşip sonra ayrıldığı kabul senaryosu G6/G9'a dahildir.
-
-### R7 — Dark web ve kimlik maruziyeti
-
-**Amaç:** Erişim hakkı olan kaynaklardan kuruluşla ilgili tehdit iddialarını ve kimlik maruziyeti bağlamını işlemek.
-
-**İşler:** Kaynak başına izole toplayıcı; forum/kanal/metin adaptörleri; Türkçe/İngilizce kuruluş eşleme; satış/iddia/haber ayrımı; ransomware duyuru takibi; tekrar yayımlanan içerik; iddia ile doğrulanmış sızıntı ayrımı; maskeli kimlik eşleştirme; yetkili örneklerden stealer/cihaz/oturum/servis metaverisi; kaynak güveni ve kısıtlı kanıt erişimi.
-
-**G7:** Kaynak erişim ve veri kullanım kaydı tamam. Ham parolalar veya oturum sırları varsayılan ekran/log/rapora çıkmıyor. Sızıntı iddiası otomatik doğrulanmış ihlal sayılmıyor. Tarihi tekrar yayımlar yeni ihlal gibi gösterilmiyor. Kuruluş eşleştirmesi ve hassas alan temizleme testleri geçiyor. Kimlik bilgileriyle oturum açma veya token deneme yapılmıyor.
-
-Canlı hassas veriye geçişten önce saklanmayacak alanlar, minimizasyon, gerekli kanıtın erişimi ve şifrelenmesi, anahtar saklama ve silme testi tamamlanır. Anahtar, veritabanının yanında korumasız tutulmaz. Bu kapı geçilene kadar sentetik veya önceden maskelenmiş örneklerle çalışılır. Aynı giriş kapısı R8'de kişisel/finansal veri için de geçerlidir.
-
-Özel kaynak erişimi, tarihsel veri, dil kapsamı ve analist doğrulaması ayrı bağımlılıklardır. Bir crawler'ın çalışması kapsamın tamamlandığı anlamına gelmez. Kapalı veya ücretli kaynaklar sağlanmadıkça ilgili matris satırı açık kalır.
-
-### R8 — Marka, sosyal hesap, uygulama, VIP ve dolandırıcılık
-
-**Amaç:** Domain dışındaki marka taklitlerini inceleme akışına almak.
-
-**İşler:** Yetkili sosyal ağ/mağaza bağlantıları; sahte hesap ve uygulama adayları; profil/isim/logo benzerliği; yüzey web ve kod deposu maruziyeti; marka kullanan kampanyalar; yönetici/VIP taklitleri; müşteri hesap maruziyeti bağlamı; uygun veri erişimi varsa finansal dolandırıcılık göstergeleri; tekrar ve sahiplik doğrulaması.
-
-İlk ücretsiz araç kapısı Maigret'in dar ayrı adaptörünü seçmiştir. Canlı önizleme resmî repodaki sabit commit'i kullanarak yalnız açık kullanıcı adı, küçük site listesi ve sıkı süre/çıktı sınırlarıyla çalışır. Kalıcı izleme sessiz başlangıç ve kaynak hatası ayrımıyla fark üretir; insan kararı tam profil durumuna bağlanır ve adres değişince taşınmaz. Yalnız açık olası taklit insan kararı aday başına tekil ortak kutu bildirimi üretir; profil eşleşmesi otomatik taklit kararı değildir. Bütün etkin izlemeler sınır kontrollü, kararlı ve tek seferlik toplu çalıştırılabilir; tek izleme terminal ön planında sınırlı tekrarlanabilir. İkinci kapı Sherlock'un mevcut 10 platformda yeni kapsam vermediğini, fakat sabit katalogda 101 eşleşmeyen kayıt kökü taşıdığını ölçmüştür. Sekiz platformluk kısa liste artık sabit kütüphane işçisiyle yazmasız önizleme olarak çalışır; ek sürüm isteği yapan Sherlock CLI kullanılmaz. theHarvester yalnız Common Crawl ve Wayback Archive P0 hostname profiliyle mevcut pasif yüzey akışına alınmıştır. Web-Check'in tamamı, Holehe ve telefon hesabı yoklama yöntemleri kapsam dışında bırakılmıştır.
-
-İleri phishing kapsamına, yalnız sahibi olunan/yetkili sitelerde açıkça yapılandırılan web işaretçisi ve referer telemetrisi eklenebilir. Toplanacak alanlar ve saklama sınırı belirlenir; botlar, eksik referer ve sahte sinyaller değerlendirilir. Tek bir geri çağrı site kopyalamanın kesin kanıtı sayılmaz.
-
-**G8:** Her aday için orijinal marka varlığı, gözlenen hesap/uygulama ve eşleşme nedeni görünüyor. Meşru bayi, parodi veya benzer isimli kuruluş için negatif örnek var. Görsel benzerlik tek başına ihlal kararı vermiyor. Erişim kotaları ve kapsanmayan platformlar raporlanıyor. Canlı hassas finansal alanlar için minimizasyon, maskeleme, erişim ve şifreleme kontrolleri uygulanmış; silme ve yetkisiz okuma testleri geçmiş.
-
-### R9 — Tedarikçi ve üçüncü taraf istihbaratı
-
-**Amaç:** Dış olayların kullanıcının tedarikçi ilişkilerine etkisini göstermek.
-
-**İşler:** Tedarikçi envanteri; kuruluş çözümleme; iş kritiklik düzeyi; kanıtlı domain ilişkileri; ihlal/ransomware/haber izleme; mevcut dış yüzey ve CTI bağlamını yeniden kullanma; ilişki zinciri; değişim ve olay bildirimi; açıklanabilir risk kartı.
-
-Gözlenen dış bağımlılıklardan tedarikçi adayı önerilebilir; kullanıcı doğrulaması olmadan ilişki kesinleştirilmez. Bulguların NIST/ISO/CIS gibi kontrol çerçeveleriyle eşlemesi eklenirse çerçeve/sürüm, eşleme dayanağı ve kapsamı saklanır. Teknik eşleme uygunluk değerlendirmesi veya sertifikasyon sonucu değildir.
-
-**G9:** Aynı isimli şirketler ve aynı hosting üzerinde bulunan kuruluşlar yanlış birleştirilmiyor. Bir tedarikçi olayından kullanıcı etkisine geçişte varsayımlar görünür. Veri yokluğu “güvenli” diye sunulmuyor. Skorun hangi modüllerden beslendiği ve son güncelleme zamanı gösteriliyor.
-
-### R10 — Paylaşım, vaka yönetimi ve onaylı aksiyonlar
-
-**Güncel sıra:** Geniş paylaşım teslimleri en sona ertelendi. Mevcut vaka,
-manuel webhook ve IOC STIX dışa aktarımı kullanılmaya devam eder.
-
-**Amaç:** İncelenen bilgiyi iş akışına taşımak ve sonucu takip etmek.
-
-**İşler:** Motorun mevcut kişisel vaka/kanıt kayıtları korunur. Yeni
-entegrasyon için sürümlü motor/.NET istek-sonuç ve iş durumu sözleşmesi;
-gerektiğinde STIX nesneleri ve seçili aktarım adaptörleri geliştirilir.
-Ekip ataması, kullanıcı oturumu, uygulama API'si ve ürün kanalları .NET
-tarafındadır. TAXII veya takedown ayrı kapsam/karşı uç kabulü gerektirir.
-
-**G10:** Entegrasyon kesintisinde iş kaybolmuyor, yeniden gönderim izleniyor. STIX biçim doğrulamasına ek anlam testleri geçiyor. Paylaşım sınıfı ve kaynak lisansı dışa aktarımı sınırlıyor. Bir gösterge değiştiğinde/geri çekildiğinde alıcıya güncelleme taşınabiliyor. Dış aksiyonun onayı, kapsamı, alıcısı ve kanıtı kayıtlı. Takedown talebi kabul edilmesi ile sitenin gerçekten kaldırılması ayrı durumlar.
-
-Motor için şu anda bir HTTP çatısı seçilmez. Süreç/JSON veya gerekli iç
-servis adaptörü, .NET dağıtımına göre kararlaştırılır. Ağ bağlantısı
-seçilirse servis kimliği, kapsam, TLS, sır ve istek sınırları doğrulanır;
-bu repo kullanıcı giriş/oturum sistemi geliştirmez.
-
-Aksiyon onayı alıcıya, hedefe, kanıta ve gönderilecek içeriğin belirli sürümüne bağlanır. Bunlar değişirse onay geçersizleşir; gönderim worker'ı işlem anında onayı yeniden denetler. Teslim edildi, kullanıcı tarafından görüldü, inceleniyor, ertelendi ve çözüldü durumları ayrıdır. HTTP 200 veya e-posta teslimi incelemenin yapıldığını göstermez; hatırlatma ve tekrar açma politikası bulunur.
-
-### R11 — .NET ürünü ile motor kapsamının birlikte doğrulanması
-
-**Sorumlu:** Gerçek .NET uygulaması ve platform kabulü repoyu kullanan
-ekibe aittir. Bu repo motor sözleşmesini, örnekleri ve belgeleri teslim
-eder; .NET adaptörünü veya platform PostgreSQL geçişini geliştirmez.
-Motorun kendi veri/iş/kapsam bütünlüğü sorumluluğu korunur.
-
-**Amaç:** Birden çok kullanıcıya güvenli, işletilebilir hizmet sunmak.
-
-**İşler:** Web, kullanıcı/rol, giriş oturumu, MFA/SSO ve MSSP ürün yönetimi
-mevcut .NET platformunun sorumluluğudur. Bu repo güvenilen çağrı kapsamını
-sorgu/iş/sonuç/kanıt/dışa aktarım boyunca korur; motor denetim izi, yedek,
-kurtarma ve kapasite kabulünü sağlar. Veritabanı taşıma yalnız ölçülmüş
-motor ihtiyacında ele alınır. İlk pilot ayrılmış tek kuruluş ortamıdır;
-ortak müşteri çalışması bütün erişim yolları doğrulanmadan açılmaz.
-
-**G11:** Kurumlar arası negatif erişim testleri tüm veri yollarında geçiyor. Dosya/arama/rapor/kuyruk üzerinden sızıntı denemeleri test edilmiş. Kimlik doğrulama ve yetkilendirme bağımsız incelenmiş. Geri yükleme, sürüm yükseltme ve rollback tatbikatı var. Hedef iş yükünde gecikme/kullanılabilirlik ölçülmüş. Destek ve olay müdahale sorumlusu atanmış. Güvenli müşteri kullanımına geçiş için bütçe ve işletim planı mevcut.
-
-### R12 — AI destekli analiz ve denetimli iş akışları
-
-**Güncel sıra:** 15 Kasım 2026 son kullanıcı kararıyla en sona ertelendi.
-İlk olay adayı, kayıtlı genel arama ve üç kaynaklı haber dilimleri
-uygulandı. Haberlerin toplama iş akışına katılması ve ölçülmüş kaynak
-genişlemesi önceliklidir; model/LLM entegrasyonu geniş paylaşım ve teslim
-hazırlığıyla birlikte en sonda kalır.
-
-**Plan durumu:** 13 Kasım 2026 kullanıcı kararıyla gelecekteki teslim planına isteğe bağlı LLM analiz desteği eklendi. Henüz model kurulmadı ve bu özellik uygulanmadı. İlk teslim kayıtlı kanıttan açıklama, günlük özet ve vaka taslağı üretir; web paneli, REST API veya tüm veri kaynaklarının tamamlanmasını gerektirmez. Araç kullanan çok adımlı otomasyon bu ilk kapsamın dışında kalır. Kullanım, aşamalar ve kabul ölçümleri [LLM planında](LLM_PLAN.md) tanımlıdır.
-
-**Amaç:** İnceleme süresini azaltırken kanıt ve karar kalitesini korumak.
-
-**İşler:** Önce LLM'siz sonuçla karşılaştırılan küçük model deneyi, kaynaklı bulgu/günlük/vaka özeti ve ilk sürümden itibaren model/prompt/veri sürüm kaydı. Sonraki teslimlerde salt okuma yerel sorgu asistanı, gerekçeli inceleme sırası ve ilişki önerileri. Kaynak iddiası, model yorumu ve insan kararı ayrı tutulur; model eksik kanıtı tamamlanmış sayamaz veya alarmı kendiliğinden kapatamaz.
-
-**G12:** Kurallı temel yönteme karşı etiketli, ayrılmış test kümesinde ölçülmüş fayda var. Kaynaksız iddia, hatalı atıf, kaçırılan önemli bilgi ve analist inceleme süresi ölçülüyor. Toplanan içerikteki talimatlar model için yetki oluşturmuyor. İlk sürüm dış eylem gerçekleştirmiyor veya insan kararını değiştirmiyor. Dışa veri aktarımı ayrı ve açık seçime bağlı. Model kapalıyken veya yanıt vermediğinde mevcut toplama, alarm ve vaka akışı çalışıyor. Güncelleme sonrası kalite gerilerse önceki sürüme dönülebiliyor.
-
-AI'ın kendi bildirdiği güven yüzdesi kalibre edilmiş doğruluk olasılığı sayılmaz. Önce mevcut cihazda çalışabilecek, kullanım koşulları uygun bir yerel model değerlendirilir; model adı Türkçe kalite, bellek ve süre ölçülmeden seçilmez. İleride harici API ayrı veri aktarımı ve bütçe kararıdır. Platform LLM olmadan çalışmaya devam eder; standart kurulum modele bağımlı hale getirilmez.
-
-### R13 — Kapsam genişletme ve hizmet olgunluğu
-
-**Amaç:** Özelliklerin varlığını, gerçek dünya kapsamı ve operasyon kalitesiyle desteklemek.
-
-**İşler:** Yeni kaynak/dil/bölge onboarding; tarihsel veri; kaynak yedekliliği; lisanslı veri ortaklıkları; analist süreçleri; bağımsız güvenlik değerlendirmeleri; müşteri geri bildirimi; izleme nöbeti; hizmet hedefleri; gerektiğinde yüksek erişilebilirlik; uygun müşteri talebine göre bağımsız denetim/sertifikasyon programı.
-
-**G13:** Her yetenek için olgunluk kanıtları, veri boşlukları, maliyet ve bakım sahibi var. Kamuya açık rakip kapsamına karşı açık kalan maddeler listelenmiş. Sertifika veya uygunluk yalnız gerçek bağımsız süreç tamamlandıysa belirtiliyor. Karşılaştırılabilir veri olmayan alanlarda eşdeğerlik iddiası yapılmıyor.
-
-## 8. Skorlar, değerlendirme ve yanlış alarm yönetimi
-
-Üç alan ayrılır: **önem** olası etkinin büyüklüğü; **güven** kanıtın iddiayı ne kadar desteklediği; **öncelik** kullanıcının bağlamında ne zaman incelenmesi gerektiği. Tek bir 0–100 puan bu açıklamaların yerine geçmez.
-
-İlk sürümde kural gerekçeleri ve seviyeler kullanılır. Sayısal model eklendiğinde girdiler, ağırlıklar, eksik veri davranışı ve model sürümü kaydedilir. Bir kaynağın aynı iddiayı tekrar etmesi güveni sınırsız artırmaz. Allowlist kapsamlı, açıklamalı ve gerekiyorsa süreli olur.
-
-Ölçümler:
-
-- **Precision:** İncelenen pozitif adayların kaçının doğru olduğu; örnekleme yöntemiyle birlikte verilir.
-- **Recall:** Etiketli değerlendirme kümesindeki beklenen pozitiflerin kaçı yakalandı? İnternet genelindeki bilinmeyen olaylar için recall iddia edilmez.
-- **Yanlış alarm yükü:** Kullanıcı/izlenen varlık başına incelemeye düşen yanlış veya ilgisiz adaylar.
-- **İnceleme süresi:** Bulgu açılmasından karara kadar geçen aktif süre; bekleme süresinden ayrılır.
-- **Kaynak gecikmesi:** Kaynak zamanından alınma zamanına kadar; kaynak zamanı bilinmiyorsa bilinmiyor.
-- **İşlem gecikmesi:** Alınmadan analize, analizden bildirime kadar p50/p95 süreleri.
-- **Tekrar oranı:** Aynı olay için üretilen gereksiz bulgu/bildirim sayısı.
-- **Kapsam:** Tanımlı kaynaklar ve varlık türleri içinde başarı; tüm internet yüzdesi gibi sunulmaz.
-
-Eşikler değerlendirme kümesine bakılarak ayarlanır; final test kümesi ayar sırasında kullanılmaz. Zaman ve domain/kuruluş gruplarına göre ayrım yapılır; aynı olayın varyantları eğitim ve testte karşı karşıya gelerek sonucu şişirmemeli. Doğruluk iddiaları örnek sayısı, veri dönemi ve belirsizlikle raporlanır.
-
-## 9. Test, sürüm ve kalite kapıları
-
-Her iş için gereken test maliyeti riskle orantılı olur. Basit metin değişiklikleri için uygulamayı taklit eden testler yazılmaz. Veri kaybı, yanlış tespit, kapsam ihlali veya dış aksiyon riski taşıyan davranışlar için anlamlı test gerekir.
-
-| Test sınıfı | Kritik örnek |
+| Başlık | Kullanıcıya açıklanacak bilgi |
 |---|---|
-| Birim | IDN normalleştirme, kısa marka yanlış alarmı, eşik sınırı |
-| Sözleşme | Kaynak ayrıştırıcısı ortak Observation üretir; bilinmeyen sürüm reddedilir |
-| Entegrasyon | Gözlem, iş ve checkpoint tutarlı kaydolur |
-| Yeniden işleme | Aynı veri 10 kez oynatıldığında beklenen tekil bulgu sayısı korunur |
-| Kurtarma | Worker yazmadan/yazdıktan sonra kapanır; iş kaybolmaz |
-| Backup/restore | Veritabanı ve kanıt dosyaları ayrı dizinde tutarlı açılır |
-| Migration | Önceki sürüm verisi yeni sürüme taşınır; kesintide kurtarma yapılır |
-| Güvenlik | SSRF, path traversal, kötü amaçlı HTML ve terminal kaçışları engellenir |
-| Yetki | Başka workspace'in varlığı, kanıtı, arama sonucu veya export'u okunamaz |
-| Performans | Sabit donanım/fixture ile p95 gecikme, RAM, disk ve kuyruk büyümesi ölçülür |
-| Entegrasyon teslimi | Webhook yanıtı kaybolur; tekrar ve belirsiz durum doğru yönetilir |
-| AI değerlendirmesi | Kaynaksız özet, içerik içi talimat, hassas veri ve yanlış aksiyon örnekleri |
+| Başlanan iş | Paket kimliği/adı ve A–K listesindeki gereksinim kimlikleri/adları; asıl hedef ile yalnız desteklenen parçalar ayrı. |
+| Beklenen sonuç | Kullanıcının iş bittiğinde yapabileceği somut işlem. |
+| Repo/araç/kaynak | Proje veya sağlayıcı adı ve resmî bağlantısı; hangi işi yapacağı, neden seçildiği, incelenmiş sürüm ve varsa hesap/maliyet ihtiyacı. |
+| Seçim durumu | Aday, seçilmiş, kurulmuş, entegre edilmiş ve canlı doğrulanmış durumları ayrı. Seçilmemiş araç kesin kullanılacak gibi anlatılmaz. |
+| Bizim geliştireceğimiz | Mevcut motordan kullanılacak parçalar, yazılacak bağlantı/iş kuralları ve sonuçların nasıl birleşeceği. |
+| Uygulama sırası | Kaynak incelemesi → entegrasyon → kalıcı sonuç/inceleme → takip/bildirim → JSON bağlantısı → kabul ve belge. |
+| Tamamlanma | Paket kabulünde ne gösterileceği ve önceden bilinen dış bağımlılıklar. |
 
-Sürüm kabulü: gerekli testler, şema geçişi, değişiklik notu, kurulum örneği, geri dönüş yöntemi, ölçüm ve bilinen sınırlamalar tamam. CI ortamı ücretsiz kota içinde kullanılabilir; temel kontroller yerelde de çalışabilmeli. Çalışan ürün olmadığı için bugün bu testlerden geçmiş sayılmıyoruz.
+Çalışma sırasında hangi adımın tamamlandığı, ne öğrenildiği ve sıradaki
+adımın neyi doğrulayacağı kısa güncellemelerle paylaşılır. Araç veya yöntem
+değişirse nedeni ve kullanıcı sonucuna etkisi açıklanır. Araç seçimi başlangıçta
+henüz bitmemişse önce adaylar, seçim sonrası gerçek karar bildirilir.
+Bu bilgilendirmeler rutin alt adım onayları değildir; yetkilendirilmiş
+paketin işi sürdürülür.
 
-## 10. Güvenlik ve veri koruma ürünün parçasıdır
+Kapanışta aynı gereksinim kimlikleriyle tamamlanan/açık kalan parçalar,
+fiilen kullanılan araçlar ve sürümleri, doğrulama sonuçları ve kullanım
+örneği verilir. Kaynak denemesi veya fixture sonucu tam özellik teslimi
+gibi sunulmaz. Güncel durum ilgili paket kaydına ve gerektiğinde NOTES'a işlenir.
 
-Toplanan içerik güvenilmeyen girdidir. HTML/JS çalıştırma, dosya indirme ve aktif tarama kaynak katmanında sınırlandırılır. Zenginleştirme URL'leri özel IP, localhost, link-local, bulut metadata ve DNS yeniden çözümleme durumları için denetlenir; yönlendirmelerde denetim tekrarlanır. Terminale basılan içerikte ANSI/OSC kaçışları, kontrol karakterleri ve Rich işaretlemesi güvenli ele alınır.
+## 2. Sorumluluk ve uygulama yolu
 
-Kanıt dosyalarının yolu kullanıcı girdisinden doğrudan üretilmez. Boyut ve içerik türü kontrol edilir. Şüpheli siteler ana tarayıcı oturumunda ve kişisel çerezlerle açılmaz; gerektiğinde yalıtılmış, sınırlandırılmış işleyici kullanılır.
+| Alan | Sorumluluk | Uygulama yolu |
+|---|---|---|
+| Toplama, kaynak kanıtı, firma eşleştirmesi, analiz, izleme ve vaka | XTI motoru | Mevcut servisleri genişlet; yeni kaynak ve araçları adaptörle bağla. |
+| Secret tespiti, sayfa alma, metin çıkarma, benzerlik gibi uzman işler | XTI tarafından yönetilen bileşen | Hazır açık kaynak adaylarını aynı veriyle karşılaştır; uygun sürümü sabitle. |
+| Özel veri erişimi, ücretli beslemeler, kapalı kaynak kapsamı | XTI adaptörü + veri sağlayıcısı + işletici | Kaynak erişimi, gösterme/saklama kapsamı ve bütçe belli olmadan canlı kabulü kapatma. |
+| React ekranları, .NET HTTP API, kullanıcı/rol/SSO, fatura | Tüketici platform ekibi | Motorun sürümlü JSON işlemlerini kullan; analiz mantığını yeniden yazma. |
+| Firma sınırı, güvenilir kullanıcı bağlamı, denetim ve veri politikaları | Paylaşılan sorumluluk | Backend kimliği/yetkiyi sağlar; motor kapsamı ve ilgili veri/iş kurallarını uygular. |
+| Sunucu işletimi, bölge, yedek hedefi, hizmet seviyesi | İşletici + platform + motor | Gerçek iş yüküyle kabul; motor değişikliği ve altyapı değişikliğini ayrı izleme. |
 
-Kimlik, token, kişisel veri ve finansal bilgiye erişim ihtiyaca göre sınırlandırılır; maskelenmiş görünüm varsayılandır. Veritabanı düz metin dosya olabileceği için cihaz/disk koruması ve dosya erişimi dikkate alınır. Hash'lenmiş e-posta tek başına anonimleştirme garantisi değildir. Sırlar kaynak koduna, örnek veriye veya loga yazılmaz.
+XTI ana kayıt ve iş yönetim sistemi olarak kalır. Bir dış araç, kendi
+görevini yapar; sonuçlar kaynağı ve sürümüyle XTI'ya bağlanır. Üçüncü taraf
+kodunu topluca kopyalamak veya başka bir platformu zorunlu ana sistem
+yapmak varsayılan yöntem değildir. Python motor, farklı dilde yazılmış
+bir aracı da yönetebilir. Araç değiştiğinde geçmiş kanıt ve insan kararı
+korunur; sürüm farkı görünür olur.
 
-Aktif tarama kapsamı açık varlık listesine dayanır. Kaynak erişimi için hesap/oturum atlatma, yetkisiz özel alanlara giriş veya edinilmiş kimlik bilgilerini deneme ürün işlevi olarak planlanmaz. Bu sınırlar, doğru veri toplama ve güvenilir müşteri işletimi için tasarım şartıdır.
+.NET'in ileride PostgreSQL kullanması, motor depolarının otomatik taşındığı
+anlamına gelmez. Motor deposunda değişiklik gerekirse veri geçişi, sorgu
+kabulü ve geri dönüş bu repoda ayrıca tasarlanır. Bugün SQLite korunur.
 
-Ticarileşme sırasında ülke, müşteri ve veri türüne göre sözleşme/gizlilik değerlendirmesi yapılır. Bu belge hukuki uygunluk veya sertifikasyon sonucu vermez. Silme, paylaşım ve saklama isteklerinin teknik karşılığı; ana veri, indeks, kanıt, dışa aktarım ve yedek yaşam döngülerinde tanımlanır.
+## 3. On beş ürün paketi ve önerilen sıra
 
-## 11. Yedek, kurtarma ve işletim
+Bu tablo geliştirme önerisidir; bütün paketleri çalıştırma yetkisi değildir.
+**21 Kasım 2026: P01 / A03 uygulamasına başlandı.** [Teslim kaydı](P01_DELIVERY.md)
+canlı erişim bağımlılıklarını ve her kapanış ölçütünü izler; paket henüz tamamlanmadı.
+Başlangıç incelemesinde kaynak erişimi karşılanmıyorsa engel kaydedilir;
+başka bir pakete geçiş görünür sıra değişikliği olur.
 
-SQLite yedeği aktif dosyayı gelişigüzel kopyalayarak alınmaz. Uygun backup API veya kontrollü tutarlı yöntem kullanılır; kanıt dosyalarıyla eşleşen manifest hazırlanır. [SQLite Backup API](https://www.sqlite.org/backup.html)
+### Paket tekrarını önleme kapısı
 
-Kişisel kullanım için başlangıç önerisi günlük yedek zamanlaması ve bir çalışma oturumunda geri yüklemedir. Kabul edilen azami veri kaybı penceresi, son başarılı ve doğrulanmış yedeğin yaşına göre ölçülür; günlük zamanlama tek başına 24 saat güvencesi vermez. Kaçırılmış yedek, yaş aşımı uyarısı ve bilgisayar sonraki açıldığında tamamlanacak iş test edilir. Donanım/veri boyutu bilinmediği için R3'te gerçek süre ölçülüp hedef kesinleştirilir. Aynı diskteki kopya disk arızasına karşı yedek sayılmaz; ayrı ortam yoksa bu açık risk olarak görünür.
+Yeni paket için kod yazılmadan önce mevcut terminal komutları, engine/platform
+işlemleri, uygulama servisleri, veri tabloları, kaynak adaptörleri, testler ve
+özellik kataloğu gereksinim satırıyla eşleştirilir. Sonuç `var`, `kısmi` veya
+`yok` olarak kanıtıyla kaydedilir. `Var` olan davranış yeniden yazılmaz;
+`kısmi` davranış mevcut servis ve veri yaşam döngüsü genişletilerek tamamlanır.
+Yeni paralel komut, tablo, izleme modeli veya aynı işi yapan ikinci adaptör
+ancak mevcut yapı teknik olarak kullanılamıyorsa ve bu karar ADR ile
+kanıtlanıyorsa açılabilir. Kaynak seçilmemiş veya yalnız canlı kabul eksikse
+soyut bir özellik kopyası yazılmaz; dış gereksinim açık tutulur.
 
-Çalışma yönergeleri: kaynak kesildi; kota doldu; şema değişti; disk dolmak üzere; iş takıldı; yanlış kural çok alarm üretti; yedek bozuk; model kullanılamıyor; sır sızdı; kaynak yanlış veri verdi. Her yönergede belirti, kontrol, geçici çözüm, kalıcı düzeltme ve doğrulama bulunur.
-
-Ölçüm alanları: kaynak son başarı zamanı; hata ve ayrıştırma reddi; gözlem/iş sayısı; en eski bekleyen iş; retry/failed işleri; veritabanı kilit beklemesi; disk büyümesi; kanıt sayısı; bulgu/geri bildirim; teslim durumu; uygulama/kural/şema sürümü.
-
-## 12. Ölçek büyütme kararları
-
-Veri miktarı, kaynak sayısı ve iş yükü ölçülmeden “milyarlarca satırı milisaniyede” hedefi kapasite taahhüdü yapılmaz. Başlangıç benchmark'ı donanım, veri türü, indeks ve sorgu örneğini birlikte kaydeder.
-
-| Gözlenen sorun | Önce denenecek | Sonraki karar | Geçişte doğrulanacak |
+| Sıra | Paket | Kullanıcıya teslim edilecek sonuç | Başlangıç bağımlılığı / durum |
 |---|---|---|---|
-| Yazma kilidi işleri sürekli geciktiriyor | Kısa transaction, toplu kayıt, indeks ve yazma düzeni | PostgreSQL | Tipler, benzersizlik, JSON/zaman, sorgular, migration ve eşzamanlılık |
-| İşler işleme hedefini sürekli aşıyor | Aday azaltma, profil, kontrollü worker sayısı | Ayrı worker makineleri ve uygun kuyruk | Teslim, sıra, tekrar, replay ve hata davranışı |
-| Arama hedef gecikmesini aşıyor | İndeks, FTS, sorgu tasarımı ve retention | OpenSearch benzeri arama deposu | Yeniden indeksleme, yetki filtresi, indeks gecikmesi ve kaynak kayıt ilişkisi |
-| Kanıt dosyaları yedeklemeyi zorluyor | Tutma süresi, sıkıştırma, tekilleştirme | Nesne depolama | Erişim, bütünlük, saklama, maliyet ve geri yükleme |
-| CPU eşleştirme darboğazı | Aday indeksleri, önbellek, verimli algoritma | Süreç havuzu veya ayrılmış hesaplama servisi | Kararlı sonuç ve iş sahipliği |
-| Bir modül diğerlerini sık bozuyor | Bağımlılık ve hata sınırı düzeltme | Ayrı dağıtılan servis | Sözleşme sürümü, bağımsız kurulum ve izleme |
-| İlişki sorguları karmaşık ve yavaş | İlişkisel model ve indeksler | Gerekçeli graph veri deposu | Veri çoğaltma, senkronizasyon ve yedek |
+| 1 | **P01 — Kod deposu ve paste maruziyeti** | Kuruluş/domain ile ilişkili kod ve açık içeriklerde marka/secret adaylarını internetten bul, maskeli kanıtla göster, değişimi izle ve vakaya bağla. | Uygulama ve yerel kabul tamam. Betterleaks 1.10.1 seçildi/kuruldu; GitHub/GitLab kamu keşfi canlı denendi. Hesaplı kod araması, Pastebin erişimi, ticari kaynak kararı ve Linux kabulü açık. |
+| 2 | **P02 — Firma ve tedarikçi içerik/kanal izlemesi** | Desteklenen haber, blog, forum ve kanallarda firmayla ilgili yeni/değişmiş içeriği bul, doğru firmayla ilişkilendir ve bildir. | Akışın yerel kabulü ve RSS/Atom canlı kabulü tamam. Hesap/kanal gerektiren Telegram/Discord/IRC canlı kabulü, Linux ve ticari kaynak kararları açık. [Teslim kartı](P02_DELIVERY.md). |
+| 3 | **P03 — Marka taklidi kanıtı** | Sahte domain/sayfa, logo, sosyal profil, VIP ve uygulama adaylarını özgün markayla karşılaştır; meşru bayi/parodi ayrımını incelemeye sun. | Akış, macOS temiz kurulum, gerçek eski üreticiden geçiş/geri dönüş ve birikimli kapasite kabulü uygulandı. SecureHup son canlı sonuç kısmi:13 aday/24 PNG. VIP modeli kontrollü kabul edildi; gerçek kişi kullanıcı seçimiyle izlenmedi. Linux, kaynak erişim eksikleri ve ticari kararlar açık. [Teslim kartı](P03_DELIVERY.md). |
+| 4 | **P04 — CTI analiz derinliği** | Aynı varlığın farklı adlarını ayır/birleştirme adayı yap; rapordan kanıtlı ilişki/TTP/etiket öner; kampanya değişimini ve firma önceliğini göster. | LLM gerektirmeyen motor akışı uygulandı; yerel davranış/geçiş/firma/kuyruk/yedek, iki firma20.000 aday kapasite kabulü ve3.577 testlik tam regresyon geçti. Push sonrası gerçek Linux CI/release kabulü açık. Geniş STIX/TAXII ve credential doğrulama dahil değil. [Teslim kartı](P04_DELIVERY.md). |
+| 5 | **P05 — Dark web ve credential kapsamı** | Seçilen yeraltı/veri sağlayıcılarında firma ve tedarikçi iddialarını kaynaklarıyla izle; credential eşleşmesini maskeli ve kapsamlı göster. | Seçilmiş kaynak motoru, yerel/geçiş/firma/kuyruk/kurtarma/yedek ve iki firma20.000 bulgu kapasite kabulü uygulandı. XposedOrNot odaklı25 test,2.261 testlik hızlı çevrimdışı kapı, güncel kapasite ve zararsız parola uç noktası kabulü geçti.0.184.0 tabanının son tam regresyonu3.596 testte hatasızdır;0.185.0 tam kapısı bu turda yeniden çalıştırılmadı. XposedOrNot canlı domain kabulü API anahtarı/doğrulanmış domain; forum/pazar kapsamı seçilmiş sağlayıcı bekliyor. Kamu ransomware akışı bütün dark web kabulü değildir. [Teslim kartı](P05_DELIVERY.md). |
+| 6 | **P06 — Aksiyon ve paylaşım** | Kanıtlı rapor, vaka prosedürü, insan onaylı takedown ve toplu IOC alışverişi. | Seçilen yerel motor kapsamı uygulandı: G01/G03/G04/G05 ve G02 desteği. Tam repo/Linux kabulü açık. LLM, geniş STIX/TAXII, e-posta/SMS ertelendi; SIEM/SOAR/ticket bağlayıcıları kullanıcı kararıyla kapsam dışı. [Teslim](P06_DELIVERY.md). |
+| 7 | **P07 — Birleşik izleme ve alarm politikası** | Domain, marka, IP, kelime, kişi ve tedarikçiyi saklı kanıtta ortak politika, sessiz başlangıç, fark, alarm, inceleme ve vaka zincirinde izle. | Yerel motor, firma JSON'u, recovery ve kapasite kabulü tamam; haricî bildirim ve gerçek scheduler platform/işletimde açık. [Teslim](P07_DELIVERY.md). |
+| 8 | **P08 — Saklama, hold ve audit temeli** | Eski büyük izleme gövdelerini kuruluş politikasıyla kayıpsız arşivle, hold/vaka kanıtını koru ve mutasyon zincirini denetle. | P07 izleme ve P12 telemetri gövdeleri tamam; diğer aileler, okuma audit'i, haricî soğuk depo ve mevzuat kararı açık. [Teslim](P08_DELIVERY.md). |
+| 9 | **P09 — Kaynak ve feed yönetişimi** | Her connector'ü erişim, maliyet, dil/bölge, kanıt, kota, hata ve ticari veri kararıyla tek sürümlü katalogda yönet. | 49 manifest, terminal/engine/platform ve 10.000 kayıt kapasite kabulü uygulandı. Canlı kaynakların kendi kabulleri ve hukuk/ticari kararları ayrı açık. [Teslim](P09_DELIVERY.md). |
+| 10 | **P10 — Mevcut içerik kaynaklarındaki gerçek kapsam boşlukları** | `news`, `mentions` ve firma/tedarikçi içerik yaşam döngüsünü yeniden yazmadan yalnız seçilmiş yeni sosyal gönderi, forum veya kanal kaynağını mevcut akışa bağla. | **Teknik teslim tamam:** Bluesky genel gönderi araması mevcut P02 akışına bağlandı; SecureHup boş sonuç ve pozitif gerçek yanıt kabulü geçti. Ticari saklama/gösterim kararı açık. [Teslim](P10_DELIVERY.md). |
+| 11 | **P11 — Yeraltı ve credential kaynak genişletme** | Yasal ve seçilmiş forum/pazar/Tor veya stealer-log sağlayıcısını mevcut maskeli dark-web yaşam döngüsüne bağla. | Planlandı fakat kaynak seçimi, hukuki amaç, veri minimizasyonu, bütçe ve güvenli izolasyon yok; mevcut ransomware/XposedOrNot bütün yeraltı kapsamı değildir. |
+| 12 | **P12 — Sensör ve malware telemetrisi** | Honeypot/sinkhole ve sandbox sonuçlarını sensör görülmesi, örnek davranışı ve kaynaklı kanıt olarak al. | **Teknik motor teslimi tamamlandı:** güvenli XTI/Cowrie/CAPE normalizasyonu, sürümlü kanıt, inceleme, izleme, vaka, Engine/Platform, şema99, kayıpsız retention/hold/restore ve 5.000 kayıt/firma kabulü hazır. Cowrie/CAPE kurulmadı; gerçek işletim/canlı kabul, ticari veri kararı ve Linux kabulü açık. |
+| 13 | **P13 — Cloud ve uzman istihbarat modülleri** | Cloud yanlış yapılandırma, SBOM, OT/ICS/IoT ve blockchain gibi özel veri ailelerini ayrı güvenli modüllerle ekle. | Planlandı; her alt modül ayrı kaynak/yetki/doğruluk ve kapasite kabulü ister. Zafiyet/SBOM kullanıcı kararı değişmeden aktif açılmaz. |
+| 14 | **P14 — Üretim ölçeği ve birlikte çalışabilirlik** | Seçilen STIX/TAXII/MISP, bildirim, veri katmanı, bölge, DR ve işletim sözleşmelerini gerçek yükle tamamla. | En sona bırakıldı. .NET HTTP/auth/UI tüketici ekipte; motor gerekli sürümlü JSON, firma ve kanıt sınırlarını sağlar. Kafka/OpenSearch iş yükü kanıtı olmadan zorunlu değildir. |
+| 15 | **P15 — Kanıta bağlı LLM desteği** | Özet, çeviri, doğal dil sorgu ve analist önerisini özgün kanıt, maliyet, gizlilik ve insan onayıyla sun. | En sona bırakıldı. Model/yerel-API kararı, veri gönderimi, bütçe ve etiketli doğruluk kabulü seçilmedi; LLM otomatik tehdit hükmü vermez. |
 
-PostgreSQL ve SQLite'ta tam metin araması bulunur; ayrı arama kümesi başlangıç şartı değildir. [PostgreSQL arama indeksleri](https://www.postgresql.org/docs/current/textsearch-indexes.html), [SQLite FTS5](https://www.sqlite.org/fts5.html)
+Paket bir yönetim başlığıdır. Kaynaklar, diller ve alt yetenekler aşağıdaki
+76 satıra bağlanır; paket içinde sessizce ertelenen satır olamaz. Ayrı
+erişim veya platform işi gerektiren alt parçalar baştan işaretlenir.
+Süre taahhüdü kaynak/araç ön incelemesi ve iş yükü belirlenmeden verilmez.
 
-Kafka, RabbitMQ ve diğer kuyruk/akış ürünleri farklı teslim ve replay modellerine sahiptir. Birbirlerinin yalnız isim değişikliğiyle yerine geçeceği varsayılmaz. Seçim anında iş akışı, sıralama, tekrar okuma, işletim ve lisans değerlendirmesi yapılır. Veritabanı/aracının değişmesi veri taşıma ve işletim testi gerektirir; port/adaptör tasarımı bu işi sınırlar, ortadan kaldırmaz.
+### Paketlere eşlik eden işler
 
-Birden çok worker makinesine geçmeden ortak veri erişimi ve erişilebilir kanıt deposu çözülür. Yerel SQLite/WAL dosyasını paylaşımlı ağ diskine koymak ölçekleme yöntemi değildir. Merkezi uygulama/veri servisi veya PostgreSQL gibi uygun bir çözüm önkoşul olur.
+- **OP — İşletim ve veri politikaları:** Kurulum, kaynak kotası, iş
+  kapasitesi, geçmiş/disk büyümesi, firma ayrımı, bakım, yedek, saklama ve
+  denetim her paketin kabulüne dahildir. Genel saklama/silme, eşzamanlılık,
+  çoklu bölge veya yeni depo ihtiyacı ayrıca kendi gereksinimini kapatır.
+  Ortak ihtiyaç çıkmadan bütün altyapıyı değiştiren ayrı bir ön proje yoktur.
+- **AI — Gelecek LLM paketi:** Özetleme, çeviri, kanıta dayalı sorgu ve
+  öneri desteği [LLM planına](LLM_PLAN.md) bağlıdır. Ücretli/yerel model,
+  veri gönderimi ve bütçe seçilmedi; otomatik karar ve kaynak icadı kabul edilmez.
+- **SP — Uzman modüller:** Honeypot/sinkhole, sandbox, cloud/SBOM, OT/ICS,
+  blockchain ve deepfake ayrı kullanım ve kaynak kararlarıdır. Genel
+  modüle isim ekleyerek yapılmış sayılmazlar. Her biri aynı tam teslim
+  düzenini izler. Zafiyet/SBOM genişlemesi aktif kapsam dışı kararını korur.
+- **PL — Platform:** UI, HTTP servis, kimlik ve ticari işletim ekranları
+  tüketici ekipte. Motor tarafındaki gerekli veri/iş sözleşmesi ilgili
+  paketin içinde tamamlanır; gerçek UI/SSO bağlantısı yapılmış sayılmaz.
+- **DIŞ — Hedef dışında:** Genel saldırı/istismar otomasyonu ve otomatik
+  engelleme mevcut motor hedefi değildir. Liste satırları görünür tutulur.
 
-## 13. Bütçe, insan kaynağı ve takvim
+## 4. Bir özelliğin başlanmadan önce hazırlanacak kartı
 
-| Kaynak profili | Yapılabilecek kapsam | Açık sınır |
-|---|---|---|
-| B0 — Mevcut bilgisayar, ücretli hizmet yok | Yerel omurga, sınırlı kaynaklar, domain/EASM/CTI çekirdeği, terminal | Cihaz açık olduğu süre, disk, ücretsiz erişim ve kişisel bakım kapasitesi |
-| B1 — Sürekli açık makine ve ayrı yedek | Daha düzenli toplama, daha uzun geçmiş, daha çok iş | Donanım/elektrik/ağ/yedek maliyeti |
-| B2 — Lisanslı veri ve analist zamanı | Özel/tarihsel kaynaklar, kapsam ve doğrulama derinliği | Sözleşme, kaynak başına gider ve insan emeği |
-| B3 — Müşteriye hizmet | Erişilebilirlik, güvenlik incelemesi, destek, çok kiracılı işletim | Sürekli operasyon, olay müdahalesi, denetim ve altyapı bütçesi |
+Her yeni kaynak/özellik için aşağıdaki alanlar ilgili paket kaydında
+doldurulur. Gelecekteki bütün kaynaklar bugün seçilmiş gibi yazılmaz.
 
-Hiçbir ücretli kaynak, satın alma veya sunucu kurulumu bu belgeyle yapılmış değildir. İlgili faza gelindiğinde somut gereksinim ve maliyet çıkarılır. Bütçe açılmazsa bağımlı özellik kısıtlı prototip veya bekleyen iş olarak kalır.
+| Alan | Önceden verilmesi gereken cevap |
+|---|---|
+| Kullanıcı sonucu | Kullanıcı neyi girecek, neyi görecek ve ne karar verebilecek? |
+| Gereksinim | Hangi A–K satırlarını tam veya kısmen kapatıyor; hangi parçalar hâlâ açık? |
+| Kaynak kapsamı | Kaynak/endpoint, veri türü, dil, tarih aralığı ve erişilebilir içerik sınırı. |
+| Erişim ve maliyet | Anahtar/hesap/izin ihtiyacı, ücretsiz/ücretli koşul, kota, saklama ve müşteri gösterimi kararı. |
+| Bileşen seçimi | Adaylar, bakım/lisans incelemesi, aynı örneklerde doğruluk/hız, seçilen sabit sürüm ve değiştirme yolu. |
+| Veri ve sonuç | Kaynak/zaman/kimlik, maskelenen alanlar, kanıtın korunması, aday–doğrulanmış ayrımı. |
+| İş akışı | Topla → eşleştir → sakla → incele → izle → değişimi bildir → vakaya/rapora bağla. |
+| Tekrar ve hata | Boş yanıt, erişim hatası, eksik sayfa, iptal/kesinti, kaldığı yer, aynı çağrının tekrarı, eski başarılı veri. |
+| Kapasite | Firma/varlık/kayıt/tur sayısı, güncelleme sıklığı, günlük büyüme, sayfalama, süre/bellek/disk/istek bütçeleri. |
+| Doğruluk kabulü | Bağımsız etiketli örnekler, beklenen eşleşmeler ve benzer ama ilgisiz örnekler; önceden belirlenmiş ölçüm/eşik. |
+| Teslim | CLI ve firma JSON, kurulacak bağımlılıklar, geçiş/geri dönüş, test ve kullanım örneği. |
 
-Günlük ham veri tahmini: `gözlem/saniye × ortalama bayt × 86.400`. Örnek olarak 100 gözlem/saniye ve 1 KB/gözlem yaklaşık 8,64 GB/gün ham veri eder; indeks, tekrar, yedek ve dosya sistemi ek yükü hariçtir. Bu bir tasarım örneğidir, beklenen kaynak trafiği veya kapasite ölçümü değildir.
+Kaynak kabulü için gerekli dış girdi eksikse “uygulama/yerel kabul var,
+canlı kabul bekliyor” denebilir; özelliğin tamamı kapatılmaz. Gerekli erişim
+başta konuşulur, son adımda beklenmedik zorunluluk olarak ortaya çıkarılmaz.
+Araç API'si veya sağlayıcı koşulları gerçekten değişirse tarih/kanıtla güncellenir.
 
-Takvim çalışma bloklarıyla yürütülür. İlk dört döngüden sonra gerçek hız ölçülür. Bir döngü bir ana kullanıcı sonucunu tamamlar; süre haftalık zaman ve öğrenme ihtiyacına bağlıdır. Her faz için veri erişimi, öğrenme, geliştirme, doğrulama ve bakım ayrı tahmin edilir.
+## 5. Tamamlandı ölçütü — her pakette aynı
 
-Tam ürün kapsamı için şu an güvenilir bitiş tarihi verilemez. Özel kaynak ağı ve hizmet olgunluğu sürekli yatırımdır. İlk MVP'den sonra kilometre taşları üç aylık planlama pencerelerinde güncellenir; uzun vadeli maddeler ayrıntılı takvim taahhüdüne dönüştürülmez.
+1. **İşlev:** Seçilen kapsam için kullanıcı girdisinden kayıtlı ve
+   incelenebilir sonuca kadar gerçek kullanım zinciri çalışır. Yardım
+   ekranı, önizleme veya aracın kurulmuş olması tek başına kabul değildir.
+2. **Kaynak kanıtı:** Sonuç kaynağı, zamanı, kapsamı ve ayrıştırıcı/araç
+   sürümüyle açıklanır. Başarısız istek başarılı boş sonuç olmaz.
+3. **Doğruluk:** Zorunlu pozitif, negatif, belirsiz ve çelişkili örnekler
+   beklenen davranışı verir. Etiketli kümedeki ölçüm ile canlı kaynağın
+   kapsamı ayrı raporlanır; sonuçtan sonra eşik düşürülmez.
+4. **Tam yaşam döngüsü:** Kaydetme, liste/ayrıntı, insan kararı, tekrar,
+   değişiklik, iptal/geri çekme, geçmiş, vaka ve rapor bağlantısı ilgili
+   özellik için tamamdır. Uygulanamaz bir adım varsa gerekçesi baştan yazılır.
+5. **Motor bağlantısı:** CLI ve firma JSON aynı servisleri kullanır.
+   Firma karışması, başka firma kimliği, eski workspace ve tekrar istekleri
+   doğrulanır. UI ekibi toplama veya analiz mantığını yeniden yazmak zorunda kalmaz.
+6. **Birikimli kullanım:** Değişmeyen ve değişen tekrarlı turlar ölçülür;
+   geçmiş, etkin iş kapasitesini tüketmez. Sayfalama, kayıt büyümesi,
+   süre/bellek/disk bütçeleri belirtilmiş iş yükünde sınanır.
+7. **Kurtarma:** Süreç kesintisi, kaynak hatası ve ilgili disk/veri
+   arızasında eski kanıt korunur. Geçiş varsa yedek, gerçek eski sürümden
+   yükseltme ve eski yedekle geri dönüş doğrulanır.
+8. **Kurulum ve kullanım:** Desteklenen Linux ortamında kurulum ve kısa
+   kullanıcı senaryosu çalışır. İsteğe bağlı bileşenin eksikliği açık
+   görünür. Sırlar terminale/rapora/git'e taşınmaz.
+9. **Doğrulama:** Geliştirirken ilgili anlamlı testler; paket kapanışında
+   değişiklik kapsamının gerektirdiği regresyon, sözleşme ve Linux kabulü
+   yapılır. Her küçük değişiklikte tüm paket tekrarlanmaz; yalnız belge
+   değişikliğinde link/tutarlılık denetimi yeterlidir. Zorunlu başarısız
+   veya atlanan kontrol varken tam teslim denmez.
+10. **Kapanış kaydı:** Kod sürümü/commit, senaryo sonuçları, canlı ve
+    kontrollü kanıt ayrımı, kapasite ölçümü, kaynak maliyeti/koşulu,
+    güncellenen kullanım ve NOTES, gönderim/CI durumu birlikte verilir.
 
-Başlangıçta ürün sahibi, geliştirici, analist ve işletim sorumlusu aynı kişi olabilir. Çok kullanıcılı hizmet öncesinde güvenlik incelemesi, veri kaynağı yönetimi, müşteri desteği ve kesinti müdahalesinin kim tarafından yapılacağı açıkça atanır. Kod üretimindeki hızlanma bu görevleri ortadan kaldırmaz.
+**Durumlar:** planlandı → ön inceleme → uygulama → kabul → tamamlandı.
+“Dış girdi bekliyor”, “ertelendi”, “platform ekibinde” ve “hedef dışında”
+tamamlandı değildir. Bir alt teslim biterken ana gereksinimde açık parça
+varsa ana satır kısmi kalır. Yeni ihtiyaç eski kabulü geriye dönük değiştirmez;
+önceki kapsamı aşan genişleme ayrı kaydedilir. Mevcut kapsamın hatası ise
+aynı teslimle ilişkilendirilerek düzeltilir.
 
-## 14. Öğrenme yolu ve kullanıcı deneyimi
+## 6. İlk önerilen paket P01'in somut teslimi
 
-Kullanıcıdan SQL ile günlük işlem yapması beklenmez. Öğrenme, kullanılan özelliğe bağlanır:
+**Hedef:** Kullanıcı kuruluş adı, domainleri ve varsa bilinen depo
+hesaplarını verir. Motor desteklenen internet kaynaklarında araştırır;
+ilgili içerik ve secret adaylarını maskeli kanıtla gösterir, sonraki
+değişiklikleri izler. Kullanıcının dosya getirerek sistemi beslemesi
+zorunlu başlangıç yöntemi değildir.
 
-| Öğrenme konusu | Ne zaman? | Pratik sonuç |
-|---|---|---|
-| Terminalde komut, yardım ve hata | R1 | `xti --help`, `xti doctor` çıktısını okuyabilme |
-| Dosya, klasör ve yapılandırma | R1 | Verinin nerede tutulduğunu bilme |
-| Tablo, satır, kimlik ve ilişki | R1 | Domain ile bulgunun neden ayrı kayıt olduğunu anlama |
-| Transaction ve migration | R1–R3 | Yarım kayıt ve sürüm geçişi sorununu kavrama |
-| Kaynak, API, kota ve zaman aşımı | R2–R3 | Kaynak yokluğu ile tehdit yokluğunu ayırma |
-| Git, sürüm ve geri alma | R1 boyunca | Çalışan sürüme dönebilme |
-| Yanlış alarm ve değerlendirme | R2 boyunca | Eşik değişikliğinin etkisini ölçme |
-| Yedek, restore ve disk sınırı | R1–R3 | Kendi verisini geri getirebilme |
-| Yetki, rol ve kurum kapsamı | R11 öncesi | Kişisel araç ile müşteri hizmeti farkını anlama |
+**Durum:** uygulama ve yerel doğrulama tamam. Betterleaks 1.10.1 seçildi,
+kuruldu ve gerçek yerel ikiliyle test edildi. Kamu GitHub/GitLab keşfi
+canlı denendi; hesaplı genel kod araması ve Pastebin erişimi açık.
+Bu kaynakların kabulü sağlanmadan A03'ün bütünü tamamlandı sayılmaz. Sınırsız
+platform araması veya her eski/silinmiş içeriğe erişim vaat edilmez.
 
-Komutların ilerideki örnek kapsamı: `init`, `doctor`, `assets`, `sources`, `watch`, `jobs`, `findings`, `cases`, `reports`, `export`, `backup`, `restore`. Henüz uygulanmış komutlar değildir.
+| Teslim parçası | Kabulde görülmesi gereken |
+|---|---|
+| Firma tanımı | Domain, marka ve alternatif isim; aynı isimli ilgisiz kuruluş; firma kapsamı ve tanım değişikliği ayrımı. |
+| İnternetten keşif | Kaynak bazlı arama, sayfalama, bulunan depo/içerik kimliği ve keşif nedeni. Bilinen depo taraması ile genel keşif ayrı gösterilir. |
+| Depo ve paste kapsamı | Her seçilen kaynağın erişim biçimi ve desteklenen geçmişi kanıtlıdır; arşiv geçmişi bulunmaması temiz sonuç sayılmaz. |
+| Secret/marka analizi | Hazır araç adayları aynı etiketli veriyle karşılaştırılır. Marka geçişi, hassas değer adayı ve firmayla bağlantı ayrı alanlardır. |
+| Kanıt | Kaynak URL, depo/dosya/sürüm veya paste kimliği, zaman, maskeli bağlam; sırların düz metin rapor/log/git'e çıkmaması. |
+| İnceleme | İlgili/ilgisiz/belirsiz ve çözüm durumu; gerekçe, eski karar ve kanıt korunur. Secret deseni aktif hesap erişimi doğrulaması değildir. |
+| Düzenli takip | İlk ölçüm, yeni/değişen içerik, kapsam değişimi ve kaynak hatası ayrı; değişmeyen içerik yeni alarm veya sınırsız gövde kopyası üretmez. |
+| Kullanıcı çıktısı | Ayrıntı, filtre, kuruluş raporu, ortak inbox, vaka bağı ve aynı firma JSON işlemleriyle gerçek kullanım senaryosu. |
+| İşletim | Kota/bekleme, iptal/kesinti, tekrarlı çağrı, backup/restore ve bağımlılık güncellemesinin sonuçları korunur. |
 
-Çıktılar kısa açıklama, gerekçe ve sonraki adımı içerir. `--json` otomasyon için kararlı şema sunar; insan çıktısı bunu taklit etmek zorunda değildir. Komutlar başarısız olduğunda anlamlı çıkış kodu verir. Sırlar yardım metninde ve hata mesajında görünmez.
+Kalite kümesi gerçek parola kullanmadan oluşturulur: beklenen firma
+eşleşmeleri, benzer isimli negatifler, örnek/test anahtarları, aynı
+değerin tekrarı, farklı kaynaklarda kopya içerik, Unicode ve silinen/
+erişilemeyen kayıtlar. Depo içeriği çalıştırılmaz; içerik alma, ayrıştırma
+ve kanıt gösterimi güvenilmeyen veri olarak sınanır.
 
-Etkileşimli terminal R3 sonrasında ihtiyaç doğrulanırsa eklenebilir. Web, uygulama servislerinin üstüne kurulur; tespit mantığı web katmanında yeniden yazılmaz. [Textual](https://textual.textualize.io/)
+Kapasite kabulü iki ayrı firma, firma başına 100 depo/içerik
+kapsamı, 10.000 saklı aday ve 30 tekrarlı turdur. Bu sentetik veridir;
+canlı hesaplara bu yük gönderilmez. Ortam ve p95/bellek/disk/istek
+eşikleri [0185](../decisions/0185-code-and-paste-exposure.md) ile koddan
+önce sabitlendi. Yerel ölçüm [P01 kaydında](P01_DELIVERY.md); canlı kaynak
+kapsamı veya 7/24 üretim garantisi yerine geçmez.
 
-## 15. İşlerin yönetimi ve karar kayıtları
+Kullanıcıdan gerekebilecekler: gerçekten kullanılacak kaynakların hesap/
+anahtarları, özel depolar seçilirse açık kapsam, ücretli kaynak seçilirse
+bütçe. Bunlar ilk kaynak incelemesinde tek bir bağımlılık listesi olur;
+sırlar sohbete veya dokümana yazılmaz. Rutin alt işler için tekrar tekrar
+onay istenmez.
 
-Her backlog işi: kimlik, faz, kullanıcı sonucu, önkoşul, teslimat, kabul kanıtı, boyut, kaynak profili, durum ve sorumlu taşır. Başlangıçta bütün uygulama işleri planlandı durumundadır; dokümanın yazılmış olması ürün özelliğinin tamamlandığı anlamına gelmez.
+## 7. Kullanıcının 76 maddelik gereksinim kaydı
 
-İş durumları: planlandı → hazır → geliştiriliyor → doğrulanıyor → tamamlandı. Dış bağımlılık bekleyenler ayrıca neden ve tekrar değerlendirme tarihi taşır. Tamamlandı kaydı test/çıktı kanıtına bağlanır.
+Aşağıdaki başlangıç durumu 0.179.0 için oluşturulmuş ve 0.189.0'a kadar
+teslim edilen paketlerin gerçek durumuyla güncellenmiştir.
+yeni canlı kabul değildir. “Var” yalnız açıklanan mevcut kapsamı belirtir.
+Birden çok paket yazılması, parçaların hepsinin gerekmesi demektir.
+Ortak OP teslim koşulları yalnız OP yazan satırlarda değil bütün paketlerde
+uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 
-Bir mimari karar kaydı şu soruları cevaplar: Hangi problem var? Hangi seçenekler değerlendirildi? Neden bu seçenek seçildi? Bedeli ve sınırı ne? Hangi ölçüm kararı yeniden açacak? İlk kayıtlar: modüler monolit, SQLite, kalıcı işler, kanıt deposu, kaynak kabulü, skor yaklaşımı ve AI erteleme.
+### A — Veri toplama (14)
 
-Her çalışma döngüsü sonunda demo, veri kalitesi, bakım yükü ve riskler gözden geçirilir. Her sürüm sonunda backlog, kaynak envanteri ve yetenek matrisi güncellenir. Üç ayda bir kamuya açık rakip kapsamı yeniden doğrulanır; kapsam artışı otomatik olarak mevcut teslimatı bloke etmez.
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| A01 | Sosyal medya, forum, blog, haber OSINT | Kısmi: profil/arama, seçili yayıncılar ve P02 RSS/Atom akışına ek olarak P10 anahtarsız Bluesky genel metin gönderilerini firma/tedarikçi kanıt–inceleme–takip yaşam döngüsüne bağladı. Diğer genel sosyal platformlar/forumlar ve hesaplı kanal canlı kabulleri ayrı açık. | P02, P03, P10 |
+| A02 | Dark/deep web, forum, pazar, ransomware | Kısmi: P05 saklı RansomLook/ThreatCluster iddialarını kuruluş/tedarikçi kapsamı, değişmez kanıt, inceleme, değişiklik ve alarm zincirine bağlar. Doğrudan yeraltı forumu/pazar/Tor kaynağı seçilmedi; kamu ransomware kapsamı bütün dark web değildir. | P05 |
+| A03 | Paste ve GitHub/GitLab secret/kod izlemesi | Kısmi: 0.180.0 toplama, Betterleaks, maskeli kalıcı kanıt, insan kararı, izleme ve firma JSON/vaka/rapor bağlantısı var. Kamu keşfi canlı denendi; hesaplı kod araması/Pastebin ve Linux kabulü açık. | P01 |
+| A04 | Telegram/Discord/IRC kanal izlemesi | P02 adaptörleri, erişim profilleri, mesaj penceresi/geçmiş cursor ve kontrollü testler var. Telegram/Discord/IRC için hesap/kanal canlı kabulü açık; bütün satır tamamlandı sayılmaz. | P02 |
+| A05 | Honeypot ve sinkhole ham telemetrisi | Kısmi: P12, `xti-sensor-v1` ve güvenli Cowrie JSONL sonucunu ham parola/komut saklamadan kuruluş kapsamlı sürümlü kanıta alır; arama, insan incelemesi, P07 alarmı ve vaka akışı hazırdır. Gerçek sensör/sinkhole ağı işletimi, güvenli aktarım ve canlı kabul tamamlanmadı. | P12 teknik motor tamam; SP/OP canlı altyapı açık |
+| A06 | Malware sandbox ve örnek analizi | Kısmi: P12, ayrı CAPE ortamında tamamlanmış `report.json` içindeki izinli hash, davranış özeti ve ağ IOC'sini alır; XTI örnek, PCAP, bellek veya ham rapor saklamaz ve malware çalıştırmaz. Gerçek yalıtılmış CAPE işletimi ve canlı rapor kabulü açık. | P12 teknik motor tamam; SP/OP canlı sandbox açık |
+| A07 | Ticari/üçüncü taraf feed ve normalizasyon | Kısmi: P09 kontrol düzlemi P10 ve P12 eklemeleriyle 53 connector'ü tip, dil/bölge, erişim, hak, kota, retry/hata ve zorunlu provenance manifestinde standartlaştırır. Veri tabloları fiziksel olarak birleşmez; her yeni feed'in canlı toplama, saklama, inceleme ve müşteri gösterim kabulü ayrıca gerekir. | P09 temel; P10/P12 yeni kaynaklar; P11 ve P13–P15 ertelenmiş sırada |
+| A08 | Phishing kit, sahte domain, typosquat | Kısmi: domain/isim/metin/logo/statik sayfa karşılaştırması, form/ortak şablon ipucu ve inceleme/izleme kanıtı var. Kit indirme/çalıştırma ve aktör atfı yok; benzerlik taklit hükmü değil. | P03 |
+| A09 | Sahte mobil uygulama / mağaza taraması | Seçili Apple/Google bölge araması, kimlikle yeniden kontrol, yayıncı farkı, değişmez kanıt ve insan incelemesi uygulandı/canlı denendi. Bütün mağaza kapsamı veya otomatik sahte hükmü yok; ticari koşullar/Linux açık. | P03 |
+| A10 | Credential leak toplama | Kısmi: P05 XposedOrNot verified-domain sonucunu yalnız açıkça bağlı kuruluş domaininde alır; alias bellekte maskelenir, HMAC kimliği/ihlal adları saklanır, secret/parola denenmez. Açık parola kontrolü yalnız yerel Keccak öneki gönderir ve geçmiş oluşturmaz. Adaptör kontrollü kabul edildi; API anahtarı/doğrulanmış domain ile canlı kabul, ticari şart teyidi ve stealer-log sağlayıcısı açık. HIBP verified-domain yeni çalışmalarda kapalıdır. | P05, OP |
+| A11 | Sosyal mühendislik, itibar, yönetici taklidi | Kısmi: firma içeriği, marka/kişi kimliği, sosyal karşılaştırma, bayi/parodi/ilgili-belirsiz incelemesi ve tekrar izleme var. SecureHup sosyal erişimi kısmi; gerçek VIP canlı kabulü yapılmadı. Geniş itibar sınıflaması tamam değil. | P02, P03 |
+| A12 | Tedarikçi/üçüncü taraf ihlal haberleri | Mevcut kaynaklarla sınırlı; P02 seçili yayın/kanalları, P10 Bluesky genel metin gönderilerini açık tedarikçi kimliği, inceleme, değişiklik, vaka ve ortak rapora bağlar. Kaynak iddiası doğrulanmış ihlal değildir. | P02, P05, P10 |
+| A13 | RU/ZH/AR/TR/PT dahil çok dilli toplama | P02 Unicode/alternatif isim ve kaynak dili desteği, P09/P10 her connector'de zorunlu dil/bölge manifesti ve Bluesky `lang` filtresi sağlar; TR/RU/ZH/AR/PT için 40 etiketli eşleşme örneği vardır. Bu dillerin ayrı canlı kaynak kapsamı ve yeraltı kabulü yok; çeviri ayrıdır. | P09/P10 temel; P11 canlı yeraltı kaynakları; P15 çeviri |
+| A14 | CVE/NVD, Exploit-DB, EPSS | Eski kapsam: CVE/NVD/KEV/EPSS kodu korunuyor; Exploit-DB yok. Kullanıcı kararıyla aktif planda değil. | SP (bekleyen kapsam kararı) |
 
-## 16. Başlıca riskler ve erken işaretler
+### B — İşleme ve zenginleştirme (8)
 
-| Risk | Erken işaret | Karşılık |
-|---|---|---|
-| Altyapı işi ürünün önüne geçiyor | Haftalarca kullanıcıya görünen sonuç yok | İlk uçtan uca senaryoya geri dön |
-| Veri hacmi kontrolsüz büyüyor | Disk/gün artışı ve eski işler birikiyor | Retention, kota, filtre ve kapasite ölçümü |
-| Kaynak sessizce bozuluyor | Veri sıfır ama uygulama sağlıklı görünüyor | Kaynak tazeliği ve ayrıştırma reddi ölçümü |
-| Yanlış alarm sistemi kullanılmaz yapıyor | İnceleme kuyruğu sürekli artıyor | Kural analizi, negatif örnek ve geri bildirim |
-| Tek kaynak bağımlılığı | Kesintide kapsam tamamen kayboluyor | Boşluğu görünür kıl, uygun alternatif araştır |
-| Kapsam iddiası kanıttan büyük | Özellik var fakat kaynak/yöntem bilinmiyor | Olgunluk boyutlarını ayrı raporla |
-| Yapay zekâ hatası karar gibi sunuluyor | Kaynaksız iddia veya açıklanamayan skor | Kaynak zorunluluğu, değerlendirme ve sınırlı yetki |
-| Veritabanı geçişi küçümseniyor | Yeni adaptör var fakat eski veri açılamıyor | Taşıma, geri dönüş ve eşzamanlılık tatbikatı |
-| Çok kiracılı güvenlik erteleniyor | Tenant filtresi yalnız ekranda | API/depo/cache/dosya/job/export testleri |
-| Kaynak koşulları ürüne uymuyor | Ticari yeniden paylaşım belirsiz | Lisans/erişim kaydı ve koşullu kapsam |
-| Tek kişinin bakım kapasitesi aşılıyor | Yeni modül sonrası kaynaklar haftalarca bozuk | Eşzamanlı iş sınırı, bakım zamanı ve modül kapatma |
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| B01 | IOC normalizasyonu / otomatik STIX 2.1 | Kısmi: IOC normalizasyonu ve sınırlı dışa aktarım var. Genel nesne/ilişki dönüşümü ve içe alma için çift yönlü kabul eksik. | P04, P06 (geniş STIX bekler) |
+| B02 | Tekilleştirme / entity resolution | P04 saklı CTI içinde aynı tür ad/alias benzerliğini, CTI–ATT&CK kimlik adayını, sürümlü kanıt ve `same_entity`/`different_entity` incelemesini sağlar; kayıtları otomatik birleştirmez. Genel çok dilli semantik çözümleme AI kapsamında kalır. | P01, P02, P04; AI |
+| B03 | Kaynak güvenilirliği / confidence | P04; firma profilinde kaynak reliability/bağımsızlık grubu, kaynak confidence, günlük tazelik ve destek sayısını açıklanabilir inceleme skorunda birleştirir. İnsan sonuçlarını gösterir ama güveni otomatik öğrenip değiştirmez. | P04 tamam; AI/J04 genişlemesi ayrı |
+| B04 | Otomatik MITRE ATT&CK TTP eşleme | P04 açık teknik kimliğinden veya insanın kabul ettiği CTI–ATT&CK kimliği + resmî `uses` ilişkisinden kanıtlı teknik adayı üretir. Otomatik gerçek değildir; genel serbest metin/LLM eşlemesi bekler. | P04 tamam; AI isteğe bağlı/bekleyen |
+| B05 | Aktör kümeleme ve attribution | P04 açık attribution ilişkisi veya çoklu kanıt/bağımsız kaynakla açıklanabilir aday üretir; tek ortak IP'yi reddeder, karşı sınırları ve insan kararını korur. Otomatik aktör hükmü yoktur. | P04 tamamlanan motor kapsamı |
+| B06 | AI destekli otomatik özet | Yok; LLM ertelendi. Özgün kanıta bağlı özet ve kaynak sadakati kabulü gerekli. | AI |
+| B07 | Çoklu dil çeviri | Yok. Özgün/çevrilmiş metin ve sürüm korunmalı; dil başına anlam/isim kaybı ölçülmeli. | AI |
+| B08 | Coğrafi/sektörel otomatik etiket | P04 kontrollü TR/EN sözlük ve olumsuzluk kontrolüyle özgün alıntılı `source_claim` adayı üretir; gerçek köken/hedef ilan etmez. Genel çok dilli sınıflandırma/çeviri AI kapsamında kalır. | P04 motor kapsamı tamam; AI genişlemesi ayrı |
 
-## 17. Başlangıç kararı
+### C — Analiz (8)
 
-İlk teslim: bir varlık eklemek, kayıtlı domain örneklerini işlemek, gerekçeli aday bulguları listelemek, karar kaydetmek, uygulamayı yeniden başlatmak ve yedekten geri dönmek. Bu senaryo G1–G2'nin ilk dilimidir.
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| C01 | ASM ve müşterinin asset envanteri | Var, kayıtlı domain/yüzey kapsamında. Yeni envanter bağlantıları ve sahiplik belirsizliği aynı kanıt modeline bağlanmalı. | P04, P06 |
+| C02 | Müşteriye özel risk önceliği | P04 tam kuruluş domain/alt-domain/URL IOC bağı ile sürümlü kuruluş önemini açıklanabilir inceleme önceliğine uygular. Skor risk olasılığı değildir; daha geniş etki modeli ayrı kabul ister. | P04 motor kapsamı tamam |
+| C03 | Aktör–malware–altyapı–kurban grafı | P04 sınırlı kaynak-iddiası ve aday grafını kanıt hash'i,100 düğüm/200 kenar ve snapshot cursor'uyla sağlar. Etkileşimli görselleştirme tüketici platformda kalır. | P04 motor tamam; PL görsel katman |
+| C04 | CVE + exploitability + maruziyet önceliği | Eski zafiyet akışları korunuyor; aktif plan dışında. Doğrulanmış envanter olmadan yeniden açılmaz. | SP (bekleyen kapsam kararı) |
+| C05 | Trend/kampanya erken uyarısı | P04 sessiz baseline, sabit durum, eşik üstü değişim ve kaynak/ATT&CK kapsam değişimini ayrı raporlar; yalnız kanıt sürümü değişen aday bildirilir. Bu otomatik incident kararı değildir. | P04 motor kapsamı tamam |
+| C06 | IOC/credential aktiflik ve gerçeklik doğrulaması | Kısmi: IOC yaşam döngüsü yanında P05 doğrulanmış-domain kaynak eşleşmesini ve güncelliğini gösterir; credential denenmez, hesabın/parolanın hâlâ aktif olduğu hükmünü vermez. | P04, P05 |
+| C07 | Dark web şirket içeriği tarama/alarm | P05 seçilmiş saklı kaynaklarda kesin firma/tedarikçi ad-domain eşleşmesi, sessiz baseline, değişmez kanıt, insan kararı, değişiklik, inbox/vaka ve firma JSON alarm zincirini uygular. Forum/pazar/Tor kapsamı kaynak seçilmediği için geniş gereksinim kısmi kalır. | P05 |
+| C08 | Sahte/klon domain ve sertifika izleme | CT/urlscan geçmişinden aday keşfi, statik klon sayfa/logo kanıtı, tekrar kontrol ve değişiklik bildirimi var. Son canlı arama kaynak penceresiyle sınırlı; sürekli küresel sertifika akışı yok. | P03, OP |
 
-Canlı kaynak, güvenilir işletim ve diğer modüller bu temelin üstüne eklenir. Ayrıntılı ilk işler [FIRST_ITERATIONS.md](FIRST_ITERATIONS.md) içinde; tüm uzun vadeli yetenekler [CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md) içinde takip edilir.
+### D — Dashboard ve deneyim (6)
 
-## 18. Standartların üründeki karşılığı
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| D01 | SOC/CISO/yönetim rol dashboard'ları | UI yok. Motorun kanıt ve özet işlemleri, platformun rol/ekran kararına bağlanacak. | PL; ilgili motor paketi |
+| D02 | Özelleştirilebilir widget/rapor paneli | Yok. UI düzeni platformda; motor filtreli ve sınırlı sonuç sözleşmesini sağlar. | PL |
+| D03 | Doğal dil sorgu / intel copilot | Yok; LLM ertelendi. Firma sınırı, kanıt başvurusu ve izinli sorgu davranışı birlikte kabul edilmeli. | AI, PL |
+| D04 | Olay/kampanya zaman çizelgesi | P04 kaynak iddia zamanlarını tur snapshot'ına bağlı, sınırlı ve sayfalı ortak CTI zaman çizelgesi olarak verir. Görsel gezinme platformda kalır. | P04 motor tamam; PL görsel katman |
+| D05 | Coğrafi tehdit haritası | P04 özgün alıntıya bağlı coğrafya `source_claim` verisini gerçek konumdan ayırır. Harita çizimi ve doğrulanmış geolocation tüketici platform/veri kaynağında eksiktir. | P04 veri sınırı tamam; PL harita |
+| D06 | Tema ve erişilebilirlik | Web UI yok. Terminal kullanımı korunur; web erişilebilirlik/tema kabulü platformda. | PL |
 
-Bu bölüm doğrulanmış standart tanımlarını, bizim uygulama kabul hedeflerimizden ayırır. Bir standardın adını kullanmak tam uyumluluk kanıtı değildir; desteklenen nesne, işlem ve sürümler yayımlanır.
+### E — İzleme ve alarm (5)
 
-| Standart / kaynak | Anlamı | Bizim uygulama hedefimiz |
-|---|---|---|
-| [STIX 2.1](https://oasis-open.github.io/cti-documentation/stix/intro.html) | Tehdit istihbaratının veri modeli ve serileştirilmesi | Indicator, observed data, report ve ilişkiler için tanımlı destek; kimlik/sürüm/zaman/referans/marking ve gidiş-dönüş testleri |
-| [TAXII 2.1](https://oasis-open.github.io/cti-documentation/taxii/intro.html) | HTTPS üzerinden istihbarat alışverişi | Discovery, API root ve Collections; sayfalama, yetki, içerik türü ve ikinci istemci testi |
-| [TLP 2.0](https://www.first.org/tlp/) | Bilginin paylaşım sınırı | TLP:AMBER+STRICT dahil sınırlamaları export ve bildirimde koruma; lisans ve erişim kontrolü ayrıca |
-| [MITRE ATT&CK](https://attack.mitre.org/) | Taktik ve teknik bilgi tabanı | Teknik kimliği/sürümü ve eşleme kanıtı; yeterli kanıt yoksa atama yapmama |
-| [CVE](https://www.cve.org/) | Ortak zafiyet kimliği ve kaydı | Değişen, reddedilen veya henüz yeterli açıklaması bulunmayan kayıtların yaşam döngüsü |
-| [CVSS](https://www.first.org/cvss/) | Zafiyetin teknik şiddeti | Sürüm, vektör, skor ve sağlayıcıyı birlikte saklama; kurum riskinden ayrı gösterme |
-| [EPSS](https://www.first.org/epss/) | Önümüzdeki 30 gün içinde istismar gözlenme olasılığı tahmini | Tarih/model/percentile; doğrudan kullanıcının zarar olasılığı gibi sunmama |
-| [CISA KEV](https://github.com/cisagov/kev-data) | Bilinen istismar kayıtları | Kaynak güncellemesini izleme; listede yokluğu güvenli kabul etmeme |
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| E01 | Domain/marka/IP/kelime/kişi watchlist | P07 yerel motor kapsamı: domain/marka/IP/kelime/kişi/tedarikçi hedefleri12 saklı kayıt ailesi üzerinde tek kuruluş politikasında birleşir. Kaynak yenileme ilgili collector'da kalır. | P07 motor tamam; yeni kayıt ailesi geldikçe açık adaptör kapsamı |
+| E02 | Email/SMS/Slack/Teams/webhook/push | Kısmi inbox ve imzalı webhook var. Kanal aboneliği, gerçek alıcı kabulü ve teslim takibi eksik; e-posta/SMS bekler. | P06, PL |
+| E03 | Alarm eşik/öncelik/yanlış alarm ayarları | P07 added/updated/removed seçimi, minimum değişiklik, öncelik, sessiz baseline, sürümlü politika ve useful/not_useful/uncertain geri bildirimini ortaklaştırır. Öncelik risk olasılığı değildir. | P07 motor tamam |
+| E04 | Gerçek zamanlı streaming/alarm | Periyodik/kuyruklu temel var; genel streaming yok. Olay hızı/gecikme hedefi, geri basınç ve yeniden oynatma kabulü gerekli. | OP; ilgili kaynak paketi |
+| E05 | Zamanlanmış tarama raporları | P07 politika aralığı, due listesi, not-due çiti, idempotent çalışma, kesinti recovery ve birleşik rapor sözleşmesini tamamlar. Gerçek platform scheduler, kaçırılmış iş işletimi ve alıcı teslimi ayrıdır. | P07 motor desteği tamam; OP/PL işletim açık |
 
-TAXII 2.1'de Channels hizmeti tanımlı bir pub/sub özelliği olarak planlanmaz; ilk hedef Collections'tır. Bir STIX JSON dosyası üreten endpoint tek başına TAXII uygulaması sayılmaz.
+### F — Entegrasyon (8)
 
-Güvenlik uygulamalarında [OWASP SSRF rehberi](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html) URL zenginleştirme kontrolünü; [OWASP prompt injection açıklaması](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) AI'ın dış içeriği talimat saymaması gereksinimini destekler. Bu kaynaklara atıf yapmak güvenlik testinin yerini tutmaz.
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| F01 | REST / GraphQL | Sürümlü JSON motor işlemleri var; HTTP sunucusu yok. Tüketici ekip servis ve auth katmanını yapacak. | PL; ilgili motor paketi |
+| F02 | STIX/TAXII ve MISP | Kısmi STIX IOC çıktısı/MISP warninglists var. Genel nesne alışverişi, TAXII ve MISP olay eşitlemesi yok; geniş kapsam ertelendi. | P06 |
+| F03 | Splunk/Sentinel/QRadar | Hazır bağlayıcı yok. Kullanıcı P06'da haricî bağlayıcı maddesini kapsamdan çıkardı; ileride açılırsa her alıcı için alan eşleme, tekrar/teslim ve sorgulanabilir kayıt kabulü gerekir. | Kullanıcı kararıyla beklemede; PL |
+| F04 | SOAR/XSOAR playbook tetikleme | Yok. Kullanıcı P06 haricî bağlayıcı kapsamından çıkardı; genel webhook kabul sayılmaz. | Kullanıcı kararıyla beklemede; PL |
+| F05 | Jira/ServiceNow | Yok. Kullanıcı P06 haricî bağlayıcı kapsamından çıkardı; ileride vaka–ticket kimliği ve kapanış eşitlemesi ayrı kabul ister. | Kullanıcı kararıyla beklemede; PL |
+| F06 | EDR/Firewall otomatik engelleme | Yok; mevcut hedef dışında. Gerekirse ayrı kullanıcı/ürün kararı ve geri alma sözleşmesi ister. | DIŞ |
+| F07 | Webhook/no-code otomasyon builder | Kısmi imzalı teslim var. Tetikleyici/abonelik/yürütme motoru ile görsel builder ayrı eksik. | P06, PL |
+| F08 | SSO/SCIM | Yok. Kullanıcı/kimlik yönetimi tüketici platformda; motor gelen güvenilir firma bağlamını korur. | PL |
 
-## 19. Kaynak ve kararların güncel tutulması
+### G — Aksiyon alınabilirlik (5)
 
-SOCRadar karşılaştırması 28 Ekim 2026'da kamuya açık sayfalara dayanır. Ana ürün ailesi dışında kimlik bağlamı, entegrasyon ve AI araç erişimi de matrise alınmıştır. [Identity & Access Intelligence](https://socradar.io/products/cyber-threat-intelligence/identity-and-access-intelligence/), [entegrasyonlar](https://socradar.io/integrations/), [Agentic Threat Intelligence](https://socradar.io/products/agentic-threat-intelligence/)
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| G01 | Phishing/app/sosyal takedown servisi | P06 yerel motor kapsamı tamamlandı: uygun vaka kanıtından taslak, katı insan onayı, dış başvuru referansı ve sonuç olay zinciri. Otomatik gönderim bilinçli olarak yoktur; gerçek portal/hukuk yetkisi işletme sorumluluğudur. | P03 + P06 tamamlanan motor kapsamı |
+| G02 | Case/incident management | Motor vaka/görev/kanıt/geçmişi P06 runbook, paket ve takedown ile kullanılır. Ekip atama/SLA/rol UI'si tüketici platformda kalır. | Motor desteği tamam; PL açık |
+| G03 | Playbook/runbook önerileri | P06'da kanıt türüne uygun sürümlü, deterministik plan; plan SHA çiti; atomik/idempotent vaka görevi ve uygulama makbuzu tamamlandı. | P06 tamamlanan motor kapsamı |
+| G04 | PDF yönetici + CSV/JSON/STIX rapor | P06'da aynı donmuş vakadan teknik JSON, yönetici HTML, kanıt CSV, isteğe bağlı ağsız PDF ve hash manifesti; IOC için CSV/JSON/STIX tamamlandı. Geniş STIX/TAXII ayrı ertelenmiştir. | P06 tamamlanan motor kapsamı |
+| G05 | Toplu IOC export/import | P06'da32 MiB/50.000 kayıt sınırlı kesin CSV/JSON/XTI-STIX önizleme, çelişki reddi, atomik import, makbuz/idempotency ve üzerine yazmasız export tamamlandı. | P06 tamamlanan motor kapsamı |
 
-Rakip sayfalarındaki mevcut ve yakında gelecek özellikler ayrı kaydedilir. Örneğin genel API'de tanıtılan çok kiracılı işlemler ile belirli MCP kanalında önizleme/gelecek olarak etiketlenen işlev aynı kabul edilmez. Bu durum yayın kararı öncesi tekrar kontrol edilir. [API sayfası](https://socradar.io/socradar-apis/), [MCP sayfası](https://socradar.io/socradar-mcp-server/)
+### H — Platform ve mimari (7)
 
-Doküman güncellemesinde tarih, değişen kapsam, yeni bağımlılık ve kabul ölçütü değişikliği kaydedilir. Geliştirme ilerledikçe plan sürümü artırılır; tamamlanma kanıtı olmadan olgunluk seviyeleri yükseltilmez.
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| H01 | Multi-tenant/MSSP/white-label | Kısmi firma alanı/iş ayrımı var. MSSP yönetimi ve white-label platformda; motor yük/izolasyon kabulü sürer. | OP, PL |
+| H02 | On-prem / air-gapped | Kısmi yerel Linux ve saklı veride çevrimdışı kullanım var. Tam çevrimdışı kurulum/güncelleme ve müşteri dağıtımı bekleyen ürün kararı. | OP (bekleyen karar) |
+| H03 | Çoklu bölge cloud | Yok. Bölgesel yerleşim, çoğaltma, kurtarma ve kayıp/gecikme hedefleriyle işletim kabulü gerekir. | OP, PL |
+| H04 | Petabyte veri gölü/arama | Yok. İş yükü ve performans hedefi olmadan ölçek iddiası olmaz; depo/arama ve kapasite kabulü ayrı proje. | OP |
+| H05 | Konfigüre retention/arşiv | P08'de P07 izleme ve P12 telemetri gövdeleri için kuruluş bazlı süre/parti, plan, hold, aktif vaka koruması, yedekli kayıpsız arşiv/restore tamamlandı. Tüm diğer kayıt aileleri, otomatik mantıksal silme ve haricî soğuk depo açık. | P08 iki aile tamam; OP genişleme |
+| H06 | RBAC/ince yetkilendirme | Firma sınırı var; kullanıcı yetki motoru yok. Platform rol kararını, motor veri/iş kapsamı kontrolünü sağlar. | PL, OP |
+| H07 | Kim neyi görüntüledi/değiştirdi audit | P08 retention politika/hold/archive/restore/recovery yazmaları aktör/gerekçe ve hash zinciriyle izlenir. Güvenilir oturum kimliği, platform geneli yazma ve okuma audit'i hâlâ eksik. | P08 teknik dilim; OP, PL açık |
+
+### I — Uyumluluk ve lokalizasyon (5)
+
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| I01 | Çok dilli UI | Yok. Platform i18n; motor kararlı durum kodu ve çevirilebilir kullanıcı metni sözleşmesi sağlar. | PL; ilgili motor paketi |
+| I02 | Veri yerleşimi | Ürün politikası yok. Saklama bölgesi ile dış kaynağa/modelle veri aktarımı ayrı kontrol edilmeli. | OP, PL |
+| I03 | GDPR/KVKK/CCPA veri işleme ayarları | P08 amaç/dayanak, kuruluş saklama süresi, explicit hold, yedek ve kapalı otomatik silme sağlar. Erişim/aktarımı, veri sahibi talepleri, bölge ve hukuk onayı platform/işletimde açık; uygunluk iddiası yok. | P08 teknik destek; OP, PL açık |
+| I04 | Bölgesel/dil bazlı feed seçimi | P09/P10/P12 bütün 53 connector'de zorunlu dil/bölge alanı ve katalog filtresi sağlar; Bluesky kaynağı seçilmiş gerçek dili resmî aramaya aktarır, yerel telemetri kaynakları bölgesel internet kapsamı iddia etmez. Bölgesel kaynak paketleri ve o bölgelerin canlı kapsamı tamamlanmadı; 40 çok dilli eşleştirme örneği kaynak erişimi kanıtı değildir. | P09 kontrol düzlemi; P10 ilk genel sosyal kaynak; P12 yerel telemetri; P11 bölgesel/yeraltı ertelendi |
+| I05 | Para birimi/fatura formatı | Yok; motor işi değil. Platformun ticari işletim sorumluluğu. | PL |
+
+### J — Güven ve doğrulanabilirlik (4)
+
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| J01 | Bulgu kaynağına izlenebilirlik | Mevcut kaynak izi korunur. P08 arşiv binding/hash ve restore'u; P09 bütün connector manifestlerinde zorunlu provenance alanlarını tanımlar. P10 Bluesky gerçek adaptörü kaynak/URI özeti/bağlantı/zaman/içerik hash'i ve çalışma kanıtıyla bu yükümlülüğü canlı kabulde doğruladı. | P08/P09/P10 doğrulandı; tüm paketlerde sürekli |
+| J02 | XAI / skor ve alarmın nedenini açıklama | P04 her adayda kural, sinyal, özgün kaynak/alinti, skor bileşeni, sınırlama ve otomatik-hüküm-yok bilgisini verir. Gelecek AI çıktısı aynı kanıt yükümlülüğüne tabidir. | P04 kurallı açıklama tamam; AI ayrı |
+| J03 | İnsan onayı/etiketleme | P04 kanıt ve gözlem sürümüne bağlı karar, değişince yeniden inceleme, değişmez geçmiş, inbox ve vaka kopyasını ekledi. Yeni paketler aynı yaşam döngüsünü kullanır. | P04 ve mevcut paketlerde var; tüm paketler |
+| J04 | Faydalı/faydasız geri bildirim → iyileştirme | P04 kaynak bazında kabul/ret/belirsiz sonuçlarını gösterir fakat reliability'yi sessizce değiştirmez. Denetimli kalite ölçümü/model güncellemesi ayrı ve hâlâ eksiktir. | P04 görünürlük tamam; AI/OP öğrenme ayrı |
+
+### K — Gelişmiş modüller (6)
+
+| ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
+|---|---|---|---|
+| K01 | AI phishing / deepfake ses-video | Yok. Ayrı örnek/veri/uzman model ve yanlış karar ölçümü gerekir; sıradan LLM özeti bu yetenek değildir. | SP, AI |
+| K02 | S3/Blob, API key, container/registry | Özel cloud modülü yok. P01 secret maruziyetinin bir parçasını sağlar; cloud envanteri/yapılandırma/registry kabulü ayrı kalır. | P01, SP |
+| K03 | SBOM ve bağımlılık zafiyet istihbaratı | Genel SBOM akışı yok; eski paket kodu var. Format/bağımlılık/güncelleme ve zafiyet kapsamını açma kararı gerekli. | SP (bekleyen kapsam kararı) |
+| K04 | OT/ICS/IoT, Shodan benzeri maruziyet | Özel modül yok. Yetkili port kontrolü kapsamlı cihaz telemetrisi değildir; kaynak ve cihaz sınıflandırması gerekir. | SP |
+| K05 | Cüzdan ve ransomware ödeme takibi | Yok. Zincir/veri sağlayıcısı, işlem ilişkisi ve atıf belirsizliği ayrı analiz modülü. | SP |
+| K06 | Otomatik pentest/istismar doğrulama | Mevcut hedef dışında. Yetkili Nmap ve seçili kontroller korunur; genel saldırı/istismar otomasyonu açılmaz. | DIŞ |
+
+## 8. İlk ticari teslim ve dış bağımlılıklar
+
+Altı paketin, bütün uzman modüllerin veya 76 satırın tamamı bitmeden
+hiçbir kullanım olamaz diye bir koşul yoktur. Ticari sürümün adı ve
+vaat ettiği satırlar açık seçilir; yalnız o kapsamın bütün kabulü tamamlanır.
+“Tam kurumsal XTI”, “OpenCTI ile aynı kapsam” veya “tüm internet” gibi
+genel tamamlanma iddiaları bu planla yapılmaz.
+
+Paket kapanışına yakın yeni zorunlu işler üretmemek için kurulum, bağımlılık,
+veri hakları, kapasite ve platform sözleşmesi işin başında ele alınır.
+Yeni kanıtla ortaya çıkan hata saklanmaz; etkisi ve düzeltmesi ilgili
+pakette kaydedilir. Yeni ürün fikri ise tamamlanan teslimi sürekli yeniden
+açmaz; aşağıdaki satır veya açıkça eklenen yeni gereksinim altında tutulur.
+
+Mevcut dış girdiler yeni planla kapanmaz: Bright Data canlı hesabı/kabulü
+N-034, gelişmiş Nmap yetkili hedef kabulü N-005, ticari kaynak koşulları
+N-039 ve bağlantılı notlar. Bunların bazıları ilk ticari profilde kaynak
+seçimini etkiler. Önceden tamamlanan Tavily kabulü yeniden eksik gösterilmez.
+
+**Bu planlamanın kapanışı:** 76/76 madde kaydedildi; önerilen sıra,
+sorumluluk, ertelemeler ve tam teslim ölçütleri belirlendi. Yeni özellik
+uygulaması ilk planlama adımında değişmedi. Kullanıcı P01'e başlamayı
+onayladı; kaynak/bileşen ön incelemesi, uygulama ve kabul aynı paket içinde
+yürütülüyor. Rutin devam onayı istenmez. Ön inceleme
+teknik seçimi, erişim ihtiyacını ve ölçüm eşiklerini somutlaştırır; tek
+başına P01'in tamamlanması değildir.

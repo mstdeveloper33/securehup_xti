@@ -225,7 +225,7 @@ class JobCLITests(unittest.TestCase):
         report = json.loads(stdout)["data"]
         read_only_source = FakeSource()
         before = self.database.read_bytes()
-        sources = self.success("sources", source=read_only_source)["sources"]
+        sources = self.success("sources", "history", source=read_only_source)["sources"]
         self.assertEqual(len(sources), 1)
         self.assertEqual(sources[0]["job_id"], report["job_id"])
         self.assertEqual(sources[0]["source_status"], "partial")

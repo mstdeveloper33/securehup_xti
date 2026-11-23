@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
-Son güncelleme: **20 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.179.0 / çekirdek 88 / iş kuyruğu 4**.
+Son güncelleme: **23 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
+Güncel çalışma: **0.192.0 / çekirdek 99 / iş kuyruğu 4 / kaynak işi 12**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -9,7 +9,7 @@ ve önceki çalışmanın sonuçlarından derlendi; bu dosyaya aktarılmaları y
 bir sağlayıcı incelemesi veya yeni test yapılmış olduğu anlamına gelmez.
 
 Çalışan özelliklerin kaydı [STATUS](docs/STATUS.md), geliştirme sırası
-[motor yol haritası](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md), ayrıntılı
+[ana geliştirme planı](docs/roadmap/MASTER_ROADMAP.md), ayrıntılı
 bileşen bildirimleri [THIRD_PARTY](THIRD_PARTY.md) içindedir. Bu dosya,
 o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
@@ -26,7 +26,551 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   **Sürekli:** her ilgili değişiklikte korunacak koşul.
 - API anahtarı, parola, müşteri verisi veya ham test veritabanı buraya yazılmaz.
 
+### Bilinçli sınırların takip kuralı
+
+- Her teslim paketinde bilinçli olarak kapsam dışında bırakılan konu bu dosyada
+  kaydedilir; yalnız sohbet içinde veya teslim özetinde bırakılmaz.
+- Her sınır için mevcut durum, neden, sorumlu katman, tamamlanma ön koşulu ve
+  kapanış kanıtı belirtilir. Motor, tüketici backend, işletim, hukuk ve ticari
+  kaynak sorumlulukları birbirine karıştırılmaz.
+- Bilinçli sınır hata değildir; fakat ürün hedefi için gerekliyse açık iş olarak
+  izlenir. Karar değiştiğinde eski kayıt silinmez, tarih ve gerekçeyle güncellenir.
+- Yeni paket başlamadan önce ilgili açık sınırlar gözden geçirilir. Kapsamı
+  genişleten kod, o veri ailesinin güvenlik, izolasyon, provenance, kurtarma ve
+  kapasite kabulü tamamlanmadan “bitti” sayılmaz.
+- Kullanıcıya sunulan her yeni özellik aynı değişiklikte
+  `docs/FEATURE_CATALOG.md` içine eklenir; anahtar/hesap/izin bekleyen veya
+  ertelenen yetenek aktif özelliklerle aynı listede gösterilmez.
+- Yeni paket kodundan önce aynı davranışın terminal, engine/platform,
+  uygulama servisi, veri modeli, adaptör ve testlerde bulunup bulunmadığı
+  kanıtlanır. Var olan davranış yeniden yazılmaz; yalnız gerçek boşluk mevcut
+  yaşam döngüsünde tamamlanır.
+
 ## Açık ve takip edilen notlar
+
+### N-055 — P12 sensör/sandbox telemetrisi ve canlı kabul sınırı
+
+- **Durum:** Teknik motor ve normalize telemetri saklama yaşam döngüsü tamam;
+  gerçek kaynak işletimi, canlı kabul ve ticari veri kararı açık.
+  **Tarih:** 23 Kasım 2026.
+- **Teslim:** Kuruluş kapsamlı sürümlü kaynak, `xti-sensor-v1`, güvenli Cowrie
+  JSONL ve tamamlanmış CAPE `report.json` önizleme/normalizasyonu; SHA-256
+  onaylı atomik import, makbuz, recovery, insan incelemesi, ortak arama,
+  P07 alarmı, vaka, Engine/Platform, P08 retention ve şema99 tamamlandı.
+- **Güvenlik sınırı:** XTI honeypot açmaz ve malware çalıştırmaz. Kullanıcı
+  adı, parola, ham komut/mesaj, zararlı örnek, PCAP, bellek, ekran görüntüsü,
+  ham CAPE raporu ve URL içine gömülü kimlik bilgisi kalıcı kayda alınmaz.
+  Cowrie/CAPE ayrı, kısıtlı ve izlenen altyapıda işletilmelidir.
+- **Canlı kabul:** Kontrollü fixture parser kanıtıdır, canlı kaynak kanıtı
+  değildir. Cowrie için yetkili gerçek JSONL; CAPE için üretim ağından
+  ayrılmış ortam, güvenli örnek prosedürü ve tamamlanmış gerçek rapor gerekir.
+- **Saklama:** `telemetry_records` P08 ailesi süre/parti planı, açık kayıt veya
+  kuruluş hold'u, aktif vaka koruması, yedekli kayıpsız çok nesilli arşiv,
+  saydam okuma, hash doğrulama, restore, audit ve şema98→99 geçişini tamamlar.
+  Mantıksal kayıt silinmez ve haricî soğuk depo kullanılmaz.
+- **Kapasite kanıtı:** İki ayrı firma alanında firma başına 5.000 kayıt ve
+  10 sayfa işlendi; aynı tekrar yeni run üretmedi, değişmeyen tur ekleme veya
+  güncelleme yapmadı, tek değişim yalnız bir kaydı revision2 yaptı. En yavaş
+  5.000 kayıt içe alma 0,706411 saniye, tepe RSS 82,38 MiB, veritabanları
+  19.476.480 ve 19.423.232 bayt, ağ isteği sıfırdı. Hedefli 105 test, eski
+  şema/test varsayımlarını koruyan 92 regresyon testi ve son hızlı kapıdaki
+  2.341 test geçti. Bütün 249 migration testi ve son tam sürüm kapısındaki
+  3.686 test
+  de hatasız tamamlandı; macOS'ta yalnız Linux çalışma zamanı isteyen 4 test
+  beklendiği gibi atlandı. Bu macOS kabulü üretim SLO'su değildir.
+  Ek retention kabulünde iki firma alanında firma başına 1.000 kayıt dört
+  250'lik partide arşivlendi, ilk 250 geri yüklendi; oran
+  0,051747/0,051751, en yavaş parti 4,419557 saniye, tepe RSS 106,42 MiB ve
+  ağ isteği sıfırdı.
+- **Lisans/hak sınırı:** Cowrie kök lisansı BSD koşulludur; CAPEv2 kök
+  `LICENSE` GPLv3'tür. İkisi de XTI'ya kopyalanmaz, otomatik kurulmaz veya bu
+  teslimle dağıtılmaz. Araç lisansı müşteri telemetrisi, analiz örneği ve
+  çıktısının saklama/gösterim hakkı değildir; üretim ve dağıtım biçimi ayrıca
+  incelenir.
+- **Kapatma koşulu:** Gerçek Cowrie/CAPE canlı kabul raporları, müşteri veri
+  işleme ve ticari gösterim kararı ve push sonrası gerçek Linux
+  kurulum/yükseltme/CI kanıtı.
+- **Dayanak:** [Kullanım](docs/TELEMETRY.md),
+  [teslim](docs/roadmap/P12_DELIVERY.md),
+  [mimari karar](docs/decisions/0196-safe-sensor-and-sandbox-telemetry.md),
+  [saklama kararı](docs/decisions/0197-telemetry-retention-generations.md),
+  [Cowrie çıktı sözleşmesi](https://docs.cowrie.org/en/stable/OUTPUT.html),
+  [Cowrie lisansı](https://github.com/cowrie/cowrie/blob/main/LICENSE.rst),
+  [CAPE sonuçları](https://capev2.readthedocs.io/en/latest/usage/results.html),
+  [CAPE lisansı](https://github.com/kevoreilly/CAPEv2/blob/master/LICENSE).
+
+### N-054 — P10 Bluesky genel gönderi kaynağı ve ticari sınır
+
+- **Durum:** Teknik entegrasyon ve canlı kabul tamam; ticari veri kararı açık.
+  **Tarih:** 23 Kasım 2026.
+- **Seçim:** P10 için Bluesky resmî `app.bsky.feed.searchPosts` genel araması
+  seçildi. Yeni SDK/repo alınmadı; mevcut güvenli HTTP taşıyıcısı yalnız
+  `public.api.bsky.app` ve `api.bsky.app` resmî alanlarını kullanır.
+- **Canlı kanıt:** Geçici `/tmp/xti-p10-acceptance.Njtv7P` alanında SecureHup
+  adı ve `securehup.com` sorguları tamamlandı, o an eşleşme yoktu. Genel
+  pozitif parser kabulünde 10 gönderi işlendi; ikinci tur çalışan resmî ucu
+  tek istekle kullandı ve o sırada yeni olan 1 kaydı değişiklik saydı.
+- **Bölgesel erişim:** `public.api.bsky.app` Türkiye çıkışında BunnyCDN
+  üzerinden 403 verdi; `api.bsky.app` HTTP 200 döndü. Bu nedenle failover yalnız
+  iki resmî uç arasında, kaynak bütçesi ve checkpoint ile sınırlıdır. Üçüncü
+  taraf proxy veya bölge atlatma servisi yoktur.
+- **Gönderilen veri:** Çalışma sırasında seçilmiş firma/tedarikçi adı,
+  domaini ve alternatif adları Bluesky genel aramasına gönderilir. Token,
+  cookie, özel hesap veya DM kullanılmaz.
+- **Saklanan kapsam:** Genel gönderi metni, kanonik bağlantı, kaynak zamanı,
+  hash'lenmiş kimlik ve eşleşme/inceleme kanıtı. Görsel, video, profil,
+  takipçi/beğeni listesi, embed gövdesi ve ham API yanıtı saklanmaz.
+- **Bilinçli sınır:** Her sorgunun en güncel sonuç sayfası okunur. Cursor
+  varlığı görünürdür fakat tam tarihsel arşiv veya bütün Bluesky kapsamı
+  denmez. Bir eşleşme tehdit, resmî hesap veya doğru iddia hükmü değildir.
+- **Ticari karar:** Teknik kaynak kişisel kullanımda aktiftir. Bluesky
+  kullanıcı içeriğinin müşteriye sunulan üründe saklama süresi, alıntı
+  gösterimi ve hizmet koşulu kapsamı hukuk/ürün incelemesi bekler;
+  `commercial_use`, `retention_policy` ve `customer_display` bu nedenle
+  `review_required`, yeniden dağıtım `not_enabled` kalır.
+- **Seçilmeyen adaylar:** Mastodon genel durum araması instance/hesap/index
+  bağımlılığı nedeniyle bu pakete alınmadı. Bluesky firehose ve üçüncü taraf
+  crawler/proxy firma hedefli sınırlı P10 için gereksiz kapsam oluşturur.
+- **Yeniden inceleme:** AppView erişimi, API sözleşmesi, koşullar, ticari
+  kullanım biçimi veya saklanan alanlar değişirse bu karar yeniden açılır.
+- **Kanıt:** [P10 teslimi](docs/roadmap/P10_DELIVERY.md),
+  [ADR0195](docs/decisions/0195-bluesky-public-content-search.md),
+  [kaynak manifesti](docs/SOURCE_GOVERNANCE.md).
+- **Tam paket uyumluluk düzeltmesi:** P09'un çıplak `sources` komutunu tek
+  manifest kataloğuna dönüştürmesiyle görünmez kalan eski pasif sorgu ve kota
+  özeti, ikinci bir katalog oluşturmadan açık `sources history` komutuna
+  taşındı. P10 ile katalog sayısı 49'dan 50'ye güncellendi.
+- **Tam regresyon kanıtı:** Son kodda 3.671 test 2.921,269 saniyede hatasız
+  tamamlandı; macOS'ta yalnız Linux çalışma zamanı isteyen 4 test beklendiği
+  gibi atlandı. `sources history` uyumluluk yüzeyinin 37 komşu testi de ayrı
+  olarak geçti.
+
+### N-053 — Özellik tekrarını önleme kapısı
+
+- **Durum:** Sürekli. **Tarih:** 23 Kasım 2026.
+- Her yeni paket başlamadan gereksinim satırı mevcut komut, engine/platform
+  işlemi, uygulama servisi, tablo, adaptör, test ve özellik kataloğuyla
+  eşleştirilecek; sonuç `var`, `kısmi` veya `yok` olarak kanıtlanacak.
+- `Var` olan özellik için ikinci komut, paralel servis, yeni tablo veya aynı
+  işi yapan başka bir izleme modeli yazılmayacak. `Kısmi` kapsam mevcut
+  yaşam döngüsü genişletilerek tamamlanacak. Ayrı yapı ancak mevcut yapının
+  neden kullanılamadığı ADR ve geçiş/kurtarma kabulüyle kanıtlanırsa açılabilir.
+- Yalnız API anahtarı, gerçek hesap, seçilmiş kaynak veya canlı kabul eksikse
+  motor özelliği yeniden yazılmaz; eksik dış gereksinim olarak izlenir.
+- P10 bu kuralla düzeltildi: haber/RSS, Tavily, içerik grupları, izleme ve
+  raporlama eski yeteneklerdir. P10 ancak adı ve erişimi belirlenmiş yeni bir
+  sosyal gönderi/forum/kanal kaynağını mevcut akışa bağlayabilir; kaynak
+  seçilmezse kod üretilmez.
+- **23 Kasım 2026 konsolidasyonu:** Gerçek kullanıcı yüzeyi tekrarı olan eski
+  çıplak `sources` katalog/iş birleşimi kaldırıldı. `sources` artık
+  `sources catalog` ile aynı P09 uygulama servisini ve JSON sözleşmesini
+  kullanır; sağlık `sources status`, tekil crt.sh/urlscan çalışma kanıtı
+  `jobs`, katkı ise `sources contribution` altında kalır. Şema veya veri
+  geçişi yoktur.
+- `news` (sabit genel yayın), `content` (firma/tedarikçi hedef eşleştirmesi),
+  `mentions` (Tavily açık web araması), pasif `watch/monitor` ve ağsız P07
+  `monitoring` ayrı işlevlerdir; ikinci özellik diye silinmeyecek, görevleri
+  yardım metninde açık tutulacaktır. ThreatCluster/RansomLook ile
+  Sherlock/Maigret/doğrudan sayfa kontrolü de bağımsız kaynak doğrulamasıdır.
+- HIBP verified-domain kapalıdır. Tarihî HIBP kamu olay metadata kataloğu,
+  XposedOrNot doğrulanmış-domain credential görünümüyle aynı özellik değildir;
+  kullanıcı ayrıca bütün HIBP kataloğunu kapatma kararı vermedikçe otomatik
+  birleştirme veya veri silme yapılmayacaktır.
+- Benzer foreground izleme servislerinin kaynak/eşleşme/kanıt modelleri
+  birleştirilmedi. Yalnız kopyalanmış UTC/monotonic saat ve geriye-sarma
+  koruması `application.foreground_monitor` çekirdeğine alındı; kaynak
+  davranışları ayrı kaldı. Son kodda bu çekirdek ve dokuz tüketici yolunun
+  141 testi ile kaynak/mimari paketin 49 testi hatasız geçti.
+
+### N-052 — P09 kaynak manifesti ve canlı kabul sınırı
+
+- **Durum:** 49 mevcut kaynak/iş akışı için sürümlü yönetişim manifesti,
+  çevrimdışı terminal ve engine/firma JSON okuması uygulandı. **Tarih:**
+  23 Kasım 2026.
+- Katalogda 30 teknik aktif, 12 açık gereksinim bekleyen ve 7 kullanıcı
+  kararıyla kapalı kaynak vardır. `active`, anlık sağlayıcı erişimi veya
+  ticari kullanım onayı değildir. Sağlık yalnız isteğe bağlı kayıtlı çalışma
+  geçmişidir; yeni ağ isteği başlatmaz.
+- Her manifest erişim, maliyet, credential, hedef teması, dil/bölge,
+  normalleştirilmiş kayıt türü, zorunlu provenance, kota/tekrar/hata ve
+  ticari kullanım–saklama–müşteriye gösterme–yeniden dağıtım kararlarını
+  ayrı taşır. `review_required` ve `contract_required` üretim ticari profili
+  için açık takip işidir.
+- P09 yeni repo, Python paketi, ücretli API, canlı feed veya veritabanı şeması
+  eklemez. Mevcut source-specific adaptör/tabloları tek generic HTTP
+  yürütücüsüne veya ortak fiziksel tabloya taşımaz.
+- A07'nin kontrol düzlemi tamamlandı; her yeni feed'in gerçek toplama,
+  saklama, insan incelemesi, izleme, firma JSON'u, kapasite ve canlı kaynak
+  kabulü yine kendi paketinde tamamlanmalıdır. Dil/bölge alanı RU/ZH/AR/TR/PT
+  canlı kaynak kapsamı veya çeviri kanıtı değildir.
+- **Açık işler ve sahipleri:**
+  - Gerçek Linux kurulum/yükseltme ve CI: push sonrası işletim kabulü.
+  - Hesap/anahtar/araç/yetkili hedef isteyen 12 kaynak: ilgili kaynak sahibi
+    ve işletici tarafından gerçek kapsamla canlı kabul.
+  - Ticari kullanım/saklama/gösterim kararı: hukuk ve ticari ürün sahibi;
+    `sources catalog/show` kararı görünür yapar ama kendi başına onaylamaz.
+  - Yeni bölgesel/dil kaynak seçimi: sonraki kaynak paketi ve etiketli canlı
+    kabul; mevcut manifest alanları bu işin yerine geçmez.
+  - Generic data-plane registry kararı: mevcut kaynak adaptörlerini
+    zayıflatmadan ayrı mimari/kurtarma kabulüyle ileride değerlendirilecek.
+- Hedefli 12 P09 testi; yakın katalog/sağlık/engine/platform/mimari yüzeyle
+  toplam 71 test geçti. Hızlı repo kapısı 2.314 testi 1.817,137 saniyede
+  hatasız tamamladı; macOS'ta yalnız Linux çalışma zamanı isteyen 4 test
+  beklendiği gibi atlandı. Geniş kapı son manifest girdi sertleştirmesinden
+  önce, 71 testlik yakın paket ise sonrasında koşuldu. 10.000 sentetik
+  manifest 200'lük 50 sayfada kayıpsız okundu; 4,841745 sn kurulum,
+  2,935852 sn sayfalama ve 90.762.580 byte tepe
+  `tracemalloc` ölçüldü. Bu canlı sağlayıcı kapasitesi değildir.
+  [Kullanım](docs/SOURCE_GOVERNANCE.md),
+  [teslim](docs/roadmap/P09_DELIVERY.md),
+  [karar](docs/decisions/0194-source-governance-manifests.md).
+
+### N-051 — P08 retention, audit ve mevzuat sınırı
+
+- **Durum:** H05'in P07 izleme ve P12 telemetri gövdeleri için iki güvenli
+  ailesi; H07'nin retention mutasyon audit'i; I03'ün teknik amaç/dayanak/hold
+  desteği ve J01 kayıpsız provenance zinciri uygulandı.
+  **Tarih:** 23 Kasım 2026.
+- Yönetilen aileler `unified_monitoring_runs` ve `telemetry_records`tır.
+  Bütün tablolar için otomatik süre/silme yoktur. `journals.*` kendi mevcut
+  arşiv sözleşmesinde kalır; yeni aile ayrı vaka/provenance/restore/kapasite
+  kabulü ister.
+- Aktif vaka kanıtı ve açık legal/case/investigation/contractual hold plan
+  dışında kalır. Bu teknik `legal` etiketi hukuk prosedürünün yeterli olduğu
+  veya GDPR/KVKK/CCPA uygunluğu anlamına gelmez.
+- Audit zinciri yazma bütünlüğünü korur; kimlik doğrulayan dijital imza
+  değildir. Üretim backend'i `actor` değerini güvenilir oturumdan üretmeli,
+  RBAC/onay ve okuma audit'ini uygulamalıdır.
+- Sıkıştırılmış gövde aynı SQLite alanındadır. Serbest sayfalar yeniden
+  kullanılabilir fakat dosya `VACUUM` olmadan hemen küçülmeyebilir; P08
+  otomatik `VACUUM`, haricî object storage veya scheduler çalıştırmaz.
+- **Sonraki işler ve sahipleri:**
+  - Gerçek Linux kurulum/yükseltme kabulü: push sonrası CI/işletim.
+  - Güvenilir `actor`, RBAC/onay ve okuma audit'i: tüketici .NET platformu.
+  - Scheduler ve çalışma takvimi: tüketici platform/işletim.
+  - Haricî soğuk depo, bölgesel saklama ve veri yerleşimi: platform/işletim
+    ve hukuk kararı.
+  - P07/P12 dışındaki veri aileleri: her aile için ayrı silme, hold,
+    provenance, restore, migration ve kapasite kabulüyle yeni motor paketi.
+  - Mantıksal silme ve fiziksel alan geri kazanımı (`VACUUM`): yedekleme,
+    kesinti bütçesi ve işletim politikası belirlenmeden açılmayacak.
+  - GDPR/KVKK/CCPA uygunluk kararı: hukuk ve veri yönetişimi incelemesi;
+    mevcut teknik alanlar tek başına uygunluk iddiası değildir.
+- İki firmalı kapasite kabulünde firma başına13 değişen run iki partide
+  arşivlendi; 8,93–8,96 MiB ham gövde yaklaşık2,07 MiB'ye indi. Tepe RSS
+  89,86 MiB, en yavaş parti2,403419 sn, ağ0. Hızlı kapı 2.303 testi
+  1.763,154 saniyede hatasız geçti. Tam repo kapısı 3.644 testi 2.673,083
+  saniyede hatasız tamamladı; her iki kapıda macOS'ta 4 Linux testi atlandı.
+  Push sonrası gerçek Linux CI doğrulaması teslim kartında açık kalır.
+  P12 ek kabulünde iki firma alanında firma başına1.000 telemetri kaydı
+  dört250'lik partide arşivlendi ve250 kayıt geri yüklendi; sıkıştırma
+  oranı0,051747/0,051751, en yavaş parti4,419557 sn, tepe RSS106,42 MiB ve
+  ağ0 ölçüldü. Çok kuşaklı güncelleme/restore, hold, aktif vaka, tenant,
+  tamper ve şema98→99 kabulü geçti.
+  [Kullanım](docs/DATA_RETENTION.md),
+  [teslim](docs/roadmap/P08_DELIVERY.md),
+  [temel karar](docs/decisions/0193-organization-retention-and-audit.md),
+  [P12 kararı](docs/decisions/0197-telemetry-retention-generations.md).
+
+### N-050 — P07 birleşik izleme, zamanlayıcı ve saklama sınırı
+
+- **Durum:** E01/E03 yerel motoru ile E05'in due/çalışma/rapor sözleşmesi,
+  J01 kaynak izi ve J03 insan incelemesi uygulandı. P07 hedefli 13 test,
+  192 testlik ortak yüzey regresyonu ve iki firmalı birikimli kapasite kabulü
+  tamamlandı. CI ile aynı iki parçalı hızlı kapı toplam 2.294 testi
+  (1.182 / 810,786 sn ve 1.112 / 969,958 sn), tam repo kapısı 3.635 testi
+  2.719,142 saniyede hatasız tamamladı; macOS'ta Linux'a özgü 4 test
+  beklendiği gibi atlandı. **Tarih:** 22 Kasım 2026.
+- Yeni dış repo, veri kaynağı, ücretli API veya Python paketi yoktur. P07
+  yalnız XTI'da saklı kanıtı tek okuma snapshot'ında karşılaştırır; internet
+  veya araç süreci başlatmaz. Collector/source-job başarısı ayrıca izlenir.
+- Metin/kimlik değişimi doğrulanmış tehdit, ihlal, phishing, sahiplik veya
+  zararlılık değildir. Alarm önceliği kullanıcı politikasıdır; olasılık ya
+  da otomatik risk puanı değildir. İnsan kararı okundu durumundan ayrıdır.
+- Gerçek scheduler, kullanıcı/RBAC/audit bağlamı ve haricî e-posta/SMS/Slack/
+  Teams teslimi tüketici .NET platformunun işletim sorumluluğudur. Motor
+  `due`, sürüm/idempotency, workspace çiti ve recovery sözleşmesini sağlar.
+  E02 ve E04 bu teslimle tamamlanmış sayılmaz.
+- Değişmeyen turlar büyük snapshot gövdesini tekrar yazmaz; aynı hash'li
+  önceki dondurulmuş kanıta doğrulanabilir referans verir. Çalışma/fark
+  makbuzu korunur. Ağsız kapasite ölçümünde iki firmada 5.000'er eşleşme ve
+  32'şer çalışma tepe 115,02 MiB RSS ve en yavaş 1,401029 sn ile geçti.
+  Özet ilk 100 farkı taşır; tam fark sayfalanır. P07 kanıt gövdesi çalışma
+  alanı başına 128 MiB ile kapalıdır;
+  dolunca otomatik silme yoktur. Retention/arşiv politikası ayrıca seçilmeden
+  geçmiş silinmez.
+- Şema 95→96 geçişi kurtarma yedeği üretir. Platform JSON v1 korunur ve yeni
+  `monitoring.*` işlemleri eklenir. Push/Linux kabulü yerel macOS sonucundan
+  ayrı kaydedilecektir. [Kullanım](docs/UNIFIED_MONITORING.md),
+  [teslim](docs/roadmap/P07_DELIVERY.md).
+
+### N-049 — P06 insan onaylı aksiyon ve haricî bağlayıcı kapsamı
+
+- **Durum:** G01/G03/G04/G05 yerel motor uygulaması, hedefli test ve
+  birikimli kapasite kabulü tamamlandı. Hızlı kapıda 2.281, tam kapıda 3.622
+  test hatasız geçti; macOS'ta Linux'a özgü 4 test beklendiği gibi atlandı.
+  Gerçek Linux CI kabulü açık. **Tarih:** 22 Kasım 2026.
+- Kullanıcı P06 listesindeki 5. maddeyi, yani haricî SIEM/SOAR/ticket
+  bağlayıcılarını istemedi. Bu bağlayıcılar uygulanmış veya kabul edilmiş
+  sayılmayacak; yerel aksiyon motorunun ön koşulu değildir.
+- Motor otomatik takedown başvurusu, IOC engellemesi, e-posta/SMS veya
+  dosya teslimi yapmaz. `submitted`, insanın dışarıda yaptığı başvurunun
+  referanslı kaydıdır. Marka/hukuk yetkisi ve alıcı doğruluğu işletici
+  sorumluluğudur.
+- Vaka paketi teknik JSON, HTML, CSV, manifest ve isteğe bağlı PDF'dir.
+  PDF için yeni bağımlılık yoktur; sabit Playwright 1.65.2/Chromium 1255
+  ağsız kullanılır. Manifest hash bütünlük kanıtıdır, dijital imza
+  veya kaynağın gerçek olduğu hükmü değildir.
+- IOC import/export en fazla 32 MiB/50.000 kayıt, kesin CSV/JSON ve XTI
+  STIX indicator alt kümesiyle sınırlıdır. Geniş STIX/TAXII desteği
+  ertelenmiştir; bu alt küme onu tamamlanmış saydırmaz.
+- Keyfî dosya yolu alan paket/IOC işlemleri firma JSON'una açılmadı.
+  Gelecekteki .NET katmanı yetkili upload/download alanını kendisi
+  yönetecek; motor CLI'sı güvenilen operatör işlemidir.
+- Şema 94→95 yedekli geçiş ve yedekten tekrar yükseltme geçti. 5.000
+  eski görev/5.001 olay ve 20.000 IOC kapasite kabulünde tekrar yazımı 0,
+  ağ 0, tepe RSS 175,52 MiB ve toplam 4,676 sn ölçüldü. Bu sentetik
+  kabul uzun süreli hizmet seviyesi veya haricî portal kabulü değildir.
+  Son birleşik çalışma ağacında `check-fast` 2.281 testi 1.654,541 sn'de,
+  tam `check` 3.622 testi 2.466,813 sn'de hatasız tamamladı; her ikisinde
+  macOS nedeniyle 4 beklenen Linux atlaması vardır. Bu sonuç gerçek Linux
+  hizmet/CI kabulünün yerine geçmez.
+  [Teslim kartı](docs/roadmap/P06_DELIVERY.md),
+  [ADR0191](docs/decisions/0191-human-approved-actionability.md).
+
+### N-048 — P05 dark web ve credential kaynak/saklama sınırı
+
+- **Durum:** P05'in seçilmiş kaynaklar için motor uygulaması, yerel kabulü,
+  firma izolasyonu, kurtarma ve kapasite kabulü tamamlandı. Kullanıcı kararıyla
+  yeni credential-domain kaynağı XposedOrNot'tur; HIBP verified-domain yeni
+  çalışmalarda devre dışıdır. Canlı XposedOrNot domain kabulü API anahtarı ve
+  sağlayıcı hesabında doğrulanmış domain, genel forum/pazar kapsamı ise
+  seçilmiş sağlayıcı bekliyor; A02/A10'un bütünü bu nedenle kapanmadı.
+  **Tarih:** 22 Kasım 2026.
+- RansomLook kamu API verisi atıflı kullanım için seçildi; upstream yazılım
+  kodu vendored edilmeyecek. ThreatCluster mevcut kişisel/açık akışta kalır;
+  satılan üründe saklama/gösterme/dağıtım yazılı anlaşma olmadan varsayılan
+  ticari profile açılmayacak. Tarihî HIBP public catalog credential sonucu
+  değildir ve yeni P05 profilinin varsayılan kaynağı değildir.
+- XposedOrNot `/v1/domain-breaches/` isteği API anahtarı ve sağlayıcı hesabında
+  önceden doğrulanmış domain ister. Sağlayıcı aynı yanıtta birden fazla domain
+  döndürse bile adaptör yalnız istenen kesin kuruluş domainini kabul eder. Ham
+  alias yalnız bellekte işlenir; SQLite/JSON/terminal/git içinde yalnız maskeli
+  hesap, kuruluş anahtarlı HMAC kimliği, domain ve ihlal adları bulunur.
+  Parola/token/cookie alınmaz veya denenmez. API/pseudonym anahtarları DB ve
+  backup dışında özel dosyadır.
+- XposedOrNot parola kontrolünde parola yerelde legacy Keccak-512 ile özetlenir
+  ve yalnız ilk10 hexadecimal karakter gönderilir. Parola, tam hash, gönderilen
+  önek ve sağlayıcının karakter bileşimi alanı saklanmaz veya sonuçta gösterilmez.
+  Bu önek sıfır bilgi değildir; boş sonuç da parolanın güvenli olduğunu kanıtlamaz.
+  Özellik açık terminal işlemi olarak çalışır, zamanlanmaz ve geçmiş oluşturmaz.
+- Genel Tor/forum/pazar crawler ve stealer-log kaynağı seçilmedi. Kaynak
+  erişim hakkı, izolasyon, veri minimizasyonu, saklama/gösterme koşulu, bütçe
+  ve canlı kabul olmadan A02/A10 bütünü tamamlandı sayılmayacak.
+- Resmî XposedOrNot API belgeleri domain izlemenin doğrulanmış domain ve API
+  anahtarı gerektirdiğini; parola uç noktasının10 karakterlik Keccak öneki
+  kullandığını belirtir. Ücretsiz kişisel/düşük hacim ile müşteriye sunulan
+  ticari ürün hakkı aynı sayılmaz; ticari kullanım öncesinde güncel plan ve
+  şartlar yeniden doğrulanır. [P05 kartı](docs/roadmap/P05_DELIVERY.md),
+  [ADR0189](docs/decisions/0189-darkweb-and-credential-evidence.md),
+  [ADR0190](docs/decisions/0190-xposedornot-credential-source.md).
+- Şema94/kaynak işi12; terminal, engine/firma JSON, kuruluş içeriği, inbox,
+  vaka, ağsız kuyruk, kesinti kurtarma ve yedek/restore kabulü geçti. İki
+  firmada ayrı ayrı10.000 bulgu ve30 değişmeyen tur yeni kanıt/değişiklik/
+  bildirim üretmedi. Tek değişim her firmada yalnız1 kanıt,1 bulgu değişimi,
+  1 bildirim üretti.100 kayıtlık40 platform okumasında en kötü p95
+  0,273171 sn; tepe RSS147,11 MiB. Bu kapasite ölçümü XposedOrNot geçişinden
+  sonra0.185.0 üzerinde yeniden çalıştırılmıştır. XposedOrNot odaklı25 test
+  ve2.261 testlik hızlı çevrimdışı kapı da hatasız geçti; hızlı kapıda
+  Linux'a özgü4 kontrol beklendiği gibi atlandı. Bilinen `test` girdisiyle
+  parola uç noktası canlı doğrulandı; gerçek kullanıcı sırrı kullanılmadı,
+  düz metin/tam hash gönderilmedi ve geçmiş oluşturulmadı. Bu sentetik
+  kabul bütün internet veya sağlayıcı canlı kapsamı değildir.
+- İlk tam repo turunda şema 93 vaka kanıtı DDL'inin eski test fixture'larında
+  kalması, geçmiş migration/backup testlerini üretim şema doğrulamasından önce
+  durdurdu. Üretim doğrulaması zayıflatılmadı: açık 93→92 fixture adımı,
+  geçmiş vaka DDL beklentileri ve Linux yükseltme kabul sınırı güncellendi.
+  Sıfırdan son tur3.596 test/2.403,692 sn ile hatasız geçti; macOS'ta gerçek
+  Linux isteyen4 kontrol beklendiği gibi atlandı. Bu sayı0.184.0 tabanının
+  tarihî sonucudur;0.185.0 için bu turda tam kapı değil, hedefli paket,
+  hızlı çevrimdışı kapı ve kapasite kabulü çalıştırılmıştır. Bu
+  sonuç Linux CI, canlı XposedOrNot domain veya seçilmemiş forum/pazar kaynağı kabulü
+  değildir.
+
+### N-047 — P04 CTI çıkarımı, kaynak güveni ve ATT&CK kullanım sınırı
+
+- **Durum:** P04 uygulaması, yerel kapasite/geçiş/firma kabulü ve tam repo
+  regresyonu tamamlandı; push sonrası gerçek Linux CI/release kabulü açık.
+  **Tarih:** 21 Kasım 2026.
+- Yeni dış araç veya ücretli kaynak eklenmeyecek. Analiz yalnız saklı CTI/IOC,
+  kuruluş domainleri ve yerel MITRE ATT&CK kataloğunu kullanacak.
+- ATT&CK lisansı/atıfı ve gelecekteki ticari feed saklama-gösterme hakları,
+  yazılım lisansından ayrı değerlendirilmeye devam edecek. Yeni feed seçilirse
+  kaynak güveni, bağımsızlık grubu, saklama, yeniden dağıtım ve silme koşulu
+  bu not kapanmadan üretim varsayılanına alınmayacak.
+- Confidence inceleme ölçüsüdür; risk olasılığı değildir. Tek ortak IP aktör
+  atfı sayılmaz. Coğrafya/sektör metni `source_claim` olarak kalır. LLM ve
+  geniş STIX/TAXII ayrı bekleyen kararlardır.
+- Şema92/kaynak işi11; terminal, engine/firma JSON, inbox, vaka, yedek/geri
+  dönüş ve sıfır-ağ kuyruk kabulü geçti. İki firmada20.000 aday ve60
+  değişmeyen turda yeni kanıt/değişiklik/bildirim0;100 kayıt okuma en kötü
+  p95 0,164618 sn, tepe RSS204,95 MiB. Yeni bağımlılık yoktur.
+- İlk tam koşudaki üç eski migration beklentisi güncellendi. Sıfırdan son tam
+  koşu3.577 test/2.183,963 sn ile hatasız geçti; macOS'ta Linux'a özgü dört
+  kontrol beklendiği gibi atlandı. Ayrıntı P04 teslim kartında korunur.
+- Kullanıcı push işlemini sonraya bıraktı. Bu nedenle GitHub Actions/gerçek
+  Linux sonucu henüz yoktur; yerel P04 kapanışı Linux/release kabulü gibi
+  sunulmayacak ve push sonrasında sonuç bu notta ayrıca kaydedilecektir.
+
+### N-046 — P03 marka koruması, görsel kanıt ve mağaza kaynakları
+
+- **Durum:** P03 akışı, yerel kurulum/geçiş/kapasite/regresyon kabulü ve ücretsiz canlı deneme tamam; canlı kaynak kapsamı kısmi. Linux ve ticari veri kararları açık. **Tarih:** 21 Kasım 2026.
+- Kullanıcı geniş marka korumasını bekletme kararını kaldırdı. P03, P04'ten
+  önce yapılacak. Canlı denemede SecureHup markası seçildi; kişi adı yok.
+- Kurulu/doğrulanan araçlar: mevcut Maigret/Sherlock/sayfa kontrolü,
+  Pillow13.0.0, ImageHash4.3.2, Playwright1.65.2 / Chromium1255,
+  google-play-scraper1.2.7. Python wheel sürüm ve resmî PyPI SHA256 pinleri
+  `requirements/brand-protection.txt` içindedir. Chromium ayrı upstream
+  arşiv SHA pini taşımaz: SDK revision, resmî TLS indirme, yerel binary SHA
+  makbuzu ve gerçek ağsız görüntüleme testi vardır.
+- Temiz geçici kopyada normal `./setup` macOS/arm64/Python3.13.3 üzerinde
+  tamamlandı (`/tmp/xti-p03-clean-install.log`). Bu Linux kabulü değildir.
+- Google parser importu upstream TLS varsayılanını değiştiriyor. XTI bu
+  kitaplığı yalnız ağsız ayrı süreçte kullanır; motor HTTPS/TLS doğrulaması
+  korunur. Google/Apple gerçek arama ve kimlikle tekrar okuma testleri
+  yapıldı; Firefox resmî sitesinin verdiği iki uygulama ayrı kontrol oldu.
+- SecureHup canlı son turu **kısmi**: sayfa/logo/PNG ve mağaza sonuçları var;
+  sosyal kaynak/sayfa erişimi her kontrolde aynı başarıyı vermedi. Önceki
+  bağımsız turda görülen profil son turda görünmeyince silinmiş sayılmaz.
+  `crt.sh`08:42 UTC turunda HTTP200/boş,09:00 UTC son turda HTTP404 döndü;
+  eski timeout kayıtları çözülmüş ilan edilmez. İstek zamanları, HTTP kodu
+  ve varsa yanıt SHA'ları ayrı kabul artefaktlarında saklıdır.
+- Son canlı denemede13 aday/24 ayrı PNG,43 ölçümlü HTTPS isteği ve0 ücretli
+  çağrı vardı. Sosyal araçların iç ağ sayısı bilinmiyor. Mağaza sonuçlarının
+  çoğu marka bağı kurulamayan adaydır; sahte uygulama olarak sunulmaz.
+- Gerçek0.181.0 üreticisinden90→91 geçişi197 tablo/41 kayıt/rowid'i korudu;
+  eski kodla geri dönüş geçti. İki firmada20.000 aday/30 değişmeyen turda
+  yeni kanıt ve görsel gövdesi0; platform100 kayıt okuma p95 0,205478 sn.
+  İş ortağı logolarının marka referansına girmemesi düzeltildi. Son P03 ve
+  ortak kaynak paketi55 test/15,738 sn hatasız. Tam3.550 test çalışmasının
+  eski beklenti ve kabul-yardımcısı uyumsuzlukları düzeltildi; son81
+  hedefli kontrol79 başarılı/2 Linux atlamasıyla geçti. Güncel envanter
+  3.558; ilk tam tur ve hedefli tekrar ayrı sonuçlardır.
+  Son kaynak kimliği ve ham ölçüm yolları teslim kartında korunur.
+- Açık kaynak kod lisansı mağaza görsellerini veya sayfaları ticari
+  saklama/gösterme hakkı değildir. Apple tanıtım içeriği koşulları, Google
+  Play erişim koşulları, urlscan kullanımı ve üçüncü taraf sayfa kanıtları
+  ticari açılıştan önce kaynak bazında değerlendirilecek.
+- Görsel benzerlik, aynı kullanıcı adı veya yayıncı adı tek başına taklit
+  kararı vermez. Bayi/parodi/ilgisiz/resmî ayrımı kanıta bağlı insan kararıdır.
+- Kullanıcı oturumu/giriş/form gönderimi yok. Görseller genel sayfa
+  içeriği olabilir; otomatik kişisel veri/secret redaksiyonu garantisi yok.
+- Gerçek VIP ve hesap/engelli kaynak kabulü, Linux tarayıcı kurulumu ayrı
+  açıktır. P01/P02 erişim eksikleri ve LLM/geniş STIX ertelemeleri korunur.
+- [P03 kapsam, araçlar ve önceden belirlenen kabul](docs/roadmap/P03_DELIVERY.md).
+
+### N-045 — P02 kaynak, kanal ve teslim kapsamı
+
+- **Durum:** Firma/tedarikçi içerik akışı, yerel kabul ve açık yayın canlı
+  kabulü tamam. Telegram/Discord/IRC canlı erişimi, Linux kabulü
+  ve yeni kaynakların ticari veri kararları açık. **Tarih:** 21 Kasım 2026.
+- **Gerçek araçlar:** feedparser6.0.14, Telethon1.46.0, irctokens2.0.2,
+  resmî Discord RESTv10 ve mevcut Betterleaks1.10.1. Resmî PyPI hash'leri
+  `requirements/channels*.txt` içinde sabit. Kaynak paketli pyaes1.6.1,
+  sabit setuptools84.2.1 ile hazırlanır. Ana proje ortamında yeni kanal
+  kitaplıkları ve mevcut Maigret/Sherlock/RSS/PDF birlikte doğrulandı.
+- **Kurulum:** Eski ortam kontrolü süre aşımına uğradı. İlk temizleme
+  denemesi proje wheel adımında uzayınca kontrollü durduruldu; önceki
+  ortam aynen geri alındı. Paket temiz geçici kaynak ağacından üretildiğinde
+  tam kurulum geçti; eski ortam ayrı yedekte korundu. Eski build/egg-info
+  ağacı artık kurulum girdisi değildir. Son yerel log:
+  `/tmp/xti-p02-install-isolated.log`. Bu Linux kurulumu kanıtı değildir.
+- **Canlı açık yayın:** NCSC ve CERT-FR HTTP200, iki sınırlı kaynak çağrısı,
+  20/40 yayıncı kontrol örneği; SecureHup eşleşmesi0. Bunlar firma eşleşmesi
+  olarak sayılmadı. Aynı anahtarla tekrar yeni kaynak çağrısı üretmedi.
+  Yeni Tavily harcaması ve kanal girişi yapılmadı.
+- **Yerel kabul:** Gerçek 0.180.0 üreticisinden 89→90 geçişi 185 tablo ve
+  29 kayıt/rowid'i korudu; eski kodla yedekten dönüş ve yeni içerik yedeği
+  geçti. İki firma, toplam 20.000 eşleşme, 30 değişmeyen turda yeni kanıt
+  gövdesi 0; 100 kayıtlık firma JSON okuması p95 0,171233 sn.
+  3.513 testlik tam çalışma sonrası beş eski test beklentisi güncellendi.
+  Bildirim toplamı ve kaynak kapalıyken izlemeyi durdurma düzeltmelerini
+  de kapsayan son 300 kontrol hatasız; dört Linux kontrolü atlandı.
+  Farklı kaynak SHA'ları ve ilk sonuçlar teslim kaydında korunur.
+- **Kanallar:** Kullanıcı şimdilik mevcut açık yayınları seçti. Telegram
+  hesabı/API bilgisi, Discord botu/izinli kanal ve belirli IRC kanalı
+  verilmedi. Kontrollü izin/pencere/yeniden kontrol testleri canlı kabul
+  yerine geçmez. API sırları sohbete veya JSON isteğine yazılmayacak.
+- **Sınır:** Çok dilli isim eşleştirme, otomatik çeviri veya yeraltı kaynak
+  kapsamı değildir. Kaynak işlemleri HTTP sayısıyla karıştırılmaz. Kanal
+  geçmişi, çevrimdışı IRC aralığı ve eksik erişim açık gösterilir.
+  Araç lisansı kanal/yayın içeriğinin ticari saklama ve gösterim hakkı
+  değildir; yeni kaynaklar ticari onaylı profilde otomatik açılmaz.
+- **Teslim:** [Kullanım](docs/CONTENT_MONITORING.md),
+  [önceden belirlenen ölçütler ve sonuçlar](docs/roadmap/P02_DELIVERY.md).
+  P01/N-044'ün erişim ve kabul eksikleri korunur.
+
+### N-044 — P01 / A03 kaynak erişimi ve secret inceleme aracı
+
+- **Durum:** Akış ve yerel kabul tamam; hesaplı kaynak/Pastebin canlı kabulü, Linux kabulü ve ticari veri kararı açık. **Tarih:** 21 Kasım 2026.
+- Kullanıcı şu anda API erişimi olmadığını belirtti; erişim gerektirmeyen
+  iş akışları ve kontrollü adaptör kabulü uygulandı. Hesap oluşturma,
+  ücretli kullanım veya credential doğrulaması yapılmayacak.
+- Betterleaks1.10.1 seçildi, macOS arm64 sabit hash ile kuruldu ve gerçek
+  yerel ikiliyle test edildi. MIT lisansı kaynak verilerinin kullanım
+  hakkını vermez. GitHub/GitLab/Pastebin veri saklama ve müşteri gösterim
+  kapsamı ticari açılıştan önce ayrıca doğrulanacak.
+- Ön incelemede GitHub kamu depo araması200/kod401, GitLab proje timeout/
+  kod401, Pastebin dokümanı timeout görüldü. Sonraki motor canlı denemesinde
+  GitHub9 istek/5 dosya/1 marka geçişi, GitLab1 istek/HTTP200/boş liste
+  verdi; kaynak timeout'ı güncel başarısızlık olarak sürdürülmüyor.
+  GitHub dosya bütçesi doldu; bütün sonuç kısmi. Anahtarsız depo keşfi
+  genel kod aramasının yerine geçmiş sayılmaz.
+- Şema88→89 gerçek eski üreticiden geçiş/177 tablo/26 satır/rowid korunması,
+  eski kodla yedekten dönüş ve yeni backup/restore geçti. İki firma ×
+  10.000 aday ×30 değişmeyen turda ek kanıt gövdesi0; ölçümler teslim
+  kaydında. Bu sentetik depolama kabulüdür, canlı doğruluk oranı değildir.
+- Son yerel tam envanter 3.472 test: 3.468 başarı, hata yok, gerçek Linux
+  gerektiren 4 atlama. Dört ayrık parçada test kimliği tekilliği ve tam
+  envanter kapsamı doğrulandı. Kurulu Betterleaks'in gerçek ikili testi
+  ve temiz veri alanında yedi CLI/JSON adımı geçti. Canlı kaynak,
+  geçiş/kapasite ve tam testte motor kaynak SHA256'sı aynıydı.
+- [Karar/ölçüm hedefi](docs/decisions/0185-code-and-paste-exposure.md),
+  [açık teslim kaydı](docs/roadmap/P01_DELIVERY.md).
+
+### N-043 — Tek ana plan ve özelliği bütün akışıyla tamamlama
+
+- **Durum:** Sürekli çalışma kuralı; planlama teslimi tamam, P01 uygulaması
+  N-044 altında sürüyor. **Tarih:** 21 Kasım 2026.
+- **Kullanıcı tercihi:** Verilen A–K listesi korunacak; seçilen özellik
+  uygulama, izleme, firma JSON, test ve kullanım zinciriyle tamamlanacak.
+  Rutin alt işler için tekrar tekrar “devam” onayı istenmeyecek.
+- **Süreç görünürlüğü:** Kullanıcının 21 Kasım ek isteğiyle her paket
+  başında paket ve gereksinim kimlikleri/adları, beklenen sonuç, repo/araç
+  adları ve resmî bağlantıları, seçim nedeni, XTI'nın yazacağı parçalar
+  ve uygulama sırası açıklanır. Aday araç seçilmiş/kurulmuş gibi sunulmaz.
+  İlerleme ve yöntem değişiklikleri paylaşılır; kapanışta aynı kimliklerle
+  sonuç, kullanılan gerçek bileşenler ve kanıtlar verilir. Bu iletişim
+  her rutin alt adım için yeniden izin istemek anlamına gelmez.
+- **Tek plan:** [MASTER_ROADMAP](docs/roadmap/MASTER_ROADMAP.md) altı ürün
+  paketini, ortak işletim koşullarını, 76 gereksinimi ve tam teslim
+  ölçütlerini içerir. Önceki ana plan tarihî dosyada korunur; eski motor
+  planı/backlog/matris güncel geliştirme sırasını belirlemez.
+- **Planlama adımındaki ilk öneri:** P01 kod deposu ve paste maruziyeti. Kaynak erişimi,
+  bileşen ve sayısal kabul eşikleri ön incelemede belirlenir. GitHub/GitLab/
+  paste veya secret tarayıcısı bu plan güncellemesiyle bağlanmış değildir.
+- **Tamamlanma:** Bir alt parçanın bitmesi birleşik gereksinimi kapatmaz;
+  canlı kabul veya dış girdi bekleyen özellik tamamlandı gösterilmez.
+  Kapsamı daraltma ve sonraya bırakma görünür karar gerektirir. Mevcut
+  kapsam hatası düzeltilir; yeni ürün isteği ayrı gereksinim olarak izlenir.
+- **Korunan tercihler:** LLM, geniş STIX/TAXII, geniş marka, bildirim
+  kanalları, zafiyet kapsamı ve backend/UI sınırları kendiliğinden açılmaz.
+  Ücretli hizmet, dış iletişim veya yeni aktif hedef yetkisi varsayılmaz.
+- **Uygulama öncesindeki plan doğrulaması:** 76/76 gereksinim ve kimlik tekilliği, altı paket, değişen
+  belgelerdeki 500 yerel bağlantı hedefi ve önceki ana plan gövdesinin
+  eksiksiz korunması doğrulandı. `git diff --check` temiz. Çalışma
+  kodu/sürümü değişmedi; tam uygulama testi veya canlı kaynak kabulü
+  çalıştırılmadı. Bu sonuç özellik kabulü değildir.
 
 ### N-039 — İlk ticari profilde kapalı tutulan kaynaklar
 
@@ -810,6 +1354,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Korunacak kararlar
 
+21 Kasım 2026 ek tercihi: Tek ana plandaki seçilen özellik bütün kullanım
+ve teslim akışıyla tamamlanır; kullanıcıdan rutin her alt adım için yeniden
+devam onayı istenmez. Önceden bilinebilir dış bağımlılıklar başta kaydedilir;
+ayrıntı ve tamamlanma ölçütleri N-043'tedir.
+
 18 Kasım 2026 itibarıyla mevcut kullanıcı tercihleri:
 
 - Şimdilik ücretsiz kaynaklarla ilerliyoruz. İleride ücretli kaynak
@@ -1308,6 +1857,16 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Tavily kabulünü veya N-010'daki tam paket tekrarını kapatmaz.
 
 ## Sıradaki çalışma
+
+**0.181.0 — 21 Kasım:** Kullanıcı seçimiyle aktif paket P02'dir. Açık
+kaynak/kanal toplama, firma sonucu, inceleme, izleme, vaka ve JSON akışı
+uygulandı; son kabul kanıtı [P02 kaydında](docs/roadmap/P02_DELIVERY.md).
+Hesaplı kanal canlı kabulü ve ticari kaynak kararları N-045'te açık.
+
+**0.180.0 — 21 Kasım:** Aktif paket P01/A03'tür. Anahtarsız kaynak
+akışı, araç kurulumu, inceleme/izleme ve firma bağlantıları uygulandı.
+Hesaplı genel kod araması/Pastebin erişimi, ticari veri kararı ve Linux
+kabulü açık. [Teslim durumu](docs/roadmap/P01_DELIVERY.md).
 
 **0.179.0 — 20 Kasım:** Kullanıcının seçtiği 1 ve 3 N-042 kapsamında
 tamamlandı. Kuyruk geçmişi etkin kapasiteden ayrıldı; kaynak uyuşmazlığı

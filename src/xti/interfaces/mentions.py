@@ -10,7 +10,13 @@ from xti.interfaces.text import safe_text
 
 
 def register_mentions_parser(commands):
-    parser = commands.add_parser("mentions", help="Firma ve tedarikçi hakkında internette içerik ara; kaynaklı geçmişi incele.")
+    parser = commands.add_parser(
+        "mentions",
+        help=(
+            "Tavily ile firma/tedarikçi için açık web araması yap; sabit RSS arşivi "
+            "ve kayıtlı kanal izleme değildir."
+        ),
+    )
     actions = parser.add_subparsers(dest="mentions_action", required=True)
     from xti.interfaces.mention_groups import register_mention_groups
     register_mention_groups(actions)

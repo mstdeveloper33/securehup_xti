@@ -8,7 +8,13 @@ from xti.interfaces.text import safe_text
 
 
 def register_news_parser(commands):
-    parser = commands.add_parser('news', help='RSS/Atom haberlerini internetten al, kaynaklı yerel kayıtlarını araştır.')
+    parser = commands.add_parser(
+        'news',
+        help=(
+            'Sabit yayıncıların genel RSS/Atom akışını al; firma eşleştirmeli '
+            "izleme için 'content', açık web araması için 'mentions' kullanılır."
+        ),
+    )
     actions = parser.add_subparsers(dest='news_action', required=True)
     actions.add_parser('sources', help='Desteklenen yayıncıları ve atıfları veri alanı açmadan göster.')
     refresh = actions.add_parser('refresh', help='Seçilen yayıncının akışını bir kez al; haber sayfalarını açma.')

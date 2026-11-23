@@ -9,7 +9,8 @@ _LABELS = {'domain': 'Domain / alt alan', 'finding': 'Marka bulgusu', 'social': 
            'ransomware': 'Ransomware kaynak iddiası', 'public-notice': 'Kamu olayı',
            'case': 'Vaka', 'supplier': 'Tedarikçi', 'organization': 'Kuruluş',
            'cti': 'CTI varlığı', 'indicator': 'IOC', 'news': 'Yayıncı haberi',
-           'mention': 'Firma/tedarikçi içerikleri'}
+           'mention': 'Firma/tedarikçi içerikleri',
+           'telemetry': 'Sensör / sandbox telemetrisi'}
 _MATCH = {'exact': 'tam metin', 'prefix': 'başlangıç', 'contains': 'içerme'}
 
 

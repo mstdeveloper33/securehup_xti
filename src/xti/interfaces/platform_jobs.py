@@ -108,9 +108,43 @@ def make_source_runner(database):
         return GroupRefreshStep(database, SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'))
 
     from xti.adapters.source_job_reports import VersionedReportStep
+    def code_exposure():
+        from xti.adapters.source_job_code import CodeMonitorStep
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        from xti.interfaces.code_exposure import make_code_service
+        return CodeMonitorStep(make_code_service(database), SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'))
+
+    def content_monitoring():
+        from xti.adapters.source_job_content import ContentMonitorStep
+        from xti.interfaces.content_monitoring import make_content_service
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        return ContentMonitorStep(make_content_service(database), SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'))
+
+    def brand_protection():
+        from xti.adapters.source_job_brand_protection import BrandProtectionStep
+        from xti.interfaces.brand_protection import make_brand_protection_service
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        return BrandProtectionStep(make_brand_protection_service(database),SQLiteEngineJobRepository(database.parent/'engine-jobs.sqlite3'))
+
+    def cti_analysis():
+        from xti.adapters.source_job_cti_analysis import CtiAnalysisStep
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        from xti.interfaces.cti_analysis import make_cti_analysis_service
+        return CtiAnalysisStep(make_cti_analysis_service(database),
+            SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'))
+
+    def darkweb_monitoring():
+        from xti.adapters.source_job_darkweb import DarkwebMonitoringStep
+        from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
+        from xti.interfaces.darkweb_monitoring import make_darkweb_service
+        return DarkwebMonitoringStep(
+            make_darkweb_service(database),
+            SQLiteEngineJobRepository(database.parent / 'engine-jobs.sqlite3'),
+        )
+
     operations = ExistingSourceJobOperations(enrichment, warninglists, history,
         news=news, investigations=investigations, reports=lambda: VersionedReportStep(database),
-        publishers=publishers, relationship_notifications=relationship_notifications, social_tracking=social_tracking, groups=groups)
+        publishers=publishers, relationship_notifications=relationship_notifications, social_tracking=social_tracking, groups=groups, code_exposure=code_exposure, content_monitoring=content_monitoring, brand_protection=brand_protection, cti_analysis=cti_analysis, darkweb_monitoring=darkweb_monitoring)
     return CooperativeSourceJobRunner(operations, LocalExecutionLock(database))
 
 

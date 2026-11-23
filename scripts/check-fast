@@ -19,6 +19,32 @@ sh -n \
 
 "$XTI_PROJECT_DIR/scripts/python" -m compileall -q src
 exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/check-test-shard.py" -v \
+    tests/test_telemetry.py \
+    tests/test_telemetry_contract.py \
+    tests/test_telemetry_migration.py \
+    tests/test_unified_monitoring.py \
+    tests/test_unified_monitoring_contract.py \
+    tests/test_data_retention.py \
+    tests/test_data_retention_contract.py \
+    tests/test_telemetry_retention.py \
+    tests/test_actionability.py \
+    tests/test_actionability_cli.py \
+    tests/test_actionability_contract.py \
+    tests/test_actionability_migration.py \
+    tests/test_ioc_bulk.py \
+    tests/test_darkweb_monitoring.py \
+    tests/test_darkweb_platform.py \
+    tests/test_cti_analysis.py \
+    tests/test_cti_analysis_platform.py \
+    tests/test_brand_protection.py \
+    tests/test_brand_protection_sources.py \
+    tests/test_brand_protection_platform.py \
+    tests/test_protection_installation.py \
+    tests/test_content_monitoring.py \
+    tests/test_content_sources.py \
+    tests/test_content_channels.py \
+    tests/test_content_platform.py \
+    tests/test_content_stored.py \
     tests/test_architecture.py \
     tests/test_social_discovery.py \
     tests/test_social_quality.py \
@@ -131,6 +157,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/check-test-shar
     tests/test_brand_username_watches.py \
     tests/test_surface_source_evaluation.py \
     tests/test_surface_discovery_status.py \
+    tests/test_source_governance.py \
     tests/test_source_readiness.py \
     tests/test_source_readiness_adapter.py \
     tests/test_engine_contract.py \

@@ -48,6 +48,11 @@ class CompanyContentSnapshot:
     scopes: tuple[OrganizationContentScope, ...]
     pages: tuple[CompanyContentPage, ...]
     notes: tuple[str, ...]
+    monitored_content: dict | None = None
+    brand_protection: dict | None = None
+    cti_analysis: dict | None = None
+    darkweb_monitoring: dict | None = None
+    unified_monitoring: dict | None = None
 
 
 def content_source_status(scope: OrganizationContentScope) -> str:

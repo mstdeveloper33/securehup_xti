@@ -3,9 +3,9 @@
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import datetime, timezone
-import math
 import time
 
+from xti.application.foreground_monitor import MonotonicBudget, monotonic_value
 from xti.application.jobs import JobService, RECOVERY_REASON
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.monitoring import (
@@ -79,15 +79,6 @@ class MonitorService:
         except (TypeError, ValueError, OverflowError) as error:
             raise ValidationError("İzleme zamanı geçersiz veya desteklenen aralığın dışında.") from error
 
-    def _tick(self) -> float:
-        value = self.monotonic()
-        try:
-            if type(value) not in (int, float) or not math.isfinite(value):
-                raise ValueError("Invalid monotonic clock")
-            return float(value)
-        except (ValueError, TypeError, OverflowError) as error:
-            raise ValidationError("İzleme süresini ölçen saat geçersiz.") from error
-
     def _runner(self) -> JobService:
         if self.jobs is None:
             raise ValidationError("İzleme başlatmak veya kurtarmak için çalıştırıcı bağlantısı gerekli.")
@@ -106,21 +97,23 @@ class MonitorService:
                 raise ValidationError("İzlenecek adresler çalıştırıcının seçimiyle uyuşmuyor.")
         # Fail bad clocks before taking ownership or creating a session.
         self._now()
-        self._tick()
+        monotonic_value(
+            self.monotonic,
+            error_message="İzleme süresini ölçen saat geçersiz.",
+        )
         with jobs.lock.acquire():
             self.repository.recover(self._now())
             jobs.jobs.recover_interrupted(RECOVERY_REASON)
-            started = self._tick()
-            previous = started
+            budget = MonotonicBudget(
+                self.monotonic,
+                invalid_message="İzleme süresini ölçen saat geçersiz.",
+                rollback_message=(
+                    "İzleme süresini ölçen saat geriye gitti; deneme durduruldu."
+                ),
+            )
+            budget.start()
             run = self.repository.create(spec, self._now())
-
-            def elapsed() -> float:
-                nonlocal previous
-                current = self._tick()
-                if current < previous or not math.isfinite(current - started):
-                    raise ValidationError("İzleme süresini ölçen saat geriye gitti; deneme durduruldu.")
-                previous = current
-                return current - started
+            elapsed = budget.elapsed
 
             def finish(reason: str) -> MonitorReport:
                 self.repository.finish(run.id, "completed", reason, self._now(), elapsed())

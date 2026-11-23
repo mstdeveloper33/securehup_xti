@@ -1,5 +1,10 @@
 # XTI — İlk Dört Çalışma Döngüsü
 
+Bu dosya ilk geliştirme döngülerinin tarihî kaydıdır. 21 Kasım 2026'dan
+itibaren güncel sıra ve tam özellik teslim düzeni
+[tek ana plandadır](MASTER_ROADMAP.md); buradaki bekleyenler güncel iş
+listesi olarak kullanılmaz.
+
 **Tarih:** 29 Ekim 2026 · **Durum:** Çalışma planı; yerel temel, iki kaynaktan arama, kaynak kataloğu, kalıcı işler/beklemeler, sınırlı hedef kontrolü, inceleme sırası, JSON rapor, kontrollü bakım, bulgu/pasif aday/dış yüzey değişikliği için birleşik yerel bildirim kutusu ve okundu takibi, kayıtlı takibin durum ve dış yüzey kanıt güncellik özetleri, pasif kaynak/veri durumu ayrımı, katmanlı aday/kayıt/kapsam envanteri, tur/süre sınırlı marka, pasif yüzey ve seçili aktif yüzey izleme, sınırlı Unicode/IDN adayları, süreli istisna, sürümlü kalite ölçümü, kullanıcı onaylı DNS/TLS ve MX/SPF/DMARC dış yüzey temel kaydı, doğrulanmış sertifika kimliği, pasif alt alan adı aday/çalışma envanteri, kesin IP'ye sabitlenmiş sınırlı TCP servis kanıtı, CNAME hedef DNS kanıtı ve bunların tek anlık görüntüde ilişki özeti uygulanmıştır. Gerçek komutlar ve sınırlar [STATUS.md](../STATUS.md) ve [README](../../README.md) içinde izlenir.
 
 0.87.0, aktör/kampanya/malware/rapor ana ve alternatif adlarıyla yerel IOC değerlerini tek ağsız aramada birleştirir; sorguyu kalıcı kaydedip her açık çalışmanın tam sonucunu önceki aynı tanımla karşılaştırır, anlamlı farkı birleşik yerel kutuya bildirir, tek/bütün etkin sorguyu sınırlı yeniler ve araştırmayı geçmişi korunan etiket/not defteriyle düzenler.

@@ -78,7 +78,7 @@ class NewsIntegrationTests(unittest.TestCase):
         before = self.path.read_bytes()
         empty = self.search.search('example')
         self.assertEqual(set(empty.kinds), set(GLOBAL_SEARCH_KINDS))
-        self.assertEqual(len(empty.kinds), 12)
+        self.assertEqual(len(empty.kinds), len(GLOBAL_SEARCH_KINDS))
         self.assertEqual({item.source for item in empty.coverage if item.kind == 'news'}, {'cisa', 'ncsc', 'cert-fr'})
         self.assertTrue(all(item.latest_run_id is None for item in empty.coverage if item.kind == 'news'))
         self.assertEqual(self.path.read_bytes(), before)

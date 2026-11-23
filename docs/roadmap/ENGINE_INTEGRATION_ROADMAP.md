@@ -1,5 +1,11 @@
 # XTI — Kendi platformumuz için motor geliştirme yol haritası
 
+**21 Kasım 2026:** Yeni çalışmalar için tek sıra ve tam teslim ölçütü
+[MASTER_ROADMAP](MASTER_ROADMAP.md) içindedir. Bu dosya önceki MTR/ENG/STB
+planlarını ve sürüm teslimlerini koruyan tarihî başvurudur. Aşağıdaki
+“sıradaki” ifadeleri yazıldıkları sürüme aittir; yeni ana planı değiştirmez.
+Gerçekte uygulanan kapsam [STATUS](../STATUS.md) ile doğrulanır.
+
 **0.179.0:** Kullanıcının seçtiği 1 ve 3 uygulandı: ortak iş kuyruğunda
 tamamlanan geçmiş etkin kapasiteden ayrıldı; kaynakların açık karşıt
 iddiaları zaman ve kanıtıyla değerlendiriliyor. Eski iş/sonuç/tekrar bağı,

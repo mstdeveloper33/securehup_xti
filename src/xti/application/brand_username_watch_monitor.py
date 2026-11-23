@@ -2,9 +2,9 @@
 
 from collections.abc import Callable
 from datetime import datetime, timezone
-import math
 import time
 
+from xti.application.foreground_monitor import MonotonicBudget, utc_now
 from xti.application.brand_username import validate_brand_request_timeout
 from xti.application.brand_username_watches import BrandUsernameWatchService
 from xti.domain.assets import ValidationError
@@ -60,28 +60,7 @@ class BrandUsernameWatchMonitorService:
         validate_brand_request_timeout(request_timeout)
 
     def _now(self) -> str:
-        value = self.clock()
-        try:
-            if (
-                not isinstance(value, datetime)
-                or value.tzinfo is None
-                or value.utcoffset() is None
-            ):
-                raise ValueError("timezone required")
-            return value.astimezone(timezone.utc).isoformat()
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError("Sosyal izleme zamanı geçersiz.") from error
-
-    def _tick(self) -> float:
-        value = self.monotonic()
-        try:
-            if type(value) not in (int, float) or not math.isfinite(value):
-                raise ValueError("invalid monotonic clock")
-            return float(value)
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError(
-                "Sosyal izleme süresini ölçen saat geçersiz."
-            ) from error
+        return utc_now(self.clock, error_message="Sosyal izleme zamanı geçersiz.")
 
     def run(
         self,
@@ -106,20 +85,17 @@ class BrandUsernameWatchMonitorService:
             )
 
         started_at = self._now()
-        started = self._tick()
-        previous = started
+        budget = MonotonicBudget(
+            self.monotonic,
+            invalid_message="Sosyal izleme süresini ölçen saat geçersiz.",
+            rollback_message=(
+                "Sosyal izleme süresini ölçen saat geriye gitti; "
+                "izleme durduruldu."
+            ),
+        )
+        budget.start()
         cycles: list[BrandUsernameWatchMonitorCycle] = []
-
-        def elapsed() -> float:
-            nonlocal previous
-            current = self._tick()
-            if current < previous or not math.isfinite(current - started):
-                raise ValidationError(
-                    "Sosyal izleme süresini ölçen saat geriye gitti; "
-                    "izleme durduruldu."
-                )
-            previous = current
-            return current - started
+        elapsed = budget.elapsed
 
         stop_reason = "cycles"
         for cycle in range(1, max_cycles + 1):

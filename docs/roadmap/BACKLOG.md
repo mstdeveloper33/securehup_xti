@@ -1,5 +1,11 @@
 # XTI — Uygulanabilir İş Listesi
 
+**21 Kasım 2026:** Yeni geliştirme sırası ve 76 gereksinimin takibi
+[tek ana planda](MASTER_ROADMAP.md). Bu dosyadaki eski iş kimlikleri ve
+tarihli kabul notları başvuru için korunur; ayrı aktif iş listesi değildir.
+“Sıradaki/açık” ifadeleri ilgili sürümün kaydıdır; bugün için
+[STATUS](../STATUS.md) ve [NOTES](../../NOTES.md) esas alınır.
+
 **15 Kasım 2026 son kapsam kararı:** Bu repo, mevcut .NET platformuna
 bağlanacak XTI veri toplama ve analiz motorudur. Uygulama backend'i,
 kullanıcı oturumları, roller ve web deneyimi .NET tarafındadır. Güncel

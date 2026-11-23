@@ -1,5 +1,61 @@
 # Üçüncü Taraf Bildirimleri
 
+**21 Kasım 2026 — P03 / 0.182.0:** ImageHash4.3.2 (BSD-2-Clause),
+Pillow13.0.0 (MIT-CMU/HPND bildirimi), Playwright1.65.2 (Apache-2.0),
+google-play-scraper1.2.7 (MIT). Görsel hesaplamalar SciPy1.16.3 (BSD-3-Clause),
+PyWavelets1.9.0 (MIT), mevcut Python koşullu NumPy2.4.6/2.5.4 ve greenlet3.5.0
+(MIT/Python-2.0) kullanır. Wheel içindeki ek native lisanslar da geçerlidir;
+kurulu paketlerin lisans dosyaları korunur. [Tam hash listesi](requirements/brand-protection.txt).
+Chromium revision1255, SDK1.65.2 ile seçilir; Chromium/üçüncü taraf
+bildirimleri dağıtımda korunur. SDK kod lisansı tarayıcıdaki bütün native
+bileşenlerin lisansını tek başına tanımlamaz. Tarayıcı ayrı upstream arşiv
+hash piniyle sunulmuyor; resmî SDK TLS indirimi ve yerel hash makbuzu var.
+Mağaza ve açık sayfa verilerinin hakları bunlardan ayrıdır: [N-046](NOTES.md#n-046--p03-marka-koruması-görsel-kanıt-ve-mağaza-kaynakları).
+Google kitaplığı motor TLS ayarını değiştirmemesi için yalnız ağsız parser
+alt sürecinde kullanılır; kaynak HTTPS taşımasını XTI yapar. Kaynaklardan
+APK/IPA veya çalıştırılabilir phishing kit alınmaz.
+
+
+## P02 kanal kitaplıkları
+
+0.181.0 sürümünde aşağıdaki resmî Python dağıtımları sürüm/dosya hash'iyle
+kurulur. Özgün lisans ve telif metinleri dağıtımların `dist-info`/lisans
+dosyalarında korunur; yeniden dağıtımda bunlar da korunmalıdır.
+
+| Dağıtım | Sürüm | Lisans | Resmî dağıtım |
+|---|---|---|---|
+| Telethon | 1.46.0 | MIT | [PyPI](https://pypi.org/project/Telethon/1.46.0/) |
+| irctokens | 2.0.2 | MIT | [PyPI](https://pypi.org/project/irctokens/2.0.2/) |
+| pyaes | 1.6.1 | MIT | [PyPI](https://pypi.org/project/pyaes/1.6.1/) |
+| rsa | 4.9.1 | Apache-2.0 | [PyPI](https://pypi.org/project/rsa/4.9.1/) |
+| pyasn1 | 0.6.5 | BSD-2-Clause | [PyPI](https://pypi.org/project/pyasn1/0.6.5/) |
+| setuptools (derleme) | 84.2.1 | MIT | [PyPI](https://pypi.org/project/setuptools/84.2.1/) |
+
+pyaes yalnız kaynak paketi sunduğundan hash doğrulamasından sonra sabit
+derleyiciyle `--no-build-isolation` kullanılır; değişken bağımlılık
+çözümlemesiyle bir kanal sürümü seçilmez. Hash listeleri
+[channels](requirements/channels.txt) ve [channels-build](requirements/channels-build.txt).
+Bu yazılım izinleri kanal/publisher içeriklerinin yeniden yayın hakkı
+değildir. [N-045](NOTES.md#n-045--p02-kaynak-kanal-ve-teslim-kapsamı).
+
+## Betterleaks
+
+0.180.0 kod/paste incelemesi [Betterleaks1.10.1](https://github.com/betterleaks/betterleaks)
+native ikilisini ayrı süreçte kullanır. İncelenen commit:
+`39d5bdcf34db54e944facac5cf6e8b03db5e2b99`.
+
+Lisans: MIT
+
+[Özgün lisans](https://github.com/betterleaks/betterleaks/blob/39d5bdcf34db54e944facac5cf6e8b03db5e2b99/LICENSE)
+kurulum arşivinden ikiliyle birlikte saklanır. Platform arşiv SHA256'ları
+[pin dosyasındadır](src/xti/domain/betterleaks_pin.py). Kaynak kodu
+kopyalanmaz; araç değiştirilmez. Credential validation ve otomatik kaynak
+config'i kapalıdır. Kaynak dosyalar çalıştırılmaz.
+
+Araç MIT izni, GitHub/GitLab/Pastebin'de bulunan içeriklerin ticari
+gösterim/saklama hakkı değildir; [N-044](NOTES.md#n-044--p01--a03-kaynak-erişimi-ve-secret-inceleme-aracı)
+bu yeni veri kaynaklarının açık değerlendirmesini tutar.
+
 ## RIPEstat / RIPE NCC RIS
 
 0.164.0 isteğe bağlı IP ağ bağlamını resmî `network-info` API'sinden alır.

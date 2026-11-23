@@ -284,6 +284,24 @@ def _verify_pdf_runtime(prefix: Path) -> None:
         raise VerificationError('PDF okuyucusu eksik veya bozuk; ./scripts/setup-brand çalıştır.') from error
 
 
+def _verify_channel_runtime(prefix: Path) -> None:
+    try:
+        for name, wanted, module_name in (('Telethon', '1.46.0', 'telethon'), ('irctokens', '2.0.2', 'irctokens'),
+                ('pyaes', '1.6.1', 'pyaes'), ('rsa', '4.9.1', 'rsa'), ('pyasn1', '0.6.5', 'pyasn1')):
+            installed = distribution(name); module = importlib.import_module(module_name)
+            if (installed.version != wanted or not _inside(Path(installed.locate_file('')), prefix)
+                    or not _inside(Path(module.__file__), prefix)):
+                raise VerificationError('Kanal paketi sürümü veya konumu uyuşmuyor: ' + name)
+        tokens = importlib.import_module('irctokens')
+        line = tokens.tokenise(':fixture!user@host PRIVMSG #fixture :example.com test')
+        if line.command != 'PRIVMSG' or line.params != ['#fixture', 'example.com test']:
+            raise VerificationError('IRC ayrıştırıcısı yerel örneği doğrulayamadı.')
+        from telethon.sessions import StringSession
+        if StringSession().save() != '': raise VerificationError('Telegram oturum modülü yerel örnekle uyuşmuyor.')
+    except (PackageNotFoundError, ImportError, AttributeError, ValueError, TypeError) as error:
+        raise VerificationError('Kanal bağımlılıkları eksik veya bozuk; ./scripts/setup-brand çalıştır.') from error
+
+
 def _verify_locked(prefix: Path, descriptor: int) -> None:
     if sys.version_info < (3, 11):
         raise VerificationError("Python 3.11 veya daha yeni bir sürüm gerekiyor")
@@ -292,6 +310,14 @@ def _verify_locked(prefix: Path, descriptor: int) -> None:
     _verify_constraints(CONSTRAINTS)
     _verify_news_runtime(prefix)
     _verify_pdf_runtime(prefix)
+    _verify_channel_runtime(prefix)
+    from xti.adapters.brand_protection_tools import verify_packages
+    try:
+        from xti.adapters.brand_protection_tools import PACKAGES
+        for name in PACKAGES:
+            if not _inside(Path(distribution(name).locate_file("")),prefix):raise VerificationError("P03 paketi ortam dışında: "+name)
+        verify_packages()
+    except (ValueError, ImportError) as error: raise VerificationError(str(error)) from error
     for tool in TOOLS:
         _verify_distribution(tool, prefix)
 

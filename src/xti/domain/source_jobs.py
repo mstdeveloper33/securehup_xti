@@ -10,15 +10,23 @@ from xti.domain.indicator_enrichment import enrichment_query, PROVIDERS
 from xti.domain.research_history import capture_scope
 from xti.domain.warninglists import POLICIES
 from xti.domain.source_job_usage import request_ceiling, validate_usage
-from xti.domain import social_jobs, group_jobs
+from xti.domain import (
+    brand_protection_jobs,
+    code_jobs,
+    content_jobs,
+    cti_analysis_jobs,
+    darkweb_jobs,
+    group_jobs,
+    social_jobs,
+)
 
 
 OPERATION = "sources.refresh"
-SOURCE_KEYS = ("circl", "urlscan", "misp", "ripestat", "ripestat-whois", "news:cisa", "news:ncsc", "news:cert-fr", "reports", "report-capture", "publisher", "relationship-notify", social_jobs.SOURCE, group_jobs.SOURCE)
-EXECUTION_VERSION = 7
+SOURCE_KEYS = ("circl", "urlscan", "misp", "ripestat", "ripestat-whois", "news:cisa", "news:ncsc", "news:cert-fr", "reports", "report-capture", "publisher", "relationship-notify", social_jobs.SOURCE, group_jobs.SOURCE, code_jobs.SOURCE, content_jobs.SOURCE, brand_protection_jobs.SOURCE, cti_analysis_jobs.SOURCE, darkweb_jobs.SOURCE)
+EXECUTION_VERSION = 12
 FLOW_FIELDS = {'source_order', 'failure_policy', 'capture_source', 'capture_limit'}
 PLAN_FIELDS = {"indicator_type", "value", "sources", "warninglist_ids", "record_review",
-               "max_hops", "node_limit", "edge_limit", "stale_after_hours", "max_seconds", "max_requests"} | FLOW_FIELDS | {"publisher_documents", "notification_offset"} | social_jobs.FIELDS | group_jobs.FIELDS
+               "max_hops", "node_limit", "edge_limit", "stale_after_hours", "max_seconds", "max_requests"} | FLOW_FIELDS | {"publisher_documents", "notification_offset"} | social_jobs.FIELDS | group_jobs.FIELDS | code_jobs.FIELDS | content_jobs.FIELDS | brand_protection_jobs.FIELDS | cti_analysis_jobs.FIELDS | darkweb_jobs.FIELDS
 
 
 def source_plan(**parameters):
@@ -44,21 +52,26 @@ def source_plan(**parameters):
     review = parameters.get("record_review", False)
     if type(review) is not bool:
         raise ValidationError("İnceleme kaydı seçimi boolean olmalı.")
-    seconds, budget = parameters.get("max_seconds", 180), parameters.get("max_requests", 7)
-    if type(seconds) is not int or not 1 <= seconds <= 600 or type(budget) is not int or not 1 <= budget <= (32 if "publisher" in sources else 7):
-        raise ValidationError("Süre 1–600 saniye; istek bütçesi normal işlerde 1–7, seçilmiş yayın işinde 1–32 olmalı.")
+    seconds, budget = parameters.get("max_seconds", 180), parameters.get("max_requests", 30 if code_jobs.SOURCE in sources or content_jobs.SOURCE in sources else 7)
+    if type(seconds) is not int or not 1 <= seconds <= 600 or type(budget) is not int or not 1 <= budget <= (200 if brand_protection_jobs.SOURCE in sources else 100 if code_jobs.SOURCE in sources or content_jobs.SOURCE in sources else 32 if "publisher" in sources else 7):
+        raise ValidationError("Süre 1–600 saniye; istek bütçesi normal işlerde 1–7, seçilmiş yayın işinde 1–32, kod/içerik işinde 1–100 olmalı.")
     docs = parameters.get("publisher_documents")
     if "publisher" in sources:
         from xti.domain.publisher_jobs import documents
         docs = documents(docs)
     elif docs is not None:
         raise ValidationError("Belge seçimi publisher adımı gerektirir.")
-    requests = sum(request_ceiling(source, {'warninglist_ids': selected, 'publisher_documents': docs}) or 0 for source in sources)
+    requests = sum(request_ceiling(source, {'warninglist_ids': selected, 'publisher_documents': docs, 'max_requests': budget}) or 0 for source in sources)
     if requests > budget:
         raise ValidationError("Seçilen kaynaklar istek bütçesine sığmıyor; kaynak/liste seçimini daraltın.")
     extra = {key: value for key, value in parameters.items() if key in FLOW_FIELDS and value is not None}
     extra.update(social_jobs.selection(parameters, sources, scope))
     extra.update(group_jobs.selection(parameters, sources))
+    extra.update(code_jobs.selection(parameters, sources, scope))
+    extra.update(content_jobs.selection(parameters, sources, scope))
+    extra.update(brand_protection_jobs.selection(parameters,sources,scope))
+    extra.update(cti_analysis_jobs.selection(parameters, sources, scope))
+    extra.update(darkweb_jobs.selection(parameters, sources, scope))
     if 'source_order' in extra:
         order = extra['source_order']
         if not isinstance(order, (list, tuple)) or any(not isinstance(v, str) for v in order) or sorted(order) != sources:
@@ -119,16 +132,28 @@ def plan_data(plan, *, version=EXECUTION_VERSION):
     metered_requests = sum(request_ceiling(key, plan) or 0 for key in plan['sources'])
     result = {"operation": OPERATION, "version": version, "plan": plan,
         "plan_sha256": digest(canonical_json(plan)), "step_order": list(step_keys(plan)),
-        "maximum_external_requests": None if social else metered_requests,
+        "maximum_external_requests": None if social or content_jobs.SOURCE in plan['sources'] or brand_protection_jobs.SOURCE in plan['sources'] else metered_requests,
         "paid_api": False, "request_network_access": False,
-        "disclosure": [{"source": key, "target_sent": key in PROVIDERS or key == social_jobs.SOURCE,
-                        "commercial_use": PROVIDERS[key]["commercial_use"] if key in PROVIDERS else "social_platform_and_tool_terms_apply" if key == social_jobs.SOURCE else "publisher_terms_apply" if key.startswith("news:") or key == "publisher" else "local_derived_evidence" if key in {"reports", "report-capture", "relationship-notify", group_jobs.SOURCE} else "curated_lists_reviewed"}
+        "disclosure": [{"source": key, "target_sent": key in PROVIDERS or key in (social_jobs.SOURCE, code_jobs.SOURCE, content_jobs.SOURCE, brand_protection_jobs.SOURCE),
+                        "commercial_use": PROVIDERS[key]["commercial_use"] if key in PROVIDERS else "social_platform_and_tool_terms_apply" if key == social_jobs.SOURCE else "publisher_terms_apply" if key.startswith("news:") or key == "publisher" else "local_derived_evidence" if key in {"reports", "report-capture", "relationship-notify", group_jobs.SOURCE, cti_analysis_jobs.SOURCE, darkweb_jobs.SOURCE} else "public_page_app_store_and_social_terms_apply" if key == brand_protection_jobs.SOURCE else "channel_publisher_terms_apply" if key == content_jobs.SOURCE else "code_provider_terms_apply" if key == code_jobs.SOURCE else "curated_lists_reviewed"}
                        for key in plan["sources"]],
         "notes": ["İş kabulü ağ kullanmaz; kaynak isteğini açık worker çalıştırır.",
             "Süre sınırı adımlar arasında uygulanır; açık isteğin kendi zaman aşımı korunur.",
             "İptal devam eden isteği geri alamaz; sonraki adımları durdurur."]}
     if group_jobs.SOURCE in plan['sources']:
         result['notes'].append('Grup kontrolü saklı grubun değişmez araştırma kapsamını ve çalışma anındaki kanıtı kullanır; dış istek göndermez.')
+    if cti_analysis_jobs.SOURCE in plan['sources']:
+        result['notes'].append('CTI analiz adımı yalnız saklı CTI/IOC ve yerel ATT&CK snapshotını kullanır; dış istek göndermez.')
+    if darkweb_jobs.SOURCE in plan['sources']:
+        result['notes'].append(
+            'Dark web analiz adımı yalnız saklı ransomware ve maskeli credential kanıtını kullanır; credential sağlayıcısına istek göndermez.'
+        )
+    if brand_protection_jobs.SOURCE in plan['sources']:
+        result['request_limit_scope']='metered_https_excludes_social_tools'
+        result['notes'].append('Marka kapsamı ve kimliği sürümlüdür; sosyal araç iç HTTP trafiği ölçülmez. Tarayıcı dış ağa çıkmaz.')
+    if content_jobs.SOURCE in plan['sources']:
+        result['request_limit_scope'] = 'content_source_operations_not_wire_requests'
+        result['notes'].append('İçerik turunda max_requests kaynak işlemlerini sınırlar; Telegram/IRC iç trafiği HTTP isteği sayılmaz. Hedefe gönderilen izleme tüm kayıtlı firma/tedarikçi kapsamıdır.')
     if social:
         result.update(maximum_metered_source_requests=metered_requests,
             request_limit_scope='metered_source_steps_excludes_social_collection')
@@ -145,15 +170,33 @@ def validate_receipt(key, value, plan):
         raise ValidationError("Kaynak işi kanıt başvurusu nesne olmalı.")
     original = value
     if 'usage' in value:
-        if key == social_jobs.SOURCE: social_jobs.validate_usage(value['usage'])
+        if key == brand_protection_jobs.SOURCE: brand_protection_jobs.validate_usage(value['usage'])
+        elif key == content_jobs.SOURCE: content_jobs.validate_usage(value['usage'])
+        elif key == social_jobs.SOURCE: social_jobs.validate_usage(value['usage'])
         else: validate_usage(value['usage'], request_ceiling(key, plan))
         value = {name: item for name, item in value.items() if name != 'usage'}
-    if key == social_jobs.SOURCE:
+    if key == darkweb_jobs.SOURCE:
+        darkweb_jobs.validate_receipt(value, plan)
+        if 'usage' not in original:
+            raise ValidationError('Dark web işi sıfır HTTP kullanım makbuzu taşımalı.')
+    elif key == cti_analysis_jobs.SOURCE:
+        cti_analysis_jobs.validate_receipt(value, plan)
+        if 'usage' not in original:
+            raise ValidationError('CTI analiz işi sıfır HTTP kullanım makbuzu taşımalı.')
+    elif key == social_jobs.SOURCE:
         social_jobs.validate_receipt(value, plan)
         if ('usage' not in original
                 or value['source_status'] == 'blocked' and (original['usage']['attempted'] or original['usage']['receipt_reused'])
                 or value['source_status'] != 'blocked' and not (original['usage']['attempted'] or original['usage']['receipt_reused'])):
             raise ValidationError('Sosyal iş kullanım kaydı sonucu ile uyuşmuyor.')
+    elif key == brand_protection_jobs.SOURCE:
+        brand_protection_jobs.validate_receipt(value,plan)
+        if 'usage' not in original:raise ValidationError('Marka iş kullanım kaydı eksik.')
+    elif key == content_jobs.SOURCE:
+        content_jobs.validate_receipt(value, plan)
+        if 'usage' not in original: raise ValidationError('İçerik iş kullanım kaydı eksik.')
+    elif key == code_jobs.SOURCE:
+        code_jobs.validate_receipt(value, plan)
     elif key == group_jobs.SOURCE:
         group_jobs.validate_receipt(value, plan)
     elif key in PROVIDERS:
@@ -226,6 +269,12 @@ def validate_receipt(key, value, plan):
 
 
 def receipt_status(key, value):
+    if key == darkweb_jobs.SOURCE:
+        return value["source_status"] if value["source_status"] == "complete" else "failed"
+    if key == cti_analysis_jobs.SOURCE:
+        return value["source_status"] if value["source_status"] == "complete" else "failed"
+    if key in (code_jobs.SOURCE, content_jobs.SOURCE, brand_protection_jobs.SOURCE):
+        return value["source_status"] if value["source_status"] in ("complete", "partial") else "failed"
     if key == group_jobs.SOURCE:
         return value['source_status']
     if key == social_jobs.SOURCE:
@@ -261,7 +310,7 @@ class SourceJobPayload:
 
     def to_json(self):
         if (source_plan(**self.plan) != self.plan or type(self.allow_uncertain) is not bool
-                or type(self.version) is not int or self.version not in {1, 2, 3, 4, 5, 6, 7}):
+                or type(self.version) is not int or self.version not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}):
             raise ValidationError("Kaynak işi planı kanonik değil.")
         if self.version < 3 and (len(self.plan['sources']) > 2 or set(self.plan['sources']) - {'circl', 'urlscan', 'misp'}):
             raise ValidationError('Yeni kaynak seçenekleri iş modeli 3 gerektirir.')
@@ -269,6 +318,16 @@ class SourceJobPayload:
             raise ValidationError('Esnek akış ve yeni kaynak seçenekleri iş modeli 4 gerektirir.')
         if self.version < 5 and (({"publisher_documents", "notification_offset"} & self.plan.keys()) or set(self.plan["sources"]) & {"publisher", "relationship-notify"}):
             raise ValidationError("Yayıncı ve ilişki bildirimi işleri model 5 gerektirir.")
+        if self.version < 10 and brand_protection_jobs.SOURCE in self.plan['sources']:
+            raise ValidationError('Marka işi kaynak modeli 10 gerektirir.')
+        if self.version < 11 and cti_analysis_jobs.SOURCE in self.plan['sources']:
+            raise ValidationError('CTI analiz işi kaynak modeli 11 gerektirir.')
+        if self.version < 12 and darkweb_jobs.SOURCE in self.plan['sources']:
+            raise ValidationError('Dark web işi kaynak modeli 12 gerektirir.')
+        if self.version < 9 and content_jobs.SOURCE in self.plan['sources']:
+            raise ValidationError('İçerik işi kaynak modeli 9 gerektirir.')
+        if self.version < 8 and code_jobs.SOURCE in self.plan['sources']:
+            raise ValidationError('Kod izleme işi model 8 gerektirir.')
         if self.version < 7 and group_jobs.SOURCE in self.plan['sources']:
             raise ValidationError('Grup kontrol işi model 7 gerektirir.')
         if self.version < 6 and social_jobs.SOURCE in self.plan['sources']:
@@ -299,7 +358,7 @@ class SourceJobPayload:
             if not isinstance(text, str) or len(text) > 65536:
                 raise ValueError("Size")
             value = json.loads(text)
-            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6, 7} or not isinstance(value["reused"], list):
+            if set(value) != {"operation", "version", "plan", "retry_of", "allow_uncertain", "reused"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12} or not isinstance(value["reused"], list):
                 raise ValueError("Shape")
             result = cls(value["plan"], value["retry_of"], value["allow_uncertain"], tuple(value["reused"]), value['version'])
             if result.to_json() != text:
@@ -330,7 +389,7 @@ def final_status(steps, cancelled=False):
 
 def source_result_json(value):
     try:
-        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6, 7}:
+        if not isinstance(value, dict) or set(value) != {"operation", "version", "job_id", "status", "plan_sha256", "steps"} or value["operation"] != OPERATION or type(value["version"]) is not int or value["version"] not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}:
             raise ValueError("Shape")
         history_uuid(value["job_id"])
         if value["status"] not in {"complete", "partial", "failed", "cancelled"} or not isinstance(value["plan_sha256"], str) or len(value["plan_sha256"]) != 64:

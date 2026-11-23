@@ -1,5 +1,6 @@
 """Company-scoped platform protocol; authentication remains with the trusted host."""
 
+from xti.domain.code_exposure import WRITES as CODE_WRITES, parameters as code_parameters
 from xti.domain.social_discovery import WRITES as SOCIAL_WRITES, parameters as social_parameters
 from xti.domain.social_enrichment import WRITES as SOCIAL_ENRICHMENT_WRITES, parameters as social_enrichment_parameters
 from xti.domain.social_tracking import WRITES as SOCIAL_TRACKING_WRITES, parameters as social_tracking_parameters
@@ -21,12 +22,21 @@ from xti.domain.report_contract import WRITE_OPERATIONS as REPORT_WRITES, parame
 from xti.domain.evidence_contract import WRITES as EVIDENCE_WRITES, parameters as evidence_parameters
 from xti.domain.journal_storage import WRITES as JOURNAL_WRITES, parameters as journal_parameters
 
+from xti.domain.content_monitoring import WRITES as CONTENT_WRITES, parameters as content_parameters
+from xti.domain.brand_protection import WRITES as PROTECTION_WRITES, parameters as protection_parameters
+from xti.domain.cti_analysis import WRITES as CTI_ANALYSIS_WRITES, parameters as cti_analysis_parameters
+from xti.domain.darkweb_monitoring import WRITES as DARKWEB_WRITES, parameters as darkweb_parameters
+from xti.domain.actionability_contract import WRITES as ACTION_WRITES, parameters as action_parameters
+from xti.domain.unified_monitoring import WRITES as MONITORING_WRITES, parameters as monitoring_parameters
+from xti.domain.data_retention import WRITES as RETENTION_WRITES, parameters as retention_parameters
+from xti.domain.telemetry import WRITES as TELEMETRY_WRITES, parameters as telemetry_parameters
+
 PLATFORM_CONTRACT_VERSION = 1
 PLATFORM_OPERATIONS = ENGINE_OPERATIONS + (
     'research.review.record',
     'organization.content', 'profiles.list', 'jobs.submit', 'jobs.status',
     'jobs.result', 'jobs.cancel',
-) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + JOB_HISTORY_OPERATIONS + INVESTIGATION_WRITES + REPORT_WRITES + EVIDENCE_WRITES + JOURNAL_WRITES + SOCIAL_WRITES + SOCIAL_ENRICHMENT_WRITES + SOCIAL_TRACKING_WRITES
+) + NMAP_OPERATIONS + SOURCE_JOB_OPERATIONS + JOB_HISTORY_OPERATIONS + INVESTIGATION_WRITES + REPORT_WRITES + EVIDENCE_WRITES + JOURNAL_WRITES + SOCIAL_WRITES + SOCIAL_ENRICHMENT_WRITES + SOCIAL_TRACKING_WRITES + CODE_WRITES + CONTENT_WRITES + PROTECTION_WRITES + CTI_ANALYSIS_WRITES + DARKWEB_WRITES + ACTION_WRITES + MONITORING_WRITES + RETENTION_WRITES + TELEMETRY_WRITES
 
 
 def _fields(value, allowed, required=()):
@@ -58,8 +68,26 @@ def parse_platform_request(value):
         return parse_engine_request(value)
     parameters = value['parameters']
     try:
-        if operation in JOB_HISTORY_OPERATIONS:
+        if operation in TELEMETRY_WRITES:
+            normalized = telemetry_parameters(operation, parameters, scoped=True)
+        elif operation in RETENTION_WRITES:
+            normalized = retention_parameters(operation, parameters, scoped=True)
+        elif operation in MONITORING_WRITES:
+            normalized = monitoring_parameters(operation, parameters, scoped=True)
+        elif operation in ACTION_WRITES:
+            normalized = action_parameters(operation, parameters, scoped=True)
+        elif operation in DARKWEB_WRITES:
+            normalized = darkweb_parameters(operation, parameters, scoped=True)
+        elif operation in CTI_ANALYSIS_WRITES:
+            normalized = cti_analysis_parameters(operation, parameters, scoped=True)
+        elif operation in JOB_HISTORY_OPERATIONS:
             normalized = job_history_parameters(operation, parameters)
+        elif operation in PROTECTION_WRITES:
+            normalized = protection_parameters(operation, parameters, scoped=True)
+        elif operation in CONTENT_WRITES:
+            normalized = content_parameters(operation, parameters, scoped=True)
+        elif operation in CODE_WRITES:
+            normalized = code_parameters(operation, parameters, scoped=True)
         elif operation in SOCIAL_TRACKING_WRITES:
             normalized = social_tracking_parameters(operation, parameters, scoped=True)
         elif operation in SOCIAL_ENRICHMENT_WRITES:

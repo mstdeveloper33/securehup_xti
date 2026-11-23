@@ -584,7 +584,11 @@ _CATALOG = (
 
 
 class SourceCatalogService:
-    """Return the reviewed catalog without network or storage access."""
+    """Return reviewed base definitions consumed by SourceGovernanceService.
+
+    This is an internal compatibility provider for existing connector metadata;
+    the canonical user/engine/platform catalog is SourceGovernanceService.
+    """
 
     def list(self) -> tuple[SourceCatalogEntry, ...]:
         return _CATALOG + tuple(SourceCatalogEntry(

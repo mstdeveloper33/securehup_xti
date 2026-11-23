@@ -30,12 +30,15 @@ VERIFY_TIMEOUT = 90
 
 
 def run_command(arguments, *, cwd, lock_fd, timeout, environment=None, stage="araç komutu"):
+    print(f"Kurulum adımı: {stage}", flush=True)
     try:
         return _run_command(arguments, cwd=cwd, lock_fd=lock_fd, timeout=timeout,
                             environment=environment, recovery_command=RECOVERY_COMMAND)
     except (ProcessCleanupError, SetupInterrupted):
         # Their types control rollback and retry safety; never wrap these.
         raise
+    except subprocess.TimeoutExpired:
+        raise ToolInstallationError(f"{stage}: süre sınırı aşıldı; süreçler durduruldu.") from None
     except ToolInstallationError as error:
         # Static stage labels explain the failure without exposing child logs.
         raise ToolInstallationError(f"{stage}: {error}") from error
@@ -100,6 +103,23 @@ def verify(project, lock_fd):
         print(result)
 
 
+def stage_project(project, destination):
+    """Build from a fresh source tree, never from a caller's stale build/egg-info cache."""
+    destination.mkdir(mode=0o700)
+    def ignore(directory, names):
+        ignored = [name for name in names if name == '__pycache__' or name.endswith(('.pyc', '.egg-info'))]
+        if any((Path(directory) / name).is_symlink() for name in names if name not in ignored):
+            raise ToolInstallationError('Paket kaynak ağacında sembolik bağ var; otomatik izlenmedi.')
+        return ignored
+    if (project / 'src').is_symlink(): raise ToolInstallationError('Paket kaynak kökü sembolik bağ olamaz.')
+    shutil.copytree(project / 'src', destination / 'src', ignore=ignore)
+    for name in ('pyproject.toml', 'README.md', 'LICENSE', 'LICENSE.md', 'NOTICE'):
+        path = project / name
+        if path.is_symlink(): raise ToolInstallationError('Paket üstverisi sembolik bağ olamaz.')
+        if path.is_file(): shutil.copyfile(path, destination / name)
+    return destination
+
+
 def install(project, bootstrap, lock_fd):
     refuse_legacy(project)
     data = TRANSACTION.prepare(project)
@@ -108,16 +128,25 @@ def install(project, bootstrap, lock_fd):
     try:
         TRANSACTION.activate(project, data)
         with tempfile.TemporaryDirectory(prefix="xti-brand-install-") as temporary:
+            package = stage_project(project, Path(temporary) / 'package')
             environment = clean_environment(Path(temporary))
             run_command([bootstrap, "-m", "venv", venv], cwd=project,
                         lock_fd=lock_fd, timeout=VENV_TIMEOUT, environment=environment,
                         stage="Python ortamı oluşturma")
             python = venv / "bin/python"
+            for manifest, options in (("channels-build.txt", ["--only-binary=:all:"]),
+                                      ("channels.txt", ["--no-build-isolation"]),
+                                      ("brand-protection.txt", ["--only-binary=:all:"])):
+                run_command([python, "-m", "pip", "--isolated", "--disable-pip-version-check", "--no-input",
+                    "--cache-dir", str(Path(temporary) / "pip-cache"), "install", "--index-url", "https://pypi.org/simple",
+                    "--require-hashes", *options, "-r", project / "requirements" / manifest],
+                    cwd=project, lock_fd=lock_fd, timeout=INSTALL_TIMEOUT, environment=environment,
+                    stage="Sabit kanal bağımlılıkları")
             run_command(
                 [python, "-m", "pip", "--isolated", "--disable-pip-version-check", "--no-input",
                  "--cache-dir", str(Path(temporary) / "pip-cache"), "install",
                  "--index-url", "https://pypi.org/simple",
-                 "--constraint", project / "constraints/brand.txt", f"{project}[brand,news,reports]"],
+                 "--constraint", project / "constraints/brand.txt", f"{package}[brand,news,reports,channels,protection]"],
                 cwd=project, lock_fd=lock_fd, timeout=INSTALL_TIMEOUT, environment=environment,
                 stage="Paket kurulumu",
             )

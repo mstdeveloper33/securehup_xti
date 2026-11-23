@@ -84,12 +84,33 @@ class CompanyContentService:
         if not isinstance(snapshot, CompanyContentSnapshot) or snapshot.organization.id != organization_id:
             raise ValidationError("İçerik görünümü istenen kuruluşla uyuşmuyor.")
         visible = snapshot.scopes[scope_offset:scope_offset + scope_limit]
+        state = company_content_state(snapshot)
+        monitored = snapshot.monitored_content
+        if monitored and snapshot.organization.active and monitored['watches']:
+            states = []
+            for watch in monitored['watches']:
+                run = watch['latest_run']
+                current = 'not_checked'
+                if run:
+                    current = {'complete': 'no_content', 'partial': 'partial', 'failed': 'check_failed'}.get(run['status'], 'outcome_unknown')
+                    if run['watch_revision'] != watch['revision'] or watch['binding_state'] != 'ready': current = 'partial'
+                    if run['finished_at'] and (now - datetime.fromisoformat(run['finished_at'])).total_seconds() > stale_after_hours * 3600:
+                        current = 'stale'
+                states.append(current)
+            if monitored['total_count'] and all(s == 'no_content' for s in states): states = ['content_found']
+            if snapshot.scopes: states.append(state)
+            if monitored['more_watches_available']: states.append('partial')
+            state = states[0] if len(set(states)) == 1 else 'content_found' if set(states) <= {'content_found', 'no_content'} else 'partial'
         return {
             "organization": {"id": snapshot.organization.id, "name": snapshot.organization.display_name,
                              "active": snapshot.organization.active},
             "observed_at": observed_at, "stored_data_only": True,
             "consistency": "single_read_snapshot", "stale_after_hours": stale_after_hours,
-            "state": company_content_state(snapshot),
+            "state": state,
+            "monitored_content": monitored,
+            "brand_protection": snapshot.brand_protection,
+            "cti_analysis": snapshot.cti_analysis,
+            "darkweb_monitoring": snapshot.darkweb_monitoring,
             "scopes": {"items": [_scope(scope) for scope in visible],
                        "total_count": len(snapshot.scopes), "offset": scope_offset, "limit": scope_limit,
                        "has_more": scope_offset + len(visible) < len(snapshot.scopes)},

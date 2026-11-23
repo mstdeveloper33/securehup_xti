@@ -1,9 +1,9 @@
 """Finite foreground collection; no detached worker or scheduling side effect."""
 
 from datetime import datetime, timezone
-import math
 import time
 
+from xti.application.foreground_monitor import MonotonicBudget, utc_now
 from xti.domain.assets import ValidationError
 from xti.domain.mention_group_monitor import MentionGroupMonitorCycle, MentionGroupMonitorReport
 from xti.domain.mentions import mention_uuid
@@ -18,19 +18,10 @@ class MentionGroupMonitor:
         self.monotonic, self.sleeper = monotonic, sleeper
 
     def _now(self):
-        value = self.clock()
-        try:
-            if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
-                raise ValueError("Timezone required")
-            return value.astimezone(timezone.utc).isoformat()
-        except (ValueError, OverflowError) as error:
-            raise ValidationError("Grup izleme zamanı saat dilimi bilgili olmalı.") from error
-
-    def _tick(self):
-        value = self.monotonic()
-        if type(value) not in (int, float) or not math.isfinite(value):
-            raise ValidationError("Grup izleme süresini ölçen saat geçersiz.")
-        return float(value)
+        return utc_now(
+            self.clock,
+            error_message="Grup izleme zamanı saat dilimi bilgili olmalı.",
+        )
 
     def run(self, group_id, *, cycles=2, interval_seconds=60, duration_seconds=600,
             progress=None):
@@ -42,16 +33,15 @@ class MentionGroupMonitor:
         ):
             if type(value) is not int or not minimum <= value <= maximum:
                 raise ValidationError(f"{label} {minimum}–{maximum} arasında olmalı.")
-        started_at, started = self._now(), self._tick()
-        previous, results, stop_reason = started, [], "cycles"
-
-        def elapsed():
-            nonlocal previous
-            value = self._tick()
-            if value < previous or not math.isfinite(value - started):
-                raise ValidationError("Grup izleme saati geriye gitti; işlem durduruldu.")
-            previous = value
-            return value - started
+        started_at = self._now()
+        budget = MonotonicBudget(
+            self.monotonic,
+            invalid_message="Grup izleme süresini ölçen saat geçersiz.",
+            rollback_message="Grup izleme saati geriye gitti; işlem durduruldu.",
+        )
+        budget.start()
+        elapsed = budget.elapsed
+        results, stop_reason = [], "cycles"
 
         try:
             for index in range(cycles):

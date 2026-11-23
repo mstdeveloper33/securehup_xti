@@ -1,5 +1,145 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+**0.192.0 — P12 telemetri saklama, hold ve geri yükleme:** P08'in kuruluş
+bazlı saklama motoru artık hem birleşik izleme çalışmaları hem de P12 sensör/
+sandbox telemetri kayıtları için çalışır. Eski büyük telemetri gövdeleri
+kayıpsız sıkıştırılır; normal okuma sırasında şeffaf açılır; açık hold veya
+aktif vaka kanıtı bulunan kayıtlar korunur. Bir kayıt sonradan güncellenirse
+yeni sürüm sıcak kalır, önceki arşiv kuşağı değişmez; her kuşak ayrı ayrı
+doğrulanıp geri yüklenebilir. Bu geliştirme Cowrie veya CAPE kurmaz,
+çalıştırmaz ve internete çıkmaz; yalnız daha önce güvenli biçimde XTI'ya
+alınmış normalize telemetriyi yönetir.
+[Saklama kullanımı](docs/DATA_RETENTION.md),
+[telemetri kullanımı](docs/TELEMETRY.md),
+[mimari karar](docs/decisions/0197-telemetry-retention-generations.md).
+
+**0.191.0 — P12 güvenli sensör ve tamamlanmış sandbox telemetrisi:** Kuruluşun
+kendi sinkhole/honeypot sensörü ile ayrı CAPE ortamının tamamlanmış sonucu,
+ham sırları ve tehlikeli dosyaları saklamadan kaynaklı XTI kanıtına
+dönüştürülebilir. Yerel dosya önce yazmasız önizlenir ve SHA-256 onayıyla
+alınır; değişmeyen kayıt çoğalmaz, değişen kayıt eski sürümü koruyarak yeniden
+insan incelemesine açılır. Kayıtlar ortak arama, vaka, P07 alarm, Engine ve
+firma Platform yüzeylerinde kullanılabilir. XTI honeypot kurmaz, zararlı
+çalıştırmaz; kullanıcı adı/parola, ham komut, örnek, PCAP, bellek ve ham CAPE
+raporu saklamaz. XTI'nin kesin sensör biçimi ağsız uçtan uca kabul edildi;
+gerçek Cowrie/CAPE işletimi ve canlı kaynak kabulü isteğe bağlı gelecek dış
+altyapı işidir ve bu aşamada kurulmaz.
+[Kullanım](docs/TELEMETRY.md),
+[teslim kanıtı](docs/roadmap/P12_DELIVERY.md).
+
+**0.190.0 — P10 Bluesky genel gönderi izlemesi:** Firma, kayıtlı kuruluş ve
+tedarikçi adı/domain/alternatif adları Bluesky'nin anahtarsız resmî genel
+AppView aramasında sınırlı olarak izlenebilir. Yeni bir izleme sistemi
+yazılmadı; sonuçlar mevcut içerik kanıtı, sessiz başlangıç, değişiklik,
+insan incelemesi, inbox/vaka, kuruluş raporu, kalıcı iş ve firma JSON
+akışına girer. Yalnız genel metin gönderileri alınır; medya, profil, özel
+hesap, mesaj, bütün ağ veya tarihsel arşiv kapsamı yoktur. Türkiye'de
+önbellekli resmî alanın 403 vermesi üzerine yalnız diğer resmî AppView'e
+kanıtlı failover uygulanır. Teknik canlı kabul geçti; ticari saklama ve
+müşteriye gösterim kararı açıktır.
+[Kullanım](docs/CONTENT_MONITORING.md),
+[teslim kanıtı](docs/roadmap/P10_DELIVERY.md).
+
+**0.189.1 — Tek kaynak kataloğu ve açık komut sınırları:** Çıplak
+`./xti sources` artık `./xti sources catalog` ile aynı P09 manifest
+kataloğunu döndürür; eski ikinci katalog çıktısı kaldırılmıştır. Kaynak
+hazırlığı `sources status`, son pasif sorgu/kota özeti `sources history`,
+ayrıntılı tarama işleri `jobs list/show`, tekil kaynak sözleşmesi `sources show`
+altında kalır. `scan/watch/monitor`, P07
+`monitoring`, `news/content/mentions` ve tek bulgu/yayıncı raporu yardım
+metinleri hangi katmanın ağ topladığını veya yalnız saklı kanıt okuduğunu
+açıklar. Ayrı izleme özelliklerinin UTC/monotonic süre ve saat geri-sarma
+koruması ortak çekirdektedir; kaynak/kanıt yaşam döngüleri birleştirilmemiştir.
+Veri, şema, kaynak adaptörü veya engine/platform sözleşmesi değişmemiştir.
+Eski çıplak `sources --json` alanlarını kullanan yerel betikler
+`catalog/status/jobs` ayrımına geçirilmelidir.
+[Kullanım ve geçiş](docs/SOURCE_GOVERNANCE.md).
+
+**0.189.0 — P09 kaynak ve feed yönetişimi:** Motordaki 49 kaynak ve iş
+akışı artık tek sürümlü manifest kataloğunda erişim, maliyet, kimlik bilgisi,
+dil/bölge, normalleştirilmiş kayıt türü, zorunlu provenance, kota/tekrar/hata
+politikası, ticari saklama/gösterim kararı, sağlık bağlantısı ve bilinçli
+sınırlarıyla görülebilir. 30 kaynak aktif, 12 kaynak açık gereksinim bekliyor,
+7 eski zafiyet kaynağı kullanıcı kararıyla kapalıdır. Katalog ağ isteği
+yapmaz; manifest canlı erişim veya hukuki izin anlamına gelmez. Terminal,
+engine JSON ve firma platform JSON'u aynı salt-okunur sözleşmeyi kullanır.
+[Kullanım](docs/SOURCE_GOVERNANCE.md),
+[teslim ve kapasite](docs/roadmap/P09_DELIVERY.md).
+
+**0.188.0 — P08 kuruluş saklama, koruma ve audit:** Eski P07 birleşik
+izleme kanıtlarının büyük gövdelerini kuruluş bazlı yaş/parti politikasıyla
+kayıpsız sıkıştırır. Açık legal/case/investigation/contractual hold ve aktif
+vaka kanıtı otomatik korunur. Plan token'ı, yedek, idempotency, zincirli
+audit, şeffaf okuma, geri yükleme, recovery ve firma workspace çiti aynı
+yaşam döngüsündedir. Mantıksal kayıt otomatik silinmez; bu paket bütün veri
+aileleri veya mevzuat uygunluğu iddiası değildir. Yeni ağ/API/paket yoktur.
+[Kullanım ve sınırlar](docs/DATA_RETENTION.md),
+[teslim ve kapasite](docs/roadmap/P08_DELIVERY.md).
+
+**0.187.0 — P07 birleşik izleme ve alarm politikası:** Domain, marka, IP,
+kelime, kişi ve tedarikçi hedeflerini daha önce saklanmış 12 kayıt ailesi
+üzerinde tek kuruluş politikasında izler. İlk tur sessizdir; eklenen,
+değişen ve kaybolan kayıtlar sürümlü eşik/öncelikle ortak inbox alarmına,
+insan incelemesine ve vaka kanıtına bağlanır. Çalışma ağsızdır; kaynakları
+yenilemez, eşleşmeyi otomatik tehdit saymaz. Firma JSON yazmaları workspace
+çitlidir; değişmeyen turlar büyük snapshot'ı tekrar kopyalamaz.
+[Kullanım ve sınırlar](docs/UNIFIED_MONITORING.md),
+[teslim ve kapasite](docs/roadmap/P07_DELIVERY.md).
+
+**0.186.0 — P06 insan onaylı aksiyon ve paylaşım:** Vaka kanıtından
+sürümlü runbook görevleri, doğrulanabilir teknik/yönetici rapor paketi,
+insan onaylı takedown yaşam döngüsü ve atomik CSV/JSON/STIX IOC
+içe/dışa aktarma ekler. Motor otomatik başvuru, engelleme veya dış
+teslim yapmaz. Haricî SIEM/SOAR/ticket bağlayıcıları kullanıcı kararıyla
+bu pakete dahil edilmemiştir. Yeni ücretli API veya paket yoktur; isteğe
+bağlı PDF mevcut sabit Playwright/Chromium ile ağsız üretilir.
+[Kullanım ve komutlar](docs/ACTIONABILITY.md),
+[teslim ve kapasite kanıtı](docs/roadmap/P06_DELIVERY.md).
+
+**0.185.0 — P05 XposedOrNot credential kaynağı:** Saklı RansomLook ve
+ThreatCluster kanıtlarını kuruluş/tedarikçi kapsamında analiz eder; yalnız
+XposedOrNot'ta doğrulanmış kesin kuruluş domaini için alınan hesap aliaslarını
+bellekte maskeler ve HMAC kimliğiyle saklar. Açık parola kontrolü yalnız
+yerelde oluşturulan10 karakterlik Keccak-512 önekini gönderir; parola, tam
+hash ve önek kalıcı değildir. İlk tur sessizdir; değişiklik, insan incelemesi,
+inbox, vaka, kuruluş görünümü, engine/firma JSON'u ve ağsız ortak kuyruk aynı
+kanıt zincirindedir. HIBP verified-domain yeni çalışmalarda kapalıdır; şema93
+geçmişi salt okunur kalır. Kaynak iddiası otomatik ihlal kararı değildir.
+[Kullanım ve sınırlar](docs/DARKWEB_MONITORING.md),
+[teslim ve açık dış bağımlılıklar](docs/roadmap/P05_DELIVERY.md).
+
+**0.183.0 — P04 kanıta dayalı CTI analizi:** Saklı CTI/IOC, kuruluş domaini ve
+yerel MITRE ATT&CK kataloğundan açıklanabilir kimlik, TTP, atıf, etiket ve
+kuruluş önceliği adayları üretir. Sürümlü insan kararı, trend/kapsam ayrımı,
+graf, zaman çizelgesi, inbox, vaka, firma JSON'u ve ağsız ortak kuyruk aynı
+kanıt zincirindedir. Sonuçlar otomatik gerçek, merge veya attribution değildir.
+[Kullanım ve sınırlar](docs/CTI_ANALYSIS.md),
+[teslim ve ölçümler](docs/roadmap/P04_DELIVERY.md).
+
+0.182.0, **P03 marka korumasını** ekler. `./xti brand protection` ile marka/domain, sayfa,
+logo, sosyal profil ve mağaza adaylarını karşılaştır; kanıtı incele, vakaya
+bağla ve değişiklikleri izle. Varsayılan `./setup` görsel araçları da kurar.
+Görsel/ad benzerliği otomatik taklit hükmü değildir.
+[Kullanım ve sınırlar](docs/BRAND_PROTECTION.md),
+[teslim ve test kapsamı](docs/roadmap/P03_DELIVERY.md).
+
+
+0.181.0, **P02 firma ve tedarikçi içerik izlemesini** ekler. Açık RSS/Atom
+yayınlarında ve kayıtlı metinlerde firmanın geçtiği içerikleri başlık,
+metin, bağlantı ve gerekçeyle gösterir. İnsan incelemesi, değişiklik
+bildirimi, vaka, kuruluş raporu ve firma JSON bağlantısı aynı akıştadır.
+Telegram/Discord/IRC adaptörleri hazırdır; hesap/kanal canlı kabulü açık.
+Mevcut kurulum: `./scripts/setup-brand`, `./scripts/setup-code`, `./xti migrate`.
+[Kullanım](docs/CONTENT_MONITORING.md), [kabul ve sınırlar](docs/roadmap/P02_DELIVERY.md).
+
+0.180.0, **P01 / A03 kod deposu ve paste izleme** akışını ekler. Anahtarsız
+GitHub/GitLab kamu deposu keşfi, Betterleaks ile maskeli secret adayları,
+insan incelemesi, tekrar izleme, ortak bildirim/vaka/kuruluş raporu ve firma
+JSON bağlantısı vardır. Genel kod araması ve Pastebin'in canlı erişimi
+henüz doğrulanmadı; paket bütünü tamamlandı sayılmaz.
+Mevcut kurulumda `./scripts/setup-code`, ardından `./xti migrate`.
+[Başlangıç ve komutlar](docs/CODE_EXPOSURE.md), [kanıt ve açık kalanlar](docs/roadmap/P01_DELIVERY.md).
+
 0.179.0, biten işleri etkin kuyruk kapasitesinden ayırır; eski sonuç ve
 tekrar anahtarlarını korur. `source-jobs capacity/history/audit` ile
 geçmiş ve kapasite görülebilir. Mevcut kuyruk için `./xti source-jobs migrate`.
@@ -86,18 +226,21 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Sürüm:** 0.178.0 · **Tarih:** 20 Kasım 2026 · **Çekirdek şema:** 88 · **İş kuyruğu:** 3.
+**Çalışma sürümü:** 0.192.0 · **Tarih:** 23 Kasım 2026 · **Çekirdek şema:** 99 · **İş kuyruğu:** 4 · **Kaynak işi:** 12.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
 müşteri sunucusuna kurulum ilk sürümün kapsamına alınmamıştır.
 Lisans ve veri kullanım koşulları uygun hazır bileşenlerden yararlanılır.
 Ortak istihbarat, ilişki araştırması ve kaynak kapsamı için sonraki işler
-[motor geliştirme planında](docs/roadmap/ENGINE_INTEGRATION_ROADMAP.md)
+[tek ana geliştirme planında](docs/roadmap/MASTER_ROADMAP.md)
 kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
 
 Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
 [NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
+Bugün kullanılabilen bütün yetenekler ile anahtar, hesap, izin veya ürün
+kararı bekleyenler [tek özellik kataloğunda](docs/FEATURE_CATALOG.md) ayrı
+listelenir.
 
 0.168.0 sekiz maddelik motor paketini ekler: otomatik sürümlü rapor,
 kanıtlı ilişki adayları ve insan kararı, birleşik kimlik görünümü, RIPEstat
@@ -1698,12 +1841,12 @@ Her kaynak için ayrı iş ve deneme kaydedilir. Varsayılan `scan` ve her `watc
 
 ```sh
 ./xti jobs list
-./xti sources
+./xti sources history
 ```
 
-İşler sırada, çalışıyor, tamamlandı, kısmi, başarısız veya yarım kaldı olarak görünür. `sources`, son denemenin kaydedilmiş sorgu sonuçlarını gösterir; o anda internete bağlanıp kaynağın çalıştığını ölçmez.
+İşler sırada, çalışıyor, tamamlandı, kısmi, başarısız veya yarım kaldı olarak görünür. `sources history`, son denemenin kaydedilmiş sorgu sonuçlarını gösterir; o anda internete bağlanıp kaynağın çalıştığını ölçmez.
 
-Kaynak “bir süre bekle” derse bekleme artık diske de kaydedilir. Programı kapatıp açmak bu süreyi sıfırlamaz. `sources` kalan süreyi ve en erken yeniden istek zamanını gösterir. Beş saniyeden uzun bekleme varsa o kaynağa yeni istek gönderilmez; işte nedeni görünür ve diğer kaynak devam edebilir. Süre dolunca yeni `scan`, sıradaki `worker` veya uygun iş için `jobs retry` ile yeniden denenir; program kendiliğinden arka planda uyanmaz.
+Kaynak “bir süre bekle” derse bekleme artık diske de kaydedilir. Programı kapatıp açmak bu süreyi sıfırlamaz. `sources history` kalan süreyi ve en erken yeniden istek zamanını gösterir. Beş saniyeden uzun bekleme varsa o kaynağa yeni istek gönderilmez; işte nedeni görünür ve diğer kaynak devam edebilir. Süre dolunca yeni `scan`, sıradaki `worker` veya uygun iş için `jobs retry` ile yeniden denenir; program kendiliğinden arka planda uyanmaz.
 
 crt.sh için en az bir, urlscan için en az iki saniyelik istek aralığı da aynı kayıt alanında korunur. Kota bilgisi yanıtın başlıkları alınır alınmaz saklanır; yanıtın devamı gelmese veya program kapansa da korunur. Kayıt okunamaz/yazılamazsa yeni istek gönderilmez. Bu düzen aynı kayıt alanına aittir; başka programların veya başka kayıt klasörlerinin kaynak kullanımını ölçmez. Yeniden açılışta cihazın saatinin doğru olması gerekir.
 
@@ -2616,6 +2759,8 @@ Mevcut yerel çekirdek ek Python paketi istemez; haber toplama için
 `feedparser` ve `feedparser-sgmllib` gerekir. Normal `./setup`, bu sabit
 paketleri ve Maigret/Sherlock depolarının sabit commit'lerini `.venv` içine
 önceki ortamı koruyarak kurar; sürüm, commit ve katalog bütünlüğünü doğrular.
+0.180.0 normal kurulum ayrıca Betterleaks1.10.1'i sabit arşiv SHA256'sıyla
+`.tools/betterleaks` altına kurar. `./scripts/setup-code --check` denetler.
 Ek araçları kurmadan çekirdek için `./setup --core-only` kullanılabilir. Gerçek aramalar
 internet ister; geçmiş kayıtları okuma ve yerel kuyruk yönetimi internetsiz
 çalışır. Genel regresyon testleri ağsızdır; gerçek temiz kurulum kabulü
@@ -2688,11 +2833,15 @@ Paketleme bilgisi `pyproject.toml` içindedir. Doğrulanan yol `./xti` ve `./scr
 
 | Belge | İçerik |
 |---|---|
+| [Ana geliştirme planı](docs/roadmap/MASTER_ROADMAP.md) | Tek güncel sıra, 76 A–K gereksinimi, altı ürün paketi ve özellik tamamlama ölçütleri |
 | [Güncel durum](docs/STATUS.md) | Gerçekte çalışanlar, testler ve sonraki teslim |
 | [Mimari](docs/ARCHITECTURE.md) | Ayrı bölümler ve veri koruma kararları |
-| [İlk çalışma döngüleri](docs/roadmap/FIRST_ITERATIONS.md) | Öğrenme ve uygulama sırası |
-| [Ana yol haritası](docs/roadmap/MASTER_ROADMAP.md) | Uzun vadeli ürün geliştirme planı |
-| [Yetenek matrisi](docs/roadmap/CAPABILITY_MATRIX.md) | 122 hedef yetenek |
-| [İş listesi](docs/roadmap/BACKLOG.md) | 73 iş paketi ve kabul koşulları |
+| [Takip notları](NOTES.md) | Kaynak koşulları, maliyet, dış girdiler ve korunan kullanıcı kararları |
+| [İlk çalışma döngüleri](docs/roadmap/FIRST_ITERATIONS.md) | Tarihî başlangıç kayıtları |
+| [Önceki yetenek matrisi](docs/roadmap/CAPABILITY_MATRIX.md) | Tarihî CAP hedefleri ve eski kabul bağlantıları |
+| [Önceki iş listesi](docs/roadmap/BACKLOG.md) | Tarihî iş kimlikleri ve kabul kayıtları |
 
-Plan 14 faz içerir. Gerçek uygulama durumunu STATUS.md belirler; uzun vadeli hedefler tamamlanmış özellik sayılmaz.
+Yeni işler tek ana plandan izlenir. Seçilen özellik, bütün kullanım ve
+teslim akışıyla tamamlanır; her rutin alt adım için yeniden devam onayı
+istenmez. Gerçek uygulama durumunu STATUS.md belirler; planlanan veya
+dış girdi bekleyen yetenekler tamamlanmış sayılmaz.

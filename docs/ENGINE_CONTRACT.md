@@ -1,5 +1,29 @@
 # Engine okuma sözleşmesi v1
 
+0.192.0 P08 saklama okumalarını P12 `telemetry_records` ailesine genişletir.
+Arşivlenmiş güncel gövde ve değişmez sürüm gövdeleri `telemetry.record.get`
+tarafından doğrulanarak şeffaf açılır; dış referans veya ikinci okuma
+sözleşmesi oluşmaz. `retention.*` katalog/plan/hold/run/audit okumaları iki
+aileyi açıkça ayırır. Bu davranış Cowrie/CAPE çalıştırmaz ve ağ kullanmaz.
+[Saklama yaşam döngüsü](DATA_RETENTION.md).
+
+0.191.0 `telemetry.capabilities`, `telemetry.sources`,
+`telemetry.source.get`, `telemetry.runs`, `telemetry.run.get`,
+`telemetry.records`, `telemetry.record.get`, `telemetry.reviews` ve
+`telemetry.report` salt-okunur işlemlerini ekler. Bütün okumalar kayıtlı
+normalize kanıtı sayfalı ve ağsız döndürür; Cowrie/CAPE çalıştırmaz, dosya
+yolu açmaz veya yeni telemetri almaz. Global `search` telemetri kayıtlarını,
+`record.get` ise `kind=telemetry`, `namespace=local-telemetry` başvurusunu
+aynı doğrulanmış kayıt ayrıntısına bağlar. Büyük listeler en çok 500 kayıtlık
+sayfalar kullanır. [P12 alanları ve sınırları](TELEMETRY.md).
+
+0.189.0 `sources.catalog/get/validate` kaynak yönetişim okumalarını ekler.
+49 sürümlü manifest erişim, maliyet, dil/bölge, kayıt/provenance, kota/hata
+ve veri hakkı alanlarıyla ağsız okunur. `include_health` yalnız kayıtlı
+çalışma geçmişini ekler; canlı provider çağrısı değildir. Sayfa sınırı200,
+katalog kimliğe göre kararlı ve SHA-256 özetlidir.
+[Tam alanlar ve sınırlar](SOURCE_GOVERNANCE.md#engine-ve-firma-platformu).
+
 0.177.0 `groups.notifications` sayfalı özetini ve
 `groups.notification-show` özgün önce/sonra kanıtını ekler. Bildirim
 kimliği UUID; grup kimliği64hex'tir. `journals.*` grup geçmişini de
@@ -94,7 +118,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama:** 0.168.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 78.
+**Uygulama:** 0.192.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 99.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,
@@ -184,7 +208,7 @@ veya tekrar önleme anahtarı değildir.
 |---|---|
 | `contract_version` | Tamsayı `1`; uygulama sürümünden ve veritabanı şemasından ayrıdır |
 | `request_id` | İstemcinin seçtiği eşleştirme kimliği |
-| `operation` | `search`, `record.get`, `sources.status`, `components.list`, `research.show`, `research.priorities`, `warninglists.status`, `warninglists.lookup`, `warninglists.run.get`, `enrichment.lookup`, `enrichment.history`, `enrichment.run.get` |
+| `operation` | `search`, `record.get`, `sources.status`, `sources.catalog`, `sources.get`, `sources.validate`, `components.list` ve `--describe` içinde listelenen diğer sürüm1 işlemleri |
 | `parameters` | İşleme özel seçenek nesnesi; seçenek yoksa `{}` |
 
 Cevabın ortak alanları:
@@ -317,6 +341,35 @@ Her ayrıntı isteği kendi salt okunur kesitini açar. Arama ile ayrıntı aras
 veri değişmiş olabilir; referans, arama anındaki bütün içeriği donduran bir
 sürüm anahtarı değildir. Geçersiz kaynak/tür birleşimi reddedilir; geçerli
 bir referansla kayıt bulunamazsa `not_found` döner.
+
+## `sources.catalog/get/validate`: kaynak yönetişimi
+
+Katalog okuması filtre, sağlık seçimi ve sayfalama kabul eder:
+
+```json
+{
+  "contract_version": 1,
+  "request_id": "sources:catalog:1",
+  "operation": "sources.catalog",
+  "parameters": {
+    "integration_state": "conditional",
+    "language": "mul",
+    "offset": 0,
+    "limit": 20
+  }
+}
+```
+
+İsteğe bağlı filtreler `kind`, `integration_state`, `language` ve `region`;
+sayfalama `offset`0–1.000.000 ve `limit`1–200 aralığındadır. `include_health`
+boolean'dır; `domain` ve 1–8760 saatlik `stale_after_hours` yalnız kayıtlı
+sağlık görünümünü daraltır. Firma, dosya yolu veya komut parametresi kabul
+edilmez.
+
+Tek kayıt `sources.get` için `identifier` zorunludur. `sources.validate`
+parametre kabul etmez. Bilinmeyen kimlik `not_found`; alan/tip/sınır hatası
+`invalid_parameters` olur. Bu işlemler manifesti veya kaynak verisini
+değiştirmez, veri klasörü oluşturmaz ve internet/araç çalıştırmaz.
 
 ## `sources.status`: kayıtlı kaynak durumu
 

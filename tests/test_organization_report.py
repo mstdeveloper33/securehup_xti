@@ -28,6 +28,51 @@ from tests.test_surface import result as web_result
 
 
 class OrganizationReportTests(unittest.TestCase):
+    def test_monitored_content_preserves_failed_source_and_escapes_export(self):
+        from xti.adapters.sqlite_content_monitoring import SQLiteContentRepository
+        from xti.application.content_monitoring import ContentMonitoringService
+        from tests.test_content_monitoring import Sources, Scanner, Targets
+        self.link(); source = Sources()
+        source.documents[0] = replace(source.documents[0], title='<script>alert(1)</script> Example Corp')
+        service = ContentMonitoringService(SQLiteContentRepository(self.database), source, Targets(), Scanner())
+        provider = service.execute('content.source.add', provider='rss', locator='https://news.example.com/rss', idempotency_key='content-source')
+        watch = service.execute('content.watch.add', sources=[provider['id']], targets=[{'name':'Example Corp','domains':['example.com']}], idempotency_key='content-watch')
+        initial = service.execute('content.run', identifier=watch['id'], expected_revision=1, idempotency_key='content-baseline')
+        source.documents=[]; source.state='unavailable'
+        service.execute('content.run', identifier=watch['id'], expected_revision=1, force=True, idempotency_key='content-failure')
+        target=self.report().targets[0]
+        coverage=next(c for c in target.coverage if c.family=='content-monitor')
+        self.assertEqual(coverage.latest_attempt.status,'failed'); self.assertEqual(coverage.latest_success.id,initial['id'])
+        self.assertEqual(self.section(target,'monitored_content').total_count,1)
+        output=self.data.parent.resolve()/'content-report.html'
+        self.result('organizations','export',self.organization['id'],'--output',str(output))
+        html=output.read_text(); self.assertNotIn('<script>alert(1)</script>',html)
+        self.assertIn('&lt;script&gt;',html)
+        service.execute('content.source.update',identifier=provider['id'],expected_revision=1,enabled=False,idempotency_key='content-disable')
+        coverage=next(c for c in self.report().targets[0].coverage if c.family=='content-monitor')
+        self.assertFalse(coverage.latest_attempt.definition_matches_current)
+
+    def test_code_evidence_keeps_previous_success_and_explains_missing_source_access(self):
+        from xti.adapters.sqlite_code_exposure import SQLiteCodeRepository
+        from xti.application.code_exposure import CodeExposureService
+        from tests.test_code_exposure import Source, Scanner
+        self.link()
+        source = Source()
+        service = CodeExposureService(SQLiteCodeRepository(self.database), source, Scanner())
+        watch = service.execute('code.watch.add', domain='example.com', sources=['github-repositories'], idempotency_key='code-watch')
+        initial = service.execute('code.run', identifier=watch['id'], expected_revision=1, idempotency_key='initial')
+        source.documents = []; source.state = 'missing_credentials'
+        service.execute('code.run', identifier=watch['id'], expected_revision=1, force=True, idempotency_key='missing-key')
+        target = self.report().targets[0]
+        coverage = next(c for c in target.coverage if c.family == 'code-exposure')
+        self.assertEqual(coverage.latest_attempt.status, 'failed')
+        self.assertEqual(coverage.latest_success.id, initial['id'])
+        self.assertTrue(any('missing_credentials' in note for note in coverage.notes))
+        self.assertEqual(self.section(target, 'code_exposures').total_count, 2)
+        service.execute('code.watch.update', identifier=watch['id'], expected_revision=1, aliases=['Other Name'], idempotency_key='scope-changed')
+        coverage = next(c for c in self.report().targets[0].coverage if c.family == 'code-exposure')
+        self.assertFalse(coverage.latest_attempt.definition_matches_current)
+
     def test_summary_preserves_complete_json_paging_navigation_and_hidden_counts(self):
         import shlex
         self.link()

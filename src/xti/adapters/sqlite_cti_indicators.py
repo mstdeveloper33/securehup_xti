@@ -28,6 +28,7 @@ from xti.domain.cti_indicators import (
     normalize_source_reference,
     validate_validity_window,
 )
+from xti.domain.ioc_bulk import BulkIocImportResult, BulkIocPreview
 
 
 _INDICATOR_SELECT = "id, indicator_type, value, created_at, updated_at"
@@ -210,6 +211,25 @@ class SQLiteCtiIndicatorRepository:
         with self._storage._connection() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
+                result = self._add_assertion_in_transaction(
+                    connection, indicator_type=indicator_type, value=value,
+                    source_name=source_name, source_reference=source_reference,
+                    confidence=confidence, valid_from=valid_from, valid_until=valid_until,
+                    description=description, observed_at=observed_at,
+                    recorded_at=recorded_at,
+                )
+                connection.commit()
+                return result
+            except BaseException:
+                connection.rollback()
+                raise
+
+    def _add_assertion_in_transaction(
+        self, connection, *, indicator_type: str, value: str, source_name: str,
+        source_reference: str, confidence: int, valid_from: str | None,
+        valid_until: str | None, description: str, observed_at: str,
+        recorded_at: str,
+    ) -> CtiIndicatorMutation:
                 indicator_row = connection.execute(
                     f"SELECT {_INDICATOR_SELECT} FROM cti_indicators "
                     "WHERE indicator_type = ? AND value = ?",
@@ -273,7 +293,6 @@ class SQLiteCtiIndicatorRepository:
                         or last_seen_at != current.last_seen_at
                     )
                     if current.active and metadata_same and not observation_changed:
-                        connection.rollback()
                         return CtiIndicatorMutation(
                             "unchanged", self._indicator(indicator_row), current,
                         )
@@ -317,8 +336,145 @@ class SQLiteCtiIndicatorRepository:
                 assertion = self._assertion(
                     self._select_assertion(connection, assertion_id)
                 )
-                connection.commit()
                 return CtiIndicatorMutation(action, indicator, assertion)
+
+    @staticmethod
+    def _bulk_result(row, *, replayed: bool) -> BulkIocImportResult:
+        try:
+            counts = row[4:10]
+            if (row[1] not in {"csv", "json", "stix"}
+                    or any(not isinstance(value, str) or len(value) != 64
+                           or any(character not in "0123456789abcdef" for character in value)
+                           for value in row[2:4])
+                    or any(type(value) is not int or value < 0 for value in counts)
+                    or not 1 <= row[4] <= 50_000
+                    or sum(row[5:10]) != row[4]):
+                raise ValueError("invalid bulk receipt")
+            return BulkIocImportResult(
+                run_id=_uuid(row[0]), replayed=replayed, format=row[1],
+                content_sha256=row[2], preview_sha256=row[3], record_count=row[4],
+                added_count=row[5], observed_count=row[6], updated_count=row[7],
+                reactivated_count=row[8], unchanged_count=row[9],
+                created_at=_timestamp(row[10]),
+            )
+        except (TypeError, ValueError, ValidationError, OverflowError) as error:
+            raise StorageError("IOC toplu içe alma makbuzu bozuk; işlem durduruldu.") from error
+
+    def add_assertions_batch(
+        self, preview: BulkIocPreview, *, idempotency_key: str,
+        import_source_name: str, import_source_reference: str,
+        recorded_at: str,
+    ) -> BulkIocImportResult:
+        from dataclasses import asdict
+        import hashlib
+        import json
+        from xti.domain.actionability import normalize_key
+
+        if (preview.format not in {"csv", "json", "stix"}
+                or preview.record_count != len(preview.records)
+                or preview.input_count != preview.record_count + preview.duplicate_count
+                or preview.record_count < 1
+                or any(not isinstance(value, str) or len(value) != 64
+                       or any(character not in "0123456789abcdef" for character in value)
+                       for value in (preview.content_sha256, preview.preview_sha256))):
+            raise ValidationError("IOC toplu önizleme makbuzu geçersiz.")
+        idempotency_key = normalize_key(idempotency_key, "IOC tekrar anahtarı")
+        import_source_name = normalize_source_name(import_source_name)
+        import_source_reference = normalize_source_reference(import_source_reference)
+        recorded_at = normalize_cti_timestamp(recorded_at)
+        validated = []
+        for item in preview.records:
+            validated.append(self._validated_add_input(
+                indicator_type=item.indicator_type, value=item.value,
+                source_name=item.source_name, source_reference=item.source_reference,
+                confidence=item.confidence, valid_from=item.valid_from,
+                valid_until=item.valid_until, description=item.description,
+                observed_at=item.observed_at, recorded_at=recorded_at,
+            ))
+        select = (
+            "id,format,content_sha256,preview_sha256,record_count,added_count,"
+            "observed_count,updated_count,reactivated_count,unchanged_count,created_at"
+        )
+        with self._storage._connection() as connection:
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                replay = connection.execute(
+                    f"SELECT {select},source_name,source_reference FROM action_ioc_import_runs "
+                    "WHERE idempotency_key=?", (idempotency_key,),
+                ).fetchone()
+                if replay is not None:
+                    if (replay[1], replay[2], replay[3], replay[4], replay[11], replay[12]) != (
+                        preview.format, preview.content_sha256, preview.preview_sha256,
+                        preview.record_count, import_source_name, import_source_reference,
+                    ):
+                        raise ValidationError(
+                            "IOC tekrar anahtarı farklı bir içe alma için daha önce kullanılmış."
+                        )
+                    item_rows = connection.execute(
+                        "SELECT ordinal,action,row_sha256 FROM action_ioc_import_items "
+                        "WHERE run_id=? ORDER BY ordinal", (replay[0],),
+                    ).fetchall()
+                    if len(item_rows) != preview.record_count:
+                        raise StorageError(
+                            "IOC toplu içe alma kalemleri bozuk; işlem durduruldu."
+                        )
+                    for ordinal, (stored, record) in enumerate(
+                        zip(item_rows, preview.records, strict=True), 1
+                    ):
+                        row = json.dumps(
+                            asdict(record), ensure_ascii=True, allow_nan=False,
+                            sort_keys=True, separators=(",", ":"),
+                        ).encode("ascii")
+                        if (stored[0] != ordinal
+                                or stored[1] not in {"added", "observed", "updated", "reactivated", "unchanged"}
+                                or stored[2] != hashlib.sha256(row).hexdigest()):
+                            raise StorageError(
+                                "IOC toplu içe alma kalemleri bozuk; işlem durduruldu."
+                            )
+                    result = self._bulk_result(replay[:11], replayed=True)
+                    connection.rollback()
+                    return result
+                mutations = []
+                for values in validated:
+                    mutations.append(self._add_assertion_in_transaction(
+                        connection,
+                        indicator_type=values[0], value=values[1],
+                        source_name=values[2], source_reference=values[3],
+                        confidence=values[4], valid_from=values[5],
+                        valid_until=values[6], description=values[7],
+                        observed_at=values[8], recorded_at=values[9],
+                    ))
+                counts = {name: 0 for name in ("added", "observed", "updated", "reactivated", "unchanged")}
+                for mutation in mutations:
+                    counts[mutation.action] += 1
+                run_id = str(uuid4())
+                connection.execute(
+                    "INSERT INTO action_ioc_import_runs "
+                    "(id,idempotency_key,format,source_name,source_reference,content_sha256,"
+                    "preview_sha256,record_count,added_count,observed_count,updated_count,"
+                    "reactivated_count,unchanged_count,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (run_id, idempotency_key, preview.format, import_source_name,
+                     import_source_reference, preview.content_sha256, preview.preview_sha256,
+                     preview.record_count, counts["added"], counts["observed"],
+                     counts["updated"], counts["reactivated"], counts["unchanged"],
+                     recorded_at),
+                )
+                for ordinal, (record, mutation) in enumerate(zip(preview.records, mutations, strict=True), 1):
+                    row = json.dumps(asdict(record), ensure_ascii=True, allow_nan=False,
+                                     sort_keys=True, separators=(",", ":")).encode("ascii")
+                    connection.execute(
+                        "INSERT INTO action_ioc_import_items "
+                        "(id,run_id,ordinal,indicator_id,assertion_id,action,row_sha256) "
+                        "VALUES (?,?,?,?,?,?,?)",
+                        (str(uuid4()), run_id, ordinal, mutation.indicator.id,
+                         mutation.assertion.id, mutation.action, hashlib.sha256(row).hexdigest()),
+                    )
+                row = connection.execute(
+                    f"SELECT {select} FROM action_ioc_import_runs WHERE id=?", (run_id,),
+                ).fetchone()
+                result = self._bulk_result(row, replayed=False)
+                connection.commit()
+                return result
             except BaseException:
                 connection.rollback()
                 raise

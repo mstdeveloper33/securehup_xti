@@ -7,6 +7,28 @@ from xti.adapters.sqlite import StorageError
 
 
 _MAX_SEQUENCE = 2**63 - 1
+NOTIFICATION_TABLES = (
+    "notifications",
+    "surface_candidate_notifications",
+    "surface_change_notifications",
+    "vulnerability_change_notifications",
+    "cti_saved_search_notifications",
+    "ransomware_watch_notifications",
+    "ransomlook_watch_notifications",
+    "brand_username_review_notifications",
+    "public_notice_watch_notifications",
+    "supplier_watch_notifications",
+    "global_saved_search_notifications",
+    "relationship_review_notifications",
+    "social_tracking_notifications",
+    "research_group_notifications",
+    "code_notifications",
+    "content_notifications",
+    "brand_protection_notifications",
+    "cti_analysis_notifications",
+    "darkweb_notifications",
+    "monitoring_alerts",
+)
 _CHECK_COLUMNS = {
     "surface": "surface_check_id",
     "mail": "mail_check_id",
@@ -19,22 +41,7 @@ def next_notification_sequence(connection: sqlite3.Connection) -> int:
         connection.execute(
             f"SELECT COALESCE(MAX(sequence), 0) FROM {table}"
         ).fetchone()[0]
-        for table in (
-            "notifications",
-            "surface_candidate_notifications",
-            "surface_change_notifications",
-            "vulnerability_change_notifications",
-            "cti_saved_search_notifications",
-            "ransomware_watch_notifications",
-            "ransomlook_watch_notifications",
-            "brand_username_review_notifications",
-            "public_notice_watch_notifications",
-            "supplier_watch_notifications",
-            "global_saved_search_notifications",
-            "relationship_review_notifications",
-            "social_tracking_notifications",
-            "research_group_notifications",
-        )
+        for table in NOTIFICATION_TABLES
     )
     if any(type(value) is not int or not 0 <= value <= _MAX_SEQUENCE for value in maxima):
         raise StorageError("Bildirim sıra kaydı bozuk; işlem durduruldu.")
@@ -42,6 +49,18 @@ def next_notification_sequence(connection: sqlite3.Connection) -> int:
     if not 1 <= sequence <= _MAX_SEQUENCE:
         raise StorageError("Bildirim sıra sınırına ulaşıldı; kayıt yapılmadı.")
     return sequence
+
+
+def notification_counts(connection: sqlite3.Connection) -> tuple[int, int]:
+    """Count the same notification families used for sequence allocation."""
+    total, unread = 0, 0
+    for table in NOTIFICATION_TABLES:
+        count, pending = connection.execute(
+            f"SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) FROM {table}"
+        ).fetchone()
+        total += count
+        unread += pending
+    return total, unread
 
 
 def notify_surface_change(

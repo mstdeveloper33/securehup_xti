@@ -12,10 +12,64 @@ from xti.ports.jobs import ExecutionLock
 
 
 class SourceJobService:
-    def __init__(self, repository: EngineJobRepository, *, clock=None, social_tracking=None, groups=None):
+    def __init__(self, repository: EngineJobRepository, *, clock=None, social_tracking=None, groups=None, code_exposure=None, content_monitoring=None, brand_protection=None, cti_analysis=None, darkweb_monitoring=None):
         self.repository = repository
         self.social_tracking, self.groups = social_tracking, groups
+        self.code_exposure = code_exposure
+        self.content_monitoring = content_monitoring
+        self.brand_protection=brand_protection
+        self.cti_analysis = cti_analysis
+        self.darkweb_monitoring = darkweb_monitoring
         self.clock = clock or (lambda: datetime.now(timezone.utc))
+
+    def _protection_guard(self,plan):
+        from xti.domain.brand_protection_jobs import SOURCE,guard
+        if SOURCE not in plan['sources']:return
+        if self.brand_protection is None:raise EngineJobError('invalid_parameters','Marka işi için firma kapsamı gerekli.')
+        bundle=self.brand_protection.execute('brand.protection.plan',identifier=plan['protection_watch_id'])
+        if not guard(bundle,plan):raise EngineJobError('plan_changed','Marka kimliği, izleme veya bütçe değişti.')
+
+    def _cti_analysis_guard(self, plan):
+        from xti.domain.cti_analysis_jobs import SOURCE, guard
+        if SOURCE not in plan['sources']:
+            return
+        if self.cti_analysis is None:
+            raise EngineJobError('invalid_parameters', 'CTI analiz işi için firma kapsamı gerekli.')
+        profile = self.cti_analysis.execute('cti.analysis.profile.show',
+                                            identifier=plan['analysis_profile_id'])
+        if not guard(profile, plan):
+            raise EngineJobError('plan_changed', 'CTI analiz profili, sürümü veya kapsam özeti değişti.')
+
+    def _darkweb_guard(self, plan):
+        from xti.domain.darkweb_jobs import SOURCE, guard
+        if SOURCE not in plan['sources']:
+            return
+        if self.darkweb_monitoring is None:
+            raise EngineJobError('invalid_parameters', 'Dark web işi için firma kapsamı gerekli.')
+        profile = self.darkweb_monitoring.execute(
+            'darkweb.profile.show', identifier=plan['darkweb_profile_id'],
+        )
+        if not guard(profile, plan):
+            raise EngineJobError(
+                'plan_changed', 'Dark web profili, sürümü veya kapsam özeti değişti.'
+            )
+
+    def _content_guard(self, plan):
+        from xti.domain.content_jobs import SOURCE, guard
+        if SOURCE not in plan['sources']: return
+        if self.content_monitoring is None: raise EngineJobError('invalid_parameters', 'İçerik işi için firma kapsamı gerekli.')
+        watch = self.content_monitoring.execute('content.watch.show', identifier=plan['content_watch_id'])
+        if not guard(watch, plan) or self.content_monitoring.bindings(watch['scope']) != watch['bindings']:
+            raise EngineJobError('plan_changed', 'İçerik izleme hedefi, sürümü veya kaynak kapsamı değişti.')
+
+    def _code_guard(self, plan):
+        from xti.domain.code_jobs import SOURCE, guard
+        if SOURCE not in plan['sources']: return
+        if self.code_exposure is None:
+            raise EngineJobError('invalid_parameters', 'Kod işi için firma kapsamı gerekli.')
+        watch = self.code_exposure.execute('code.watch.show', identifier=plan['code_watch_id'])
+        if not guard(watch, plan):
+            raise EngineJobError('plan_changed', 'Kod izlemesinin firma/sürüm/bütçe kapsamı uyuşmuyor.')
 
     def _social_guard(self, plan):
         from xti.domain.social_jobs import SOURCE, watch_guard
@@ -40,6 +94,8 @@ class SourceJobService:
 
     def plan(self, **parameters):
         plan = source_plan(**parameters)
+        self._protection_guard(plan);self._content_guard(plan);self._cti_analysis_guard(plan);self._darkweb_guard(plan)
+        self._code_guard(plan)
         watch = self._social_guard(plan)
         group = self._group_guard(plan)
         data = plan_data(plan)
@@ -71,6 +127,8 @@ class SourceJobService:
         if plan_data(plan)['plan_sha256'] != plan_sha256:
             raise EngineJobError('plan_changed', 'Kaynak planı özeti uyuşmuyor; güncel planı inceleyin.')
         if self.repository.find_request(request_key(idempotency_key)) is None:
+            self._protection_guard(plan);self._content_guard(plan);self._cti_analysis_guard(plan);self._darkweb_guard(plan)
+            self._code_guard(plan)
             self._social_guard(plan)
             self._group_guard(plan)
         return self._submit(SourceJobPayload(plan), idempotency_key)

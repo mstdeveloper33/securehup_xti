@@ -1,5 +1,10 @@
 # XTI — Kapalı kaynak motor için bileşen seçim planı
 
+**21 Kasım 2026:** Bu tarihli seçim notları korunur. Yeni özellikte
+bileşen seçimi, erişim ve uçtan uca kabul [tek ana plana](MASTER_ROADMAP.md)
+bağlı yürütülür; aşağıdaki eski MTR/ENG sırası güncel öncelik değildir.
+Uygulanan araçlar ve açık kaynak koşulları STATUS/NOTES ile doğrulanır.
+
 **Tarih:** 16 Kasım 2026. **Uygulama:** 0.150.0 / şema 72.
 **Durum:** Uygulanan bileşenler ile araştırmaya dayalı plan tercihleri ayrı gösterilir.
 **Ürün yönü:** Kendi platformumuzun kapalı kaynak motoru geliştiriliyor.

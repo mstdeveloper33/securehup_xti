@@ -56,6 +56,41 @@ def content_lines(report, *, data_dir=None, history=False):
     scopes = report['scopes']
     if scopes['has_more']:
         lines.append(f"Sonraki kontrol kapsamı: {_next(report, data_dir, history, scope_offset=scopes['offset'] + scopes['limit'])}")
+    protection=report.get('brand_protection')
+    if protection and protection['items']:
+        from xti.interfaces.brand_protection import protection_lines
+        lines.extend(['Marka koruması:',*protection_lines(protection)])
+    monitored = report.get('monitored_content')
+    if monitored and (monitored['items'] or monitored['watches']):
+        from xti.interfaces.content_monitoring import content_lines as monitored_lines
+        lines.extend(['', 'Açık yayın ve seçilmiş kanal içerikleri'])
+        lines.extend(monitored_lines({'items': monitored['items']}, data_dir=data_dir))
+        for watch in monitored['watches']:
+            lines.append(f"İzleme: {safe_text(watch['name'])} | {watch['latest_run']['status'] if watch['latest_run'] else 'henüz kontrol edilmedi'}")
+        if monitored['has_more']:
+            lines.append('Sonraki içerik sayfası: ' + _next(report, data_dir, history, offset=monitored['offset'] + monitored['limit']))
+    analysis = report.get('cti_analysis')
+    if analysis and analysis['state'] != 'not_configured':
+        lines.extend(['', 'CTI analiz adayları'])
+        if not analysis['items']:
+            lines.append('Kayıtlı profil var; henüz analiz adayı oluşmadı.')
+        for item in analysis['items']:
+            body = item['evidence']['body']
+            lines.append(f"{safe_text(body['subject']['label'])} → {safe_text(body['object']['label'])} "
+                         f"| {item['kind']} | inceleme skoru {item['score']}")
+        if analysis['has_more']:
+            lines.append('Daha fazla CTI analiz adayı engine/CTI analiz sayfalama işlemiyle okunabilir.')
+    darkweb = report.get('darkweb_monitoring')
+    if darkweb and darkweb['state'] != 'not_configured':
+        lines.extend(['', 'Dark web ve credential inceleme adayları'])
+        if not darkweb['items']:
+            lines.append('Kayıtlı profil var; henüz kaynak eşleşmesi oluşmadı.')
+        for item in darkweb['items']:
+            body = item['evidence']['body']
+            lines.append(f"{safe_text(body['target']['label'])} | {item['kind']} | {item['priority']} "
+                         f"| {safe_text(body['source']['name'])}")
+        if darkweb['has_more']:
+            lines.append('Daha fazla dark web bulgusu engine/darkweb sayfalama işlemiyle okunabilir.')
     lines.append('Bu görünüm kayıtlı sonuçları okur; yeni internet araması başlatmaz.')
     return lines
 

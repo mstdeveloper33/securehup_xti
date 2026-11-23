@@ -3,6 +3,7 @@
 from xti.application.global_search import GlobalSearchService
 from xti.application.components import ComponentCatalogService
 from xti.application.source_readiness import SourceReadinessService
+from xti.application.source_governance import SourceGovernanceError, SourceGovernanceService
 from xti.domain.engine import EngineContractError, EngineRequest, reference_for_result
 from xti.ports.engine import EngineRecordRepository
 from xti.application.research import ResearchService, research_data, priority_data
@@ -75,7 +76,7 @@ class EngineReadService:
     def __init__(self, search: GlobalSearchService | None = None, records: EngineRecordRepository | None = None,
                  sources: SourceReadinessService | None = None, components: ComponentCatalogService | None = None,
                  research: ResearchService | None = None, warninglists: WarninglistService | None = None,
-                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None, investigation=None, company_review=None, ioc_lifecycle=None, reports=None, evidence=None, journals=None, social_discovery=None, social_enrichment=None, social_tracking=None):
+                 enrichment: EnrichmentService | None = None, history: ResearchHistoryService | None = None, investigation=None, company_review=None, ioc_lifecycle=None, reports=None, evidence=None, journals=None, social_discovery=None, social_enrichment=None, social_tracking=None, code_exposure=None, content_monitoring=None, brand_protection=None, cti_analysis=None, darkweb_monitoring=None, actionability=None, unified_monitoring=None, data_retention=None, telemetry=None, source_governance: SourceGovernanceService | None = None):
         self.search, self.records, self.sources = search, records, sources
         self.components = components
         self.research = research
@@ -90,9 +91,57 @@ class EngineReadService:
         self.journals = journals
         self.social_discovery = social_discovery
         self.social_enrichment = social_enrichment
+        self.code_exposure = code_exposure
+        self.content_monitoring = content_monitoring
+        self.brand_protection = brand_protection
+        self.cti_analysis = cti_analysis
+        self.darkweb_monitoring = darkweb_monitoring
         self.social_tracking = social_tracking
+        self.actionability = actionability
+        self.unified_monitoring = unified_monitoring
+        self.data_retention = data_retention
+        self.telemetry = telemetry
+        self.source_governance = source_governance
 
     def execute(self, request: EngineRequest) -> dict:
+        from xti.domain.telemetry import READS as TELEMETRY_READS
+        if request.operation in TELEMETRY_READS and self.telemetry is not None:
+            return self.telemetry.execute(request.operation, **request.parameters)
+        from xti.domain.source_governance import READS as SOURCE_GOVERNANCE_READS
+        if request.operation in SOURCE_GOVERNANCE_READS and self.source_governance is not None:
+            method = {
+                'sources.catalog': self.source_governance.catalog,
+                'sources.get': self.source_governance.get,
+                'sources.validate': self.source_governance.validate,
+            }[request.operation]
+            try:
+                return method(**request.parameters)
+            except SourceGovernanceError as error:
+                raise EngineContractError(error.code, error.message) from error
+        from xti.domain.data_retention import READS as RETENTION_READS
+        if request.operation in RETENTION_READS and self.data_retention is not None:
+            return self.data_retention.execute(request.operation, **request.parameters)
+        from xti.domain.unified_monitoring import READS as MONITORING_READS
+        if request.operation in MONITORING_READS and self.unified_monitoring is not None:
+            return self.unified_monitoring.execute(request.operation, **request.parameters)
+        from xti.domain.actionability_contract import READS as ACTION_READS
+        if request.operation in ACTION_READS and self.actionability is not None:
+            return self.actionability.execute(request.operation, **request.parameters)
+        from xti.domain.darkweb_monitoring import READS as DARKWEB_READS
+        if request.operation in DARKWEB_READS and self.darkweb_monitoring is not None:
+            return self.darkweb_monitoring.execute(request.operation, **request.parameters)
+        from xti.domain.cti_analysis import READS as CTI_ANALYSIS_READS
+        if request.operation in CTI_ANALYSIS_READS and self.cti_analysis is not None:
+            return self.cti_analysis.execute(request.operation, **request.parameters)
+        from xti.domain.brand_protection import READS as PROTECTION_READS
+        if request.operation in PROTECTION_READS and self.brand_protection is not None:
+            return self.brand_protection.execute(request.operation, **request.parameters)
+        from xti.domain.content_monitoring import READS as CONTENT_READS
+        if request.operation in CONTENT_READS and self.content_monitoring is not None:
+            return self.content_monitoring.execute(request.operation, **request.parameters)
+        from xti.domain.code_exposure import READS as CODE_READS
+        if request.operation in CODE_READS and self.code_exposure is not None:
+            return self.code_exposure.execute(request.operation, **request.parameters)
         from xti.domain.social_tracking import READS as SOCIAL_TRACKING_READS
         if request.operation in SOCIAL_TRACKING_READS and self.social_tracking is not None:
             return self.social_tracking.execute(request.operation, **request.parameters)

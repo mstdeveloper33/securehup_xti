@@ -146,7 +146,16 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
             from xti.adapters.relationship_notification_schema import DDL as NOTIFICATION_DDL
             from xti.adapters.social_tracking_schema import DDL as SOCIAL_TRACKING_DDL
             from xti.adapters.group_schema import DDL as GROUP_DDL
-            for statement in (*GROUP_DDL, *SOCIAL_TRACKING_DDL, *NOTIFICATION_DDL, *COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
+            from xti.adapters.code_exposure_schema import DDL as CODE_DDL
+            from xti.adapters.content_monitoring_schema import DDL as CONTENT_DDL
+            from xti.adapters.brand_protection_schema import DDL as PROTECTION_DDL
+            from xti.adapters.cti_analysis_schema import DDL as CTI_ANALYSIS_DDL
+            from xti.adapters.darkweb_monitoring_schema import DDL as DARKWEB_MONITORING_DDL
+            from xti.adapters.actionability_schema import DDL as ACTIONABILITY_DDL
+            from xti.adapters.unified_monitoring_schema import DDL as UNIFIED_MONITORING_DDL
+            from xti.adapters.data_retention_schema import DDL as DATA_RETENTION_DDL
+            from xti.adapters.telemetry_schema import DDL as TELEMETRY_DDL
+            for statement in (*TELEMETRY_DDL, *DATA_RETENTION_DDL, *UNIFIED_MONITORING_DDL, *ACTIONABILITY_DDL, *DARKWEB_MONITORING_DDL, *CTI_ANALYSIS_DDL, *PROTECTION_DDL, *CONTENT_DDL, *CODE_DDL, *GROUP_DDL, *SOCIAL_TRACKING_DDL, *NOTIFICATION_DDL, *COLLECTION_HISTORY_DDL, *SUPPLIER_WATCH_DDL, *GLOBAL_SAVED_SEARCH_CURRENT_DDL, *NEWS_DDL, *MENTIONS_DDL, *MENTION_GROUP_DDL):
                 expected_connection.execute(statement)
             from xti.adapters.group_projection_schema import TRIGGERS
             for statement in TRIGGERS:
@@ -159,7 +168,7 @@ class CasePublicNoticeMigrationTests(unittest.TestCase):
             }
         self.assertEqual(added, expected_added)
         self.assertEqual(before[("table", "case_evidence")], CASE_EVIDENCE_V62_DDL)
-        from xti.adapters.group_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
+        from xti.adapters.telemetry_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
         self.assertEqual(after[("table", "case_evidence")], CURRENT_CASE_DDL)
         with closing(sqlite3.connect(self.path)) as connection:
             self.assertEqual(connection.execute(

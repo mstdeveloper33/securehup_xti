@@ -46,6 +46,10 @@ jobs:
           python -m pip --isolated install --disable-pip-version-check --no-input
           --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
           -r requirements/news.txt -r requirements/reports.txt
+      - name: Install hash-pinned channel test dependencies
+        run: |
+          python -m pip --isolated install --disable-pip-version-check --no-input --index-url https://pypi.org/simple --only-binary=:all: --require-hashes -r requirements/channels-build.txt
+          python -m pip --isolated install --disable-pip-version-check --no-input --index-url https://pypi.org/simple --no-build-isolation --require-hashes -r requirements/channels.txt
       - name: Run complete offline test suite
         run: ./scripts/check
 

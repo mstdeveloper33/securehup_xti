@@ -37,5 +37,7 @@ company-registry.json
 !.env.example
 brightdata.key
 .brightdata-*
+github.key
+gitlab.key
 .DS_Store
 

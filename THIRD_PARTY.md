@@ -1,5 +1,121 @@
 # Üçüncü Taraf Yazılım ve Veri Bildirimi
 
+**23 Kasım 2026 — P12 / 0.191.0:** P12 çekirdeğe yeni Python paketi,
+vendored kod veya otomatik kurulum eklemez. [Cowrie](https://github.com/cowrie/cowrie)
+ayrı SSH/Telnet honeypot altyapısıdır; XTI yalnız resmî JSONL olaylarının
+allowlist alt kümesini güvenli normalize eder. Cowrie kök
+[lisansı](https://github.com/cowrie/cowrie/blob/main/LICENSE.rst) BSD
+3-clause benzeri koşullar taşır ve resmî
+[çıktı sözleşmesi](https://docs.cowrie.org/en/stable/OUTPUT.html) credential
+alanlarının da bulunabildiğini gösterir; XTI bunları kalıcı alana yazmaz.
+[CAPEv2](https://github.com/kevoreilly/CAPEv2) ayrı malware sandbox
+altyapısıdır; XTI yalnız tamamlanmış `report.json` içindeki izinli alanları
+okur ve örnek, PCAP, bellek, ekran görüntüsü veya ham rapor saklamaz.
+CAPE kök [LICENSE](https://github.com/kevoreilly/CAPEv2/blob/master/LICENSE)
+GPLv3'tür; XTI'ya gömülmez, XTI sürecinden çalıştırılmaz ve bu teslimle
+dağıtılmaz. CAPE'nin [sonuç belgesi](https://capev2.readthedocs.io/en/latest/usage/results.html)
+ham artefakt kapsamını doğrular. Araç lisansı sensör verisinin, müşteri
+telemetrisinin veya incelenen örneğin ticari saklama/gösterim hakkı değildir.
+Gerçek kurulum, ağ yalıtımı, canlı kabul ve olası müşteriye dağıtım ayrıca
+incelenir; kontrollü test fixture'ı bu kararı kapatmaz.
+
+**23 Kasım 2026 — P10 / 0.190.0:** Yeni repo, SDK, Python paketi veya
+ücretli API eklenmedi. XTI standart kütüphane adaptörüyle Bluesky'nin resmî
+`app.bsky.feed.searchPosts` genel okuma sözleşmesini kullanır. Yalnız
+`public.api.bsky.app` ve `api.bsky.app` hostları izinlidir; üçüncü taraf proxy,
+firehose, profil/medya veya özel içerik yoktur. API/protokolün açık olması,
+kullanıcı gönderilerinin ticari üründe saklanması ve müşteriye gösterilmesi
+için otomatik hak verildiği anlamına gelmez. Teknik kaynak manifestte aktif,
+ticari kullanım/saklama/gösterim `review_required`, yeniden dağıtım kapalıdır.
+[Resmî API hostları](https://docs.bsky.app/docs/advanced-guides/api-directory),
+[arama sözleşmesi](https://docs.bsky.app/docs/api/app-bsky-feed-search-posts),
+[koşullar](https://bsky.social/about/support/tos),
+[N-054](NOTES.md), [teslim](docs/roadmap/P10_DELIVERY.md).
+
+**23 Kasım 2026 — P09 / 0.189.0:** Yeni üçüncü taraf repo, Python paketi,
+çalıştırılabilir araç, ücretli API veya canlı veri kaynağı eklenmedi. P09,
+mevcut 49 kaynak ve iş akışının erişim, maliyet, dil/bölge, kota, hata,
+provenance ve veri hakkı koşullarını XTI manifestlerinde görünür yapar.
+Manifestteki `active` teknik entegrasyon durumudur; yazılım lisansı, sağlayıcı
+verisini saklama/müşteriye gösterme/yeniden dağıtma izni veya canlı hizmet
+garantisi değildir. Kaynağa özgü lisans ve hizmet koşulları aşağıdaki mevcut
+kayıtlarda ve [ticari kaynak kararında](docs/COMMERCIAL_SOURCE_REVIEW.md)
+geçerliliğini korur. [ADR0194](docs/decisions/0194-source-governance-manifests.md),
+[N-052](NOTES.md#n-052--p09-kaynak-manifesti-ve-canlı-kabul-sınırı).
+
+**22 Kasım 2026 — P06 / 0.186.0:** Yeni Python paketi, repo, veri kaynağı
+veya ücretli API eklenmedi. Runbook, takedown kaydı, vaka paketi ve IOC
+dosya işlemleri XTI kodudur. İsteğe bağlı PDF, P03 için zaten sabitlenmiş
+Playwright1.65.2/Chromium1255'i JavaScript kapalı ve ağsız ayrı süreçte
+yeniden kullanır; ilgili Chromium ve üçüncü taraf bildirimleri korunur.
+Haricî takedown/abuse, SIEM, SOAR veya ticket SDK'sı yoktur. Bir IOC/vaka
+dosyasının içeriği ve gerçek portal başvurusunun hukuki yetkisi yazılım
+lisansından ayrıdır. [Karar](docs/decisions/0191-human-approved-actionability.md),
+[kullanım](docs/ACTIONABILITY.md).
+
+**22 Kasım 2026 — P05 / 0.185.0:** Yeni üçüncü taraf Python paketi veya
+vendored crawler eklenmedi. Mevcut RansomLook, ThreatCluster ve tarihî HIBP
+snapshot'ları kendi kaynak kimlikleriyle okunur. Yeni credential-domain ve
+parola maruziyet kaynağı XposedOrNot'tur. Sabit uç noktalar için stdlib HTTPS
+adaptörleri ile yerel, resmî test vektörlü legacy Keccak-512 uygulaması
+kullanılır; XposedOrNot SDK kodu repoya alınmaz. Ham alias bellekte maskelenir;
+parola, tam hash, gönderilen önek, token ve cookie saklanmaz. Parola uç noktası
+bilinen zararsız `test` girdisiyle canlı doğrulandı; gerçek kullanıcı sırrı
+kullanılmadı. API anahtarı ve doğrulanmış domain gerektiren canlı domain
+kabulü henüz yapılmadı. HIBP
+verified-domain yeni profile/ağ çağrısına kapalı, eski şema93 kayıtlarında
+salt-okunurdur. ThreatCluster yazılı izin olmadan ticari profilde kapalıdır.
+RansomLook atıf/CC BY 4.0 ve XposedOrNot hesap/hizmet koşulları veri
+gösteriminde korunur. API deposunun açık kaynak lisansı, hizmet verisinin
+ticari kullanım hakkı yerine geçmez.
+[Kullanım](docs/DARKWEB_MONITORING.md),
+[ticari kaynak kararı](docs/COMMERCIAL_SOURCE_REVIEW.md),
+[takip notu N-048](NOTES.md#n-048--p05-dark-web-ve-credential-kaynaksaklama-sınırı).
+
+**21 Kasım 2026 — P03 / 0.182.0:** ImageHash4.3.2 (BSD-2-Clause),
+Pillow13.0.0 (MIT-CMU/HPND bildirimi), Playwright1.65.2 (Apache-2.0),
+google-play-scraper1.2.7 (MIT). Görsel hesaplamalar SciPy1.16.3 (BSD-3-Clause),
+PyWavelets1.9.0 (MIT), mevcut Python koşullu NumPy2.4.6/2.5.4 ve greenlet3.5.0
+(MIT/Python-2.0) kullanır. Wheel içindeki ek native lisanslar da geçerlidir;
+kurulu paketlerin lisans dosyaları korunur. [Tam hash listesi](requirements/brand-protection.txt).
+Chromium revision1255, SDK1.65.2 ile seçilir; Chromium/üçüncü taraf
+bildirimleri dağıtımda korunur. SDK kod lisansı tarayıcıdaki bütün native
+bileşenlerin lisansını tek başına tanımlamaz. Tarayıcı ayrı upstream arşiv
+hash piniyle sunulmuyor; resmî SDK TLS indirimi ve yerel hash makbuzu var.
+Mağaza ve açık sayfa verilerinin hakları bunlardan ayrıdır: [N-046](NOTES.md#n-046--p03-marka-koruması-görsel-kanıt-ve-mağaza-kaynakları).
+Google kitaplığı motor TLS ayarını değiştirmemesi için yalnız ağsız parser
+alt sürecinde kullanılır; kaynak HTTPS taşımasını XTI yapar. Kaynaklardan
+APK/IPA veya çalıştırılabilir phishing kit alınmaz.
+
+
+**21 Kasım 2026 — P02 / 0.181.0:** Telegram için
+[Telethon1.46.0](https://pypi.org/project/Telethon/1.46.0/) (MIT), IRC
+ayrıştırması için [irctokens2.0.2](https://pypi.org/project/irctokens/2.0.2/)
+(MIT) normal kuruluma eklendi. Bağımlılıklar pyaes1.6.1 (MIT), rsa4.9.1
+(Apache-2.0), pyasn1 0.6.5 (BSD-2-Clause); kaynak paketini hazırlayan
+setuptools84.2.1 (MIT) ayrıca sabittir. Resmî PyPI dosya SHA256'ları
+[kanal listesinde](requirements/channels.txt) ve
+[derleme listesinde](requirements/channels-build.txt) bulunur.
+Paket kodu kopyalanmaz; kurulu dağıtımların özgün lisans dosyaları korunur.
+Discord SDK'sı alınmaz; resmî RESTv10 için XTI okuma adaptörü kullanılır.
+RSS/Atom mevcut feedparser6.0.14'ü, çevrimdışı maskeleme Betterleaks'i kullanır.
+Yeni kanal/yayın verilerinin ticari saklama ve gösterim kararı araç
+lisansından ayrı olarak [N-045](NOTES.md#n-045--p02-kaynak-kanal-ve-teslim-kapsamı)
+altında açıktır. Canlı kanal hesabı kabulü yapılmış sayılmaz.
+
+**21 Kasım 2026 eklemesi — P01 / A03:**
+[Betterleaks1.10.1](https://github.com/betterleaks/betterleaks/tree/v1.10.1)
+native araç olarak normal kuruluma eklendi. Tam commit
+`39d5bdcf34db54e944facac5cf6e8b03db5e2b99`; MIT lisanslıdır.
+Kurulum arşiv SHA256'sını doğrular, özgün `LICENSE` dosyasını ikiliyle
+birlikte korur. Kod repoya kopyalanmaz; `stdin` taraması kullanılır,
+aktif credential validation kapalıdır. Sürüm/platform hash'leri
+[pin kaydındadır](src/xti/domain/betterleaks_pin.py).
+Araç lisansı GitHub/GitLab/Pastebin içeriklerinin saklanması veya
+müşterilere gösterilmesi için izin yerine geçmez. Bu yeni kaynakların
+ticari kararı [N-044](NOTES.md#n-044--p01--a03-kaynak-erişimi-ve-secret-inceleme-aracı)
+altında açıktır; aşağıdaki20 Kasım kapanışı bu yeni kaynakları kapsamaz.
+
 **20 Kasım 2026:** Mevcut veri hizmetleri ve sabit yazılım bileşenleri için
 saklama, müşteri gösterimi, kullanım ve dağıtım değerlendirmesi
 [ticari karar matrisinde](docs/COMMERCIAL_SOURCE_REVIEW.md) tamamlandı.
@@ -238,6 +354,9 @@ verisi bu depoda paketlenmez veya yeniden yayımlanmaz.
 XTI, RansomLook yazılım kodunu bu depoya kopyalamaz veya gömmez; yalnız açık API
 yanıtını kendi bağımsız adaptörüyle okur. Sağlayıcının güncel şartları ürünün
 ileride ticari veri hizmetine dönüşmesinden önce yeniden incelenmelidir.
+P05, mevcut yerel snapshot'taki sınırlı başlık/grup/zaman metaverisini
+kuruluş veya tedarikçi için kaynak iddiası olarak eşleştirir; çalınmış dosya,
+torrent, leak-site sayfası veya kişisel veri indirmez.
 
 ## Public Suffix List
 

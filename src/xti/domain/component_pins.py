@@ -96,7 +96,16 @@ HARVESTER_PIN = ReviewedComponentPin(
     verify_command=("./scripts/setup-harvester", "--check"),
 )
 
-REVIEWED_COMPONENT_PINS = (MAIGRET_PIN, SHERLOCK_PIN, HARVESTER_PIN)
+BETTERLEAKS_PIN = ReviewedComponentPin(
+    identifier='betterleaks', label='Betterleaks', distribution='betterleaks', package='', version='1.10.1',
+    repository='https://github.com/betterleaks/betterleaks.git', commit='39d5bdcf34db54e944facac5cf6e8b03db5e2b99',
+    integration_profile='betterleaks-1.10.1-offline-redacted-v1', catalog_size=None, catalog_sha256=None,
+    license_spdx='MIT', license_reference_url='https://github.com/betterleaks/betterleaks/blob/39d5bdcf34db54e944facac5cf6e8b03db5e2b99/LICENSE',
+    python_requirement='>=3.11 (installer only)', deployment='isolated-native-tool',
+    setup_command=('./scripts/setup-code',), verify_command=('./scripts/setup-code', '--check'),
+)
+
+REVIEWED_COMPONENT_PINS = (MAIGRET_PIN, SHERLOCK_PIN, HARVESTER_PIN, BETTERLEAKS_PIN)
 
 
 def component_pin(identifier: str) -> ReviewedComponentPin:

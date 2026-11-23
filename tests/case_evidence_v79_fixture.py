@@ -3,6 +3,13 @@ from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_DDL, CASE_EVIDE
 from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as CURRENT_CASE_DDL
 from xti.adapters.social_tracking_schema import CASE_EVIDENCE_DDL as V83_CASE_DDL
 from xti.adapters.group_schema import CASE_EVIDENCE_DDL as V86_CASE_DDL
+from xti.adapters.code_exposure_schema import CASE_EVIDENCE_DDL as V89_CASE_DDL
+from xti.adapters.content_monitoring_schema import CASE_EVIDENCE_DDL as V90_CASE_DDL
+from xti.adapters.brand_protection_schema import CASE_EVIDENCE_DDL as V91_CASE_DDL
+from xti.adapters.cti_analysis_schema import CASE_EVIDENCE_DDL as V92_CASE_DDL
+from xti.adapters.darkweb_monitoring_schema import CASE_EVIDENCE_DDL as V93_CASE_DDL
+from xti.adapters.unified_monitoring_schema import CASE_EVIDENCE_DDL as V96_CASE_DDL
+from xti.adapters.telemetry_schema import CASE_EVIDENCE_DDL as V98_CASE_DDL
 from tests.case_evidence_v82_fixture import case_evidence_layout_v82
 
 
@@ -31,7 +38,9 @@ def legacy_case_manifest_entry(entry):
     normalized = []
     for kind, name, sql in objects:
         if name == 'case_evidence' and sql != CASE_EVIDENCE_DDL:
-            if sql not in (CURRENT_CASE_DDL, V83_CASE_DDL, V86_CASE_DDL):
+            if sql not in (CURRENT_CASE_DDL, V83_CASE_DDL, V86_CASE_DDL, V89_CASE_DDL,
+                           V90_CASE_DDL, V91_CASE_DDL, V92_CASE_DDL, V93_CASE_DDL,
+                           V96_CASE_DDL, V98_CASE_DDL):
                 raise AssertionError('Unexpected case layout')
             sql = CASE_EVIDENCE_DDL
         normalized.append((kind, name, sql))

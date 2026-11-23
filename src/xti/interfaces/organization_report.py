@@ -16,7 +16,10 @@ from xti.interfaces.evidence_status import coverage_status_text
 from xti.interfaces.public_notice_watches import watch_detail_lines
 
 
-_SECTIONS = {"findings": "Domain/marka bulguları", "surface_candidates": "Pasif alt alan adı adayları",
+_SECTIONS = {
+    "brand_protection": "Marka/sayfa/sosyal/uygulama taklidi adayları",
+    "monitored_content": "Firma/tedarikçi yayın ve kanal içerikleri",
+    "code_exposures": "Kod deposu/paste adayları","findings": "Domain/marka bulguları", "surface_candidates": "Pasif alt alan adı adayları",
              "research_groups": "Kayıtlı inceleme grupları",
              "profiles": "Sosyal profil sonuçları", "claims": "Kaynak iddiaları",
              "public_notices": "Kamu olay kataloğu tam domain eşleşmeleri",

@@ -16,6 +16,10 @@ from xti.ports.components import ComponentInstallationInspector
 
 
 def _configuration(identifier: str) -> dict:
+    if identifier == 'betterleaks':
+        from xti.domain.betterleaks_pin import ARCHIVES
+        return {'kind': 'offline_secret_candidates', 'validation': False, 'automatic_repository_config': False,
+                'redaction_percent': 100, 'max_file_bytes': 262144, 'archive_sha256': ARCHIVES}
     if identifier in {'maigret', 'sherlock'}:
         safe, extended = ((DEFAULT_PLATFORMS, EXTENDED_PLATFORMS) if identifier == 'maigret'
                           else (SHERLOCK_DEFAULT_PLATFORMS, SHERLOCK_EXTENDED_PLATFORMS))
@@ -58,7 +62,7 @@ class ComponentCatalogService:
             archive = pin.identifier == 'theharvester'
             rows.append({
                 'identifier': pin.identifier, 'label': pin.label,
-                'purpose': ('Arşivlerde kayıtlı kökün alt alan adı adaylarını toplama.' if archive
+                'purpose': ('Kod/paste metninde maskeli hassas bilgi adayı; anahtarları kullanmadan inceleme.' if pin.identifier == 'betterleaks' else 'Arşivlerde kayıtlı kökün alt alan adı adaylarını toplama.' if archive
                             else 'Seçilen platformlarda herkese açık kullanıcı adı profili adaylarını araştırma.'),
                 'expected': {
                     'version': pin.version, 'commit': pin.commit, 'repository': pin.repository,
@@ -70,7 +74,7 @@ class ComponentCatalogService:
                 'runtime': {'python_requirement': pin.python_requirement, 'deployment': pin.deployment},
                 'configuration': configuration,
                 'setup_command': list(pin.setup_command), 'verify_command': list(pin.verify_command),
-                'source_status_ids': ['surface:theharvester'] if archive else [f'social:{pin.identifier}'],
+                'source_status_ids': [] if pin.identifier == 'betterleaks' else ['surface:theharvester'] if archive else [f'social:{pin.identifier}'],
                 'installation': {
                     'state': installation.state, 'error': installation.error,
                     'scope': 'project-managed', 'verification': 'metadata_only', 'execution_tested': False,
@@ -93,7 +97,7 @@ class ComponentCatalogService:
             'observed_at': now.astimezone(timezone.utc).isoformat(),
             'scope': 'project-managed-tools', 'components': rows,
             'notes': [
-                'Yalnız proje tarafından yönetilen üç Python aracı; tüm veri kaynaklarının, sistem araçlarının veya geçişli paketlerin envanteri değildir.',
+                'Yönetilen keşif araçları ve secret dedektörü; P03 görsel/mağaza kitaplıkları brand protection capabilities altında ayrıca listelenir. Tüm geçişli paketlerin envanteri değildir.',
                 "Sistem Nmap kurulumu 'surface nmap readiness' ile doğrulanır; hedef/plan/işler 'surface nmap targets/plans/jobs', seçenek kataloğu 'surface nmap capabilities' altında yönetilir.",
                 'Beklenen pinler gözlenen sürüm gibi sunulmaz; kurulum denetimi araç çalıştırmaz, indirme veya internet sorgusu yapmaz.',
                 'Denetimler bağımsız yerel okumalardır; eşzamanlı kurulum sırasında ortak kesit garantisi yoktur.',

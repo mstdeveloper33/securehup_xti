@@ -119,12 +119,54 @@ _PRE_GROUP_NOTIFICATIONS = (
     "'social_discovery_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,id "
     "FROM social_tracking_notifications"
 )
-_COMBINED_NOTIFICATIONS = (
+_PRE_CODE_NOTIFICATIONS = (
     "SELECT *, NULL AS group_change_id FROM (" + _PRE_GROUP_NOTIFICATIONS + ") UNION ALL "
     "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
     "'research_group_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,id "
     "FROM research_group_notifications"
 )
+_PRE_CONTENT_NOTIFICATIONS = (
+    "SELECT *, NULL AS code_change_id FROM (" + _PRE_CODE_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
+    "'code_exposure_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,NULL,id "
+    "FROM code_notifications"
+)
+_PRE_PROTECTION_NOTIFICATIONS = (
+    "SELECT *, NULL AS content_change_id FROM (" + _PRE_CONTENT_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
+    "'content_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,id "
+    "FROM content_notifications"
+)
+_PRE_CTI_ANALYSIS_NOTIFICATIONS = (
+    "SELECT *, NULL AS protection_change_id FROM (" + _PRE_PROTECTION_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
+    "'brand_protection_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,id "
+    "FROM brand_protection_notifications"
+)
+_PRE_DARKWEB_NOTIFICATIONS = (
+    "SELECT *, NULL AS cti_analysis_change_id FROM (" + _PRE_CTI_ANALYSIS_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
+    "'cti_analysis_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,id "
+    "FROM cti_analysis_notifications"
+)
+_PRE_MONITORING_NOTIFICATIONS = (
+    "SELECT *, NULL AS darkweb_change_id FROM (" + _PRE_DARKWEB_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
+    "'darkweb_changed','new',created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,id "
+    "FROM darkweb_notifications"
+)
+_COMBINED_NOTIFICATIONS = (
+    "SELECT *, NULL AS monitoring_alert_id FROM (" + _PRE_MONITORING_NOTIFICATIONS + ") UNION ALL "
+    "SELECT sequence,id,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,"
+    "event_type,origin,created_at,read_at,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,id "
+    "FROM monitoring_alerts"
+)
+from xti.adapters.sqlite_unified_monitoring import notification_in as get_monitoring_notification
+from xti.adapters.sqlite_darkweb_monitoring import notification_in as get_darkweb_notification
+from xti.adapters.sqlite_cti_analysis import notification_in as get_cti_analysis_notification
+from xti.adapters.sqlite_brand_protection import notification_in as get_protection_notification
+from xti.adapters.sqlite_content_monitoring import notification_in as get_content_notification
+from xti.adapters.sqlite_code_exposure import notification_in as get_code_notification
 from xti.adapters.sqlite_group_notifications import get_notification as get_group_notification
 from xti.adapters.sqlite_group_projection import guard as group_guard, seal as group_seal
 from xti.adapters.sqlite_social_tracking import notifications_in as social_notifications_in
@@ -184,7 +226,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, candidate_id,
                 evidence_id, evidence_type, exposure_id, cti_run_id, ransomware_run_id,
                 brand_candidate_id, event_type, origin, created, read_at, ransomlook_run_id,
-                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id, social_change_id, group_change_id,
+                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id, social_change_id, group_change_id, code_change_id, content_change_id, protection_change_id, cti_analysis_change_id, darkweb_change_id, monitoring_alert_id,
             ) = row
             if type(sequence) is not int or not 1 <= sequence <= _MAX_SEQUENCE:
                 raise ValueError("Invalid notification sequence")
@@ -194,7 +236,7 @@ class SQLiteInboxRepository:
                 for value in (
                     finding_id, candidate_id, evidence_id, exposure_id,
                     cti_run_id, ransomware_run_id, brand_candidate_id, ransomlook_run_id,
-                    public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id, social_change_id, group_change_id,
+                    public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id, social_change_id, group_change_id, code_change_id, content_change_id, protection_change_id, cti_analysis_change_id, darkweb_change_id, monitoring_alert_id,
                 )
             )
             if subjects != 1:
@@ -223,6 +265,18 @@ class SQLiteInboxRepository:
                 _identifier(relationship_review_id)
             if social_change_id is not None:
                 _identifier(social_change_id)
+            if protection_change_id is not None:
+                _identifier(protection_change_id)
+            if cti_analysis_change_id is not None:
+                _identifier(cti_analysis_change_id)
+            if darkweb_change_id is not None:
+                _identifier(darkweb_change_id)
+            if monitoring_alert_id is not None:
+                _identifier(monitoring_alert_id)
+            if content_change_id is not None:
+                _identifier(content_change_id)
+            if code_change_id is not None:
+                _identifier(code_change_id)
             if group_change_id is not None:
                 _identifier(group_change_id)
             if brand_candidate_id is not None:
@@ -262,6 +316,24 @@ class SQLiteInboxRepository:
                 global_search_run_id is not None
                 and (event_type != "global_saved_search_changed" or origin != "new")
             ) or (
+                darkweb_change_id is not None
+                and (event_type != 'darkweb_changed' or origin != 'new' or darkweb_change_id != identifier)
+            ) or (
+                monitoring_alert_id is not None
+                and (event_type != 'unified_monitoring_changed' or origin != 'new' or monitoring_alert_id != identifier)
+            ) or (
+                cti_analysis_change_id is not None
+                and (event_type != 'cti_analysis_changed' or origin != 'new' or cti_analysis_change_id != identifier)
+            ) or (
+                protection_change_id is not None
+                and (event_type != 'brand_protection_changed' or origin != 'new' or protection_change_id != identifier)
+            ) or (
+                content_change_id is not None
+                and (event_type != "content_changed" or origin != "new" or content_change_id != identifier)
+            ) or (
+                code_change_id is not None
+                and (event_type != "code_exposure_changed" or origin != "new" or code_change_id != identifier)
+            ) or (
                 group_change_id is not None
                 and (event_type != "research_group_changed" or origin != "new" or group_change_id != identifier)
             ) or (
@@ -287,7 +359,7 @@ class SQLiteInboxRepository:
                 sequence, identifier, finding_id, event_type, origin, created, read_at,
                 candidate_id, evidence_id, evidence_type, exposure_id, cti_run_id,
                 ransomware_run_id, brand_candidate_id, ransomlook_run_id,
-                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id, social_change_id, group_change_id,
+                public_notice_watch_run_id, supplier_watch_run_id, global_search_run_id, relationship_review_id, social_change_id, group_change_id, code_change_id, content_change_id, protection_change_id, cti_analysis_change_id, darkweb_change_id, monitoring_alert_id,
             )
         except (ValueError, TypeError, OverflowError) as error:
             raise StorageError(
@@ -420,6 +492,20 @@ class SQLiteInboxRepository:
             social_total, social_unread = connection.execute(
                 "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL),0) FROM social_tracking_notifications"
             ).fetchone()
+            protection_total, protection_unread = connection.execute("SELECT COUNT(*),COALESCE(SUM(read_at IS NULL),0) FROM brand_protection_notifications").fetchone()
+            cti_analysis_total, cti_analysis_unread = connection.execute(
+                "SELECT COUNT(*),COALESCE(SUM(read_at IS NULL),0) FROM cti_analysis_notifications"
+            ).fetchone()
+            darkweb_total, darkweb_unread = connection.execute(
+                "SELECT COUNT(*),COALESCE(SUM(read_at IS NULL),0) FROM darkweb_notifications"
+            ).fetchone()
+            monitoring_total, monitoring_unread = connection.execute(
+                "SELECT COUNT(*),COALESCE(SUM(read_at IS NULL),0) FROM monitoring_alerts"
+            ).fetchone()
+            content_total, content_unread = connection.execute("SELECT COUNT(*),COALESCE(SUM(read_at IS NULL),0) FROM content_notifications").fetchone()
+            code_total, code_unread = connection.execute(
+                "SELECT COUNT(*),COALESCE(SUM(read_at IS NULL),0) FROM code_notifications"
+            ).fetchone()
             group_total, group_unread = connection.execute(
                 "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL),0) FROM research_group_notifications"
             ).fetchone()
@@ -427,13 +513,13 @@ class SQLiteInboxRepository:
                 finding_total + candidate_total + change_total + vulnerability_total
                 + cti_total + ransomware_total + brand_total + ransomlook_total
                 + public_notice_total + supplier_total
-                + global_search_total + relationship_total + social_total + group_total
+                + global_search_total + relationship_total + social_total + group_total + code_total + content_total + protection_total + cti_analysis_total + darkweb_total + monitoring_total
             )
             unread = (
                 finding_unread + candidate_unread + change_unread
                 + vulnerability_unread + cti_unread + ransomware_unread
                 + brand_unread + ransomlook_unread + public_notice_unread + supplier_unread
-                + global_search_unread + relationship_unread + social_unread + group_unread
+                + global_search_unread + relationship_unread + social_unread + group_unread + code_unread + content_unread + protection_unread + cti_analysis_unread + darkweb_unread + monitoring_unread
             )
             matching = (
                 total if status == "all"
@@ -477,7 +563,27 @@ class SQLiteInboxRepository:
             )
             items = []
             for notification in notifications:
-                if notification.group_change_id is not None:
+                if notification.monitoring_alert_id is not None:
+                    items.append(InboxItem(notification, None,
+                        monitoring_change=get_monitoring_notification(connection, notification.id)))
+                    continue
+                if notification.darkweb_change_id is not None:
+                    items.append(InboxItem(notification, None,
+                        darkweb_change=get_darkweb_notification(connection, notification.id)))
+                    continue
+                if notification.cti_analysis_change_id is not None:
+                    items.append(InboxItem(notification, None,
+                        cti_analysis_change=get_cti_analysis_notification(connection, notification.id)))
+                    continue
+                if notification.protection_change_id is not None:
+                    items.append(InboxItem(notification, None, protection_change=get_protection_notification(connection, notification.id)))
+                    continue
+                if notification.content_change_id is not None:
+                    items.append(InboxItem(notification, None, content_change=get_content_notification(connection, notification.id)))
+                    continue
+                if notification.code_change_id is not None:
+                    items.append(InboxItem(notification, None, code_change=get_code_notification(connection, notification.id)))
+                elif notification.group_change_id is not None:
                     items.append(InboxItem(notification, None, group_change=get_group_notification(connection, notification.id)))
                 elif notification.social_change_id is not None:
                     items.append(InboxItem(notification, None, social_change=relationship_evidence[notification.id]))
@@ -567,7 +673,22 @@ class SQLiteInboxRepository:
             connection.execute("BEGIN")
             relationship_evidence = self._validate_sequences(connection)
             notification = self._get(connection, notification_id)
-            if notification.group_change_id is not None:
+            if notification.monitoring_alert_id is not None:
+                return InboxDetails(notification, None,
+                    monitoring_change=get_monitoring_notification(connection, notification.id))
+            if notification.darkweb_change_id is not None:
+                return InboxDetails(notification, None,
+                    darkweb_change=get_darkweb_notification(connection, notification.id))
+            if notification.cti_analysis_change_id is not None:
+                return InboxDetails(notification, None,
+                    cti_analysis_change=get_cti_analysis_notification(connection, notification.id))
+            if notification.protection_change_id is not None:
+                return InboxDetails(notification, None, protection_change=get_protection_notification(connection, notification.id))
+            if notification.content_change_id is not None:
+                return InboxDetails(notification, None, content_change=get_content_notification(connection, notification.id))
+            if notification.code_change_id is not None:
+                result = InboxDetails(notification, None, code_change=get_code_notification(connection, notification.id))
+            elif notification.group_change_id is not None:
                 result = InboxDetails(notification, None, group_change=get_group_notification(connection, notification.id))
             elif notification.social_change_id is not None:
                 result = InboxDetails(notification, None, social_change=relationship_evidence[notification.id])
@@ -659,7 +780,13 @@ class SQLiteInboxRepository:
         for identifier in identifiers:
             notification = SQLiteInboxRepository._get(connection, identifier)
             table = (
-                "research_group_notifications" if notification.group_change_id is not None
+                "monitoring_alerts" if notification.monitoring_alert_id is not None
+                else "darkweb_notifications" if notification.darkweb_change_id is not None
+                else "cti_analysis_notifications" if notification.cti_analysis_change_id is not None
+                else "brand_protection_notifications" if notification.protection_change_id is not None
+                else "content_notifications" if notification.content_change_id is not None
+                else "code_notifications" if notification.code_change_id is not None
+                else "research_group_notifications" if notification.group_change_id is not None
                 else "social_tracking_notifications" if notification.social_change_id is not None
                 else "relationship_review_notifications" if notification.relationship_review_id is not None
                 else "notifications" if notification.finding_id is not None

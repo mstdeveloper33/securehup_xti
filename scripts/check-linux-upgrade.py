@@ -27,7 +27,7 @@ from typing import NamedTuple
 
 PROJECT = Path(__file__).resolve().parents[1]
 BASELINE = "9cdf32c7981b87532952ec2c6b8a3fb5bb142ba8"
-MAX_REVIEWED_SCHEMA = 88
+MAX_REVIEWED_SCHEMA = 99
 OUTPUT_LIMIT = 8 * 1024 * 1024
 
 
@@ -300,7 +300,7 @@ def require_preserved_tables(before, after):
             and _preserved_case_upgrade(expected, actual, before_schema=before[0], after_schema=after[0])
         )
         reviewed_group_projection = (
-            before[0] < 88 == after[0] and _preserved_group_guard_upgrade(name, expected, actual)
+            before[0] < 88 <= after[0] <= MAX_REVIEWED_SCHEMA and _preserved_group_guard_upgrade(name, expected, actual)
         )
         COMMON.require(actual == expected or reviewed_upgrade or reviewed_case_upgrade or reviewed_group_projection,
                        f"Schema migration changed pre-existing table/evidence: {name}.")
@@ -315,7 +315,7 @@ def _preserved_group_guard_upgrade(name, expected, actual):
 
 
 def _preserved_case_upgrade(expected, actual, *, before_schema, after_schema):
-    """Permit exact schema80/83/86 CHECK extensions; preserve every old row/rowid."""
+    """Permit reviewed case CHECK extensions through schema99; preserve every row/rowid."""
     if (actual is None or expected[1] != actual[1]
             or not 63 <= before_schema < after_schema <= MAX_REVIEWED_SCHEMA):
         return False
@@ -323,12 +323,26 @@ def _preserved_case_upgrade(expected, actual, *, before_schema, after_schema):
     from xti.adapters.relationship_notification_schema import CASE_EVIDENCE_DDL as V80_DDL
     from xti.adapters.social_tracking_schema import CASE_EVIDENCE_DDL as V83_DDL
     from xti.adapters.group_schema import CASE_EVIDENCE_DDL as V86_DDL
+    from xti.adapters.code_exposure_schema import CASE_EVIDENCE_DDL as V89_DDL
+    from xti.adapters.content_monitoring_schema import CASE_EVIDENCE_DDL as V90_DDL
+    from xti.adapters.brand_protection_schema import CASE_EVIDENCE_DDL as V91_DDL
+    from xti.adapters.cti_analysis_schema import CASE_EVIDENCE_DDL as V92_DDL
+    from xti.adapters.darkweb_monitoring_schema import CASE_EVIDENCE_DDL as V93_DDL
+    from xti.adapters.unified_monitoring_schema import CASE_EVIDENCE_DDL as V96_DDL
+    from xti.adapters.telemetry_schema import CASE_EVIDENCE_DDL as V98_DDL
 
     def reviewed_ddl(version):
         if version <= 79: return CASE_EVIDENCE_DDL
         if version <= 82: return V80_DDL
         if version <= 85: return V83_DDL
-        return V86_DDL
+        if version <= 88: return V86_DDL
+        if version == 89: return V89_DDL
+        if version == 90: return V90_DDL
+        if version == 91: return V91_DDL
+        if version == 92: return V92_DDL
+        if version <= 95: return V93_DDL
+        if version <= 97: return V96_DDL
+        return V98_DDL
 
     shapes = []
     for ddl in (reviewed_ddl(before_schema), reviewed_ddl(after_schema)):

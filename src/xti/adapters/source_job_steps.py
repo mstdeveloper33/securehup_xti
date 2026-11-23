@@ -7,12 +7,17 @@ from xti.domain.source_job_usage import RequestUsageMeter, request_ceiling
 
 
 class ExistingSourceJobOperations:
-    def __init__(self, enrichment, warninglists, research, *, news=None, investigations=None, reports=None, publishers=None, relationship_notifications=None, social_tracking=None, groups=None):
+    def __init__(self, enrichment, warninglists, research, *, news=None, investigations=None, reports=None, publishers=None, relationship_notifications=None, social_tracking=None, groups=None, code_exposure=None, content_monitoring=None, brand_protection=None, cti_analysis=None, darkweb_monitoring=None):
         self.enrichment, self.warninglists, self.research = enrichment, warninglists, research
         self.news, self.investigations = news, investigations
         self.reports = reports
         self.publishers, self.relationship_notifications = publishers, relationship_notifications
         self.social_tracking, self.groups = social_tracking, groups
+        self.code_exposure = code_exposure
+        self.content_monitoring = content_monitoring
+        self.brand_protection=brand_protection
+        self.cti_analysis = cti_analysis
+        self.darkweb_monitoring = darkweb_monitoring
 
     @staticmethod
     def _enrichment_receipt(data):
@@ -22,6 +27,16 @@ class ExistingSourceJobOperations:
             'snapshot_sha256': run['snapshot_sha256'], 'has_more': data['has_more']}
 
     def execute(self, key, plan, job_id, *, measure=False):
+        if key == 'darkweb-monitor':
+            return self.darkweb_monitoring().execute(plan, job_id)
+        if key == 'cti-analysis':
+            return self.cti_analysis().execute(plan, job_id)
+        if key == 'brand-protection':
+            return self.brand_protection().execute(plan,job_id)
+        if key == 'content-monitor':
+            return self.content_monitoring().execute(plan, job_id)
+        if key == 'code-monitor':
+            return self.code_exposure().execute(plan, job_id)
         if key == 'social-tracking':
             return self.social_tracking(network=True).execute(plan, job_id)
         meter = RequestUsageMeter(request_ceiling(key, plan)) if measure else None
@@ -68,6 +83,21 @@ class ExistingSourceJobOperations:
 
     def verify(self, key, receipt, plan):
         validate_receipt(key, receipt, plan)
+        if key == 'darkweb-monitor':
+            self.darkweb_monitoring().verify(receipt, plan)
+            return
+        if key == 'cti-analysis':
+            self.cti_analysis().verify(receipt, plan)
+            return
+        if key == 'brand-protection':
+            self.brand_protection().verify(receipt,plan)
+            return
+        if key == 'content-monitor':
+            self.content_monitoring().verify(receipt, plan)
+            return
+        if key == 'code-monitor':
+            self.code_exposure().verify(receipt, plan)
+            return
         if key == 'social-tracking':
             self.social_tracking().verify(receipt, plan)
             return

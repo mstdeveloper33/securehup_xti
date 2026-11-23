@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/setup_code.py" "$@"

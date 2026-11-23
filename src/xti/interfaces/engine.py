@@ -9,6 +9,14 @@ from xti.adapters.sqlite import StorageError
 from xti.application.engine import EngineReadService
 from xti.domain.assets import ValidationError
 from xti.domain.social_discovery import SocialDiscoveryError
+from xti.domain.code_exposure import CodeExposureError
+from xti.domain.content_monitoring import ContentError
+from xti.domain.brand_protection import BrandProtectionError
+from xti.domain.cti_analysis import CtiAnalysisError
+from xti.domain.darkweb_monitoring import DarkwebError
+from xti.domain.unified_monitoring import MonitoringError
+from xti.domain.data_retention import RetentionError
+from xti.domain.telemetry import TelemetryError
 from xti.domain.reports import ReportError
 from xti.domain.engine import (
     ENGINE_CONTRACT_VERSION, ENGINE_OPERATIONS, RECORD_NAMESPACES,
@@ -36,6 +44,42 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
         return operation is None or operation in names
 
     services = {}
+    from xti.domain.telemetry import READS as TELEMETRY_READS
+    if selected(*TELEMETRY_READS):
+        from xti.interfaces.telemetry import make_telemetry_service
+        services['telemetry'] = make_telemetry_service(database)
+    from xti.domain.data_retention import READS as RETENTION_READS
+    if selected(*RETENTION_READS):
+        from xti.interfaces.data_retention import make_retention_service
+        services['data_retention'] = make_retention_service(database)
+    from xti.domain.unified_monitoring import READS as MONITORING_READS
+    if selected(*MONITORING_READS):
+        from xti.interfaces.unified_monitoring import make_unified_monitoring_service
+        services['unified_monitoring'] = make_unified_monitoring_service(database)
+    from xti.domain.actionability_contract import READS as ACTION_READS
+    if selected(*ACTION_READS):
+        from xti.interfaces.actionability import _service
+        services['actionability'] = _service(database)
+    from xti.domain.darkweb_monitoring import READS as DARKWEB_READS
+    if selected(*DARKWEB_READS):
+        from xti.interfaces.darkweb_monitoring import make_darkweb_service
+        services['darkweb_monitoring'] = make_darkweb_service(database)
+    from xti.domain.cti_analysis import READS as CTI_ANALYSIS_READS
+    if selected(*CTI_ANALYSIS_READS):
+        from xti.interfaces.cti_analysis import make_cti_analysis_service
+        services['cti_analysis'] = make_cti_analysis_service(database)
+    from xti.domain.brand_protection import READS as PROTECTION_READS
+    if selected(*PROTECTION_READS):
+        from xti.interfaces.brand_protection import make_brand_protection_service
+        services['brand_protection'] = make_brand_protection_service(database)
+    from xti.domain.content_monitoring import READS as CONTENT_READS
+    if selected(*CONTENT_READS):
+        from xti.interfaces.content_monitoring import make_content_service
+        services['content_monitoring'] = make_content_service(database)
+    from xti.domain.code_exposure import READS as CODE_READS
+    if selected(*CODE_READS):
+        from xti.interfaces.code_exposure import make_code_service
+        services['code_exposure'] = make_code_service(database)
     from xti.domain.social_tracking import READS as SOCIAL_TRACKING_READS
     if selected(*SOCIAL_TRACKING_READS):
         from xti.interfaces.social_tracking import make_social_tracking_service
@@ -67,6 +111,14 @@ def make_engine_service(database: Path, *, operation=None) -> EngineReadService:
     if selected('record.get'):
         from xti.adapters.engine_records import SQLiteEngineRecordRepository
         services['records'] = SQLiteEngineRecordRepository(database)
+    from xti.domain.source_governance import READS as SOURCE_GOVERNANCE_READS
+    if selected(*SOURCE_GOVERNANCE_READS):
+        from xti.adapters.source_readiness import SQLiteSourceReadinessRepository
+        from xti.application.source_governance import SourceGovernanceService
+        from xti.application.source_readiness import SourceReadinessService
+        services['source_governance'] = SourceGovernanceService(
+            readiness=SourceReadinessService(SQLiteSourceReadinessRepository(database)),
+        )
     if selected('sources.status'):
         from xti.adapters.source_readiness import SQLiteSourceReadinessRepository
         from xti.application.source_readiness import SourceReadinessService
@@ -178,6 +230,55 @@ def engine_manifest() -> dict:
         'request_max_bytes': MAX_REQUEST_BYTES, 'response_max_bytes': MAX_RESPONSE_BYTES,
         'max_json_depth': MAX_JSON_DEPTH, 'default_limit': 50, 'max_limit': 500,
         'max_offset': 1_000_000,
+        'source_governance': {
+            'contract_version': 1,
+            'operations': ['sources.catalog', 'sources.get', 'sources.validate'],
+            'max_limit': 200,
+            'network_access': False,
+            'recorded_health_opt_in': True,
+            'manifest_is_not_live_availability': True,
+        },
+        'unified_monitoring': {'policy': 'unified-monitoring-v1',
+                               'case_evidence_type': 'unified_monitoring',
+                               'network_access': False, 'first_run': 'silent_baseline',
+                               'automatic_threat_verdict': False,
+                               'write_via': 'company_platform_or_operator_cli'},
+        'data_retention': {
+            'policy': 'organization-retention-v1',
+            'managed_families': ['unified_monitoring_runs'],
+            'organization_scoped': True,
+            'automatic_logical_delete': False,
+            'case_evidence_auto_protected': True,
+            'backup_before_mutation': True,
+            'network_access': False,
+            'write_via': 'company_platform_or_operator_cli',
+        },
+        'brand_protection': {'policy':'brand-protection-v1','case_evidence_type':'brand_protection','pagination':'after_sequence','max_limit':100,'automatic_verdict':False},
+        'cti_analysis': {'policy': 'cti-analysis-v1', 'case_evidence_type': 'cti_analysis',
+                         'pagination': 'after_sequence', 'max_limit': 100,
+                         'graph_limits': {'nodes': 100, 'edges': 200},
+                         'network_access': False, 'automatic_merge': False,
+                         'automatic_attribution': False, 'llm': False},
+        'darkweb_monitoring': {'policy': 'darkweb-monitoring-v1',
+                               'case_evidence_type': 'darkweb_monitoring',
+                               'pagination': 'after_sequence', 'max_limit': 100,
+                               'engine_network_access': False,
+                               'credential_refresh_write_via': 'company_platform_or_operator_cli',
+                               'raw_credential_alias_persistence': False,
+                               'automatic_incident': False},
+        'actionability': {
+            'policy': 'human-approved-actionability-v1',
+            'read_operations': [
+                'action.capabilities', 'action.runbook.plan', 'action.runbook.show',
+                'action.takedown.list', 'action.takedown.show',
+            ],
+            'network_access': False,
+            'automatic_takedown_submission': False,
+            'file_artifacts_via': 'trusted_operator_cli',
+            'external_connectors': False,
+        },
+        'content_monitoring': {'policy': 'company-content-v1', 'case_evidence_type': 'content_match', 'pagination': 'after_sequence', 'max_limit': 100},
+        'code_exposure': {'policy': 'code-exposure-v1', 'case_evidence_type': 'code_exposure', 'pagination': 'after_sequence', 'max_limit': 100},
         'social_tracking': {'policy': 'social-tracking-v1', 'review_scope': 'domain_and_exact_profile',
                             'first_run': 'silent_baseline', 'case_evidence_type': 'social_discovery'},
         'social_discovery': {'policy': 'social-discovery-v1', 'write_via': 'brand.discovery.run',
@@ -256,7 +357,7 @@ def run_engine(database: Path, *, describe: bool = False, stream=None, output=No
     except Exception as error:
         if isinstance(error, EngineContractError):
             contract_error = error
-        elif isinstance(error, (ReportError, SocialDiscoveryError)):
+        elif isinstance(error, (ReportError, SocialDiscoveryError, CodeExposureError, ContentError, BrandProtectionError, CtiAnalysisError, DarkwebError, MonitoringError, RetentionError, TelemetryError)):
             contract_error = EngineContractError(error.code, str(error))
         elif isinstance(error, ValidationError):
             contract_error = EngineContractError('invalid_parameters', str(error))

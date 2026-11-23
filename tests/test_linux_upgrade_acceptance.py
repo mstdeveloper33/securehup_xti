@@ -227,14 +227,19 @@ class LinuxUpgradeAcceptanceTests(unittest.TestCase):
         from tests.test_cases import CaseTests
         from tests.case_evidence_v79_fixture import case_evidence_layout_v79
         from tests.case_evidence_v82_fixture import case_evidence_layout_v82
-        for version in (79, 80, 82):
+        from tests.case_evidence_v88_fixture import case_evidence_layout_v88
+        from tests.case_evidence_v89_fixture import case_evidence_layout_v89
+        from tests.case_evidence_v90_fixture import case_evidence_layout_v90
+        layouts = {79: case_evidence_layout_v79, 80: case_evidence_layout_v82,
+                   82: case_evidence_layout_v82, 88: case_evidence_layout_v88,
+                   89: case_evidence_layout_v89, 90: case_evidence_layout_v90}
+        for version, layout in layouts.items():
             with self.subTest(source_schema=version):
                 fixture = CaseTests(); fixture.setUp(); self.addCleanup(fixture.doCleanups)
                 case = fixture.create_case()
                 fixture.service.add_evidence(case.id, 'finding', fixture.insert_finding(), reason='Preserve this evidence')
                 with closing(sqlite3.connect(fixture.path)) as connection, connection:
                     connection.execute('UPDATE case_evidence SET rowid=rowid+100')
-                    layout = case_evidence_layout_v79 if version <= 79 else case_evidence_layout_v82
                     layout(connection)
                     connection.execute(f'PRAGMA user_version={version}')
                 before = self.helper.database_manifest(fixture.path)

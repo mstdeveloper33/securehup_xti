@@ -64,6 +64,10 @@ class SetupScriptTests(unittest.TestCase):
                 encoding="utf-8",
             )
             (scripts / "setup-brand").chmod(0o700)
+            (scripts / "setup-code").write_text("#!/bin/sh\nset -eu\nprintf 'code\\n' >> \"$XTI_ORDER\"\n")
+            (scripts / "setup-code").chmod(0o700)
+            (scripts / "setup-protection").write_text("#!/bin/sh\nset -eu\nprintf 'protection\\n' >> \"$XTI_ORDER\"\n")
+            (scripts / "setup-protection").chmod(0o700)
             (root / "xti").write_text(
                 "#!/bin/sh\nset -eu\nprintf 'core:%s\\n' \"$1\" >> \"$XTI_ORDER\"\n",
                 encoding="utf-8",
@@ -82,7 +86,7 @@ class SetupScriptTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertEqual(order.read_text().splitlines(), ["brand", "core:init"])
+            self.assertEqual(order.read_text().splitlines(), ["brand", "code", "protection", "core:init"])
             self.assertIn("Maigret ve Sherlock: doğrulandı", result.stdout)
             self.assertIn("RSS/Atom haber okuyucusu: doğrulandı", result.stdout)
 

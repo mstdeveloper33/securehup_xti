@@ -22,6 +22,7 @@ from xti.adapters.sqlite_ransomlook_claims import SQLiteRansomLookClaimRepositor
 from xti.adapters.sqlite_ransomware_claims import SQLiteRansomwareClaimRepository
 from xti.adapters.sqlite_supplier_history import read_supplier_history
 from xti.adapters.sqlite_surface_candidates import SQLiteSurfaceCandidateRepository
+from xti.adapters.sqlite_telemetry import read_record_in as read_telemetry_record
 from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.brand_username_reviews import brand_username_review_candidate_id
 from xti.domain.cases import canonical_snapshot
@@ -391,6 +392,59 @@ class _SearchReader:
                           'Her istek en çok 20 sıralanmış sonuç alır; sonuç yokluğu internette içerik yokluğu değildir.',
                           'Aramadan düşen eski sonuç silinmez; bu arama interneti yeniden sorgulamaz.'))
 
+    def telemetry(self):
+        start = len(self.results)
+        rows = _rows(
+            self.connection,
+            'SELECT id FROM telemetry_records ORDER BY sequence',
+        )
+        for (identifier,) in rows:
+            record = read_telemetry_record(self.connection, identifier)
+            body = record['body']
+            fields = [
+                ('summary', record['summary']),
+                ('source_name', record['source']['name']),
+                ('native_id', record['native_id']),
+                ('source_ip', body.get('src_ip')),
+                ('destination_ip', body.get('dst_ip')),
+                ('domain', body.get('domain')),
+                ('url', body.get('url')),
+            ]
+            fields.extend((f'hash_{kind}', value) for kind, value in body['hashes'].items())
+            fields.extend(('indicator', item['value']) for item in body['indicators'])
+            fields.extend(('attribute', item['value']) for item in body['attributes'])
+            fields.extend(('tag', value) for value in body['tags'])
+            review = record['review']
+            details = [
+                f"Kaynak: {record['source']['name']} ({record['source']['source_kind']})",
+                f"Kuruluş kimliği: {record['organization_id']}",
+                f"Olay zamanı: {record['event_at']}",
+                f"Kaynak kayıt kimliği: {record['native_id']}",
+                f"İnsan kararı: {review['decision'] if review else 'bekliyor'}",
+                'Normalize sensör/sandbox kaydıdır; tek başına doğrulanmış saldırı, zararlılık veya atıf değildir.',
+            ]
+            self.add(
+                'telemetry', record['kind'], record['id'], record['summary'],
+                review['decision'] if review else 'unreviewed', True,
+                record['last_seen_at'], 'local-telemetry', tuple(fields),
+                source_run_id=record['last_run_id'], details=tuple(details),
+                semantic={
+                    'organization_id': record['organization_id'],
+                    'source': record['source'], 'body': body,
+                    'revision': record['revision'], 'review': review,
+                    'needs_review': record['needs_review'],
+                },
+                navigation=(_nav('Telemetri kanıtı', 'telemetry', 'record-show', record['id']),),
+            )
+        self.cover(
+            'telemetry', 'local-telemetry', len(rows), start,
+            notes=(
+                'Normalize sensör ve tamamlanmış sandbox raporu kayıtları aranır; XTI zararlı örnek çalıştırmaz.',
+                'Parola, kullanıcı adı, ham komut, PCAP, bellek dökümü ve ham sandbox raporu saklanmaz veya aranmaz.',
+                'Arama eşleşmesi doğrulanmış saldırı, zararlılık ya da kuruluşla ilişki hükmü değildir.',
+            ),
+        )
+
     def cases(self):
         start = len(self.results)
         links = read_case_evidence_links(self.connection)
@@ -526,7 +580,7 @@ def read_global_search_snapshot(connection, path, query, *, kinds, include_inact
                            mention_request_key=mention_request_key, mention_run_id=mention_run_id, news_run_ids=news_run_ids)
     handlers = {'domain': reader.domains, 'finding': reader.findings, 'social': reader.social,
                 'ransomware': reader.ransomware, 'public-notice': reader.public_notices, 'news': reader.news,
-                'mention': reader.mentions,
+                'mention': reader.mentions, 'telemetry': reader.telemetry,
                 'case': reader.cases, 'supplier': reader.suppliers, 'organization': reader.organizations}
     for kind in kinds:
         if kind in handlers:

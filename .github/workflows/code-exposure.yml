@@ -1,0 +1,70 @@
+name: XTI code and paste engine acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/xti/**'
+      - 'scripts/setup_code.py'
+      - 'scripts/setup-code'
+      - 'scripts/check-code-delivery.py'
+      - 'scripts/code_acceptance_identity.py'
+      - 'tests/test_code*.py'
+      - '.github/workflows/code-exposure.yml'
+  pull_request:
+    paths:
+      - 'src/xti/**'
+      - 'scripts/setup_code.py'
+      - 'scripts/setup-code'
+      - 'scripts/check-code-delivery.py'
+      - 'scripts/code_acceptance_identity.py'
+      - 'tests/test_code*.py'
+      - '.github/workflows/code-exposure.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xti-code-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Select Python
+        run: echo "XTI_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+      - name: Install reviewed test dependencies
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/news.txt -r requirements/reports.txt
+      - name: Install checksum-pinned offline detector
+        run: ./scripts/setup-code
+      - name: Privacy, source fixtures, company boundary and queue acceptance
+        run: >-
+          ./scripts/python -m unittest -q tests.test_code_exposure tests.test_code_tool
+          tests.test_code_platform tests.test_code_migration tests.test_components tests.test_component_pins tests.test_setup
+          tests.test_source_jobs tests.test_source_jobs_usage tests.test_source_jobs_platform
+          tests.test_cases tests.test_inbox_storage tests.test_organization_report
+      - name: Real schema88 producer, rollback and accumulated capacity
+        run: ./scripts/python scripts/check-code-delivery.py --output "$RUNNER_TEMP/code-delivery.json"
+      - name: Preserve synthetic measurements
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/code-delivery.json" ]; then
+            cat "$RUNNER_TEMP/code-delivery.json"
+          fi

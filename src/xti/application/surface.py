@@ -2,9 +2,9 @@
 
 from collections.abc import Callable
 from datetime import datetime, timezone
-import math
 import time
 
+from xti.application.foreground_monitor import MonotonicBudget, utc_now
 from xti.domain.collection_history import CollectionOperationToken
 from xti.domain.assets import Asset, ValidationError, normalize_domain
 from xti.domain.discovery import SourceBatch
@@ -424,22 +424,7 @@ class SurfaceWatchService:
                 raise ValidationError(message)
 
     def _now(self) -> str:
-        value = self.clock()
-        try:
-            if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
-                raise ValueError("timezone required")
-            return value.astimezone(timezone.utc).isoformat()
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError("Pasif izleme zamanı geçersiz.") from error
-
-    def _tick(self) -> float:
-        value = self.monotonic()
-        try:
-            if type(value) not in (int, float) or not math.isfinite(value):
-                raise ValueError("invalid monotonic clock")
-            return float(value)
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError("Pasif izleme süresini ölçen saat geçersiz.") from error
+        return utc_now(self.clock, error_message="Pasif izleme zamanı geçersiz.")
 
     def run(
         self, asset_value: str, *, max_cycles: int = 3,
@@ -454,19 +439,16 @@ class SurfaceWatchService:
             raise ValidationError("Pasif keşif kaynağı bu çalışma yolunda yapılandırılmadı.")
         normalized = normalize_domain(asset_value)
         started_at = self._now()
-        started = self._tick()
-        previous = started
+        budget = MonotonicBudget(
+            self.monotonic,
+            invalid_message="Pasif izleme süresini ölçen saat geçersiz.",
+            rollback_message=(
+                "Pasif izleme süresini ölçen saat geriye gitti; izleme durduruldu."
+            ),
+        )
+        budget.start()
         cycles: list[SurfaceWatchCycle] = []
-
-        def elapsed() -> float:
-            nonlocal previous
-            current = self._tick()
-            if current < previous or not math.isfinite(current - started):
-                raise ValidationError(
-                    "Pasif izleme süresini ölçen saat geriye gitti; izleme durduruldu."
-                )
-            previous = current
-            return current - started
+        elapsed = budget.elapsed
 
         stop_reason = "cycles"
         for cycle in range(1, max_cycles + 1):

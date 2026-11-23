@@ -12,6 +12,7 @@ import sqlite3
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_cooldowns import SQLiteCooldownRepository
 from xti.adapters.sqlite_jobs import SQLiteJobRepository, _JOB_COLUMNS
+from xti.adapters.sqlite_notification_sequence import notification_counts
 from xti.domain.assets import Asset, ValidationError, normalize_domain
 from xti.domain.jobs import JOB_STATUSES, ScanJob
 from xti.domain.status import AssetHistory, SourceHistory, StatusAttempt, StatusSnapshot
@@ -167,62 +168,7 @@ class SQLiteStatusRepository:
                 observation_count = connection.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
                 finding_counts = self._counts(connection, "findings", _FINDING_STATUSES)
                 job_counts = self._counts(connection, "scan_jobs", JOB_STATUSES)
-                finding_total, finding_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) FROM notifications"
-                ).fetchone()
-                candidate_total, candidate_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM surface_candidate_notifications"
-                ).fetchone()
-                change_total, change_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM surface_change_notifications"
-                ).fetchone()
-                vulnerability_total, vulnerability_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM vulnerability_change_notifications"
-                ).fetchone()
-                cti_total, cti_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM cti_saved_search_notifications"
-                ).fetchone()
-                ransomware_total, ransomware_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM ransomware_watch_notifications"
-                ).fetchone()
-                ransomlook_total, ransomlook_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM ransomlook_watch_notifications"
-                ).fetchone()
-                public_notice_total, public_notice_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM public_notice_watch_notifications"
-                ).fetchone()
-                supplier_total, supplier_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM supplier_watch_notifications"
-                ).fetchone()
-                global_search_total, global_search_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM global_saved_search_notifications"
-                ).fetchone()
-                brand_total, brand_unread = connection.execute(
-                    "SELECT COUNT(*), COALESCE(SUM(read_at IS NULL), 0) "
-                    "FROM brand_username_review_notifications"
-                ).fetchone()
-                total = (
-                    finding_total + candidate_total + change_total + vulnerability_total
-                    + cti_total + ransomware_total + brand_total
-                    + ransomlook_total + public_notice_total + supplier_total
-                    + global_search_total
-                )
-                unread = (
-                    finding_unread + candidate_unread + change_unread
-                    + vulnerability_unread + cti_unread + ransomware_unread
-                    + brand_unread
-                    + ransomlook_unread + public_notice_unread + supplier_unread
-                    + global_search_unread
-                )
+                total, unread = notification_counts(connection)
                 assets = self._assets(connection, domain, limit)
                 histories = self._histories(connection, assets, providers)
                 cooldowns = tuple(SQLiteCooldownRepository._row(row) for row in connection.execute(

@@ -1,13 +1,42 @@
 # Kaynak güncelleme işleri
 
-20 Kasım 2026 · 0.179.0 · çekirdek şema 88 · iş kuyruğu şeması 4.
+22 Kasım 2026 · 0.185.0 · çekirdek şema 94 · iş kuyruğu şeması 4.
+
+Güncel kaynak işi modeli12, tek kaynaklı ve ağsız `darkweb-monitor` adımını
+ekler. Profil kimliği/sürümü ile dondurulmuş kapsam SHA256 değeri kabulde ve
+worker'da yeniden doğrulanır. Dış HTTP tavanı ve gerçek deneme sıfırdır;
+XposedOrNot verified-domain çağrısı bu genel işin içine gizlenmez ve yalnız
+açık `darkweb.credential.refresh` işleminde yapılır. Parola kontrolü de kaynak
+işi değildir; yalnız açık, gizli terminal girişiyle çalışır. Tamamlanan çekirdek tur
+makbuzu kuyruk kesintisinde yeniden kullanılır; belirsiz `running` tur
+otomatik tekrarlanmaz. Eski modeller1–11 kendi saklı biçimleriyle okunur.
+[Kullanım](DARKWEB_MONITORING.md#ortak-kuyrukla-düzenli-analiz).
+
+Kaynak işi modeli11 `cti-analysis`; model10 `brand-protection`; model9
+`content-monitor`; model8 `code-monitor` adımlarını eklemiştir. Aşağıdaki
+tarihî açıklamalar bu eski makbuzların anlamını korur.
+
+
+Kaynak işi modeli9 `content-monitor` ekler; eski1–8 kendi kayıtlarıyla
+okunur. Firma/tedarikçi izlemesinin güncel kimliği, sürümü, domain veya
+kapsam özeti ve bütçeleri plan/submit/worker aşamalarında doğrulanır.
+Başarılı core makbuzu varsa retry kaynak çağrısını tekrarlamaz.
+HTTP, Telegram mantıksal çağrısı ve IRC bağlantı penceresi ayrı ölçülür.
+[Kullanım, bütçe ve kurtarma](CONTENT_MONITORING.md#düzenli-çalışma-ve-kuyruk).
+
+İş modeli **8**, `code-monitor` ile kayıtlı kod/paste izlemesini
+çalıştırır. `code_watch_id`, `code_watch_revision` ve isteğe bağlı
+`code_force` aynı firma/domain kapsamında doğrulanır. Tek kaynaklı bu işin
+varsayılan30/en fazla100 HTTP bütçesi vardır; diğer kaynakların mevcut
+sınırları değişmez. Çekirdek makbuzu tamamlanıp iş kesilirse açık retry
+eski sonucu bulur ve yeniden ağ isteği yapmaz. [Örnekler](CODE_EXPOSURE.md#ortak-iş-kuyruğu-ve-firma-json).
 
 0.179.0 biten işleri etkin kapasiteden ayırır; özgün makbuz/sonuç/retry
 bağı korunur. Güncel geçmiş, kapasite, audit ve yedekli kuyruk geçişi
 [iş geçmişi rehberindedir](JOB_HISTORY.md). Aşağıdaki eski kaynak işi
 sürümlerinin plan ve kanıt anlamları değişmez.
 
-Güncel iş modeli **7**, `group-refresh` ve zorunlu `group_id` alanını
+İş modeli **7**, `group-refresh` ve zorunlu `group_id` alanını
 ekler (terminalde `--group`). Saklı grubun aynı firma/kök kapsamında yerel
 kontrolüdür; dış istek yapmaz. Kaynak adımlarından sonra yürütülür.
 Sonuç/bildirim birlikte saklanır; kesilen kuyruk ilerlemesi özgün grup
@@ -283,3 +312,39 @@ birlikte alınmış firma yedeğini yeni alana geri yükle; çalışan alanın
 üzerine dosya kopyalama.
 
 [Mimari karar](decisions/0161-source-jobs-in-common-queue.md).
+
+## P03 — kaynak iş modeli10
+
+`brand-protection` tek kaynaklı iş; `protection_watch_id`,
+`protection_watch_revision`, `protection_identity_revision`, isteğe bağlı
+`protection_force` kullanır. Kapsam domain veya marka kimliği SHA256'dır.
+İzleme ve kimlik kabul/çalıştırmada yeniden doğrulanır. `max_requests`
+en fazla200; izleme bütçesinden küçük olamaz. Maigret/Sherlock içindeki
+bütün trafik ölçülmez; bu durumda toplam sayı `null` kalır. Core makbuzu
+commit sonrası iş kesintisinde tekrar kullanılır. Kaynak modeli1–9
+okunmaya devam eder; kuyruk şeması4 ve dış JSONv1 değişmez.
+`brand protection recover` belirsiz core çalışmayı açıkça kapatır;
+kuyruk yeniden çalıştırması mevcut açık retry yoludur. [P03](BRAND_PROTECTION.md).
+
+## P04 — kaynak iş modeli11
+
+`cti-analysis` yalnız `analysis_profile_id`, `analysis_profile_revision`
+ve isteğe bağlı `analysis_force` kullanır. İşin `value` alanı profil,
+kuruluş ve sürümlü tanımın SHA256 kapsamıdır; `indicator_type=sha256`
+olmalıdır. Başka kaynakla aynı plana eklenemez. Plan ve submit ağsızdır;
+worker saklı CTI/IOC ve yerel ATT&CK snapshot'ını dondurur, dış HTTP
+göndermez. Makbuz tur kimliğini, profil/sürümünü, rapor hash'ini ve tekrar
+durumunu taşır. Core commit sonrası kuyruk kesilirse özgün tur doğrulanıp
+yeniden kullanılır. [P04](CTI_ANALYSIS.md).
+
+## P05 — kaynak iş modeli12
+
+`darkweb-monitor` yalnız `darkweb_profile_id`, `darkweb_profile_revision`
+ve isteğe bağlı `darkweb_force` kullanır. İşin `value` alanı profil,
+kuruluş ve sürümlü tanımın SHA256 kapsamıdır; `indicator_type=sha256`
+olmalıdır. Başka kaynakla aynı plana eklenemez. Plan ve submit ağsızdır;
+worker saklı ransomware iddiaları ve daha önce maskelenmiş credential kanıtını
+tek SQLite kesitinde dondurur. XposedOrNot canlı domain veya parola isteği
+çalıştırmaz. Makbuz tur kimliğini, profil/sürümünü, rapor hash'ini ve tekrar
+durumunu taşır. Core commit sonrası kuyruk kesilirse özgün tur doğrulanıp
+yeniden kullanılır. [P05](DARKWEB_MONITORING.md#ortak-kuyrukla-düzenli-analiz).

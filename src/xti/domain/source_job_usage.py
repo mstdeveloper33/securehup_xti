@@ -10,7 +10,9 @@ UNIT = 'http_open_attempt'
 
 
 def request_ceiling(key, plan):
-    if key == 'social-tracking': return None
+    if key in ('cti-analysis', 'darkweb-monitor'): return 0
+    if key == 'code-monitor': return plan['max_requests']
+    if key in ('social-tracking', 'content-monitor', 'brand-protection'): return None
     if key == 'publisher':
         return 4 * len(plan['publisher_documents'])
     if key.startswith('publisher:'):
@@ -21,7 +23,7 @@ def request_ceiling(key, plan):
 def validate_usage(value, maximum):
     if (not isinstance(value, dict) or set(value) != {'version', 'unit', *COUNTERS}
             or type(value['version']) is not int or value['version'] != 1 or value['unit'] != UNIT
-            or any(type(value[key]) is not int or not 0 <= value[key] <= 7 for key in COUNTERS)
+            or any(type(value[key]) is not int or not 0 <= value[key] <= 200 for key in COUNTERS)
             or value['attempts'] > maximum
             or value['responses'] + value['transport_errors'] != value['attempts']
             or value['rate_limited'] > value['responses']
@@ -35,7 +37,7 @@ class RequestUsageMeter:
     """Count opener calls, not provider billing units or packets delivered remotely."""
 
     def __init__(self, maximum):
-        if type(maximum) is not int or not 0 <= maximum <= 7:
+        if type(maximum) is not int or not 0 <= maximum <= 200:
             raise ValidationError('Kaynak isteği ölçüm sınırı geçersiz.')
         self.maximum = maximum
         self.counts = dict.fromkeys(COUNTERS, 0)
@@ -68,6 +70,19 @@ def execution_usage(job):
             state, actual, unknown = 'reused', 0, 0
         elif maximum == 0 or step['status'] in {'pending', 'skipped'}:
             state, actual, unknown = 'not_attempted', 0, 0
+        elif maximum is None and step['key'] in ('content-monitor','brand-protection'):
+            if step['key']=='brand-protection':
+                from xti.domain.brand_protection_jobs import validate_usage as validate_content_usage
+            else:
+                from xti.domain.content_jobs import validate_usage as validate_content_usage
+            if usage is not None:
+                validate_content_usage(usage)
+                actual = usage['http_requests']
+                unknown = None if actual is None else 0
+                state = 'content_transports_unmeasured' if unknown is None else 'content_operations_recorded'
+                for key in COUNTERS: recorded[key] += usage['http_usage'][key]
+            else:
+                state, actual, unknown = 'unrecorded', None, None
         elif maximum is None:
             from xti.domain.social_jobs import validate_usage as validate_social_usage
             if usage is not None:

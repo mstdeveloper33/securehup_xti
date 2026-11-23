@@ -88,4 +88,4 @@ Ayarlama örnekleri ile kabul test örnekleri ayrılacak; aynı olayın kopyalar
 
 LLM'li sürüm ölçülmüş yarar sağlamıyorsa deney olarak kalacak veya kapatılacak. Model/talimat güncellemesinde kalite ve kaynak kullanımı yeniden ölçülecek. Kullanıcı bir açıklamayı hatalı işaretleyebilecek; bu geri bildirim otomatik eğitim veya dışarı veri aktarımı başlatmayacak.
 
-İlgili kayıtlar: [ana plan R12](MASTER_ROADMAP.md#r12--ai-destekli-analiz-ve-denetimli-iş-akışları), [AIM işleri](BACKLOG.md#r12-ai-ve-denetimli-otomasyon), [yetenek matrisi](CAPABILITY_MATRIX.md#11-ai-ve-araç-tabanlı-iş-akışları), [uygulanmış durum](../STATUS.md).
+İlgili kayıtlar: [güncel ana plan ve AI bekleme kararı](MASTER_ROADMAP.md), [tarihî ana plan R12](MASTER_ROADMAP_HISTORY_2026_11_20.md#r12--ai-destekli-analiz-ve-denetimli-iş-akışları), [tarihî AIM işleri](BACKLOG.md#r12-ai-ve-denetimli-otomasyon), [tarihî yetenek matrisi](CAPABILITY_MATRIX.md#11-ai-ve-araç-tabanlı-iş-akışları), [uygulanmış durum](../STATUS.md).

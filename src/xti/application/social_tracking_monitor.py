@@ -1,9 +1,9 @@
 """Bounded foreground scheduling; locks are held by each operation, never while sleeping."""
 from datetime import datetime, timezone
-import math
 import time
 from uuid import uuid4
 
+from xti.application.foreground_monitor import MonotonicBudget
 from xti.domain.assets import ValidationError
 from xti.domain.social_discovery import SocialDiscoveryError
 from xti.domain.social_tracking import due_at
@@ -15,17 +15,14 @@ def monitor(identifier, execute, *, max_cycles=3, max_duration_seconds=86400,
         if type(value) is not int or not low <= value <= high:
             raise ValidationError('İzleme tur sınırı 1–1000, süre sınırı 1–604800 saniye olmalı.')
     clock = clock or (lambda: datetime.now(timezone.utc))
-    started = previous = monotonic()
+    budget = MonotonicBudget(
+        monotonic,
+        invalid_message='İzleme süresini ölçen saat geçersiz veya geriye gitti.',
+        rollback_message='İzleme süresini ölçen saat geçersiz veya geriye gitti.',
+    )
+    budget.start()
     runs, stop = [], 'cycles'
-
-    def elapsed():
-        nonlocal previous
-        current = monotonic()
-        if (type(current) not in (int, float) or not math.isfinite(current)
-                or type(started) not in (int, float) or not math.isfinite(started) or current < previous):
-            raise ValidationError('İzleme süresini ölçen saat geçersiz veya geriye gitti.')
-        previous = current
-        return current - started
+    elapsed = budget.elapsed
 
     while len(runs) < max_cycles:
         remaining = max_duration_seconds - elapsed()

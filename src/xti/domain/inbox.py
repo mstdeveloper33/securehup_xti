@@ -38,6 +38,12 @@ class Notification:
     relationship_review_id: str | None = None
     social_change_id: str | None = None
     group_change_id: str | None = None
+    code_change_id: str | None = None
+    content_change_id: str | None = None
+    protection_change_id: str | None = None
+    cti_analysis_change_id: str | None = None
+    darkweb_change_id: str | None = None
+    monitoring_alert_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +98,12 @@ class InboxItem:
     relationship_change: dict | None = None
     social_change: dict | None = None
     group_change: dict | None = None
+    code_change: dict | None = None
+    content_change: dict | None = None
+    protection_change: dict | None = None
+    cti_analysis_change: dict | None = None
+    darkweb_change: dict | None = None
+    monitoring_change: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,6 +132,12 @@ class InboxDetails:
     relationship_change: dict | None = None
     social_change: dict | None = None
     group_change: dict | None = None
+    code_change: dict | None = None
+    content_change: dict | None = None
+    protection_change: dict | None = None
+    cti_analysis_change: dict | None = None
+    darkweb_change: dict | None = None
+    monitoring_change: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)

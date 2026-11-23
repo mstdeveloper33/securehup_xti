@@ -1,5 +1,102 @@
 # Çok firmalı platform motoru
 
+0.192.0 mevcut `retention.*` yazma sözleşmesini değiştirmeden P12
+`telemetry_records` ailesini ekler. Politika ve hold isteklerinde aile açıkça
+seçilir; plan, apply, restore ve recovery aynı workspace/revision/token/
+idempotency çitlerini kullanır. Aktif vaka kanıtı otomatik korunur. Güncellenen
+bir telemetri kaydı yeni bir arşiv kuşağı oluşturabilir; eski kuşağın restore'u
+daha yeni güncel gövdeyi ezmez. Platform bu işlem sırasında Cowrie/CAPE
+kurmaz veya başlatmaz. [Saklama işlemleri](DATA_RETENTION.md#engine-ve-firma-platformu).
+
+0.191.0 `telemetry.*` okuma ve yazma sözleşmesini ekler. Okumalar Engine ile
+aynı ağsız servisi kullanır. `telemetry.source.add/update`,
+`telemetry.ingest`, `telemetry.review` ve `telemetry.recover` yazmaları güncel
+`expected_workspace_id`, ilgili revision ve `idempotency_key` ister; başka
+firma kaydı `not_found`, eski workspace `scope_mismatch` olur. Platform
+sunucu dosya yolu kabul etmez: `telemetry.ingest` yalnız kesin normalize
+kayıt listesi taşır ve istek başına en çok 1.000 kayıt alır. Yerel dosya
+önizleme/import güvenilen işletici terminalinde kalır. İşlem yeni ağ isteği,
+Cowrie/CAPE süreci veya malware çalıştırması başlatmaz.
+[P12 işlemleri](TELEMETRY.md).
+
+0.189.0 `sources.catalog`, `sources.get` ve `sources.validate` salt-okunur
+kaynak yönetişim sözleşmesini ekler. Engine ve platform aynı 49 sürümlü
+manifesti filtreli/sayfalı okur; platform cevabı yalnız seçilmiş firma
+workspace kapsamındadır. Manifest okuması ağ/alt süreç başlatmaz ve veri
+klasörü oluşturmaz. `include_health` yalnız o workspace'teki kayıtlı son
+çalışma kanıtını ekler; canlı kaynak kontrolü değildir. Katalog firma verisi
+taşımaz fakat platform kapsamını atlayarak kişisel alana düşmez.
+[P09 işlemleri](SOURCE_GOVERNANCE.md#engine-ve-firma-platformu).
+
+0.188.0 `retention.*` saklama sözleşmesini ekler. Engine capabilities,
+catalog, policy/plan, hold, run ve audit'i ağsız okur. Platform policy
+add/update/disable, hold add/release, archive apply, restore ve recover
+yazmalarında güncel `expected_workspace_id`; ilgili yerde revision/token;
+her zaman idempotency ister. Başka firma kaydı `not_found`, eski workspace
+`scope_mismatch` olur. Yönetilen aileler P07 izleme gövdeleri ile P12
+telemetri gövdeleridir; mantıksal kayıt ve aktif vaka kanıtı otomatik
+silinmez. Backend güvenilir `actor`,
+RBAC/onay ve scheduler'ı sağlar. [P08 işlemleri](DATA_RETENTION.md#engine-ve-firma-platformu).
+
+0.187.0 `monitoring.*` birleşik saklı-kanıt izleme sözleşmesini ekler.
+Engine capabilities, policy/plan/due, run, alarm, review ve birleşik raporu
+ağsız okur. Platform policy add/update/disable, run, alert review ve recover
+yazmalarında güncel `expected_workspace_id`, revision ve idempotency ister.
+Başka firma kimliği `not_found`; yanlış workspace `scope_mismatch` olur.
+İlk tur sessiz baseline'dır. Eşik alarmı otomatik tehdit hükmü değildir.
+Gerçek scheduler, kullanıcı/RBAC ve haricî kanal teslimi tüketici platformda;
+eşleştirme/snapshot/eşik/inceleme motor içindedir.
+`monitoring.run.matches`, `monitoring.run.coverage` ve
+`monitoring.run.changes` büyük kanıtı sınırlı sayfalarda döndürür.
+[P07 işlemleri](UNIFIED_MONITORING.md#engine-ve-firma-platformu).
+
+0.186.0 `action.*` salt-okunur ve firma yazma işlemlerini ekler. Engine
+`action.capabilities`, runbook plan/show ve takedown list/show için ağsızdır.
+Platform runbook apply ve takedown create/transition işlemlerinde güncel
+`expected_workspace_id` ister. Takedown dışarıya gönderilmez. Kanıt paketi
+ve IOC dosya import/export yolları keyfî sunucu dosyası erişimi oluşturmaması
+için JSON sözleşmesine açık değildir; güvenilen operatör CLI'sı veya
+tüketici platformun kendi güvenli dosya katmanı kullanır. Haricî
+bağlayıcılar bu sürümde yoktur. [P06 kullanımı](ACTIONABILITY.md).
+
+0.185.0 `darkweb.*` salt-okunur/yazma işlemlerini ve XposedOrNot
+verified-domain kaynağını içerir. Profil ve bulgu
+yazmaları güncel workspace kimliği, sürüm ve tekrar anahtarıyla çitlenir;
+başka firma kimlikleri `not_found` verir. `darkweb.credential.refresh`
+manifestte ağ kullanan açık operasyondur; yalnız kuruluşa bağlı kesin domain
+ve özel config anahtarlarıyla çalışır, yanıtta ham alias veya secret yoktur.
+`organization.content.darkweb_monitoring` profil/kaynak durumu ile sınırlı
+bulgu sayfasını döndürür. `darkweb-monitor` kaynak işi saklı analizi sıfır
+HTTP ile ortak worker'da yürütür. Açık parola kontrolü plaintext'in platform
+JSON'una girmemesi için platform operasyonu değildir; yalnız güvenilen terminal
+sınırında gizli girişle çalışır. Kaynak işi12 eski1–11'i okur; çekirdek94
+yedekli geçiş, kuyruk4 ve dış JSONv1 korunur. HIBP verified-domain yeni
+platform çalışmalarında seçilemez; şema93 geçmişi salt okunurdur.
+[İşlemler ve örnekler](DARKWEB_MONITORING.md#firma-platformu-ve-engine).
+
+0.183.0 `cti.analysis.*` ağsız okumalarını ve firma çitli yazmalarını ekler.
+Profil, kaynak güveni, eşikler ve bütçeler sürümlüdür; run/review/recover
+tekrar anahtarlı ve workspace kapsamlıdır. `organization.content.cti_analysis`
+son profil/tur/kapsam/trend ile sayfalı adayları döndürür. `cti-analysis`
+kaynak işi profil kapsam hash'ini kabul/worker/sonuçta doğrular ve sıfır
+HTTP denemesiyle aynı servisi çalıştırır. Kaynak işi11 eski1–10'u okur;
+çekirdek92 yedekli geçiş, kuyruk4 ve dış JSONv1 korunur.
+[İşlemler ve örnekler](CTI_ANALYSIS.md#firma-platformu-ve-entegrasyon).
+
+0.181.0 `content.*` okuma/yazmaları ve `content-monitor` kaynak işi eklendi.
+Firma sınırı, tekrar anahtarı, kaynak/izleme/kanıt sürümü aynı motor
+servislerinde doğrulanır. `organization.content.monitored_content` kayıtlı
+içerik ile kaynak durumunu döndürür; eksik web aramasını gizlemez.
+Kaynak işi9 eski1–8'i okur; çekirdek90 yedekli geçiş, kuyruk4 ve dış
+JSONv1 korunur. [Tam işlemler ve örnek JSON](CONTENT_MONITORING.md#firma-json-sözleşmesi).
+
+0.180.0 `code.*` okuma/yazmalarını ve `code-monitor` kaynak işini ekler.
+Firma yazmaları workspace çiti, tekrar anahtarı ve değişiklik sürümleriyle
+çalışır; `code.review` kanıt kimliği, inceleme ve gözlem sürümü ister.
+`code.run` doğrudan ağ yapar; uzun çalışma için ortak kaynak işi/worker
+kullanılabilir. Kaynak işi8 eski1–7'yi okur; çekirdek89 açık yedekli geçiş,
+kuyruk4 ve dış JSONv1 korunur. [Tam kullanım ve örnek JSON](CODE_EXPOSURE.md).
+
 0.177.0 `sources.plan` ve `sources.jobs.submit`, `group-refresh` için
 `group_id` kabul eder. Aynı firma/kök doğrulanır; mevcut `platform worker`
 yerel kanıtı kontrol eder, dış istek göndermez. İş modeli7; eski1–6
@@ -108,7 +205,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama 0.168.0 · protokol `xti-platform` v1 · çekirdek şema 78 · kuyruk 3.**
+**Uygulama 0.192.0 · protokol `xti-platform` v1 · çekirdek şema 99 · kuyruk 4.**
 
 0.164.0 firma kapsamlı `company.review` ve `investigation` okuma/yazma
 işlemleri ekler. Kimlik/rapor önerisi ve kararları mevcut workspace kimliği,
@@ -587,3 +684,17 @@ süreçler, worker kesintisi, tekrar isteği, süre/bellek/disk ölçümü sına
 [Karar](decisions/0152-company-scoped-platform-engine.md),
 [ölçümlü kabul](PLATFORM_ACCEPTANCE.md), [güncel sonuçlar](STATUS.md),
 [teslim yol haritası](roadmap/ENGINE_INTEGRATION_ROADMAP.md).
+
+## P03 marka koruması — 0.182.0
+
+`brand.protection.capabilities/identities/identity.show/watches/watch.show/plan/runs/run.show/candidates/candidate.show/evidence.show/artifact.get/reviews/changes/report` okumaları ağsızdır.
+`identity.add/identity.update/watch.add/watch.update/run/review/recover` aynı
+önekle firma yazmalarıdır; `expected_workspace_id` ve `idempotency_key`
+gerektirir. Güncellemelerde `expected_revision`; incelemede ayrıca
+`expected_observation_revision` ve `evidence_id` gerekir. Kimliği farklı
+firmadan taşıyan yazma mevcut scope sınırından geçmez.
+`artifact.get` PNG'yi base64/SHA/byte bilgisiyle verir; görsel otomatik
+metin maskeli değildir. Listeler `after/limit/next_after`, maksimum100,
+2MiB sayfa bütçesi kullanır. `organization.content.brand_protection`
+açık kuruluş bağı olan markaların adaylarını ve kaynak kontrol durumunu
+ayrı verir. [Kullanım](BRAND_PROTECTION.md), [kanıt](roadmap/P03_DELIVERY.md).

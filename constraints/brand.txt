@@ -82,3 +82,18 @@ yarl==1.25.1
 
 # Publisher PDF text extraction (BSD-3-Clause).
 pypdf==7.1.1
+
+# Read-only selected channel adapters and the reviewed pyaes build backend.
+Telethon==1.46.0
+irctokens==2.0.2
+pyaes==1.6.1
+rsa==4.9.1
+pyasn1==0.6.5
+setuptools==84.2.1
+
+ImageHash==4.3.2
+playwright==1.65.2
+google-play-scraper==1.2.7
+scipy==1.16.3
+PyWavelets==1.9.0
+greenlet==3.5.0

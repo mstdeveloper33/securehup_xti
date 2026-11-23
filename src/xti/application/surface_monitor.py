@@ -2,9 +2,9 @@
 
 from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
-import math
 import time
 
+from xti.application.foreground_monitor import MonotonicBudget, utc_now
 from xti.application.mail import SurfaceMailService
 from xti.application.services import SurfaceServiceScanService
 from xti.application.surface import SurfaceService
@@ -141,22 +141,7 @@ class SurfaceMonitorService:
         return normalized
 
     def _now(self) -> str:
-        value = self.clock()
-        try:
-            if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
-                raise ValueError("timezone required")
-            return value.astimezone(timezone.utc).isoformat()
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError("Dış yüzey izleme zamanı geçersiz.") from error
-
-    def _tick(self) -> float:
-        value = self.monotonic()
-        try:
-            if type(value) not in (int, float) or not math.isfinite(value):
-                raise ValueError("invalid monotonic clock")
-            return float(value)
-        except (TypeError, ValueError, OverflowError) as error:
-            raise ValidationError("Dış yüzey izleme süresini ölçen saat geçersiz.") from error
+        return utc_now(self.clock, error_message="Dış yüzey izleme zamanı geçersiz.")
 
     @staticmethod
     def _validated_step(
@@ -196,20 +181,18 @@ class SurfaceMonitorService:
         self.validate_limits(max_cycles, interval_seconds, max_duration_seconds)
         normalized = self.prepare(asset_value)
         started_at = self._now()
-        started = self._tick()
-        previous = started
+        budget = MonotonicBudget(
+            self.monotonic,
+            invalid_message="Dış yüzey izleme süresini ölçen saat geçersiz.",
+            rollback_message=(
+                "Dış yüzey izleme süresini ölçen saat geriye gitti; "
+                "izleme durduruldu."
+            ),
+        )
+        budget.start()
         steps: list[SurfaceMonitorStep] = []
         completed_cycles = 0
-
-        def elapsed() -> float:
-            nonlocal previous
-            current = self._tick()
-            if current < previous or not math.isfinite(current - started):
-                raise ValidationError(
-                    "Dış yüzey izleme süresini ölçen saat geriye gitti; izleme durduruldu."
-                )
-            previous = current
-            return current - started
+        elapsed = budget.elapsed
 
         stop_reason = "cycles"
         for cycle in range(1, max_cycles + 1):

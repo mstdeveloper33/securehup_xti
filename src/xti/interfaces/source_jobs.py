@@ -13,10 +13,15 @@ from xti.interfaces.text import safe_text, xti_command
 
 
 def make_source_job_service(context):
+    from xti.interfaces.cti_analysis import make_cti_analysis_service
+    from xti.interfaces.content_monitoring import make_content_service
+    from xti.interfaces.brand_protection import make_brand_protection_service
+    from xti.interfaces.code_exposure import make_code_service
     from xti.interfaces.social_tracking import make_social_tracking_service
     from xti.interfaces.evidence import make_evidence_service
+    from xti.interfaces.darkweb_monitoring import make_darkweb_service
     return SourceJobService(SQLiteEngineJobRepository(jobs_database(context)),
-        social_tracking=make_social_tracking_service(context.database), groups=make_evidence_service(context.database))
+        social_tracking=make_social_tracking_service(context.database), groups=make_evidence_service(context.database), code_exposure=make_code_service(context.database), content_monitoring=make_content_service(context.database), brand_protection=make_brand_protection_service(context.database), cti_analysis=make_cti_analysis_service(context.database), darkweb_monitoring=make_darkweb_service(context.database))
 
 
 def execute_platform_source_job(context, request):
@@ -59,13 +64,31 @@ def register_source_jobs_parser(commands):
         action.add_argument('--capture-limit', type=int)
         action.add_argument('--document', dest='publisher_documents', action='append', nargs=2, metavar=('PROVIDER', 'URL'),
                             help='publisher için seçilmiş belge; en fazla beş kez ver.')
+        action.add_argument('--protection-watch',dest='protection_watch_id')
+        action.add_argument('--protection-revision',dest='protection_watch_revision',type=int)
+        action.add_argument('--protection-identity-revision',type=int)
+        action.add_argument('--protection-force',action='store_true',default=None)
+        action.add_argument('--analysis-profile', dest='analysis_profile_id',
+                            help='cti-analysis için kayıtlı profil kimliği.')
+        action.add_argument('--analysis-revision', dest='analysis_profile_revision', type=int)
+        action.add_argument('--analysis-force', action='store_true', default=None)
+        action.add_argument('--darkweb-profile', dest='darkweb_profile_id',
+                            help='darkweb-monitor için kayıtlı profil kimliği.')
+        action.add_argument('--darkweb-revision', dest='darkweb_profile_revision', type=int)
+        action.add_argument('--darkweb-force', action='store_true', default=None)
+        action.add_argument('--content-watch', dest='content_watch_id', help='content-monitor için kayıtlı izleme kimliği.')
+        action.add_argument('--content-revision', dest='content_watch_revision', type=int)
+        action.add_argument('--content-force', dest='content_force', action='store_true', default=None)
+        action.add_argument('--code-watch', dest='code_watch_id', help='code-monitor için kayıtlı izleme kimliği.')
+        action.add_argument('--code-revision', dest='code_watch_revision', type=int)
+        action.add_argument('--code-force', dest='code_force', action='store_true', default=None)
         action.add_argument('--group', dest='group_id', help='group-refresh için bu çalışma alanındaki kayıtlı grup kimliği.')
         action.add_argument('--notification-offset', type=int, help='relationship-notify karar penceresinin başlangıcı.')
         action.add_argument('--social-watch', dest='social_watch_id', help='social-tracking için bu çalışma alanındaki izleme kimliği.')
         action.add_argument('--social-revision', dest='social_watch_revision', type=int, help='İzlemenin planlanan sürümü.')
         action.add_argument('--social-force', dest='social_force', action='store_true', default=None,
                             help='Sosyal takip tur aralığını bu iş için bekleme; kapsam ve duraklatma korunur.')
-        for flag, default in (('max-seconds', 180), ('max-requests', 7), ('max-hops', 2),
+        for flag, default in (('max-seconds', 180), ('max-requests', None), ('max-hops', 2),
                               ('node-limit', 100), ('edge-limit', 200), ('stale-after-hours', 24)):
             action.add_argument('--' + flag, type=int, default=default)
         if name == 'submit':
@@ -133,6 +156,18 @@ def source_job_lines(data, *, data_dir=None):
             if step['reused_from']:
                 lines.append('    Önceki tamamlanmış adım kullanıldı; yeniden sorgulanmadı.')
             receipt = step['receipt']
+            if receipt and step['key'] == 'cti-analysis':
+                lines.append('    CTI analiz turu: ' + xti_command(
+                    'cti', 'analysis-run-show', receipt['run_id'], data_dir=data_dir))
+                lines.append('    Dış HTTP isteği yapılmadı; yalnız saklı kanıt analiz edildi.')
+                continue
+            if receipt and step['key'] == 'darkweb-monitor':
+                lines.append('    Dark web turu: ' + xti_command(
+                    'darkweb', 'run-show', receipt['run_id'], data_dir=data_dir))
+                lines.append(
+                    '    Dış HTTP isteği yapılmadı; yalnız saklı kaynak iddiaları ve maskeli credential kanıtı analiz edildi.'
+                )
+                continue
             if receipt and step['key'] == 'group-refresh':
                 lines.append('    Grup: ' + xti_command('groups', 'current', receipt['group_id'], data_dir=data_dir))
                 lines.append(f"    Kontrol sürümü: {receipt['revision']} | durum: {receipt['group_status']}")
@@ -203,7 +238,7 @@ def execute_source_jobs(database, args):
     if action in {"plan", "submit"} and args.publisher_documents is not None:
         args.publisher_documents = [{"provider": provider, "url": url} for provider, url in args.publisher_documents]
     if action == 'plan':
-        data = service.plan(**{key: getattr(args, key) for key in PLAN_FIELDS})
+        data = service.plan(**{key: getattr(args, key) for key in PLAN_FIELDS if getattr(args, key, None) is not None})
     else:
         with SQLiteAssetRepository(database)._connection(readonly=True):
             pass
@@ -213,7 +248,7 @@ def execute_source_jobs(database, args):
         elif action == 'migrate':
             data = migrate_jobs(context)
         elif action == 'submit':
-            parameters = {key: getattr(args, key) for key in PLAN_FIELDS}
+            parameters = {key: getattr(args, key) for key in PLAN_FIELDS if getattr(args, key, None) is not None}
             plan = plan_data(source_plan(**parameters))
             data = service.submit(**parameters, idempotency_key=args.idempotency_key, plan_sha256=plan['plan_sha256']).to_dict()
         elif action == 'list':

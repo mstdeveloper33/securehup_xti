@@ -24,6 +24,20 @@ class ArchitectureTests(unittest.TestCase):
                             parts = set(module.split("."))
                             self.assertFalse(parts & {"sqlite3", "adapters", "interfaces", "argparse"})
 
+    def test_terminal_source_catalog_has_one_canonical_application_service(self):
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "src" / "xti" / "interfaces" / "cli.py"
+        )
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        imports = {
+            node.module
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+        }
+        self.assertIn("xti.application.source_governance", imports)
+        self.assertNotIn("xti.application.sources", imports)
+
 
 if __name__ == "__main__":
     unittest.main()

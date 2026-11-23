@@ -161,7 +161,7 @@ class GroupOperationsTests(unittest.TestCase):
         self.f.dns('third.example')
         done = self.worker.work_one(job.id)
         self.assertEqual(done.status, 'complete')
-        self.assertEqual(done.payload.version, 7)
+        self.assertEqual(done.payload.version, 12)
         self.assertEqual(done.steps[0]['receipt']['usage']['attempts'], 0)
         self.assertEqual(self.show()['decision'], accepted['decision'])
         self.assertEqual(self.submit().to_dict(), done.to_dict())

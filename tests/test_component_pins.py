@@ -37,7 +37,7 @@ class ReviewedComponentPinTests(unittest.TestCase):
     def test_lookup_is_exact_and_pins_are_immutable(self):
         self.assertEqual(
             tuple(pin.identifier for pin in REVIEWED_COMPONENT_PINS),
-            ("maigret", "sherlock", "theharvester"),
+            ("maigret", "sherlock", "theharvester", "betterleaks"),
         )
         for pin in REVIEWED_COMPONENT_PINS:
             self.assertIs(component_pin(pin.identifier), pin)

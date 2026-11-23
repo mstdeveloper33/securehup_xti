@@ -4,6 +4,8 @@ from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_COLUMNS, CASE_E
 
 
 def case_evidence_layout_v85(connection):
+    from tests.case_evidence_v88_fixture import case_evidence_layout_v88
+    case_evidence_layout_v88(connection)
     if connection.execute("SELECT 1 FROM sqlite_schema WHERE name='research_group_journal'").fetchone():
         if connection.execute('SELECT 1 FROM research_group_journal LIMIT 1').fetchone():
             raise ValueError('Fixture contains schema86 group evidence')

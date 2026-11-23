@@ -8,9 +8,16 @@ from xti.domain.cti_indicators import (
     CtiIndicatorMutation,
     CtiIndicatorSummary,
 )
+from xti.domain.ioc_bulk import BulkIocImportResult, BulkIocPreview
 
 
 class CtiIndicatorRepository(Protocol):
+    def add_assertions_batch(
+        self, preview: BulkIocPreview, *, idempotency_key: str,
+        import_source_name: str, import_source_reference: str,
+        recorded_at: str,
+    ) -> BulkIocImportResult: ...
+
     def add_assertion(
         self, *, indicator_type: str, value: str, source_name: str,
         source_reference: str, confidence: int, valid_from: str | None,

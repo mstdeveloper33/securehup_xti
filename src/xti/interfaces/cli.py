@@ -198,6 +198,13 @@ from xti.interfaces.research import register_research_parser, execute_research
 from xti.interfaces.investigation import register_investigation_parser, execute_investigation
 from xti.interfaces.reports import register_report_parser, execute_report
 from xti.domain.social_discovery import SocialDiscoveryError
+from xti.domain.code_exposure import CodeExposureError
+from xti.domain.content_monitoring import ContentError
+from xti.domain.brand_protection import BrandProtectionError
+from xti.domain.darkweb_monitoring import DarkwebError
+from xti.domain.unified_monitoring import MonitoringError
+from xti.domain.data_retention import RetentionError
+from xti.domain.telemetry import TelemetryError
 from xti.domain.reports import ReportError
 from xti.interfaces.company_review import register_company_review_parser, execute_company_review
 from xti.interfaces.warninglists import register_warninglist_parser, execute_warninglists
@@ -404,9 +411,14 @@ from xti.application.tracked_nvd_refresh import TrackedNvdRefreshService
 from xti.application.surface_discovery_status import SurfaceDiscoveryStatusService
 from xti.application.surface_source_evaluation import SurfaceSourceEvaluationService
 from xti.application.evaluation import EvaluationService
-from xti.application.sources import SourceCatalogService
+from xti.application.source_governance import SourceGovernanceError, SourceGovernanceService
 from xti.application.source_readiness import SourceReadinessService
 from xti.adapters.source_readiness import SQLiteSourceReadinessRepository
+from xti.interfaces.source_governance import (
+    catalog_lines as source_governance_catalog_lines,
+    show_lines as source_governance_show_lines,
+    validate_lines as source_governance_validate_lines,
+)
 from xti.interfaces.source_readiness import report_lines as source_readiness_lines
 from xti.application.findings import (
     DomainImportService, FindingService, FINDING_STATUSES, REVIEW_DECISIONS,
@@ -804,6 +816,10 @@ def build_parser() -> Parser:
     )
     add_collection_arguments(collect)
     collect.add_argument("--summary", action="store_true", help="Kaynak durumunu ve hedef özetini kısa göster; toplama kapsamı ve JSON değişmez.")
+    from xti.interfaces.code_exposure import register_code_parser
+    register_code_parser(commands)
+    from xti.interfaces.content_monitoring import register_content_parser
+    register_content_parser(commands)
     register_profiles_parser(commands)
     register_schedule_commands(commands)
     changes = commands.add_parser("changes", help="Son gün veya haftadaki kayıtlı değişiklikleri ve kaynak boşluklarını göster.")
@@ -836,11 +852,23 @@ def build_parser() -> Parser:
     register_platform_parser(commands)
     register_components_parser(commands)
     register_event_candidates_parser(commands)
+    from xti.interfaces.darkweb_monitoring import register_darkweb_parser
+    register_darkweb_parser(commands)
+    from xti.interfaces.actionability import register_actionability_parser
+    register_actionability_parser(commands)
+    from xti.interfaces.unified_monitoring import register_unified_monitoring_parser
+    register_unified_monitoring_parser(commands)
+    from xti.interfaces.data_retention import register_retention_parser
+    register_retention_parser(commands)
+    from xti.interfaces.telemetry import register_telemetry_parser
+    register_telemetry_parser(commands)
     brand = commands.add_parser(
         "brand",
         help="Sosyal kullanıcı adı ve geniş marka OSINT kaynaklarını değerlendir.",
     )
     brand_actions = brand.add_subparsers(dest="brand_action", required=True)
+    from xti.interfaces.brand_protection import register_brand_protection_parser
+    register_brand_protection_parser(brand_actions)
     from xti.interfaces.social_discovery import register_social_discovery_parser
     register_social_discovery_parser(brand_actions)
     from xti.interfaces.social_enrichment import register_social_enrichment_parser
@@ -1903,7 +1931,13 @@ def build_parser() -> Parser:
     status.add_argument("--stale-after-hours", type=int, default=24,
                         help="Tam aramayı eski sayma eşiği (1–8760 saat); arama zamanlaması değildir.")
     status.add_argument("--limit", type=int, default=20, help="Gösterilecek adres sayısı (1–100).")
-    monitor = commands.add_parser("monitor", help="Sınırlı izleme denemesi başlat ve kayıtlı sonuçlarını gör.")
+    monitor = commands.add_parser(
+        "monitor",
+        help=(
+            "crt.sh/urlscan pasif domain aramalarını sınırlı oturumda tekrarla; "
+            "P07 kayıtlı-kanıt alarm politikası değildir."
+        ),
+    )
     monitor_actions = monitor.add_subparsers(dest="monitor_action", required=True)
     monitor_start = monitor_actions.add_parser("start", help="İnternet kaynaklarında süre ve tur sınırıyla izle.")
     monitor_start.add_argument("domain", nargs="?", help="İzlenecek adres; verilmezse kayıtlı en fazla beş adres.")
@@ -2016,7 +2050,7 @@ def build_parser() -> Parser:
         "--type", required=True,
         choices=(
             "finding", "social_profile", "ransomware_threatcluster",
-            "ransomware_ransomlook", "supplier", "public_notice", "public_notice_watch", "relationship_review", "social_discovery", "research_group",
+            "ransomware_ransomlook", "supplier", "public_notice", "public_notice_watch", "relationship_review", "social_discovery", "research_group", "code_exposure", "content_match", "brand_protection", "cti_analysis", "darkweb_monitoring", "unified_monitoring",
         ),
     )
     case_evidence_add.add_argument("--evidence-id", required=True)
@@ -2216,6 +2250,8 @@ def build_parser() -> Parser:
         "ioc", help="Domain, IP, URL ve hash göstergelerini kaynaklarıyla yönet.",
     )
     ioc_actions = ioc.add_subparsers(dest="ioc_action", required=True)
+    from xti.interfaces.ioc_bulk import register_ioc_bulk_parser
+    register_ioc_bulk_parser(ioc_actions)
     from xti.interfaces.ioc_lifecycle import register_ioc_lifecycle_parser
     register_ioc_lifecycle_parser(ioc_actions)
     from xti.interfaces.evidence import register_comparison_parser
@@ -2306,6 +2342,8 @@ def build_parser() -> Parser:
     cti_actions = cti.add_subparsers(dest="cti_action", required=True)
     register_attack_catalog_parsers(cti_actions)
     register_cti_context_parser(cti_actions)
+    from xti.interfaces.cti_analysis import register_cti_analysis_parser
+    register_cti_analysis_parser(cti_actions)
     cti_search = cti_actions.add_parser(
         "search", help="Yerel CTI varlık ve IOC kayıtlarında ağsız arama yap.",
     )
@@ -2983,7 +3021,11 @@ def build_parser() -> Parser:
     domains.add_argument("source", type=Path, help="Örnek: examples/domains.txt")
     for command, description in (
         ("scan", "İnternetteki sertifika ve web inceleme kayıtlarında benzer adları ara."),
-        ("watch", "Terminal açıkken internet aramasını düzenli tekrarla."),
+        (
+            "watch",
+            "Terminal açıkken crt.sh/urlscan pasif domain aramasını tekrarla; "
+            "ortak alarm politikası oluşturmaz.",
+        ),
     ):
         scan = commands.add_parser(command, help=description)
         scan.add_argument("domain", nargs="?", help="İzlenecek adres; verilmezse kayıtlı adresler aranır.")
@@ -3018,9 +3060,19 @@ def build_parser() -> Parser:
     worker.add_argument("--once", action="store_true", required=True, help="Bir işi çalıştırıp çık.")
     sources = commands.add_parser(
         "sources",
-        help="Kullanılan kaynakları, sınırlarını ve son kaydedilen sonucu göster; ağ isteği yapmaz.",
+        help=(
+            "Sürüm, erişim, maliyet ve veri hakkıyla tek kaynak kataloğunu göster; "
+            "çıplak kullanım 'sources catalog' kısayoludur."
+        ),
     )
     source_actions = sources.add_subparsers(dest="source_action")
+    source_actions.add_parser(
+        "history",
+        help=(
+            "Son kaydedilen pasif domain sorgularını ve sağlayıcı bekleme "
+            "sürelerini ağ isteği yapmadan göster."
+        ),
+    )
     contribution = source_actions.add_parser("contribution", help="Kayıtlı kaynakların tekil/ortak domain katkısını ve çalışma sonuçlarını karşılaştır.")
     contribution.add_argument("domain", nargs="?")
     contribution.add_argument("--organization", help="Açık kuruluş bağlantılarındaki domainleri ayrı karşılaştır.")
@@ -3037,6 +3089,37 @@ def build_parser() -> Parser:
     source_status.add_argument(
         "--stale-after-hours", type=int, default=24,
         help="Son başarılı yerel kayıt için güncellik eşiği (1–8760 saat; varsayılan 24).",
+    )
+    source_catalog = source_actions.add_parser(
+        "catalog",
+        help="Sürüm, erişim, maliyet, veri hakkı ve kanıt sözleşmesiyle kaynak manifestlerini listele.",
+    )
+    source_catalog.add_argument("--kind", help="Yalnız bu kaynak türünü göster.")
+    source_catalog.add_argument(
+        "--state", dest="integration_state",
+        choices=("active", "conditional", "disabled"),
+        help="Aktif, gereksinim bekleyen veya kapalı kaynakları göster.",
+    )
+    source_catalog.add_argument("--language", help="BCP47 dil etiketi, mul veya und.")
+    source_catalog.add_argument("--region", help="ISO ülke kodu, global veya unspecified.")
+    source_catalog.add_argument(
+        "--include-health", action="store_true",
+        help="Varsa kayıtlı çalışma geçmişini ayrı sağlık kanıtı olarak ekle; ağ isteği yapmaz.",
+    )
+    source_catalog.add_argument("--domain", help="Sağlık kanıtını bu domaine daralt.")
+    source_catalog.add_argument("--stale-after-hours", type=int, default=24)
+    source_catalog.add_argument("--offset", type=int, default=0)
+    source_catalog.add_argument("--limit", type=int, default=50)
+    source_show = source_actions.add_parser(
+        "show", help="Tek kaynak manifestini, ön koşullarını ve bilinçli sınırlarını göster.",
+    )
+    source_show.add_argument("identifier", help="Katalogdaki sabit kaynak kimliği.")
+    source_show.add_argument("--include-health", action="store_true")
+    source_show.add_argument("--domain", help="Sağlık kanıtını bu domaine daralt.")
+    source_show.add_argument("--stale-after-hours", type=int, default=24)
+    source_actions.add_parser(
+        "validate",
+        help="Tüm manifestleri şema, tekillik, sıralama ve kanıt alanları açısından çevrimdışı doğrula.",
     )
     findings = commands.add_parser("findings", help="Aday bulguları incele ve kararını kaydet.")
     finding_actions = findings.add_subparsers(dest="finding_action", required=True)
@@ -3056,7 +3139,13 @@ def build_parser() -> Parser:
     triage = commands.add_parser("triage", help="Bulguları açıklamalı inceleme sırasıyla göster; ağ isteği yapmaz.")
     triage.add_argument("--all", action="store_true", help="Kullanıcının kapattığı bulguları da göster.")
     triage.add_argument("--limit", type=int, default=100, help="En fazla gösterilecek kayıt (1–500).")
-    report = commands.add_parser("report", help="Bir bulgunun kanıtları ve geçmişiyle raporunu oluştur.")
+    report = commands.add_parser(
+        "report",
+        help=(
+            "Tek domain/phishing aday bulgusunun kanıt ve geçmiş raporunu oluştur; "
+            "yayıncı tehdit raporları için 'reports' kullanılır."
+        ),
+    )
     report.add_argument("finding_id", help="Listede gösterilen bulgu kimliği.")
     report.add_argument("--output", type=Path, help="Yeni JSON raporunun konumu; mevcut dosya ezilmez.")
     storage = commands.add_parser("storage", help="Kayıt boyutunu gör ve bağlantısız eski gözlemleri yönet.")
@@ -3842,7 +3931,54 @@ def run(args: argparse.Namespace) -> int | None:
             finding_limit=args.finding_limit,
         )
         emit(asdict(report), unified_analysis_lines(report), as_json=args.json)
+    elif args.command == "darkweb":
+        from xti.interfaces.darkweb_monitoring import execute_darkweb
+        data, lines = execute_darkweb(settings.database, args)
+        incomplete = data.get("status") in ("partial", "failed", "interrupted", "running")
+        emit(data, lines, as_json=args.json, ok=not incomplete)
+        return 3 if incomplete else 0
+    elif args.command == "action":
+        from xti.interfaces.actionability import execute_actionability
+        data, lines = execute_actionability(settings.database, args)
+        emit(data, lines, as_json=args.json)
+        return 0
+    elif args.command == "monitoring":
+        from xti.interfaces.unified_monitoring import execute_unified_monitoring
+        data, lines = execute_unified_monitoring(settings.database, args)
+        incomplete = data.get("status") in ("failed", "interrupted", "running")
+        emit(data, lines, as_json=args.json, ok=not incomplete)
+        return 3 if incomplete else 0
+    elif args.command == "retention":
+        from xti.interfaces.data_retention import execute_retention
+        data, lines = execute_retention(settings.database, args)
+        incomplete = data.get("status") in ("failed", "interrupted", "running")
+        emit(data, lines, as_json=args.json, ok=not incomplete)
+        return 3 if incomplete else 0
+    elif args.command == "telemetry":
+        from xti.interfaces.telemetry import execute_telemetry
+        data, lines = execute_telemetry(settings.database, args)
+        incomplete = data.get("status") in ("interrupted", "running")
+        emit(data, lines, as_json=args.json, ok=not incomplete)
+        return 3 if incomplete else 0
+    elif args.command == "content":
+        from xti.interfaces.content_monitoring import execute_content
+        data, lines = execute_content(settings.database, args)
+        incomplete = data.get('status') in ('partial', 'failed', 'interrupted', 'running')
+        emit(data, lines, as_json=args.json, ok=not incomplete)
+        return 3 if incomplete else 0
+    elif args.command == "code":
+        from xti.interfaces.code_exposure import execute_code
+        data, lines = execute_code(settings.database, args)
+        incomplete = data.get('status') in ('partial', 'failed', 'interrupted', 'running')
+        emit(data, lines, as_json=args.json, ok=not incomplete)
+        return 3 if incomplete else 0
     elif args.command == "brand":
+        if args.brand_action == "protection":
+            from xti.interfaces.brand_protection import execute_brand_protection
+            data, lines = execute_brand_protection(settings.database, args)
+            incomplete = data.get("status") in ("partial", "failed", "interrupted", "running")
+            emit(data, lines, as_json=args.json, ok=not incomplete)
+            return 3 if incomplete else 0
         if args.brand_action in {'review-list', 'review-show', 'review-decide', 'tracking-add', 'tracking-set', 'tracking-list', 'tracking-show', 'tracking-run', 'tracking-run-show', 'change-show', 'tracking-monitor'}:
             from xti.interfaces.social_tracking import execute_social_tracking
             data, lines = execute_social_tracking(settings.database, args)
@@ -6208,6 +6344,11 @@ def run(args: argparse.Namespace) -> int | None:
             result = product_service.revoke(args.product_id, reason=args.reason)
             emit(asdict(result), product_mutation_lines(result), as_json=args.json)
     elif args.command == "ioc":
+        if args.ioc_action in {"bulk-preview", "bulk-import", "bulk-export"}:
+            from xti.interfaces.ioc_bulk import execute_ioc_bulk
+            data, lines = execute_ioc_bulk(settings.database, args)
+            emit(data, lines, as_json=args.json)
+            return 0
         if args.ioc_action == "lifecycle":
             from xti.interfaces.ioc_lifecycle import execute_ioc_lifecycle
             data, lines = execute_ioc_lifecycle(settings.database, args)
@@ -6290,7 +6431,13 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "cti":
         knowledge_repository = SQLiteCtiKnowledgeRepository(settings.database)
         service = CtiKnowledgeService(knowledge_repository)
-        if args.cti_action == "context":
+        if hasattr(args, "cti_analysis_operation") or getattr(args, "cti_analysis_monitor", False):
+            from xti.interfaces.cti_analysis import execute_cti_analysis
+            data, lines = execute_cti_analysis(settings.database, args)
+            incomplete = data.get("status") in ("failed", "interrupted", "running")
+            emit(data, lines, as_json=args.json, ok=not incomplete)
+            return 3 if incomplete else 0
+        elif args.cti_action == "context":
             result = CtiContextService(SQLiteCtiContextRepository(settings.database)).show(
                 indicator_type=args.indicator_type, value=args.value, entity_id=args.entity,
                 include_inactive=args.include_inactive, offset=args.offset, limit=args.limit,
@@ -6790,6 +6937,91 @@ def run(args: argparse.Namespace) -> int | None:
         attempt = jobs.run(progress=terminal_progress(args.json))
         provider = jobs.show(attempt.job_id).job.provider if attempt is not None else "crt.sh"
         return emit_attempt(attempt, as_json=args.json, provider=provider)
+    elif args.command == "sources" and args.source_action == "history":
+        statuses = make_jobs(settings, repository).source_status()
+        recorded_waits = SQLiteCooldownRepository(settings.database).list()
+        now = datetime.now(timezone.utc)
+        cooldowns = []
+        for item in recorded_waits:
+            deadline = parse_timestamp(item.not_before)
+            assert deadline is not None  # Repository validates persisted timestamps.
+            seconds = max(0, math.ceil((deadline - now).total_seconds()))
+            cooldowns.append({
+                **asdict(item), "active": seconds > 0, "remaining_seconds": seconds,
+            })
+        lines = [
+            "Son kaydedilen pasif domain sorguları:",
+            "Bu görünüm ağ isteği yapmaz; kayıtlı sonuç ve bekleme sürelerini okur.",
+        ]
+        if not statuses:
+            lines.append("Henüz pasif domain sorgusu kaydı yok.")
+        labels = {
+            "unknown": "Yanıt kaydı yok", "responded": "Yanıt alındı",
+            "partial": "Kısmi yanıt", "failed": "Sorgular başarısız",
+        }
+        for item in statuses:
+            lines.extend([
+                f"{safe_text(item['provider'])}: {labels[item['source_status']]}",
+                f"  Kontrol: {JOB_LABELS[item['attempt_status']]} | "
+                f"Başlangıç: {safe_text(item['started_at'])}",
+                f"  İş: {safe_text(item['job_id'])}",
+            ])
+            for query in item["queries"]:
+                if query.error:
+                    lines.append(f"  {safe_text(query.error)}")
+                for note in query.coverage_notes:
+                    lines.append(f"  Kapsam: {safe_text(note)}")
+            if item["error"]:
+                lines.append(f"  İşlem hatası: {safe_text(item['error'])}")
+        if cooldowns:
+            lines.append("Kayıtlı kaynak beklemeleri (cihazın UTC saatine göre):")
+        for wait in cooldowns:
+            lines.append(
+                f"  {safe_text(wait['provider'])}: " + (
+                    f"{wait['remaining_seconds']} saniye kaldı; en erken "
+                    f"{safe_text(wait['not_before'])}."
+                    if wait["active"] else "Kaydedilmiş bekleme süresi doldu."
+                )
+            )
+        source_rows = [
+            {**item, "queries": [asdict(query) for query in item["queries"]]}
+            for item in statuses
+        ]
+        catalog = SourceGovernanceService().catalog(limit=50)
+        emit({
+            "catalog": catalog["sources"], "sources": source_rows,
+            "cooldowns": cooldowns, "observed_at": now.isoformat(),
+        }, lines, as_json=args.json)
+    elif args.command == "sources" and args.source_action in {None, "catalog", "show"}:
+        readiness = None
+        include_health = getattr(args, "include_health", False)
+        if include_health:
+            readiness = SourceReadinessService(
+                SQLiteSourceReadinessRepository(settings.database),
+            )
+        governance = SourceGovernanceService(readiness=readiness)
+        if args.source_action in {None, "catalog"}:
+            report = governance.catalog(
+                kind=getattr(args, "kind", None),
+                integration_state=getattr(args, "integration_state", None),
+                language=getattr(args, "language", None),
+                region=getattr(args, "region", None),
+                include_health=include_health,
+                domain=getattr(args, "domain", None),
+                stale_after_hours=getattr(args, "stale_after_hours", 24),
+                offset=getattr(args, "offset", 0),
+                limit=getattr(args, "limit", 50),
+            )
+            emit(report, source_governance_catalog_lines(report), as_json=args.json)
+        else:
+            report = governance.get(
+                identifier=args.identifier, include_health=include_health,
+                domain=args.domain, stale_after_hours=args.stale_after_hours,
+            )
+            emit(report, source_governance_show_lines(report), as_json=args.json)
+    elif args.command == "sources" and args.source_action == "validate":
+        report = SourceGovernanceService().validate()
+        emit(report, source_governance_validate_lines(report), as_json=args.json)
     elif args.command == "sources" and args.source_action == "contribution":
         if (args.domain is None) == (args.organization is None):
             raise ValidationError("Kaynak katkısı için yalnız domain veya --organization seçin.")
@@ -6814,67 +7046,6 @@ def run(args: argparse.Namespace) -> int | None:
             SQLiteSourceReadinessRepository(settings.database),
         ).show(domain=args.domain, stale_after_hours=args.stale_after_hours)
         emit(asdict(report), source_readiness_lines(report, details=args.details), as_json=args.json)
-    elif args.command == "sources":
-        catalog = SourceCatalogService().list()
-        statuses = make_jobs(settings, repository).source_status()
-        recorded_waits = SQLiteCooldownRepository(settings.database).list()
-        now = datetime.now(timezone.utc)
-        cooldowns = []
-        for item in recorded_waits:
-            deadline = parse_timestamp(item.not_before)
-            assert deadline is not None  # The repository validates every persisted timestamp.
-            seconds = max(0, math.ceil((deadline - now).total_seconds()))
-            cooldowns.append({**asdict(item), "active": seconds > 0, "remaining_seconds": seconds})
-        lines = [
-            "Kullanılan kaynaklar ve bağlantılar:",
-            "Bu katalog yapılandırmayı açıklar; şu anki erişilebilirliği ölçmez.",
-        ]
-        for item in catalog:
-            lines.extend([
-                f"{safe_text(item.label)} ({safe_text(item.identifier)}):",
-                f"  Amaç: {safe_text(item.purpose)}",
-                f"  Erişim: {safe_text(item.access)}",
-                "  İzlenen hedefe doğrudan bağlantı: "
-                + ("Evet; yalnız açık kullanıcı komutuyla." if item.contacts_monitored_target
-                   else "Hayır."),
-                f"  Komutlar: {safe_text(', '.join(item.commands))}",
-            ])
-            for limit in item.limits:
-                lines.append(f"  Sınır: {safe_text(limit)}")
-            lines.append(f"  Resmî başvuru: {safe_text(item.reference_url)}")
-        lines.append("Son kaydedilen pasif arama sonuçları:")
-        if not statuses:
-            lines.append("Henüz kaynak kontrolü kaydı yok.")
-        labels = {"unknown": "Yanıt kaydı yok", "responded": "Yanıt alındı", "partial": "Kısmi yanıt", "failed": "Sorgular başarısız"}
-        for item in statuses:
-            lines.extend([
-                f"{safe_text(item['provider'])}: {labels[item['source_status']]}",
-                f"  Kontrol: {JOB_LABELS[item['attempt_status']]} | Başlangıç: {safe_text(item['started_at'])}",
-                f"  İş: {safe_text(item['job_id'])}",
-            ])
-            for query in item["queries"]:
-                if query.error:
-                    lines.append(f"  {safe_text(query.error)}")
-                for note in query.coverage_notes:
-                    lines.append(f"  Kapsam: {safe_text(note)}")
-            if item["error"]:
-                lines.append(f"  İşlem hatası: {safe_text(item['error'])}")
-        if cooldowns:
-            lines.append("Kayıtlı kaynak beklemeleri (cihazın UTC saatine göre):")
-        for wait in cooldowns:
-            lines.append(
-                f"  {safe_text(wait['provider'])}: " + (
-                    f"{wait['remaining_seconds']} saniye kaldı; en erken {safe_text(wait['not_before'])}."
-                    if wait["active"] else "Kaydedilmiş bekleme süresi doldu."
-                )
-            )
-        data = [{**item, "queries": [asdict(query) for query in item["queries"]]} for item in statuses]
-        emit({
-            "catalog": [asdict(item) for item in catalog],
-            "sources": data,
-            "cooldowns": cooldowns,
-            "observed_at": now.isoformat(),
-        }, lines, as_json=args.json)
     elif args.command == "import":
         document = read_domain_file(args.source)
         matcher = make_domain_matcher()
@@ -6902,7 +7073,7 @@ def run(args: argparse.Namespace) -> int | None:
                     "--status", args.status, "--limit", str(args.limit), "--before", str(page.next_before),
                 ])
             emit({**asdict(page), "next_command": next_command},
-                 inbox_page_lines(page, status=args.status, next_command=next_command), as_json=args.json)
+                 inbox_page_lines(page, status=args.status, next_command=next_command, data_dir=settings.data_dir), as_json=args.json)
         elif args.inbox_action == "show":
             item = inbox.show(args.notification_id)
             emit(asdict(item), inbox_detail_lines(item, data_dir=settings.data_dir), as_json=args.json)
@@ -7034,7 +7205,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except EngineJobError as exc:
         report_error(exc.code, str(exc), as_json=args.json)
         return 3 if exc.code == 'not_found' else 1
-    except (ResearchHistoryError, ReportError, SocialDiscoveryError) as exc:
+    except (ResearchHistoryError, ReportError, SocialDiscoveryError, CodeExposureError, ContentError, BrandProtectionError, DarkwebError, MonitoringError, RetentionError, TelemetryError, SourceGovernanceError) as exc:
         report_error(exc.code, str(exc), as_json=as_json)
         return 3 if exc.code == "not_found" else 1
     except (WarninglistRunNotFound, EnrichmentRunNotFound) as exc:

@@ -11,9 +11,9 @@ case "${1:-}" in
     --core-only) XTI_SETUP_MODE=core ;;
     --help|-h)
         echo "Kullanım: ./setup [--core-only]"
-        echo "Varsayılan kurulum çekirdekle birlikte Maigret, Sherlock ve haber okuyucusunu kurar."
+        echo "Varsayılan kurulum çekirdekle birlikte Maigret, Sherlock, Betterleaks, haber/kanal okuyucularını ve P03 görsel araçlarını kurar."
         echo "Nmap işletim sistemi aracıdır; yalnız gerekirse ayrıca ./scripts/setup-nmap çalıştırılır."
-        echo "--core-only marka araçlarını ve RSS/Atom okuyucusunu kurmadan çekirdeği hazırlar."
+        echo "--core-only dış araçları ve RSS/Atom okuyucusunu kurmadan çekirdeği hazırlar."
         exit 0
         ;;
     *)
@@ -28,6 +28,8 @@ fi
 
 if [ "$XTI_SETUP_MODE" = full ]; then
     ./scripts/setup-brand
+    ./scripts/setup-code
+    ./scripts/setup-protection
 fi
 ./xti init
 
@@ -35,9 +37,13 @@ printf '\nXTI kullanıma hazır.\n'
 if [ "$XTI_SETUP_MODE" = full ]; then
     printf 'Maigret ve Sherlock: doğrulandı.\n'
     printf 'RSS/Atom haber okuyucusu: doğrulandı.\n'
+    printf 'Telegram/IRC kitaplıkları: doğrulandı; hesap ve kanal seçimi ayrıca yapılandırılır.\n'
+    printf 'Marka koruması: görsel kitaplıklar ve çevrimdışı Chromium doğrulandı.\n'
+    printf 'Betterleaks (maskeli, çevrimdışı secret kontrolü): doğrulandı.\n'
 else
     printf 'Marka araçları: atlandı (--core-only).\n'
     printf 'RSS/Atom kurulumu: atlandı (--core-only); gerekirse ./scripts/setup-brand çalıştır.\n'
+    printf 'Secret aracı: atlandı (--core-only); gerekirse ./scripts/setup-code çalıştır.\n'
 fi
 printf 'İlk domainini ekle: ./xti assets add example.com\n'
 printf 'Aramayı başlat:      ./xti scan example.com --typos\n'

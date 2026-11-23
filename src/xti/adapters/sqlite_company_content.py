@@ -53,4 +53,15 @@ class SQLiteCompanyContentRepository:
                         selected_scope.scope_status, record.status, hit, terms, fields, run.id, record.recorded_at))
                 pages.append(CompanyContentPage(page.kind, tuple(items), page.total_count,
                     page.offset, page.limit, page.has_more))
-            return CompanyContentSnapshot(scope.organization, content.scopes, tuple(pages), COMPANY_CONTENT_NOTES)
+            from xti.adapters.sqlite_content_monitoring import company_in
+            monitored = company_in(connection, scope, offset=offset, limit=limit)
+            from xti.adapters.sqlite_brand_protection import company_in as protection_in
+            protection=protection_in(connection,organization_id,offset=offset,limit=limit)
+            from xti.adapters.sqlite_cti_analysis import company_in as analysis_in
+            analysis = analysis_in(connection, organization_id, offset=offset, limit=limit)
+            from xti.adapters.sqlite_darkweb_monitoring import company_in as darkweb_in
+            darkweb = darkweb_in(connection, organization_id, offset=offset, limit=limit)
+            from xti.adapters.sqlite_unified_monitoring import company_in as monitoring_in
+            monitoring = monitoring_in(connection, organization_id, offset=offset, limit=limit)
+            return CompanyContentSnapshot(scope.organization, content.scopes, tuple(pages),
+                COMPANY_CONTENT_NOTES, monitored, protection, analysis, darkweb, monitoring)

@@ -1,5 +1,181 @@
 # XTI Motorunun Mimarisi
 
+0.192.0 P08/P12 saklama genişlemesi: `data_retention` tek politika, plan,
+reserve/apply, restore, idempotency ve hash-zincirli audit yaşam döngüsünü
+`unified_monitoring_runs` yanında `telemetry_records` için de kullanır.
+Şema99 iki aileye bağlı polymorphic kayıt kimliğini repository katmanında
+kuruluşla doğrular; şema98→99 geçişi eski politika/hold/arşiv/audit satırlarını
+ve sequence değerlerini korur, önce kurtarma yedeği alır. Telemetri arşivi
+güncel normalize gövdeyi ve henüz sıcak sürüm gövdelerini kanonik, sıkışmış
+bir nesil olarak saklar. Sıcak satırdaki alanlar arşiv kimliği/alanı/hash'iyle
+bağlı işaretçiye dönüşür; `SQLiteTelemetryRepository` normal okumada gövdeyi
+hash doğrulamasıyla saydam açar. Arşivden sonra gelen yeni revision önceki
+nesli değiştirmez ve zamanı geldiğinde ayrı nesil olur. Restore yalnız kendi
+işaretçilerini geri koyar; daha yeni güncel gövdeyi ezmez. Aktif telemetry
+vaka kanıtı ve açık kayıt/kuruluş hold'u plan dışında kalır. Cowrie veya CAPE
+kurulmaz ve yeni ağ/paket yoktur. [Kullanım](DATA_RETENTION.md),
+[karar](decisions/0197-telemetry-retention-generations.md).
+
+0.191.0 P12: `telemetry` alanı kuruluş kapsamlı sensör ve tamamlanmış
+sandbox kanıtını depolama, terminal, dosya, engine ve platformdan bağımsız
+olarak doğrular. `TelemetryService` küçük repository portu ile normalize
+girdi portunu birleştirir; XTI zararlı örnek çalıştırmaz ve Cowrie/CAPE
+süreci başlatmaz. Yerel işletici dosyası önce boyut, no-follow, biçim ve
+SHA-256 ile yazmasız önizlenir; platform yalnız en çok 1.000 normalize kayıt
+alır ve sunucu dosya yolu kabul etmez. Şema98 kaynak, kaynak olayları,
+çalışma, çalışma kalemi, güncel kayıt, kayıt sürümü, insan incelemesi ve
+idempotency makbuzunu ayrı tablolarda tutar. Kullanıcı adı/parola, ham komut,
+zararlı örnek, PCAP, bellek, ekran görüntüsü ve ham sandbox raporu kalıcı
+alana girmez. Aynı kanıt değişmeden tekrarlandığında çoğalmaz; değiştiğinde
+eski sürüm ve karar korunup yeniden inceleme açılır. Ortak arama, P07 alarm,
+vaka kanıtı ve firma izolasyonu yeniden kullanılır. Engine salt okunur;
+platform yazmaları workspace çiti ve tekrar anahtarı ister. Şema97→98 geçişi
+önce yedek alır; recovery yeni veri toplamadan çalışan turu kesilmiş duruma
+getirir. Gerçek Cowrie/CAPE işletimi ve canlı kabulü motor dışı açık
+gereksinimdir. [Kullanım](TELEMETRY.md),
+[karar](decisions/0196-safe-sensor-and-sandbox-telemetry.md),
+[teslim](roadmap/P12_DELIVERY.md).
+
+0.190.0 P10: `content_bluesky` adaptörü Bluesky'nin iki resmî AppView
+alanını sabit allowlist olarak kullanır; keyfî URL, proxy veya kullanıcı
+token'ı kabul etmez. `ContentSources` portuna donmuş hedef bağları verilir;
+adaptör hedef adı/domain/alias sorgularını adil sırada ve kaynak bütçesiyle
+işler. Checkpoint; sorgu kapsamı hash'ini, sıradaki sorguyu, sessiz başlangıç
+durumunu ve çalışan resmî ucu taşır. Hedef kimliği değişirse aynı ad kullanılsa
+bile baseline sıfırlanır. Yanıt yalnız genel gönderi URI'si, metni ve kaynak
+zamanlarına indirgenir; medya/profil/DM alınmaz. `ContentMonitoringService`,
+SQLite tabloları, kuyruk, engine/platform ve şema97 değişmeden kullanılır.
+[ADR0195](decisions/0195-bluesky-public-content-search.md),
+[kabul](roadmap/P10_DELIVERY.md).
+
+0.189.1 terminal konsolidasyonu: çıplak `sources` ile `sources catalog` aynı
+`SourceGovernanceService.catalog` uygulama yolunu kullanır. Eski terminale
+özel katalog/iş/cooldown bileşimi kaldırılmıştır; manifest `sources`, sağlık
+`sources status`, tekil pasif tarama kanıtı `jobs` yüzeyinde kalır. Veri
+tabloları, şema97, kaynak adaptörleri ve engine/platform v1 değişmez. Benzer
+adlı `watch`/`monitor` internetten pasif domain toplar; P07 `monitoring` ise
+ağsız saklı kanıt politikasıdır. Bu ayrım ikinci veri yaşam döngüsü açmadan
+kullanıcı yüzeyini tekilleştirir. Kaynağa özel izlemeler birleştirilmez;
+yalnız ortak `foreground_monitor` çekirdeği saat dilimi, sonlu monotonic süre
+ve saatin geriye gitmesi korumasını tek yerde uygular. Kaynak sorgusu,
+snapshot, fark, bildirim ve kalıcılık her özelliğin kendi servisinde kalır.
+
+0.189.0 P09: saf `source_governance` alanı; manifest şemasını, enumları,
+kanonik JSON/hash ve engine parametre sınırlarını depolama, terminal ve ağdan
+bağımsız tutar. `SourceGovernanceService`, eski kaynak kataloğu ile P01–P08
+connector envanterini 49 benzersiz ve sıralı manifestte birleştirir. Manifest
+kontrol düzlemidir: toplama adaptörünü çalıştırmaz ve canlı erişim hükmü
+vermez. İsteğe bağlı `SourceReadinessService` köprüsü yalnız kayıtlı sağlık
+kanıtını ayrı alan olarak ekler. Terminal, engine ve firma platformu aynı
+servisi kullanır; engine composition operasyon bazında lazy'dir. Veritabanı
+şeması97 değişmez. Mevcut kaynak-özel adaptörler ve tablolar korunur; yeni
+generic HTTP yürütücüsü yoktur. [Kullanım](SOURCE_GOVERNANCE.md),
+[karar](decisions/0194-source-governance-manifests.md).
+
+0.188.0 P08: saf `data_retention` kuralları ilk yönetilen aileyi, politika
+tanımını, hold türlerini, token ve katı JSON parametrelerini SQLite/CLI/
+platformdan ayırır. `DataRetentionService` yazmasız plan ile reserve/apply
+ve explicit recovery'yi orkestre eder. SQLite şema97 politika/olay, hold/
+olay, çalışma, sıkıştırılmış arşiv, audit zinciri ve tekrar makbuzunu ayırır.
+P07 adaptörü arşiv işaretçisini kayıt/alan/hash ile bağlar ve zlib gövdesini
+kanonik JSON doğrulamasıyla şeffaf açar. Vaka/alarm/review/provenance tablosu
+taşınmaz veya silinmez. Engine salt okur; platform mutasyonu workspace ve
+yerel writer lock kullanır. Güvenilir aktör/RBAC, scheduler, legal karar ve
+haricî soğuk depo tüketici platform/işletim katmanındadır.
+[Kullanım](DATA_RETENTION.md),
+[karar](decisions/0193-organization-retention-and-audit.md).
+
+0.187.0 P07: saf `unified_monitoring` alan kuralları hedef normalizasyonu,
+politika/eşik, snapshot doğrulama ve fark kararını SQLite, terminal ve
+platformdan bağımsız tutar. `UnifiedMonitoringService`, sürümlü repository
+ile tek-snapshot saklı arama girdi portunu bağlar; ağ veya alt süreç başlatmaz.
+SQLite şema96 politika olayı, çalışma, alarm, insan incelemesi ve idempotency
+makbuzunu ayırır. İlk çalışma sessizdir. Değişmeyen çalışma büyük snapshot
+gövdesini yeniden yazmaz; aynı politika sürümündeki önceki aynı hash'li
+dondurulmuş gövdeye doğrulanmış referans verir, küçük fark raporu korunur.
+Snapshot iç arama nesnesini çoğaltmak yerine kimlik/durum hash'i ve sınırlı
+provenance kaydeder. Özet ilk100 değişikliği taşır; tüm eşleşme, kapsam ve
+fark kanıtı ayrı sayfalı engine işlemlerinden okunur.
+Alarm ortak notification sequence/inbox'a, vaka kopyasına ve kuruluş
+görünümüne bağlanır. Engine salt okunur; platform yazmaları workspace çiti,
+revision ve local execution lock taşır. Gerçek scheduler ve haricî teslim
+tüketici platformdadır. [Kullanım](UNIFIED_MONITORING.md),
+[karar](decisions/0192-unified-stored-evidence-monitoring.md).
+
+0.186.0 P06: saf `actionability` kuralları depolama, terminal, dosya ve
+ağdan bağımsızdır. `ActionabilityService` küçük vaka/aksiyon portlarına;
+`CasePackageService` ayrı snapshot/yayıncı portlarına; `IocBulkService`
+mevcut IOC repository portuna bağlanır. SQLite adaptörü runbook/takedown/
+import makbuzunu atomik tutar. Dosya adaptörü yalnız yeni hedefe özel
+izinlerle yazar ve manifestle doğrular. PDF ayrı, ağsız sabit tarayıcı
+sürecidir. Salt-okunur engine dosya veya ağ açmaz; platform yazması
+workspace çiti ve local execution lock taşır. Dosya yolu işlemleri JSON
+yüzeyine açılmaz. Takedown yalnız insan kararını kaydeder, göndermez.
+[Kullanım](ACTIONABILITY.md), [karar](decisions/0191-human-approved-actionability.md).
+
+0.185.0 P05: `DarkwebService`, salt-okunur dondurulmuş kaynak girdi portunu,
+maskeli XposedOrNot verified-domain portunu ve SQLite yaşam döngüsünü tek
+uygulama sınırında birleştirir. Kamu ransomware kayıtları ile credential
+maruziyeti farklı kaynak sınıflarıdır; hiçbiri otomatik incident hükmü değildir.
+Ham alias yalnız kaynak adaptörü ile bellek içi maskeleme arasındaki dar sınırda
+bulunur. SQLite; maskeli görünüm, kuruluş anahtarlı HMAC kimliği, ihlal adları
+ve bütünlük zinciri tutar; API/pseudonym anahtarı özel config dosyasındadır.
+Tek seferlik parola portu parolayı yerelde legacy Keccak-512 ile özetler;
+parola, tam hash, önek ve sağlayıcı karakter özeti hiçbir kalıcı katmana girmez.
+Şema94 profil, tur, değişmez kanıt, bulgu, inceleme, değişiklik, bildirim ve
+credential geçmişini ayırır; şema93 HIBP kayıtlarını salt okunur kaynak kimliğiyle
+korur. Kaynak işi12 `darkweb-monitor` ile saklı analizi sıfır HTTP kullanarak
+ortak kuyrukta çalıştırır; canlı XposedOrNot çağrısı yalnız açık
+`credential.refresh` yazmasıdır. Engine salt okunur/ağsızdır; platform yazmaları
+güncel workspace çiti ve tekrar anahtarı ister. [ADR0189](decisions/0189-darkweb-and-credential-evidence.md),
+[ADR0190](decisions/0190-xposedornot-credential-source.md),
+[kullanım](DARKWEB_MONITORING.md), [kabul](roadmap/P05_DELIVERY.md).
+
+0.183.0 P04: `CtiAnalysisService`, SQLite depo ve ağsız dondurulmuş girdi
+portu arasında tek uygulama sınırıdır. Saf analiz; kaynak-korumalı CTI/IOC,
+kuruluş domaini ve sürümlü ATT&CK snapshot'ından açıklanabilir aday, kaynak
+iddiası grafı, zaman çizelgesi ve trend üretir. Şema92; profil, tur, değişmez
+kanıt, güncel aday, gözlem/inceleme sürümü, değişiklik, bildirim ve tekrar
+makbuzunu ayırır. Kaynak işi11 aynı servisi ortak worker içinde sıfır HTTP
+ile çalıştırır; engine/platform v1 ve kuyruk4 korunur. Girdi64MiB, profil
+10.000 aday, graph100/200, sayfa100/2MiB ve ATT&CK katalog tavanları
+uygulama sınırıdır. [ADR0188](decisions/0188-cti-analysis-candidates.md),
+[kullanım](CTI_ANALYSIS.md), [kabul](roadmap/P04_DELIVERY.md).
+
+0.182.0 P03: sürümlü marka kimliği, karşılaştırma kanıtı, PNG artefaktı,
+insan kararı, inbox/vaka ve firma JSON'u `BrandProtectionService` ile
+bağlanır. Şema91 ve kaynak işi10; dış JSONv1/kuyruk4 korunur. Google
+ayrıştırması ve Chromium ayrı sınırlı süreçtedir; tarayıcı ağsız statik
+kaynak haritası kullanır. [ADR0187](decisions/0187-brand-protection-evidence.md)
+ve [kullanım](BRAND_PROTECTION.md).
+
+
+0.181.0 `ContentMonitoringService` kaynak, kayıt deposu, hedef envanteri ve
+secret tarama portlarını birleştirir. Saf Unicode/hedef/kanıt kuralları
+terminal, HTTP ve SQLite'tan bağımsızdır. Sürümlü kaynak/izleme, değişmez
+kanıt ve indeksli güncel eşleşme ayrı tutulur; inceleme gözlem/kanıt
+sürümüne bağlıdır. Fark, checkpoint ve inbox atomik kaydedilir. Şema90
+eski vaka satır/rowid'lerini korur. Kaynak işi9 `content-monitor` ekler;
+aynı core makbuzu kuyruk kesintisinde yeniden kullanılır.
+RSS/Discord HTTPS taşıyıcısı kamu DNS adresine sabitlenir. Telegram ayrı
+sınırlı süreçte çalışır; erişim profilleri firma veri alanında tutulur.
+Güncel kanal penceresi ve geçmiş cursor ayrıdır. Kaynak işlemi sayısı
+HTTP sayacı değildir; bilinmeyen alt ağ maliyeti sıfır gösterilmez.
+[Karar0186](decisions/0186-company-content-and-channel-monitoring.md),
+[kullanım](CONTENT_MONITORING.md), [kabul](roadmap/P02_DELIVERY.md).
+
+0.180.0 kod/paste koleksiyonu ayrı kaynak ve secret tarama portlarıyla
+eklenir. Kamu API taşıyıcısı izinli HTTPS hostlarına sabitlenir; dosyalar
+yalnız bellekte Betterleaks'in sınırlı stdin sürecine gider. Validation ve
+otomatik depo config'i kapalıdır. Şema89 değişmez maskeli kanıt, indeksli
+güncel bulgu, gözlem/insan kararı sürümü, sayfalı geçmiş ve işlem makbuzu
+tutar. Aynı çalışma/kanıt çoğalmaz; fark ve inbox aynı transaction'dadır.
+`code-monitor` kaynak işi8'dir; kuyruk4 ve dış JSONv1 değişmez. Çekirdek
+sonucundan sonra kuyruk makbuzu kesilirse açık retry eski sonucu bulur.
+Domain kuralları SQLite/HTTP/terminalden bağımsızdır; kurulum sabit native
+araç adaptörüdür. [Karar0185](decisions/0185-code-and-paste-exposure.md),
+[kullanım](CODE_EXPOSURE.md), [kabul durumu](roadmap/P01_DELIVERY.md).
+
 0.179.0 kuyruk4 özgün iş ve olayları değiştirmeden durum/tür/sıra indeksi
 ekler. Bitiş ve arşiv kaydı aynı transaction'dadır; olağan dışı SQL yazımı
 koruma kaydını kirletir. Normal kabul/okuma seçili kaydı doğrular; tam
@@ -108,7 +284,7 @@ SQLite içinde sıkıştırılır; bütçe açılmış boyutu, replay özgün ha
 kullanır. Önizleme/uygulama/geri alma ve audit aynı firma sınırında kalır.
 [0174 kararı](decisions/0174-publisher-review-retention.md).
 
-**20 Kasım 2026 — 0.179.0, çekirdek şema 88, iş kuyruğu şeması 4.**
+**21 Kasım 2026 — 0.180.0, çekirdek şema 89, iş kuyruğu şeması 4, kaynak işi 8.**
 
 0.168.0 `EvidenceService` / workspace portu, domain aday kuralları ve
 kanonik günlük replay'i ile sensör görülmesini ve insan ilişki kararını

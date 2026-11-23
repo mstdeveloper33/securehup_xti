@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -397,6 +398,9 @@ class BrandRuntimeTests(unittest.TestCase):
              patch.object(VERIFIER, "_verify_constraints"), \
              patch.object(VERIFIER, "_verify_news_runtime"), \
              patch.object(VERIFIER, "_verify_pdf_runtime"), \
+             patch.object(VERIFIER, "_verify_channel_runtime"), \
+             patch.object(VERIFIER, "distribution", return_value=SimpleNamespace(locate_file=lambda name: prefix)), \
+             patch("xti.adapters.brand_protection_tools.verify_packages"), \
              patch.object(VERIFIER, "_verify_distribution"), \
              patch.object(VERIFIER, "files", return_value=self.root), \
              patch.object(VERIFIER, "write_maigret_database"), \
