@@ -98,6 +98,7 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertIn("tests/test_setup_brand.py", workflow)
         self.assertIn("tests/test_brand_runtime.py", workflow)
         self.assertIn("XTI_BROWSER_SANDBOX_MODE: trusted_ci_fixture", workflow)
+        self.assertIn("python -m playwright install-deps chromium", workflow)
         protection = (PROJECT_ROOT / ".github/workflows/brand-protection.yml").read_text(encoding="utf-8")
         self.assertIn("XTI_BROWSER_SANDBOX_MODE: trusted_ci_fixture", protection)
 

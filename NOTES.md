@@ -500,7 +500,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   sabit `xti-offline.invalid` smoke fixture'ı için `trusted_ci_fixture`
   istisnasını ekler; başka URL ve kaynak haritası kod seviyesinde reddedilir.
   Bu istisna kamu sayfası tarama kabulü değildir; Ubuntu yeniden kabul sonucu
-  push sonrasında bu nota eklenecektir.
+  push sonrasında bu nota eklenecektir. Temiz marka kurulum workflow'u ayrıca
+  gerçek `./setup` öncesinde resmî `playwright install-deps chromium` adımıyla
+  tek kullanımlık runner'ın sistem kitaplıklarını hazırlar; normal XTI kurulumu
+  kendiliğinden `sudo` çalıştırmaz.
 - Google parser importu upstream TLS varsayılanını değiştiriyor. XTI bu
   kitaplığı yalnız ağsız ayrı süreçte kullanır; motor HTTPS/TLS doğrulaması
   korunur. Google/Apple gerçek arama ve kimlikle tekrar okuma testleri

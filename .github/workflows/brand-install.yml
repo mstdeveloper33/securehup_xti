@@ -123,6 +123,13 @@ jobs:
           python -m pip --isolated install --disable-pip-version-check --no-input
           --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
           -r requirements/news.txt -r requirements/reports.txt
+      - name: Install wheel-hash pinned browser preparation dependency
+        run: >-
+          python -m pip --isolated install --disable-pip-version-check --no-input
+          --index-url https://pypi.org/simple --only-binary=:all: --require-hashes
+          -r requirements/brand-protection.txt
+      - name: Prepare browser system libraries on the disposable runner
+        run: python -m playwright install-deps chromium
       - name: Verify installer and runtime recovery regressions offline
         id: offline
         env:

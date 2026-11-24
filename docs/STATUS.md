@@ -10,7 +10,9 @@ güncel okuyucuyla doğrudan açıyordu; artık yedekli 88→100 geçişi ile es
 incelemeleri koruduğunu doğrular. CI Chromium kontrolü gerçek sayfa yerine
 yalnız sabit `xti-offline.invalid` fixture'ını Playwright'ın sandbox kapalı
 test modunda işler; normal kullanımda sandbox zorunludur ve bu CI modu başka
-URL'leri reddeder. Yerelde iki firma/50.001'er iş kabulü ile 182 ilgili ve
+URL'leri reddeder. Temiz marka kurulum işi, gerçek `./setup` öncesinde
+Playwright'ın resmî Chromium sistem kitaplıklarını tek kullanımlık Ubuntu
+runner'ında hazırlar. Yerelde iki firma/50.001'er iş kabulü ile 182 ilgili ve
 111 marka regresyon testi geçti. Ubuntu yeniden kabulü push sonrasında
 beklenmektedir.
 

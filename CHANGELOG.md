@@ -9,6 +9,9 @@
   kalır. GitHub'ın tek kullanımlık VM'sinde yalnız sabit çevrimdışı smoke
   fixture'ı için `trusted_ci_fixture` modu eklendi; başka URL ve kaynak
   haritaları bu modda reddedilir.
+- Temiz marka kurulum workflow'u gerçek `./setup` kabulünden önce Playwright'ın
+  resmî Chromium sistem kitaplığı hazırlığını tek kullanımlık runner'da yapar;
+  XTI yerel kurulumda kendiliğinden `sudo` çalıştırmaz.
 - İki firma/50.001'er geçmiş iş kabulü yerelde geçti; 182 job-history/CI ve
   111 marka koruma regresyon testi hatasız tamamlandı. Ubuntu Actions yeniden
   kabulü bu yama gönderildikten sonra ayrıca kaydedilecektir.
