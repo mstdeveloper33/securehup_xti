@@ -1,6 +1,6 @@
 # XTI — Ana geliştirme ve özellik tamamlama planı
 
-**Tarih:** 23 Kasım 2026 · **Plan:** 1 · **Başlangıç motoru:** 0.179.0 · **P01 çalışması:** 0.180.0 · **P02 çalışması:** 0.181.0 · **P03 çalışması:** 0.182.0 · **P04 çalışması:** 0.183.0 · **P05 çalışması:** 0.185.0 · **P06 çalışması:** 0.186.0 · **P07 çalışması:** 0.187.0 · **P08 çalışması:** 0.188.0/0.192.0 · **P09 çalışması:** 0.189.0 · **P10 çalışması:** 0.190.0 · **P12 çalışması:** 0.191.0/0.192.0.
+**Tarih:** 24 Kasım 2026 · **Plan:** 1 · **Başlangıç motoru:** 0.179.0 · **P01 çalışması:** 0.180.0 · **P02 çalışması:** 0.181.0 · **P03 çalışması:** 0.182.0 · **P04 çalışması:** 0.183.0 · **P05 çalışması:** 0.185.0 · **P06 çalışması:** 0.186.0 · **P07 çalışması:** 0.187.0 · **P08 çalışması:** 0.188.0/0.192.0 · **P09 çalışması:** 0.189.0 · **P10 çalışması:** 0.190.0 · **P11 çalışması:** 0.193.0 · **P12 çalışması:** 0.191.0/0.192.0.
 
 Bu belge yeni çalışmalar için tek ana plandır. Kullanıcının A–K listesindeki
 **76 gereksinimin tamamını** kaydeder; hiçbir satır sessizce kaldırılmaz.
@@ -52,7 +52,8 @@ audit'i, güvenilir platform actor/RBAC ve mevzuat uygunluğu tamamlandı
 sayılmaz. İki firmalı kapasite ve 2.303 testlik hızlı kapı geçti; tam repo ve
 3.644 testlik tam repo kapısı hatasız geçti. Push sonrası gerçek Linux kabulü
 açıktır. [P08 kapsam ve kabul kartı](P08_DELIVERY.md).
-P09 kaynak/feed kontrol düzlemi uygulandı: 49 mevcut connector erişim,
+P09 kaynak/feed kontrol düzlemi 49 connector ile uygulandı; P10–P12
+eklemeleriyle güncel katalog 55 kaynağa çıktı. Erişim,
 maliyet, secret, dil/bölge, ortak kayıt türü, provenance, kota/tekrar/hata,
 veri hakkı ve sağlık sözleşmesiyle tek manifest kataloğunda görünürdür.
 Terminal, engine ve firma platformu aynı ağsız okuma servisini kullanır.
@@ -60,12 +61,17 @@ Bu teslim her kaynağın canlı/ticari kabulü veya bütün verilerin tek fiziks
 formata taşındığı anlamına gelmez; geniş A07 satırı kısmi kalır.
 [P09 kapsam ve kabul kartı](P09_DELIVERY.md).
 P10 mevcut içerik yaşam döngüsünü çoğaltmadan Bluesky genel gönderi
-aramasını ekledi. P12 ise güvenli normalize sensör/sandbox telemetrisini
+aramasını ekledi. P11 anahtarsız Lunar toplu domain maruziyetini ve ayrı AIL
+7.x sistemi için ham içeriksiz metadata zarfını mevcut P05 yaşam döngüsüne
+bağladı. Lunar canlı doğrulandı; gerçek AIL kurulumu, seçilmiş yasal kaynak
+ve canlı tracker olayı açık kaldığından geniş A02/A10 tamamlanmış sayılmaz.
+P12 ise güvenli normalize sensör/sandbox telemetrisini
 aynı firma, kanıt, inceleme, izleme ve vaka zincirine bağladı. 0.192.0 ile
 P08'in kayıpsız saklama/hold/restore motoru P12 telemetri gövdelerini de
 yönetir. Cowrie ve CAPE bu motora kurulmaz veya bu motor tarafından
 çalıştırılmaz; gerçek sensör/sandbox işletimi ayrı ve şu an açık değildir.
-[P10 teslim kartı](P10_DELIVERY.md), [P12 teslim kartı](P12_DELIVERY.md).
+[P10 teslim kartı](P10_DELIVERY.md), [P11 teslim kartı](P11_DELIVERY.md),
+[P12 teslim kartı](P12_DELIVERY.md).
 
 Gerçekte çalışan kapsam ve kabul kanıtı [STATUS](../STATUS.md), kaynak
 koşulları ve dış girdiler [NOTES](../../NOTES.md), mimari sınırlar
@@ -180,7 +186,7 @@ soyut bir özellik kopyası yazılmaz; dış gereksinim açık tutulur.
 | 8 | **P08 — Saklama, hold ve audit temeli** | Eski büyük izleme gövdelerini kuruluş politikasıyla kayıpsız arşivle, hold/vaka kanıtını koru ve mutasyon zincirini denetle. | P07 izleme ve P12 telemetri gövdeleri tamam; diğer aileler, okuma audit'i, haricî soğuk depo ve mevzuat kararı açık. [Teslim](P08_DELIVERY.md). |
 | 9 | **P09 — Kaynak ve feed yönetişimi** | Her connector'ü erişim, maliyet, dil/bölge, kanıt, kota, hata ve ticari veri kararıyla tek sürümlü katalogda yönet. | 49 manifest, terminal/engine/platform ve 10.000 kayıt kapasite kabulü uygulandı. Canlı kaynakların kendi kabulleri ve hukuk/ticari kararları ayrı açık. [Teslim](P09_DELIVERY.md). |
 | 10 | **P10 — Mevcut içerik kaynaklarındaki gerçek kapsam boşlukları** | `news`, `mentions` ve firma/tedarikçi içerik yaşam döngüsünü yeniden yazmadan yalnız seçilmiş yeni sosyal gönderi, forum veya kanal kaynağını mevcut akışa bağla. | **Teknik teslim tamam:** Bluesky genel gönderi araması mevcut P02 akışına bağlandı; SecureHup boş sonuç ve pozitif gerçek yanıt kabulü geçti. Ticari saklama/gösterim kararı açık. [Teslim](P10_DELIVERY.md). |
-| 11 | **P11 — Yeraltı ve credential kaynak genişletme** | Yasal ve seçilmiş forum/pazar/Tor veya stealer-log sağlayıcısını mevcut maskeli dark-web yaşam döngüsüne bağla. | Planlandı fakat kaynak seçimi, hukuki amaç, veri minimizasyonu, bütçe ve güvenli izolasyon yok; mevcut ransomware/XposedOrNot bütün yeraltı kapsamı değildir. |
+| 11 | **P11 — Yeraltı ve credential kaynak genişletme** | Yasal ve seçilmiş forum/pazar/Tor veya stealer-log sağlayıcısını mevcut maskeli dark-web yaşam döngüsüne bağla. | Teknik motor teslim edildi: Lunar toplu domain maruziyeti canlı doğrulandı; AIL 7.x için ham içeriksiz/hash bağlı zarf, geçmiş, inceleme, firma JSON'u, recovery ve şema100 tamamlandı. Hedefli 49 test ile 2.354 hızlı/3.699 tam repo kapısı geçti. Gerçek AIL kurulumu, seçilmiş yasal yeraltı kaynağı ve canlı tracker olayı açık olduğundan A02/A10'un geniş dış kaynak kapsamı kısmi kalır. [Teslim kartı](P11_DELIVERY.md). |
 | 12 | **P12 — Sensör ve malware telemetrisi** | Honeypot/sinkhole ve sandbox sonuçlarını sensör görülmesi, örnek davranışı ve kaynaklı kanıt olarak al. | **Teknik motor teslimi tamamlandı:** güvenli XTI/Cowrie/CAPE normalizasyonu, sürümlü kanıt, inceleme, izleme, vaka, Engine/Platform, şema99, kayıpsız retention/hold/restore ve 5.000 kayıt/firma kabulü hazır. Cowrie/CAPE kurulmadı; gerçek işletim/canlı kabul, ticari veri kararı ve Linux kabulü açık. |
 | 13 | **P13 — Cloud ve uzman istihbarat modülleri** | Cloud yanlış yapılandırma, SBOM, OT/ICS/IoT ve blockchain gibi özel veri ailelerini ayrı güvenli modüllerle ekle. | Planlandı; her alt modül ayrı kaynak/yetki/doğruluk ve kapasite kabulü ister. Zafiyet/SBOM kullanıcı kararı değişmeden aktif açılmaz. |
 | 14 | **P14 — Üretim ölçeği ve birlikte çalışabilirlik** | Seçilen STIX/TAXII/MISP, bildirim, veri katmanı, bölge, DR ve işletim sözleşmelerini gerçek yükle tamamla. | En sona bırakıldı. .NET HTTP/auth/UI tüketici ekipte; motor gerekli sürümlü JSON, firma ve kanıt sınırlarını sağlar. Kafka/OpenSearch iş yükü kanıtı olmadan zorunlu değildir. |
@@ -335,18 +341,18 @@ uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 | ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
 |---|---|---|---|
 | A01 | Sosyal medya, forum, blog, haber OSINT | Kısmi: profil/arama, seçili yayıncılar ve P02 RSS/Atom akışına ek olarak P10 anahtarsız Bluesky genel metin gönderilerini firma/tedarikçi kanıt–inceleme–takip yaşam döngüsüne bağladı. Diğer genel sosyal platformlar/forumlar ve hesaplı kanal canlı kabulleri ayrı açık. | P02, P03, P10 |
-| A02 | Dark/deep web, forum, pazar, ransomware | Kısmi: P05 saklı RansomLook/ThreatCluster iddialarını kuruluş/tedarikçi kapsamı, değişmez kanıt, inceleme, değişiklik ve alarm zincirine bağlar. Doğrudan yeraltı forumu/pazar/Tor kaynağı seçilmedi; kamu ransomware kapsamı bütün dark web değildir. | P05 |
+| A02 | Dark/deep web, forum, pazar, ransomware | Kısmi: P05 saklı RansomLook/ThreatCluster iddialarını; P11 ise ayrı AIL 7.x tracker zarfını aynı kuruluş/tedarikçi kanıt, inceleme, değişiklik ve alarm zincirine bağlar. AIL motor bağlantısı hazırdır fakat gerçek AIL kurulumu, seçilmiş yasal forum/pazar/Tor kaynağı ve canlı olay kabulü açık; kamu ransomware kapsamı bütün dark web değildir. | P05 + P11 teknik motor; OP canlı AIL/kaynak açık |
 | A03 | Paste ve GitHub/GitLab secret/kod izlemesi | Kısmi: 0.180.0 toplama, Betterleaks, maskeli kalıcı kanıt, insan kararı, izleme ve firma JSON/vaka/rapor bağlantısı var. Kamu keşfi canlı denendi; hesaplı kod araması/Pastebin ve Linux kabulü açık. | P01 |
 | A04 | Telegram/Discord/IRC kanal izlemesi | P02 adaptörleri, erişim profilleri, mesaj penceresi/geçmiş cursor ve kontrollü testler var. Telegram/Discord/IRC için hesap/kanal canlı kabulü açık; bütün satır tamamlandı sayılmaz. | P02 |
 | A05 | Honeypot ve sinkhole ham telemetrisi | Kısmi: P12, `xti-sensor-v1` ve güvenli Cowrie JSONL sonucunu ham parola/komut saklamadan kuruluş kapsamlı sürümlü kanıta alır; arama, insan incelemesi, P07 alarmı ve vaka akışı hazırdır. Gerçek sensör/sinkhole ağı işletimi, güvenli aktarım ve canlı kabul tamamlanmadı. | P12 teknik motor tamam; SP/OP canlı altyapı açık |
 | A06 | Malware sandbox ve örnek analizi | Kısmi: P12, ayrı CAPE ortamında tamamlanmış `report.json` içindeki izinli hash, davranış özeti ve ağ IOC'sini alır; XTI örnek, PCAP, bellek veya ham rapor saklamaz ve malware çalıştırmaz. Gerçek yalıtılmış CAPE işletimi ve canlı rapor kabulü açık. | P12 teknik motor tamam; SP/OP canlı sandbox açık |
-| A07 | Ticari/üçüncü taraf feed ve normalizasyon | Kısmi: P09 kontrol düzlemi P10 ve P12 eklemeleriyle 53 connector'ü tip, dil/bölge, erişim, hak, kota, retry/hata ve zorunlu provenance manifestinde standartlaştırır. Veri tabloları fiziksel olarak birleşmez; her yeni feed'in canlı toplama, saklama, inceleme ve müşteri gösterim kabulü ayrıca gerekir. | P09 temel; P10/P12 yeni kaynaklar; P11 ve P13–P15 ertelenmiş sırada |
+| A07 | Ticari/üçüncü taraf feed ve normalizasyon | Kısmi: P09 kontrol düzlemi P10–P12 eklemeleriyle 55 connector'ü tip, dil/bölge, erişim, hak, kota, retry/hata ve zorunlu provenance manifestinde standartlaştırır. Lunar aktif/anahtarsız, AIL koşullu/yereldir. Veri tabloları fiziksel olarak birleşmez; her yeni feed'in canlı toplama, saklama, inceleme ve müşteri gösterim kabulü ayrıca gerekir. | P09 temel; P10/P11/P12 yeni kaynaklar; P13–P15 ertelenmiş sırada |
 | A08 | Phishing kit, sahte domain, typosquat | Kısmi: domain/isim/metin/logo/statik sayfa karşılaştırması, form/ortak şablon ipucu ve inceleme/izleme kanıtı var. Kit indirme/çalıştırma ve aktör atfı yok; benzerlik taklit hükmü değil. | P03 |
 | A09 | Sahte mobil uygulama / mağaza taraması | Seçili Apple/Google bölge araması, kimlikle yeniden kontrol, yayıncı farkı, değişmez kanıt ve insan incelemesi uygulandı/canlı denendi. Bütün mağaza kapsamı veya otomatik sahte hükmü yok; ticari koşullar/Linux açık. | P03 |
-| A10 | Credential leak toplama | Kısmi: P05 XposedOrNot verified-domain sonucunu yalnız açıkça bağlı kuruluş domaininde alır; alias bellekte maskelenir, HMAC kimliği/ihlal adları saklanır, secret/parola denenmez. Açık parola kontrolü yalnız yerel Keccak öneki gönderir ve geçmiş oluşturmaz. Adaptör kontrollü kabul edildi; API anahtarı/doğrulanmış domain ile canlı kabul, ticari şart teyidi ve stealer-log sağlayıcısı açık. HIBP verified-domain yeni çalışmalarda kapalıdır. | P05, OP |
+| A10 | Credential leak toplama | Kısmi: P05 XposedOrNot verified-domain sonucunu maskeli alır ve açık parola kontrolü geçmiş oluşturmaz. P11 Lunar, bireysel credential/PII almadan son 12 aylık employee/client ve breach/infostealer toplu sayılarını canlı sağlar; AIL zarfı `credential_listing` iddiasını içeriksiz taşıyabilir. XposedOrNot canlı domain kabulü, gerçek AIL kaynağı ve ham stealer-log sağlayıcısı açık; credential denenmez. | P05 + P11 teknik motor; OP canlı kaynaklar açık |
 | A11 | Sosyal mühendislik, itibar, yönetici taklidi | Kısmi: firma içeriği, marka/kişi kimliği, sosyal karşılaştırma, bayi/parodi/ilgili-belirsiz incelemesi ve tekrar izleme var. SecureHup sosyal erişimi kısmi; gerçek VIP canlı kabulü yapılmadı. Geniş itibar sınıflaması tamam değil. | P02, P03 |
 | A12 | Tedarikçi/üçüncü taraf ihlal haberleri | Mevcut kaynaklarla sınırlı; P02 seçili yayın/kanalları, P10 Bluesky genel metin gönderilerini açık tedarikçi kimliği, inceleme, değişiklik, vaka ve ortak rapora bağlar. Kaynak iddiası doğrulanmış ihlal değildir. | P02, P05, P10 |
-| A13 | RU/ZH/AR/TR/PT dahil çok dilli toplama | P02 Unicode/alternatif isim ve kaynak dili desteği, P09/P10 her connector'de zorunlu dil/bölge manifesti ve Bluesky `lang` filtresi sağlar; TR/RU/ZH/AR/PT için 40 etiketli eşleşme örneği vardır. Bu dillerin ayrı canlı kaynak kapsamı ve yeraltı kabulü yok; çeviri ayrıdır. | P09/P10 temel; P11 canlı yeraltı kaynakları; P15 çeviri |
+| A13 | RU/ZH/AR/TR/PT dahil çok dilli toplama | P02 Unicode/alternatif isim, P09–P12 zorunlu dil/bölge manifesti ve Bluesky `lang` filtresi vardır; TR/RU/ZH/AR/PT için40 etiketli eşleşme örneği bulunur. P11 AIL zarfı çok dilli kaynak metaverisini kaybetmez, fakat bu dillerde gerçek yeraltı kaynağı/corpus canlı kabulü yoktur; çeviri ayrıdır. | P09/P10 temel; P11 teknik zarf; OP canlı kaynaklar; P15 çeviri |
 | A14 | CVE/NVD, Exploit-DB, EPSS | Eski kapsam: CVE/NVD/KEV/EPSS kodu korunuyor; Exploit-DB yok. Kullanıcı kararıyla aktif planda değil. | SP (bekleyen kapsam kararı) |
 
 ### B — İşleme ve zenginleştirme (8)
@@ -371,8 +377,8 @@ uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 | C03 | Aktör–malware–altyapı–kurban grafı | P04 sınırlı kaynak-iddiası ve aday grafını kanıt hash'i,100 düğüm/200 kenar ve snapshot cursor'uyla sağlar. Etkileşimli görselleştirme tüketici platformda kalır. | P04 motor tamam; PL görsel katman |
 | C04 | CVE + exploitability + maruziyet önceliği | Eski zafiyet akışları korunuyor; aktif plan dışında. Doğrulanmış envanter olmadan yeniden açılmaz. | SP (bekleyen kapsam kararı) |
 | C05 | Trend/kampanya erken uyarısı | P04 sessiz baseline, sabit durum, eşik üstü değişim ve kaynak/ATT&CK kapsam değişimini ayrı raporlar; yalnız kanıt sürümü değişen aday bildirilir. Bu otomatik incident kararı değildir. | P04 motor kapsamı tamam |
-| C06 | IOC/credential aktiflik ve gerçeklik doğrulaması | Kısmi: IOC yaşam döngüsü yanında P05 doğrulanmış-domain kaynak eşleşmesini ve güncelliğini gösterir; credential denenmez, hesabın/parolanın hâlâ aktif olduğu hükmünü vermez. | P04, P05 |
-| C07 | Dark web şirket içeriği tarama/alarm | P05 seçilmiş saklı kaynaklarda kesin firma/tedarikçi ad-domain eşleşmesi, sessiz baseline, değişmez kanıt, insan kararı, değişiklik, inbox/vaka ve firma JSON alarm zincirini uygular. Forum/pazar/Tor kapsamı kaynak seçilmediği için geniş gereksinim kısmi kalır. | P05 |
+| C06 | IOC/credential aktiflik ve gerçeklik doğrulaması | Kısmi: IOC yaşam döngüsü ve P05 doğrulanmış-domain eşleşmesine P11 toplu Lunar zaman/sayı kanıtı eklendi. Hiçbiri credential denemez veya hesabın/parolanın hâlâ aktif olduğu hükmünü vermez; AIL iddiası insan incelemesi bekler. | P04, P05, P11 |
+| C07 | Dark web şirket içeriği tarama/alarm | P05 seçilmiş saklı kaynaklarda, P11 ise Lunar toplu maruziyeti ve AIL metadata zarfında kesin firma/tedarikçi ad-domain eşleşmesi, sessiz baseline, değişmez kanıt, insan kararı, değişiklik, inbox/vaka ve firma JSON zincirini uygular. Gerçek AIL/kaynak canlı kabulü olmadığı için geniş forum/pazar/Tor kapsamı kısmi kalır. | P05 + P11 teknik motor; OP canlı AIL açık |
 | C08 | Sahte/klon domain ve sertifika izleme | CT/urlscan geçmişinden aday keşfi, statik klon sayfa/logo kanıtı, tekrar kontrol ve değişiklik bildirimi var. Son canlı arama kaynak penceresiyle sınırlı; sürekli küresel sertifika akışı yok. | P03, OP |
 
 ### D — Dashboard ve deneyim (6)
@@ -390,9 +396,9 @@ uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 
 | ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
 |---|---|---|---|
-| E01 | Domain/marka/IP/kelime/kişi watchlist | P07 yerel motor kapsamı: domain/marka/IP/kelime/kişi/tedarikçi hedefleri12 saklı kayıt ailesi üzerinde tek kuruluş politikasında birleşir. Kaynak yenileme ilgili collector'da kalır. | P07 motor tamam; yeni kayıt ailesi geldikçe açık adaptör kapsamı |
+| E01 | Domain/marka/IP/kelime/kişi watchlist | P07 yerel motor kapsamı domain/marka/IP/kelime/kişi/tedarikçi hedeflerini saklı kayıt ailelerinde birleştirir. P11 domaini Lunar yenilemesine ve ad/domaini AIL eşleşmesine bağlar; kaynak yenileme ilgili collector'da kalır. | P07 motor tamam; P11 kaynakları bağlandı; yeni kayıt ailesi geldikçe açık adaptör kapsamı |
 | E02 | Email/SMS/Slack/Teams/webhook/push | Kısmi inbox ve imzalı webhook var. Kanal aboneliği, gerçek alıcı kabulü ve teslim takibi eksik; e-posta/SMS bekler. | P06, PL |
-| E03 | Alarm eşik/öncelik/yanlış alarm ayarları | P07 added/updated/removed seçimi, minimum değişiklik, öncelik, sessiz baseline, sürümlü politika ve useful/not_useful/uncertain geri bildirimini ortaklaştırır. Öncelik risk olasılığı değildir. | P07 motor tamam |
+| E03 | Alarm eşik/öncelik/yanlış alarm ayarları | P07 added/updated/removed seçimi, minimum değişiklik, öncelik, sessiz baseline, sürümlü politika ve useful/not_useful/uncertain geri bildirimini ortaklaştırır. P11 kaynak iddiasını otomatik incident yapmadan mevcut insan incelemesine sokar. Öncelik risk olasılığı değildir. | P07 motor tamam; P11 aynı karar sınırını kullanır |
 | E04 | Gerçek zamanlı streaming/alarm | Periyodik/kuyruklu temel var; genel streaming yok. Olay hızı/gecikme hedefi, geri basınç ve yeniden oynatma kabulü gerekli. | OP; ilgili kaynak paketi |
 | E05 | Zamanlanmış tarama raporları | P07 politika aralığı, due listesi, not-due çiti, idempotent çalışma, kesinti recovery ve birleşik rapor sözleşmesini tamamlar. Gerçek platform scheduler, kaçırılmış iş işletimi ve alıcı teslimi ayrıdır. | P07 motor desteği tamam; OP/PL işletim açık |
 
@@ -437,17 +443,17 @@ uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 |---|---|---|---|
 | I01 | Çok dilli UI | Yok. Platform i18n; motor kararlı durum kodu ve çevirilebilir kullanıcı metni sözleşmesi sağlar. | PL; ilgili motor paketi |
 | I02 | Veri yerleşimi | Ürün politikası yok. Saklama bölgesi ile dış kaynağa/modelle veri aktarımı ayrı kontrol edilmeli. | OP, PL |
-| I03 | GDPR/KVKK/CCPA veri işleme ayarları | P08 amaç/dayanak, kuruluş saklama süresi, explicit hold, yedek ve kapalı otomatik silme sağlar. Erişim/aktarımı, veri sahibi talepleri, bölge ve hukuk onayı platform/işletimde açık; uygunluk iddiası yok. | P08 teknik destek; OP, PL açık |
-| I04 | Bölgesel/dil bazlı feed seçimi | P09/P10/P12 bütün 53 connector'de zorunlu dil/bölge alanı ve katalog filtresi sağlar; Bluesky kaynağı seçilmiş gerçek dili resmî aramaya aktarır, yerel telemetri kaynakları bölgesel internet kapsamı iddia etmez. Bölgesel kaynak paketleri ve o bölgelerin canlı kapsamı tamamlanmadı; 40 çok dilli eşleştirme örneği kaynak erişimi kanıtı değildir. | P09 kontrol düzlemi; P10 ilk genel sosyal kaynak; P12 yerel telemetri; P11 bölgesel/yeraltı ertelendi |
+| I03 | GDPR/KVKK/CCPA veri işleme ayarları | P08 amaç/dayanak, kuruluş saklama süresi, explicit hold, yedek ve kapalı otomatik silme sağlar. P11 Lunar'da bireysel PII almaz; AIL'de ham içerik/adres/credential kabul etmez. Erişim/aktarımı, veri sahibi talepleri, bölge ve hukuk onayı platform/işletimde açık; uygunluk iddiası yok. | P08/P11 teknik destek; OP, PL ve hukuk onayı açık |
+| I04 | Bölgesel/dil bazlı feed seçimi | P09–P12 bütün55 connector'de zorunlu dil/bölge alanı ve katalog filtresi sağlar; Bluesky seçilmiş dili gerçek aramaya aktarır, AIL `mul/global` olarak gerçek kaynak dili iddia etmez. Bölgesel kaynak paketleri/canlı kapsam tamamlanmadı;40 çok dilli eşleştirme örneği kaynak erişimi değildir. | P09 kontrol düzlemi; P10 sosyal; P11 yeraltı teknik sınırı; P12 yerel telemetri; OP canlı kaynaklar |
 | I05 | Para birimi/fatura formatı | Yok; motor işi değil. Platformun ticari işletim sorumluluğu. | PL |
 
 ### J — Güven ve doğrulanabilirlik (4)
 
 | ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
 |---|---|---|---|
-| J01 | Bulgu kaynağına izlenebilirlik | Mevcut kaynak izi korunur. P08 arşiv binding/hash ve restore'u; P09 bütün connector manifestlerinde zorunlu provenance alanlarını tanımlar. P10 Bluesky gerçek adaptörü kaynak/URI özeti/bağlantı/zaman/içerik hash'i ve çalışma kanıtıyla bu yükümlülüğü canlı kabulde doğruladı. | P08/P09/P10 doğrulandı; tüm paketlerde sürekli |
+| J01 | Bulgu kaynağına izlenebilirlik | Mevcut kaynak izi korunur. P08 arşiv binding/hash ve restore'u; P09 bütün connector manifestlerinde provenance alanlarını tanımlar. P10 Bluesky; P11 Lunar kaynak/zaman/snapshot özeti ile AIL sürüm/commit/object/evidence hash'i ve hash-zincirli tur geçmişiyle yükümlülüğü doğruladı. | P08–P11 doğrulandı; tüm paketlerde sürekli |
 | J02 | XAI / skor ve alarmın nedenini açıklama | P04 her adayda kural, sinyal, özgün kaynak/alinti, skor bileşeni, sınırlama ve otomatik-hüküm-yok bilgisini verir. Gelecek AI çıktısı aynı kanıt yükümlülüğüne tabidir. | P04 kurallı açıklama tamam; AI ayrı |
-| J03 | İnsan onayı/etiketleme | P04 kanıt ve gözlem sürümüne bağlı karar, değişince yeniden inceleme, değişmez geçmiş, inbox ve vaka kopyasını ekledi. Yeni paketler aynı yaşam döngüsünü kullanır. | P04 ve mevcut paketlerde var; tüm paketler |
+| J03 | İnsan onayı/etiketleme | P04 kanıt ve gözlem sürümüne bağlı karar, değişince yeniden inceleme, değişmez geçmiş, inbox ve vaka kopyasını ekledi. P11 toplu maruziyet ve yeraltı iddiasını aynı yaşama bağladı; otomatik incident yoktur. | P04/P11 ve mevcut paketlerde var; tüm paketler |
 | J04 | Faydalı/faydasız geri bildirim → iyileştirme | P04 kaynak bazında kabul/ret/belirsiz sonuçlarını gösterir fakat reliability'yi sessizce değiştirmez. Denetimli kalite ölçümü/model güncellemesi ayrı ve hâlâ eksiktir. | P04 görünürlük tamam; AI/OP öğrenme ayrı |
 
 ### K — Gelişmiş modüller (6)

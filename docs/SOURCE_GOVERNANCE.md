@@ -24,6 +24,8 @@ adaptörlerinde kalır.
 ./xti sources show telemetry:xti-sensor-v1
 ./xti sources show telemetry:cowrie-jsonl
 ./xti sources show telemetry:cape-report-v1
+./xti sources show credential:lunar-domain-exposure
+./xti sources show darkweb:ail-framework
 ./xti sources validate
 ```
 
@@ -81,7 +83,7 @@ bir connector “çalışıyor” sayılmaz; kendi özellik geçmişine yönlend
 | `conditional` | Kod vardır fakat hesap, anahtar, araç, ticari karar veya yetkili hedef gibi açık bir gereksinim bekler. |
 | `disabled` | Kaynak bilinçli ürün kararıyla yeni kullanımda kapalıdır; eski verinin korunması ayrı olabilir. |
 
-0.191.0 kataloğu 53 manifest içerir: 32 aktif, 14 koşullu ve 7 kapalı.
+0.193.0 kataloğu 55 manifest içerir: 33 aktif, 15 koşullu ve 7 kapalı.
 Kapalı yedi kaynak, kullanıcı kararıyla aktif yeni geliştirme dışında tutulan
 zafiyet kaynaklarıdır. Bu sınıflandırma kaynakların internette o an erişilebilir
 olduğunu veya ticari kullanıma hukuk tarafından onaylandığını söylemez.
@@ -92,6 +94,12 @@ saklama ve müşteriye gösterimi `review_required` kalır.
 `telemetry:cowrie-jsonl` ile `telemetry:cape-report-v1` adaptörleri hazırdır
 ancak gerçek ayrı altyapı ve canlı kaynak kabulü beklediği için koşulludur;
 kontrollü parser fixture'ı canlı kaynak sağlığı sayılmaz.
+`credential:lunar-domain-exposure` anahtarsız resmî API ile canlı
+doğrulanmış aktiftir; yalnız domain düzeyinde toplu sayılar taşır ve başarılı
+sıfır sonuç güvenlik hükmü değildir. `darkweb:ail-framework` için XTI içe alma
+sözleşmesi hazırdır, ancak gerçek ayrı AIL sunucusu, izinli kaynak ve canlı
+olay kabulü bulunmadığından koşulludur. AIL'in açık kaynak lisansı, topladığı
+içeriğin kullanım hakkı yerine geçmez.
 
 ## Her manifestte bulunan sözleşme
 
@@ -164,7 +172,17 @@ kaynaklar, sağlık ayrımı, terminal, engine, firma platformu ve çevrimdış�
 kayıpsız ve tekrarsız okudu; ölçüm ağ ve veritabanı kullanmadı. Gerçek kaynak
 kalitesi veya sağlayıcı kotası bu sentetik ölçümden çıkarılamaz.
 
+P11 iki yeni manifesti aynı yönetişim modeline ekledi. Lunar manifesti teknik
+olarak aktif ve gerçek domain isteğiyle doğrulanmıştır; AIL manifesti dış
+altyapı/corpus kabulü beklediği için koşulludur. İki ayrı firma alanındaki
+1.000'er AIL zarfı ölçümü normalize içe alma kapasitesini doğrular, gerçek Tor
+veya forum kapsamını doğrulamaz. Kaynak çalışma kanıtı `darkweb source-runs`
+ve `darkweb source-run-show`, normalize sonuçlar `darkweb source-records` ve
+`darkweb source-record-show` üzerinden okunur.
+
 Ayrıntılı kanıt [P09 teslim kartında](roadmap/P09_DELIVERY.md), ticari veri
 kararları [ticari kaynak incelemesinde](COMMERCIAL_SOURCE_REVIEW.md) ve açık
 bağımlılıklar [NOTES N-052](../NOTES.md#n-052--p09-kaynak-manifesti-ve-canlı-kabul-sınırı)
-altındadır.
+altındadır. P11 kaynağı ve sınırları [P11 teslim kartı](roadmap/P11_DELIVERY.md)
+ile [NOTES N-056](../NOTES.md#n-056--p11-yeraltı-ve-toplu-credential-maruziyet-kaynakları)
+altında ayrıca izlenir.

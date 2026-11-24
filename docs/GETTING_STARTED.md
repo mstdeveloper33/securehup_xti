@@ -1,18 +1,14 @@
 # XTI hızlı başlangıç
 
-0.169.0 için `./setup` PDF bağımlılığını da kurar/doğrular; `./xti migrate`
-eski veriyi yedekleyerek çekirdek 79'a geçirir. Tam metin/PDF, yeniden
-inceleme ve kayıpsız arşiv [bu rehberde](PUBLISHER_REVIEW_RETENTION.md).
-Yeni ücretli API veya anahtar gerekmez.
+**Sürüm 0.193.0 · çekirdek şema 100.** `./setup` normal çalışma ortamını ve
+sabitlenmiş bağımlılıkları kurar; `./xti migrate` eski veriyi değiştirmeden
+önce yedekleyerek güncel şemaya geçirir. P11 Lunar entegrasyonu yeni paket
+veya anahtar istemez. AIL bu kurulumun parçası değildir; yalnız ayrı ve
+yetkili AIL sisteminin ürettiği küçültülmüş zarf sonradan içe alınabilir.
+[P11 kullanımı](DARKWEB_MONITORING.md), tam metin/PDF ve arşiv kullanımı ise
+[yayıncı rehberindedir](PUBLISHER_REVIEW_RETENTION.md).
 
-0.168.0 güncellemesinde mevcut kişisel veri alanında `./xti migrate`
-çalıştır: eski veri önce ayrı dosyaya yedeklenir, çekirdek 78'e geçer.
-Yeni rapor akışı, ilişki/kimlik/görülme ve kaynak karşılaştırması
-[bu rehberde](EVIDENCE_WORKFLOWS.md) örneklenir. Ücretli API veya yeni
-Python paketi gerekmez; RIPEstat ticari veri koşulu ayrı bekler.
-
-
-**Sürüm 0.169.0 · çekirdek şema 79.** Aşağıdaki numaralı adımlar kişisel
+Aşağıdaki numaralı adımlar kişisel
 terminal kullanımını başlatır. Aynı motoru ayrı firma kayıt alanlarıyla
 çalıştırmak için [platform adımlarını](#çok-firmalı-platform-kullanımı) kullan.
 
@@ -51,6 +47,8 @@ kendiliğinden taşımaz. Eski sürüm uyarısı görürsen önce:
 ```
 
 Komut, değişiklikten önce doğrulanmış bir kurtarma yedeği alır.
+0.193.0 P11 kaynak çalışma/kayıt geçmişini şema 100 ile ekler; mevcut dark-web,
+retention, telemetri ve diğer kayıtlar korunur, yeni tablolar boş başlar.
 0.166.0 rapor günlüğünü şema 77 ile ekler; mevcut haber/IOC/karar kayıtları
 korunur. Yeni alan doğrudan güncel şemayla oluşturulur.
 [Rapor sürümleri ve gözlemler](REPORTS_OBSERVATIONS.md).

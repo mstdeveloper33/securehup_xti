@@ -1,5 +1,13 @@
 # Engine okuma sözleşmesi v1
 
+0.193.0 P11 `darkweb.source.runs`, `darkweb.source.run.show`,
+`darkweb.source.records`, `darkweb.source.record.show` ve
+`darkweb.ail.preview` salt-okunur işlemlerini ekler. Okumalar yalnız seçilmiş
+yerel/firma veri alanındaki kalıcı normalize kanıtı sayfalı döndürür; Lunar
+API çağrısı, AIL süreci, Tor bağlantısı veya dosya açma başlatmaz. P11
+yazmaları platform ya da güvenilen işletici terminalindedir.
+[P11 sözleşmesi ve sınırları](DARKWEB_MONITORING.md#firma-platformu-ve-engine).
+
 0.192.0 P08 saklama okumalarını P12 `telemetry_records` ailesine genişletir.
 Arşivlenmiş güncel gövde ve değişmez sürüm gövdeleri `telemetry.record.get`
 tarafından doğrulanarak şeffaf açılır; dış referans veya ikinci okuma
@@ -118,7 +126,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama:** 0.192.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 99.
+**Uygulama:** 0.193.0 · **Sözleşme:** 1 · **Veritabanı şeması:** 100.
 
 `engine` komutu, başka bir uygulamanın XTI'da saklanan kayıtları ortak bir
 JSON biçiminde okuyabilmesini sağlar. İşlemler: arama, kayıt ayrıntısı,

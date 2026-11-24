@@ -1,0 +1,20 @@
+{
+  "contract_version": 1,
+  "source": "ail-framework",
+  "ail_version": "7.1",
+  "ail_commit": "4b94304bcd4d3d08b9e0c0772be4773e6bbbd350",
+  "connector_version": "xti-ail-1",
+  "records": [
+    {
+      "object_reference_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "evidence_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "object_type": "item",
+      "object_subtype": "paste",
+      "network": "tor",
+      "observed_at": "2026-11-24T12:00:00+00:00",
+      "match_kind": "domain",
+      "match_value": "example.com",
+      "claim_type": "data_leak"
+    }
+  ]
+}

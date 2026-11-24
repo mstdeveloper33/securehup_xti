@@ -213,16 +213,16 @@ class MultiSourceCLITests(unittest.TestCase):
         before = self.database.read_bytes()
         report = self.success("sources")
         self.assertEqual(report, self.success("sources", "catalog"))
-        self.assertEqual(report["catalog_count"], 53)
+        self.assertEqual(report["catalog_count"], 55)
         self.assertEqual((len(report["sources"]), report["has_more"], report["next_offset"]),
                          (50, True, 50))
         remaining = self.success("sources", "catalog", "--offset", "50")
-        self.assertEqual((len(remaining["sources"]), remaining["has_more"]), (3, False))
+        self.assertEqual((len(remaining["sources"]), remaining["has_more"]), (5, False))
         catalog = {
             item["identifier"]: item
             for item in (*report["sources"], *remaining["sources"])
         }
-        self.assertEqual(len(catalog), 53)
+        self.assertEqual(len(catalog), 55)
         self.assertEqual(catalog["crt.sh"]["target_contact"], "provider_query")
         self.assertEqual(catalog["explicit-https-head"]["target_contact"], "direct_authorized")
         self.assertEqual(catalog["brand:brightdata-linkedin"]["cost_model"], "paid")

@@ -1,5 +1,27 @@
 # Linux kullanım raporunun değerlendirilmesi
 
+## 0.193.0 — P11 yeraltı kaynağı ve toplu domain maruziyeti
+
+24 Kasım 2026 yerel macOS kabulünde P11/P05/platform/kaynak yönetişimi
+paketinin 49 testi 24,432 saniyede hatasız geçti. Gerçek şema99→100 geçişi,
+kesinti geri dönüşü, kaynak turu/recovery, eski başarılı snapshot'ın korunması,
+firma izolasyonu ve dosya sınırları doğrulandı. İki ayrı firma alanında
+1.000'er AIL zarfı; değişmeyen tekrar, tek değişim ve onar sayfalık
+kayıt/bulgu okumasıyla ölçüldü. Son tekrarda toplam süre 7,913 saniye, en
+yavaş içe alma 0,677075 saniye, en yavaş analiz 0,484509 saniye, tepe RSS
+67,12 MiB ve ağ isteği sıfırdı.
+
+`securehup.com` için gerçek Lunar çağrısı tamamlandı; 2025-11-01–2026-10-31
+penceresinde toplu sayaçlar sıfırdı. Bu başarılı boş kaynaktır, güvenlik
+kanıtı değildir. Gerçek AIL kurulumu ve izinli canlı kaynak bulunmadığından
+AIL kabulü fixture/kapasite düzeyindedir ve haricî bağımlılık olarak açıktır.
+Güncel hızlı repo kapısı 2.354 test / 2.048,506 saniye, tam repo kapısı 3.699
+test / 3.317,377 saniye ile hatasız geçti; her ikisinde yalnız Linux çalışma
+zamanı isteyen dört test macOS'ta beklendiği gibi atlandı. Bu yerel sonuç
+Linux CI veya gerçek Linux kurulum/yükseltme kabulü değildir.
+[P11 teslimi](roadmap/P11_DELIVERY.md),
+[açık sınır](../NOTES.md#n-056--p11-yeraltı-ve-toplu-credential-maruziyet-kaynakları).
+
 ## 0.179.0 — Etkin iş kapasitesi ve kaynak uyuşmazlığı
 
 Kuyruk geçmişi ve kaynak değerlendirmesinin sabit kapsamı, son yerel

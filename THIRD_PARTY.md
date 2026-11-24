@@ -1,5 +1,26 @@
 # Üçüncü Taraf Yazılım ve Veri Bildirimi
 
+**24 Kasım 2026 — P11 / 0.193.0:** Lunar/Webz.io Domain Exposure bir veri
+hizmetidir; XTI yeni SDK veya sağlayıcı kodu almaz, standart kütüphane HTTPS
+adaptörüyle yalnız toplu domain sayaçlarını okur. Resmî belge hizmeti son on
+iki aylık toplu görünüm, ücretsiz/hesapsız/anahtarsız erişim ve bireysel
+credential/PII sunmama sınırıyla açıklar. Sağlayıcının veri ve hizmet
+koşulları XTI kod lisansından ayrıdır; ham yanıt yeniden dağıtılmaz.
+[Açıklama](https://docs.webz.io/docs/webz/dea-introduction),
+[API](https://docs.webz.io/docs/webz/dea-api-reference).
+
+[AIL Framework v7.1](https://github.com/ail-project/ail-framework/releases/tag/v7.1)
+ayrı ve isteğe bağlı yeraltı veri analiz sistemi adayıdır; incelenen commit
+`4b94304bcd4d3d08b9e0c0772be4773e6bbbd350`, lisans
+[AGPL-3.0](https://github.com/ail-project/ail-framework/blob/v7.1/LICENSE)'dır.
+AIL kodu, bağımlılığı, container'ı veya Tor bileşeni XTI'ya kopyalanmaz,
+kurulmaz, çalıştırılmaz ve bu teslimle dağıtılmaz. XTI yalnız işletici
+tarafından hazırlanmış `xti-ail-v1` küçültülmüş JSON zarfını içe alır. AIL
+lisansı, toplanan forum/pazar içeriğinin kullanım hakkı değildir; gerçek
+kurulum, kaynak hakları, yalıtım ve canlı kabul ayrıca bekler.
+[N-056](NOTES.md#n-056--p11-yeraltı-ve-toplu-credential-maruziyet-kaynakları),
+[ticari karar](docs/COMMERCIAL_SOURCE_REVIEW.md).
+
 **23 Kasım 2026 — P12 / 0.191.0:** P12 çekirdeğe yeni Python paketi,
 vendored kod veya otomatik kurulum eklemez. [Cowrie](https://github.com/cowrie/cowrie)
 ayrı SSH/Telnet honeypot altyapısıdır; XTI yalnız resmî JSONL olaylarının

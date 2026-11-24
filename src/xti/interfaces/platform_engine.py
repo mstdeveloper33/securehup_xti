@@ -70,7 +70,7 @@ def platform_manifest():
         'storage_isolation': 'dedicated_company_workspace',
         'authentication_owner': 'consuming_platform',
         'request_network_access': True,
-        'request_network_operations': ['brand.protection.run', 'content.run', 'code.run', 'reports.fetch', 'brand.discovery.run', 'brand.enrichment.run', 'brand.enrichment.refresh', 'brand.tracking.run', 'darkweb.credential.refresh'],
+        'request_network_operations': ['brand.protection.run', 'content.run', 'code.run', 'reports.fetch', 'brand.discovery.run', 'brand.enrichment.run', 'brand.enrichment.refresh', 'brand.tracking.run', 'darkweb.credential.refresh', 'darkweb.lunar.refresh'],
         'social_tracking': {'policy': 'social-tracking-v1', 'scheduling': 'trusted_host_or_foreground_monitor',
                             'paid_sources': False, 'first_run': 'silent_baseline', 'interval_min_seconds': 300},
         'social_enrichment': {'policy': 'social-enrichment-v1', 'provider': 'brightdata',

@@ -29,8 +29,8 @@ class SourceGovernanceServiceTests(unittest.TestCase):
     def test_catalog_is_complete_deterministic_and_explicit_about_gates(self):
         result = self.service.validate()
         self.assertTrue(result["valid"])
-        self.assertEqual(result["source_count"], 53)
-        self.assertEqual(sum(result["integration_states"].values()), 53)
+        self.assertEqual(result["source_count"], 55)
+        self.assertEqual(sum(result["integration_states"].values()), 55)
         self.assertEqual(result["required_provenance_fields"], list(PROVENANCE_FIELDS))
         identifiers = [item.identifier for item in self.service.manifests]
         self.assertEqual(identifiers, sorted(identifiers))
@@ -45,6 +45,10 @@ class SourceGovernanceServiceTests(unittest.TestCase):
         self.assertEqual(by_id["content:bluesky-public-search"].integration_state, "active")
         self.assertEqual(by_id["content:bluesky-public-search"].retention_policy, "review_required")
         self.assertEqual(by_id["credential:xposedornot-password"].retention_policy, "not_enabled")
+        self.assertEqual(by_id["credential:lunar-domain-exposure"].integration_state, "active")
+        self.assertEqual(by_id["credential:lunar-domain-exposure"].cost_model, "free")
+        self.assertEqual(by_id["darkweb:ail-framework"].integration_state, "conditional")
+        self.assertEqual(by_id["darkweb:ail-framework"].cost_model, "local")
         self.assertEqual(by_id["cisa-kev"].integration_state, "disabled")
         self.assertEqual(by_id["surface:nmap"].target_contact, "direct_authorized")
         self.assertIn("probe", by_id["surface:nmap"].quota_policy)

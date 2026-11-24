@@ -3934,7 +3934,7 @@ def run(args: argparse.Namespace) -> int | None:
     elif args.command == "darkweb":
         from xti.interfaces.darkweb_monitoring import execute_darkweb
         data, lines = execute_darkweb(settings.database, args)
-        incomplete = data.get("status") in ("partial", "failed", "interrupted", "running")
+        incomplete = data.get("status") in ("partial", "pending", "failed", "interrupted", "running")
         emit(data, lines, as_json=args.json, ok=not incomplete)
         return 3 if incomplete else 0
     elif args.command == "action":

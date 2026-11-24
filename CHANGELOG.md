@@ -1,5 +1,25 @@
 # Değişiklik Kaydı
 
+## 0.193.0 — 24 Kasım 2026
+
+- Anahtarsız Lunar/Webz.io Domain Exposure kaynağı kesin kuruluş domaini
+  için son 12 aylık toplu credential maruziyet sayı/tarihlerini alır;
+  bireysel credential veya PII saklamaz.
+- Ayrı AIL 7.x sistemi için 2 MiB/1.000 kayıt sınırında, ham içerik ve kaynak
+  adresi kabul etmeyen `xti-ail-v1` önizleme/içe alma sözleşmesi eklendi.
+- Kaynak turu, normalize kayıt ve değişiklik geçmişi hash-zincirli, sayfalı,
+  idempotent, firma kapsamlı ve açık recovery desteklidir.
+- Mevcut P05 analiz, insan incelemesi, inbox, vaka, kuruluş JSON'u, Engine ve
+  Platform yüzeyleri yeni `domain_exposure` ve `underground_mention`
+  adaylarını kullanır; otomatik incident kararı yoktur.
+- Şema99→100 yedekli/atomik geçer ve eski kimlik/sequence değerlerini korur.
+  Kaynak kataloğu 55 manifeste çıktı.
+- Gerçek Lunar kabulü ve iki firma/1.000'er AIL kayıt kapasite kabulü geçti;
+  gerçek AIL kurulumu/seçilmiş yasal kaynak/canlı olay kabulü açık kaldı.
+- Hedefli 49 test ile güncel 2.354 testlik hızlı ve 3.699 testlik tam repo
+  kapıları hatasız geçti; macOS'ta yalnız Linux çalışma zamanı isteyen dört
+  test beklendiği gibi atlandı.
+
 ## 0.179.0 — 20 Kasım 2026
 
 - Ortak profil/kaynak kuyruğunda 10.000 sınırı yalnız bekleyen/çalışan

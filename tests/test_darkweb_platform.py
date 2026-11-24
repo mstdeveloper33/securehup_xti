@@ -14,8 +14,24 @@ from xti.adapters.sqlite_darkweb_monitoring import SQLiteDarkwebRepository
 from xti.adapters.sqlite_organizations import SQLiteOrganizationRepository
 from xti.application.darkweb_monitoring import DarkwebService
 from xti.domain.organizations import normalize_organization_target
+from xti.domain.darkweb_source_intake import lunar_record
 from xti.interfaces.cli import main
 from tests.test_darkweb_monitoring import AT, CredentialSource, FrozenInputs, Secrets
+
+
+class PlatformLunar:
+    def fetch(self, domain):
+        record = lunar_record(domain, "2025-11-01", "2026-10-31", {
+            "total_events": 2, "infostealer_events": 1, "data_breach_events": 1,
+            "employee_events": 1, "client_events": 1,
+            "first_seen": "2026-01-01", "last_seen": "2026-10-01",
+        })
+        return {
+            "provider": "lunar_domain", "mode": "snapshot", "status": "complete",
+            "domain": domain, "source_url": "https://api.lunarcyber.com/domain-exposure",
+            "source_reference": "https://docs.webz.io/docs/webz/dea-introduction",
+            "fetched_at": AT, "content_sha256": "d" * 64, "records": [record],
+        }
 
 
 class DarkwebPlatformTests(unittest.TestCase):
@@ -25,11 +41,13 @@ class DarkwebPlatformTests(unittest.TestCase):
         self.root = Path(temporary.name).resolve() / "platform"
         self.inputs = FrozenInputs()
         self.credential_source = CredentialSource()
+        self.lunar = PlatformLunar()
 
         def make(database, **unused):
             return DarkwebService(
                 SQLiteDarkwebRepository(database), self.inputs,
-                self.credential_source, Secrets(), now=lambda: AT,
+                self.credential_source, Secrets(), domain_exposure_source=self.lunar,
+                now=lambda: AT,
             )
 
         self.enterContext(patch(
@@ -84,6 +102,7 @@ class DarkwebPlatformTests(unittest.TestCase):
         self.assertIn("darkweb.capabilities", described["data"]["operations"])
         self.assertIn("darkweb.profile.add", described["data"]["operations"])
         self.assertIn("darkweb.credential.refresh", described["data"]["request_network_operations"])
+        self.assertIn("darkweb.lunar.refresh", described["data"]["request_network_operations"])
         self.assertEqual(described["data"]["source_jobs"]["execution_version"], 12)
         self.assertIn("darkweb-monitor", described["data"]["source_jobs"]["sources"])
         profile = self.profile()
@@ -99,6 +118,46 @@ class DarkwebPlatformTests(unittest.TestCase):
         self.assertNotEqual(code, 0)
         self.assertEqual(fenced["error"]["code"], "scope_mismatch")
         self.assertEqual(self.credential_source.calls, 0)
+
+    def test_platform_p11_preview_import_refresh_and_tenant_isolation(self):
+        code, response = self.invoke("darkweb.profile.add", {
+            "name": "Platform P11", "organization_id": self.organization.id,
+            "sources": ["lunar_domain", "ail_tracker"], "interval_seconds": 900,
+            "idempotency_key": "p11-profile", "expected_workspace_id": self.alpha.workspace_id,
+        })
+        self.assertEqual(code, 0, response)
+        profile = response["data"]
+        code, lunar = self.invoke("darkweb.lunar.refresh", {
+            "identifier": profile["id"], "domain": "example.com", "expected_revision": 1,
+            "idempotency_key": "p11-lunar", "expected_workspace_id": self.alpha.workspace_id,
+        })
+        self.assertEqual(code, 0, lunar)
+        batch = {
+            "contract_version": 1, "source": "ail-framework", "ail_version": "7.1",
+            "ail_commit": "4b94304bcd4d3d08b9e0c0772be4773e6bbbd350",
+            "connector_version": "xti-ail-1", "records": [{
+                "object_reference_sha256": "b" * 64, "evidence_sha256": "c" * 64,
+                "object_type": "item", "object_subtype": "paste", "network": "tor",
+                "observed_at": AT, "match_kind": "domain", "match_value": "example.com",
+                "claim_type": "data_leak",
+            }],
+        }
+        code, preview = self.invoke("darkweb.ail.preview", {
+            "identifier": profile["id"], "batch": batch,
+        })
+        self.assertEqual(code, 0, preview)
+        code, imported = self.invoke("darkweb.ail.import", {
+            "identifier": profile["id"], "expected_revision": 1,
+            "expected_content_sha256": preview["data"]["content_sha256"], "batch": batch,
+            "idempotency_key": "p11-ail", "expected_workspace_id": self.alpha.workspace_id,
+        })
+        self.assertEqual(code, 0, imported)
+        run_id = imported["data"]["id"]
+        code, hidden = self.invoke(
+            "darkweb.source.run.show", {"identifier": run_id}, company="beta",
+        )
+        self.assertNotEqual(code, 0)
+        self.assertEqual(hidden["error"]["code"], "not_found")
 
     def test_platform_credential_refresh_returns_only_masked_evidence(self):
         profile = self.profile()

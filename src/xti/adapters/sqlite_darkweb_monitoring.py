@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import json
 import re
 import sqlite3
@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from xti.adapters.sqlite import SQLiteAssetRepository, StorageError
 from xti.adapters.sqlite_organization_scope import read_organization_scope
+from xti.domain.assets import ValidationError, normalize_domain
 from xti.domain.darkweb_monitoring import (
     ACTIVE_SOURCES,
     DECISIONS,
@@ -27,6 +28,9 @@ from xti.domain.darkweb_monitoring import (
     profile_definition,
     validate_evidence,
 )
+from xti.domain.darkweb_source_intake import (
+    SOURCE_POLICY, SOURCE_PROVIDERS, SOURCE_RECORD_KINDS,
+)
 from xti.domain.mentions import mention_time
 
 
@@ -36,6 +40,9 @@ MAX_FINDINGS = 10_000
 MAX_CREDENTIAL_RUNS = 10_000
 MAX_CREDENTIAL_ACCOUNTS = 100_000
 MAX_CREDENTIAL_CHANGES = 1_000_000
+MAX_SOURCE_RUNS = 10_000
+MAX_SOURCE_RECORDS = 100_000
+MAX_SOURCE_CHANGES = 1_000_000
 XPOSEDORNOT_DOMAIN_URL = "https://api.xposedornot.com/v1/domain-breaches/"
 
 
@@ -273,6 +280,126 @@ def _credential_chain(previous: str | None, run: dict, changes: list[dict]) -> s
                    "run": body, "changes": changes})
 
 
+def _source_record_state(record: dict, *, active: bool) -> dict:
+    return {
+        "external_key": record["external_key"], "record_kind": record["record_kind"],
+        "target_domain": record["target_domain"], "title": record["title"],
+        "body": record["body"], "body_sha256": record["body_sha256"],
+        "state_sha256": record["state_sha256"], "active": bool(active),
+    }
+
+
+def _source_state(raw: str | None, checksum: str | None) -> dict | None:
+    if raw is None:
+        if checksum is not None:
+            raise StorageError("Dark web kaynak değişiklik hash alanları uyuşmuyor.")
+        return None
+    try:
+        value = json.loads(raw)
+    except (ValueError, RecursionError):
+        raise StorageError("Dark web kaynak değişiklik gövdesi geçersiz.") from None
+    if canonical(value) != raw or digest(value) != checksum:
+        raise StorageError("Dark web kaynak değişiklik gövdesi veya özeti bozuk.")
+    fields = {
+        "external_key", "record_kind", "target_domain", "title", "body",
+        "body_sha256", "state_sha256", "active",
+    }
+    if (
+        not isinstance(value, dict) or set(value) != fields
+        or value["record_kind"] not in SOURCE_RECORD_KINDS
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["external_key"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["body_sha256"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["state_sha256"]))
+        or value["body_sha256"] != digest(value["body"])
+        or value["state_sha256"] != digest(value["body"])
+        or type(value["active"]) is not bool
+    ):
+        raise StorageError("Dark web kaynak değişiklik kanıtı doğrulanamadı.")
+    return value
+
+
+def source_record_in(connection, identifier: str) -> dict:
+    raw = _one(connection, "source_records", identifier)
+    body_checksum = raw["body_sha256"]
+    result = _decoded(raw, "body")
+    result["body_sha256"] = body_checksum
+    if (
+        result["provider"] not in SOURCE_PROVIDERS
+        or result["record_kind"] not in SOURCE_RECORD_KINDS
+        or not isinstance(result["body"], dict)
+        or (result["provider"] == "lunar_domain" and result["record_kind"] != "domain_exposure")
+        or (result["provider"] == "ail_tracker" and result["record_kind"] != "underground_mention")
+        or not re.fullmatch(r"[0-9a-f]{64}", result["external_key"])
+        or result["body_sha256"] != digest(result["body"])
+        or result["body"].get("organization_id", result["organization_id"])
+            != result["organization_id"]
+        or not isinstance(result["title"], str)
+        or not 1 <= len(result["title"]) <= 500
+        or any(not char.isprintable() for char in result["title"])
+    ):
+        raise StorageError("Dark web kaynak kaydı geçersiz.")
+    expected = digest(result["body"])
+    if result["state_sha256"] != expected:
+        raise StorageError("Dark web kaynak kayıt durumu bozuk.")
+    try:
+        if result["target_domain"] is not None:
+            if normalize_domain(result["target_domain"]) != result["target_domain"]:
+                raise ValueError("noncanonical domain")
+        if result["record_kind"] == "domain_exposure":
+            date.fromisoformat(result["body"]["period_to"])
+        else:
+            mention_time(result["body"]["observed_at"])
+        mention_time(result["first_seen"])
+        mention_time(result["last_seen"])
+    except (KeyError, TypeError, ValueError, OverflowError, ValidationError):
+        raise StorageError("Dark web kaynak kaydı zamanı veya domaini geçersiz.") from None
+    return result
+
+
+def _source_chain(previous: str | None, run: dict, changes: list[dict]) -> str:
+    body = {key: run.get(key) for key in (
+        "id", "profile_id", "organization_id", "provider", "mode", "target",
+        "request_sha256", "source_reference", "status", "content_sha256",
+        "snapshot_sha256", "record_count", "added_count", "updated_count",
+        "unchanged_count", "removed_count", "error_code", "error", "started_at",
+        "finished_at", "fetched_at",
+    )}
+    return digest({"policy": SOURCE_POLICY, "previous": previous,
+                   "run": body, "changes": changes})
+
+
+def source_run_in(connection, identifier: str) -> dict:
+    result = _one(connection, "source_runs", identifier)
+    if result["status"] == "running" and (
+        result["finished_at"] is not None or result["chain_sha256"] is not None
+    ):
+        raise StorageError("Çalışan dark web kaynak turu kapanış alanı içeriyor.")
+    if result["status"] != "running" and (
+        result["finished_at"] is None or result["chain_sha256"] is None
+    ):
+        raise StorageError("Kapanmış dark web kaynak turunun bütünlük alanı eksik.")
+    if result["status"] != "running":
+        previous = connection.execute(
+            f"SELECT chain_sha256 FROM {P}source_runs WHERE organization_id=? AND provider=? "
+            "AND status!='running' AND sequence<? ORDER BY sequence DESC LIMIT 1",
+            (result["organization_id"], result["provider"], result["sequence"]),
+        ).fetchone()
+        changes = []
+        for row in connection.execute(
+            f"SELECT record_id,action,before_json,before_sha256,after_json,after_sha256 "
+            f"FROM {P}source_changes WHERE run_id=? ORDER BY sequence", (identifier,),
+        ):
+            changes.append({
+                "record_id": row[0], "action": row[1],
+                "before": _source_state(row[2], row[3]),
+                "after": _source_state(row[4], row[5]),
+            })
+        expected = _source_chain(previous[0] if previous else None, result, changes)
+        if expected != result["chain_sha256"]:
+            raise StorageError("Dark web kaynak geçmişi bütünlük zinciriyle uyuşmuyor.")
+    return result
+
+
 def notification_in(connection, identifier: str) -> dict:
     previous = connection.row_factory
     connection.row_factory = sqlite3.Row
@@ -324,6 +451,16 @@ class SQLiteDarkwebRepository:
         ).fetchone():
             raise DarkwebError("run_in_progress", "Kuruluş için credential kaynak çalışması sürüyor.")
 
+    @staticmethod
+    def _source_idle(connection, organization_id: str, provider: str) -> None:
+        if connection.execute(
+            f"SELECT 1 FROM {P}source_runs WHERE organization_id=? AND provider=? "
+            "AND status='running' LIMIT 1", (organization_id, provider),
+        ).fetchone():
+            raise DarkwebError(
+                "run_in_progress", "Kuruluş için aynı dark web kaynak çalışması sürüyor."
+            )
+
     def _mutation_replay(self, connection, operation: str, values: dict):
         row = connection.execute(
             f"SELECT * FROM {P}mutations WHERE request_key=?", (values["idempotency_key"],),
@@ -345,7 +482,35 @@ class SQLiteDarkwebRepository:
                 )
             return {"profile": profile, "definition": profile["definition"],
                     "organization": profile["organization"], "network_access": False,
-                    "inputs": ["stored_ransomware", "stored_public_breaches", "stored_masked_credentials"]}
+                    "inputs": ["stored_ransomware", "stored_public_breaches",
+                               "stored_masked_credentials", "stored_aggregate_exposure",
+                               "stored_underground_tracker_metadata"]}
+
+    def source_plan(self, identifier: str, provider: str, domain: str | None = None) -> dict:
+        if provider not in SOURCE_PROVIDERS:
+            raise DarkwebError("invalid_parameters", "Dark web kaynak sağlayıcısı bilinmiyor.")
+        with self.connection() as connection:
+            profile = profile_in(connection, identifier)
+            if profile["binding_state"] != "ready":
+                raise DarkwebError("scope_changed", "Dark web profili veya kuruluş kapsamı hazır değil.")
+            if provider not in profile["definition"]["sources"]:
+                raise DarkwebError("source_not_selected", "Kaynak bu dark web profilinde seçili değil.")
+            scope = read_organization_scope(connection, profile["organization_id"])
+            domains = sorted(target.value for target in scope.effective_targets if target.kind == "domain")
+            if domain is not None and domain not in domains:
+                raise DarkwebError(
+                    "scope_changed", "Domain bu kuruluşun etkin ve açıkça bağlı kapsamına ait değil."
+                )
+            return {
+                "profile": profile,
+                "organization": {
+                    "organization_id": profile["organization_id"],
+                    "display_name": profile["organization"]["display_name"],
+                    "aliases": profile["definition"]["aliases"],
+                    "domains": domains,
+                },
+                "domain": domain,
+            }
 
     def replay(self, values: dict) -> dict | None:
         values = parameters(PREFIX + "run", values)
@@ -375,6 +540,13 @@ class SQLiteDarkwebRepository:
                         raise DarkwebError("revision_conflict", "Dark web profil sürümü değişti.")
                     self._idle(connection, identifier)
                     self._credential_idle(connection, current["organization_id"])
+                    if connection.execute(
+                        f"SELECT 1 FROM {P}source_runs WHERE organization_id=? "
+                        "AND status='running' LIMIT 1", (current["organization_id"],),
+                    ).fetchone():
+                        raise DarkwebError(
+                            "run_in_progress", "Kuruluş için dark web kaynak çalışması sürüyor."
+                        )
                 definition = profile_definition({
                     **(current["definition"] if current else {}),
                     **{key: value for key, value in values.items() if key in PROFILE_FIELDS},
@@ -430,8 +602,9 @@ class SQLiteDarkwebRepository:
             elif name == "recover":
                 row = connection.execute(
                     f"SELECT 'analysis' AS kind,id,status FROM {P}runs WHERE id=? UNION ALL "
-                    f"SELECT 'credential',id,status FROM {P}credential_runs WHERE id=?",
-                    (identifier, identifier),
+                    f"SELECT 'credential',id,status FROM {P}credential_runs WHERE id=? UNION ALL "
+                    f"SELECT 'source',id,status FROM {P}source_runs WHERE id=?",
+                    (identifier, identifier, identifier),
                 ).fetchone()
                 if row is None:
                     raise DarkwebError("not_found", "Kurtarılacak dark web çalışması bulunamadı.")
@@ -445,7 +618,7 @@ class SQLiteDarkwebRepository:
                             "finished_at=? WHERE id=?", (canonical(report), digest(report), at, identifier),
                         )
                         result = run_in(connection, identifier)
-                else:
+                elif row["kind"] == "credential":
                     result = credential_run_in(connection, identifier)
                     if result["status"] == "running":
                         previous = connection.execute(
@@ -463,6 +636,25 @@ class SQLiteDarkwebRepository:
                             (at, closed["error_code"], closed["error"], chain, identifier),
                         )
                         result = credential_run_in(connection, identifier)
+                else:
+                    result = source_run_in(connection, identifier)
+                    if result["status"] == "running":
+                        previous = connection.execute(
+                            f"SELECT chain_sha256 FROM {P}source_runs WHERE organization_id=? "
+                            "AND provider=? AND status!='running' AND sequence<? "
+                            "ORDER BY sequence DESC LIMIT 1",
+                            (result["organization_id"], result["provider"], result["sequence"]),
+                        ).fetchone()
+                        closed = {**result, "status": "interrupted", "finished_at": at,
+                                  "error_code": "explicit_operator_recovery",
+                                  "error": "Operatör tamamlanmamış kaynak turunu kapattı."}
+                        chain = _source_chain(previous[0] if previous else None, closed, [])
+                        connection.execute(
+                            f"UPDATE {P}source_runs SET status='interrupted',finished_at=?,"
+                            "error_code=?,error=?,chain_sha256=? WHERE id=?",
+                            (at, closed["error_code"], closed["error"], chain, identifier),
+                        )
+                        result = source_run_in(connection, identifier)
             else:
                 raise DarkwebError("invalid_parameters", "Bilinmeyen dark web yazma işlemi.")
             connection.execute(
@@ -887,6 +1079,291 @@ class SQLiteDarkwebRepository:
             )
             return credential_run_in(connection, run_id)
 
+    def source_replay(self, operation: str, values: dict) -> dict | None:
+        values = parameters(operation, values)
+        with self.connection() as connection:
+            row = connection.execute(
+                f"SELECT id,request_sha256 FROM {P}source_runs WHERE request_key=?",
+                (values["idempotency_key"],),
+            ).fetchone()
+            if row is None:
+                return None
+            if row["request_sha256"] != self._request(operation, values):
+                raise DarkwebError(
+                    "idempotency_conflict", "Tekrar anahtarı farklı dark web kaynak isteğinde kullanılmış."
+                )
+            return source_run_in(connection, row["id"])
+
+    def reserve_source(self, operation: str, values: dict, plan: dict, metadata: dict,
+                       at: str) -> tuple[dict, bool]:
+        values = parameters(operation, values)
+        mention_time(at)
+        provider = metadata["provider"]
+        if provider not in SOURCE_PROVIDERS or metadata["mode"] not in ("snapshot", "incremental"):
+            raise DarkwebError("invalid_parameters", "Dark web kaynak çalışma türü geçersiz.")
+        with self.connection(write=True) as connection:
+            row = connection.execute(
+                f"SELECT id,request_sha256 FROM {P}source_runs WHERE request_key=?",
+                (values["idempotency_key"],),
+            ).fetchone()
+            if row is not None:
+                if row["request_sha256"] != self._request(operation, values):
+                    raise DarkwebError(
+                        "idempotency_conflict", "Tekrar anahtarı farklı dark web kaynak isteğinde kullanılmış."
+                    )
+                return source_run_in(connection, row["id"]), True
+            profile = profile_in(connection, plan["profile"]["id"])
+            if (
+                profile["revision"] != values["expected_revision"]
+                or profile["revision"] != plan["profile"]["revision"]
+                or profile["binding_state"] != "ready"
+                or provider not in profile["definition"]["sources"]
+            ):
+                raise DarkwebError("revision_conflict", "Dark web profili veya kaynak seçimi değişti.")
+            count = connection.execute(
+                f"SELECT COUNT(*) FROM {P}source_runs WHERE organization_id=?",
+                (profile["organization_id"],),
+            ).fetchone()[0]
+            if count >= MAX_SOURCE_RUNS:
+                raise DarkwebError("capacity_exceeded", "Kuruluş kaynak çalışma geçmişi 10.000 sınırına ulaştı.")
+            self._source_idle(connection, profile["organization_id"], provider)
+            identifier = str(uuid4())
+            connection.execute(
+                f"INSERT INTO {P}source_runs (id,profile_id,organization_id,provider,mode,target,"
+                "request_key,request_sha256,source_reference,status,record_count,added_count,"
+                "updated_count,unchanged_count,removed_count,started_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?,'running',0,0,0,0,0,?)",
+                (identifier, profile["id"], profile["organization_id"], provider,
+                 metadata["mode"], metadata["target"], values["idempotency_key"],
+                 self._request(operation, values), metadata["source_reference"], at),
+            )
+            return source_run_in(connection, identifier), False
+
+    @staticmethod
+    def _validate_source_records(records: object, *, provider: str,
+                                 organization_id: str) -> list[dict]:
+        if not isinstance(records, list) or len(records) > 1_000:
+            raise StorageError("Dark web kaynak sonucu 1.000 kayıt sınırını aşıyor.")
+        fields = {
+            "external_key", "kind", "target_domain", "title", "body",
+            "body_sha256", "state_sha256", "observed_at",
+        }
+        result, identities = [], set()
+        for item in records:
+            if (
+                not isinstance(item, dict) or set(item) != fields
+                or not isinstance(item["body"], dict)
+                or item["kind"] not in SOURCE_RECORD_KINDS
+                or not re.fullmatch(r"[0-9a-f]{64}", str(item["external_key"]))
+                or not re.fullmatch(r"[0-9a-f]{64}", str(item["body_sha256"]))
+                or not re.fullmatch(r"[0-9a-f]{64}", str(item["state_sha256"]))
+                or item["body_sha256"] != digest(item["body"])
+                or item["state_sha256"] != digest(item["body"])
+                or item["external_key"] in identities
+            ):
+                raise StorageError("Dark web kaynak sonucu geçersiz veya yineleniyor.")
+            if (
+                (provider == "lunar_domain" and item["kind"] != "domain_exposure")
+                or (provider == "ail_tracker" and item["kind"] != "underground_mention")
+                or item["body"].get("organization_id", organization_id) != organization_id
+            ):
+                raise StorageError("Dark web kaynak sonucu sağlayıcı veya kuruluşla uyuşmuyor.")
+            if (
+                not isinstance(item["title"], str) or not 1 <= len(item["title"]) <= 500
+                or any(not char.isprintable() for char in item["title"])
+                or not isinstance(item["observed_at"], str)
+            ):
+                raise StorageError("Dark web kaynak başlığı veya zamanı geçersiz.")
+            try:
+                if item["target_domain"] is not None:
+                    if normalize_domain(item["target_domain"]) != item["target_domain"]:
+                        raise ValueError("noncanonical domain")
+                if item["kind"] == "domain_exposure":
+                    date.fromisoformat(item["observed_at"])
+                else:
+                    mention_time(item["observed_at"])
+            except (ValueError, TypeError, OverflowError, ValidationError):
+                raise StorageError("Dark web kaynak domaini veya gözlem zamanı geçersiz.") from None
+            identities.add(item["external_key"])
+            result.append(item)
+        return sorted(result, key=lambda item: item["external_key"])
+
+    def finish_source(self, run_id: str, response: dict, at: str) -> dict:
+        mention_time(at)
+        with self.connection(write=True) as connection:
+            run = source_run_in(connection, run_id)
+            if run["status"] != "running":
+                return run
+            if (
+                not isinstance(response, dict)
+                or response.get("provider") != run["provider"]
+                or response.get("mode") != run["mode"]
+                or response.get("source_reference") != run["source_reference"]
+                or response.get("status") not in ("pending", "complete")
+                or not re.fullmatch(r"[0-9a-f]{64}", str(response.get("content_sha256", "")))
+            ):
+                raise StorageError("Dark web kaynak makbuzu çalışma kapsamıyla uyuşmuyor.")
+            records = self._validate_source_records(
+                response.get("records"), provider=run["provider"],
+                organization_id=run["organization_id"],
+            )
+            if response["status"] == "pending" and records:
+                raise StorageError("Hazırlanmakta olan kaynak raporu kayıt taşıyamaz.")
+            try:
+                fetched_at = mention_time(response.get("fetched_at"))
+            except (TypeError, ValueError, OverflowError, ValidationError):
+                raise StorageError("Dark web kaynak alım zamanı geçersiz.") from None
+            changes = []
+            counts = {"added": 0, "updated": 0, "unchanged": 0, "removed": 0}
+            if response["status"] == "complete":
+                if run["provider"] == "lunar_domain":
+                    old_rows = connection.execute(
+                        f"SELECT id FROM {P}source_records WHERE organization_id=? AND provider=? "
+                        "AND target_domain=? ORDER BY sequence LIMIT ?",
+                        (run["organization_id"], run["provider"], run["target"],
+                         MAX_SOURCE_RECORDS + 1),
+                    ).fetchall()
+                else:
+                    old_rows = connection.execute(
+                        f"SELECT id FROM {P}source_records WHERE organization_id=? AND provider=? "
+                        "ORDER BY sequence LIMIT ?",
+                        (run["organization_id"], run["provider"], MAX_SOURCE_RECORDS + 1),
+                    ).fetchall()
+                if len(old_rows) > MAX_SOURCE_RECORDS:
+                    raise DarkwebError("capacity_exceeded", "Dark web kaynak kaydı 100.000 sınırını aşıyor.")
+                old_records = [source_record_in(connection, row[0]) for row in old_rows]
+                old_by_key = {row["external_key"]: row for row in old_records}
+                if len(old_by_key) != len(old_records):
+                    raise StorageError("Dark web kaynak dış kimliği tekil değil.")
+                for item in records:
+                    old = old_by_key.get(item["external_key"])
+                    body_json = canonical(item["body"])
+                    if old is None:
+                        if connection.execute(
+                            f"SELECT COUNT(*) FROM {P}source_records WHERE organization_id=?",
+                            (run["organization_id"],),
+                        ).fetchone()[0] >= MAX_SOURCE_RECORDS:
+                            raise DarkwebError("capacity_exceeded", "Kuruluş kaynak kaydı 100.000 sınırına ulaştı.")
+                        record_id, action, before = str(uuid4()), "added", None
+                        connection.execute(
+                            f"INSERT INTO {P}source_records (id,organization_id,provider,external_key,"
+                            "record_kind,target_domain,title,body_json,body_sha256,state_sha256,active,"
+                            "first_run_id,last_run_id,first_seen,last_seen) "
+                            "VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?,?,?)",
+                            (record_id, run["organization_id"], run["provider"],
+                             item["external_key"], item["kind"], item["target_domain"],
+                             item["title"], body_json, item["body_sha256"], item["state_sha256"],
+                             run_id, run_id, at, at),
+                        )
+                    elif not old["active"] or old["state_sha256"] != item["state_sha256"]:
+                        record_id, action = old["id"], "updated"
+                        before = _source_record_state(old, active=old["active"])
+                        connection.execute(
+                            f"UPDATE {P}source_records SET record_kind=?,target_domain=?,title=?,"
+                            "body_json=?,body_sha256=?,state_sha256=?,active=1,last_run_id=?,last_seen=? "
+                            "WHERE id=?",
+                            (item["kind"], item["target_domain"], item["title"], body_json,
+                             item["body_sha256"], item["state_sha256"], run_id, at, record_id),
+                        )
+                    else:
+                        counts["unchanged"] += 1
+                        connection.execute(
+                            f"UPDATE {P}source_records SET last_run_id=?,last_seen=? WHERE id=?",
+                            (run_id, at, old["id"]),
+                        )
+                        continue
+                    stored = source_record_in(connection, record_id)
+                    after = _source_record_state(stored, active=True)
+                    changes.append({"record_id": record_id, "action": action,
+                                    "before": before, "after": after})
+                    counts[action] += 1
+                if run["mode"] == "snapshot":
+                    incoming = {item["external_key"] for item in records}
+                    for old in old_records:
+                        if old["active"] and old["external_key"] not in incoming:
+                            before = _source_record_state(old, active=True)
+                            connection.execute(
+                                f"UPDATE {P}source_records SET active=0,last_run_id=? WHERE id=?",
+                                (run_id, old["id"]),
+                            )
+                            after = _source_record_state(old, active=False)
+                            changes.append({"record_id": old["id"], "action": "removed",
+                                            "before": before, "after": after})
+                            counts["removed"] += 1
+                if connection.execute(
+                    f"SELECT COUNT(*) FROM {P}source_changes",
+                ).fetchone()[0] + len(changes) > MAX_SOURCE_CHANGES:
+                    raise DarkwebError("capacity_exceeded", "Dark web kaynak değişikliği sınırı aşıldı.")
+                for change in changes:
+                    before, after = change["before"], change["after"]
+                    connection.execute(
+                        f"INSERT INTO {P}source_changes (id,run_id,record_id,action,before_json,"
+                        "before_sha256,after_json,after_sha256,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+                        (str(uuid4()), run_id, change["record_id"], change["action"],
+                         canonical(before) if before is not None else None,
+                         digest(before) if before is not None else None,
+                         canonical(after) if after is not None else None,
+                         digest(after) if after is not None else None, at),
+                    )
+            active_rows = connection.execute(
+                f"SELECT id FROM {P}source_records WHERE organization_id=? AND provider=? "
+                "AND active=1 ORDER BY external_key LIMIT ?",
+                (run["organization_id"], run["provider"], MAX_SOURCE_RECORDS + 1),
+            ).fetchall()
+            if len(active_rows) > MAX_SOURCE_RECORDS:
+                raise DarkwebError("capacity_exceeded", "Etkin dark web kaynak kapsamı sınırı aşıyor.")
+            active_snapshot = [
+                _source_record_state(source_record_in(connection, row[0]), active=True)
+                for row in active_rows
+            ]
+            closed = {
+                **run, "status": response["status"],
+                "content_sha256": response["content_sha256"],
+                "snapshot_sha256": digest(active_snapshot), "record_count": len(records),
+                "added_count": counts["added"], "updated_count": counts["updated"],
+                "unchanged_count": counts["unchanged"], "removed_count": counts["removed"],
+                "error_code": None, "error": None, "finished_at": at,
+                "fetched_at": fetched_at,
+            }
+            previous = connection.execute(
+                f"SELECT chain_sha256 FROM {P}source_runs WHERE organization_id=? AND provider=? "
+                "AND status!='running' AND sequence<? ORDER BY sequence DESC LIMIT 1",
+                (run["organization_id"], run["provider"], run["sequence"]),
+            ).fetchone()
+            chain_changes = [{key: change[key] for key in ("record_id", "action", "before", "after")}
+                             for change in changes]
+            chain = _source_chain(previous[0] if previous else None, closed, chain_changes)
+            connection.execute(
+                f"UPDATE {P}source_runs SET status=?,content_sha256=?,snapshot_sha256=?,"
+                "record_count=?,added_count=?,updated_count=?,unchanged_count=?,removed_count=?,"
+                "finished_at=?,fetched_at=?,chain_sha256=? WHERE id=?",
+                (closed["status"], closed["content_sha256"], closed["snapshot_sha256"],
+                 closed["record_count"], counts["added"], counts["updated"],
+                 counts["unchanged"], counts["removed"], at, fetched_at, chain, run_id),
+            )
+            return source_run_in(connection, run_id)
+
+    def fail_source(self, run_id: str, code: str, message: str, at: str) -> dict:
+        mention_time(at)
+        code, message = str(code)[:80], " ".join(str(message).split())[:500]
+        with self.connection(write=True) as connection:
+            run = source_run_in(connection, run_id)
+            if run["status"] != "running":
+                return run
+            closed = {**run, "status": "failed", "error_code": code,
+                      "error": message, "finished_at": at}
+            previous = connection.execute(
+                f"SELECT chain_sha256 FROM {P}source_runs WHERE organization_id=? AND provider=? "
+                "AND status!='running' AND sequence<? ORDER BY sequence DESC LIMIT 1",
+                (run["organization_id"], run["provider"], run["sequence"]),
+            ).fetchone()
+            chain = _source_chain(previous[0] if previous else None, closed, [])
+            connection.execute(
+                f"UPDATE {P}source_runs SET status='failed',error_code=?,error=?,finished_at=?,"
+                "chain_sha256=? WHERE id=?", (code, message, at, chain, run_id),
+            )
+            return source_run_in(connection, run_id)
+
     def _latest_run(self, connection, profile_id: str, run_id: str | None = None) -> dict:
         if run_id:
             run = run_in(connection, run_id)
@@ -915,13 +1392,24 @@ class SQLiteDarkwebRepository:
                  "free_personal_low_volume": True,
                  "commercial_terms_review_required": True,
                  "raw_alias_persistence": False},
+                {"id": "lunar_domain", "class": "aggregate_domain_exposure",
+                 "network_in_run": True, "api_key_required": False,
+                 "previous_12_months": True, "individual_credentials_returned": False,
+                 "explicit_refresh_only": True},
+                {"id": "ail_tracker", "class": "external_underground_sensor",
+                 "network_in_run": False, "separate_installation_required": True,
+                 "normalized_import_only": True, "raw_content_persistence": False,
+                 "live_acceptance_requires_external_instance": True},
             ],
             "kinds": list(KINDS), "decisions": list(DECISIONS),
             "reads": list(__import__("xti.domain.darkweb_monitoring", fromlist=["READS"]).READS),
             "writes": list(__import__("xti.domain.darkweb_monitoring", fromlist=["WRITES"]).WRITES),
             "limits": {"findings_per_profile": MAX_FINDINGS,
                        "credential_accounts_per_organization_domain": MAX_CREDENTIAL_ACCOUNTS,
-                       "credential_runs_per_organization": MAX_CREDENTIAL_RUNS},
+                       "credential_runs_per_organization": MAX_CREDENTIAL_RUNS,
+                       "source_runs_per_organization": MAX_SOURCE_RUNS,
+                       "source_records_per_organization": MAX_SOURCE_RECORDS,
+                       "ail_records_per_import": 1_000},
             "password_check": {
                 "provider": "xposedornot_passwords",
                 "persistence": False,
@@ -935,6 +1423,8 @@ class SQLiteDarkwebRepository:
                 "Public source claims are review candidates, not verified breaches.",
                 "XposedOrNot verified-domain addresses are pseudonymized in memory before storage.",
                 "No password, token, cookie, raw email alias or leak-site content is stored.",
+                "Lunar stores only aggregate counts and dates, never individual credentials.",
+                "AIL import stores no source address or raw page body and remains a source claim.",
                 "Legacy HIBP records remain readable but HIBP is not an active profile source.",
             ],
         }
@@ -971,6 +1461,10 @@ class SQLiteDarkwebRepository:
                 return evidence_in(connection, values["identifier"])
             if name == "credential.run.show":
                 return credential_run_in(connection, values["identifier"])
+            if name == "source.run.show":
+                return source_run_in(connection, values["identifier"])
+            if name == "source.record.show":
+                return source_record_in(connection, values["identifier"])
             if name == "report":
                 profile = profile_in(connection, values["profile_id"])
                 run = self._latest_run(connection, profile["id"], values.get("run_id"))
@@ -993,24 +1487,46 @@ class SQLiteDarkwebRepository:
                     f"SELECT id FROM {P}credential_runs WHERE profile_id=? ORDER BY sequence DESC LIMIT 1",
                     (profile["id"],),
                 ).fetchone()
+                source_status = {}
+                for provider in SOURCE_PROVIDERS:
+                    row = connection.execute(
+                        f"SELECT id FROM {P}source_runs WHERE profile_id=? AND provider=? "
+                        "ORDER BY sequence DESC LIMIT 1", (profile["id"], provider),
+                    ).fetchone()
+                    source_status[provider] = source_run_in(connection, row[0]) if row else {
+                        "provider": provider, "status": "not_checked",
+                    }
                 return {"profile": profile, "latest_run": public_run(run), "finding_counts": counts,
                         "observation_counts": observations, "pending_review_count": pending,
                         "latest_credential_run": credential_run_in(connection, latest_credential[0])
                             if latest_credential else None,
+                        "source_status": source_status,
                         "automatic_incident": False,
                         "notes": ["Claims and exposure metadata require analyst review.",
                                   "Missing results do not prove absence or safety."]}
 
             tables = {"profiles": "profiles", "runs": "runs", "findings": "findings",
                       "reviews": "reviews", "changes": "changes",
-                      "credential.runs": "credential_runs"}
+                      "credential.runs": "credential_runs", "source.runs": "source_runs",
+                      "source.records": "source_records"}
             table = tables.get(name)
             if table is None:
                 raise DarkwebError("invalid_parameters", "Bilinmeyen dark web okuma işlemi.")
             clause, args = "1=1", []
             if "profile_id" in values:
-                clause += " AND " + ("id" if table == "profiles" else "profile_id") + "=?"
-                args.append(values["profile_id"])
+                if table == "source_records":
+                    profile = profile_in(connection, values["profile_id"])
+                    clause += " AND organization_id=?"
+                    args.append(profile["organization_id"])
+                else:
+                    clause += " AND " + ("id" if table == "profiles" else "profile_id") + "=?"
+                    args.append(values["profile_id"])
+            if name in ("source.runs", "source.records") and "provider" in values:
+                clause += " AND provider=?"
+                args.append(values["provider"])
+            if name == "source.records" and "record_kind" in values:
+                clause += " AND record_kind=?"
+                args.append(values["record_kind"])
             if name == "reviews":
                 clause += " AND finding_id=?"
                 args.append(values["identifier"])
@@ -1033,7 +1549,9 @@ class SQLiteDarkwebRepository:
             more = len(rows) > values["limit"]
             rows = rows[:values["limit"]]
             loader = {"profiles": profile_in, "runs": run_in, "findings": finding_in,
-                      "changes": change_in, "credential.runs": credential_run_in}.get(name)
+                      "changes": change_in, "credential.runs": credential_run_in,
+                      "source.runs": source_run_in,
+                      "source.records": source_record_in}.get(name)
             items, size = [], 0
             for row in rows:
                 item = loader(connection, row["id"]) if loader else dict(row)
@@ -1079,13 +1597,23 @@ def company_in(connection, organization_id: str, *, offset: int = 0, limit: int 
                 f"SELECT id FROM {P}credential_runs WHERE profile_id=? ORDER BY sequence DESC LIMIT 1",
                 (profile["id"],),
             ).fetchone()
+            source_status = {}
+            for provider in SOURCE_PROVIDERS:
+                source = connection.execute(
+                    f"SELECT id FROM {P}source_runs WHERE profile_id=? AND provider=? "
+                    "ORDER BY sequence DESC LIMIT 1", (profile["id"], provider),
+                ).fetchone()
+                source_status[provider] = source_run_in(connection, source[0]) if source else {
+                    "provider": provider, "status": "not_checked",
+                }
             profiles.append({"id": profile["id"], "name": profile["definition"]["name"],
                 "revision": profile["revision"], "binding_state": profile["binding_state"],
                 "last_run_id": latest["id"] if latest else None,
                 "last_status": latest["status"] if latest else "not_checked",
                 "last_checked_at": (latest["finished_at"] or latest["started_at"]) if latest else None,
                 "source_coverage": (latest.get("report") or {}).get("source_coverage") if latest else None,
-                "credential_status": credential_run_in(connection, credential[0]) if credential else None})
+                "credential_status": credential_run_in(connection, credential[0]) if credential else None,
+                "external_source_status": source_status})
         items, byte_count = [], 0
         for row in finding_rows[:effective]:
             item = finding_in(connection, row[0])

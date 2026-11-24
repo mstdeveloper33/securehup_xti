@@ -1,4 +1,4 @@
-"""Schema94: XposedOrNot provenance plus legacy-readable credential history."""
+"""Schema100: P11 aggregate exposure and minimized AIL source history."""
 
 from xti.adapters.cti_analysis_schema import CASE_EVIDENCE_DDL as PREVIOUS_CASE_DDL
 from xti.adapters.case_public_notice_schema import CASE_EVIDENCE_COLUMNS, CASE_EVIDENCE_INDEX_DDL
@@ -46,10 +46,10 @@ DEFINITIONS = {
         ("id", "TEXT NOT NULL UNIQUE"),
         ("profile_id", f"TEXT NOT NULL REFERENCES {P}profiles(id) ON DELETE RESTRICT"),
         ("candidate_key", "TEXT NOT NULL"),
-        ("kind", "TEXT NOT NULL CHECK(kind IN ('ransomware_claim','breach_notice','credential_exposure'))"),
+        ("kind", "TEXT NOT NULL CHECK(kind IN ('ransomware_claim','breach_notice','credential_exposure','domain_exposure','underground_mention'))"),
         ("target_kind", "TEXT NOT NULL CHECK(target_kind IN ('organization','supplier'))"),
         ("target_id", "TEXT NOT NULL"),
-        ("source_key", "TEXT NOT NULL CHECK(source_key IN ('ransomlook','threatcluster','hibp_public','hibp_domain','xposedornot_domain'))"),
+        ("source_key", "TEXT NOT NULL CHECK(source_key IN ('ransomlook','threatcluster','hibp_public','hibp_domain','xposedornot_domain','lunar_domain','ail_tracker'))"),
         ("evidence_id", f"TEXT NOT NULL REFERENCES {P}evidence(id) ON DELETE RESTRICT"),
         ("last_run_id", f"TEXT NOT NULL REFERENCES {P}runs(id) ON DELETE RESTRICT"),
         ("profile_revision", "INTEGER NOT NULL"),
@@ -143,6 +143,59 @@ DEFINITIONS = {
         ("after_sha256", "TEXT"),
         ("created_at", "TEXT NOT NULL"),
     ],
+    "source_runs": [
+        ("id", "TEXT NOT NULL UNIQUE"),
+        ("profile_id", f"TEXT NOT NULL REFERENCES {P}profiles(id) ON DELETE RESTRICT"),
+        ("organization_id", "TEXT NOT NULL REFERENCES organizations(id) ON DELETE RESTRICT"),
+        ("provider", "TEXT NOT NULL CHECK(provider IN ('lunar_domain','ail_tracker'))"),
+        ("mode", "TEXT NOT NULL CHECK(mode IN ('snapshot','incremental'))"),
+        ("target", "TEXT NOT NULL"),
+        ("request_key", "TEXT NOT NULL UNIQUE"),
+        ("request_sha256", "TEXT NOT NULL"),
+        ("source_reference", "TEXT NOT NULL"),
+        ("status", "TEXT NOT NULL CHECK(status IN ('running','pending','complete','failed','interrupted'))"),
+        ("content_sha256", "TEXT"),
+        ("snapshot_sha256", "TEXT"),
+        ("record_count", "INTEGER NOT NULL"),
+        ("added_count", "INTEGER NOT NULL"),
+        ("updated_count", "INTEGER NOT NULL"),
+        ("unchanged_count", "INTEGER NOT NULL"),
+        ("removed_count", "INTEGER NOT NULL"),
+        ("error_code", "TEXT"),
+        ("error", "TEXT"),
+        ("started_at", "TEXT NOT NULL"),
+        ("finished_at", "TEXT"),
+        ("fetched_at", "TEXT"),
+        ("chain_sha256", "TEXT"),
+    ],
+    "source_records": [
+        ("id", "TEXT NOT NULL UNIQUE"),
+        ("organization_id", "TEXT NOT NULL REFERENCES organizations(id) ON DELETE RESTRICT"),
+        ("provider", "TEXT NOT NULL CHECK(provider IN ('lunar_domain','ail_tracker'))"),
+        ("external_key", "TEXT NOT NULL"),
+        ("record_kind", "TEXT NOT NULL CHECK(record_kind IN ('domain_exposure','underground_mention'))"),
+        ("target_domain", "TEXT"),
+        ("title", "TEXT NOT NULL"),
+        ("body_json", "TEXT NOT NULL"),
+        ("body_sha256", "TEXT NOT NULL"),
+        ("state_sha256", "TEXT NOT NULL"),
+        ("active", "INTEGER NOT NULL CHECK(active IN (0,1))"),
+        ("first_run_id", f"TEXT NOT NULL REFERENCES {P}source_runs(id) ON DELETE RESTRICT"),
+        ("last_run_id", f"TEXT NOT NULL REFERENCES {P}source_runs(id) ON DELETE RESTRICT"),
+        ("first_seen", "TEXT NOT NULL"),
+        ("last_seen", "TEXT NOT NULL"),
+    ],
+    "source_changes": [
+        ("id", "TEXT NOT NULL UNIQUE"),
+        ("run_id", f"TEXT NOT NULL REFERENCES {P}source_runs(id) ON DELETE RESTRICT"),
+        ("record_id", f"TEXT NOT NULL REFERENCES {P}source_records(id) ON DELETE RESTRICT"),
+        ("action", "TEXT NOT NULL CHECK(action IN ('added','updated','removed'))"),
+        ("before_json", "TEXT"),
+        ("before_sha256", "TEXT"),
+        ("after_json", "TEXT"),
+        ("after_sha256", "TEXT"),
+        ("created_at", "TEXT NOT NULL"),
+    ],
 }
 DEFINITIONS = {P + key: value for key, value in DEFINITIONS.items()}
 COMPOSITE = {
@@ -151,6 +204,8 @@ COMPOSITE = {
     P + "reviews": ("finding_id", "revision"),
     P + "credential_accounts": ("organization_id", "domain", "identity_hmac"),
     P + "credential_changes": ("run_id", "account_id"),
+    P + "source_records": ("organization_id", "provider", "external_key"),
+    P + "source_changes": ("run_id", "record_id"),
 }
 INDEXES = {
     P + "profile_organization": (P + "profiles", ("organization_id", "sequence")),
@@ -165,6 +220,9 @@ INDEXES = {
     P + "credential_run_scope": (P + "credential_runs", ("organization_id", "domain", "sequence")),
     P + "credential_account_scope": (P + "credential_accounts", ("organization_id", "domain", "active", "sequence")),
     P + "credential_change_run": (P + "credential_changes", ("run_id", "sequence")),
+    P + "source_run_scope": (P + "source_runs", ("organization_id", "provider", "sequence")),
+    P + "source_record_scope": (P + "source_records", ("organization_id", "provider", "active", "sequence")),
+    P + "source_change_run": (P + "source_changes", ("run_id", "sequence")),
 }
 DDL = tuple(
     "CREATE TABLE " + table + " (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
@@ -175,6 +233,22 @@ DDL = tuple(
     "CREATE INDEX " + name + " ON " + table + " (" + ",".join(columns) + ")"
     for name, (table, columns) in INDEXES.items()
 )
+P11_TABLES = frozenset({P + "source_runs", P + "source_records", P + "source_changes"})
+V99_DEFINITIONS = {table: columns for table, columns in DEFINITIONS.items() if table not in P11_TABLES}
+V99_DDL = tuple(
+    statement.replace(
+        "CHECK(kind IN ('ransomware_claim','breach_notice','credential_exposure','domain_exposure','underground_mention'))",
+        "CHECK(kind IN ('ransomware_claim','breach_notice','credential_exposure'))",
+    ).replace(
+        "CHECK(source_key IN ('ransomlook','threatcluster','hibp_public','hibp_domain','xposedornot_domain','lunar_domain','ail_tracker'))",
+        "CHECK(source_key IN ('ransomlook','threatcluster','hibp_public','hibp_domain','xposedornot_domain'))",
+    )
+    for statement in DDL
+    if not any(name in statement for name in P11_TABLES)
+    and not any(name in statement for name in (
+        P + "source_run_scope", P + "source_record_scope", P + "source_change_run",
+    ))
+)
 V93_DDL = tuple(
     statement.replace(
         "CHECK(source_key IN ('ransomlook','threatcluster','hibp_public','hibp_domain','xposedornot_domain'))",
@@ -183,7 +257,7 @@ V93_DDL = tuple(
         "CHECK(provider IN ('hibp_domain','xposedornot_domain'))",
         "CHECK(provider='hibp_domain')",
     )
-    for statement in DDL
+    for statement in V99_DDL
 )
 TABLES = {
     table: [("sequence", "INTEGER", 1, 1)]
@@ -203,6 +277,10 @@ FOREIGN_KEYS = {
     }
     for table, columns in DEFINITIONS.items()
 }
+P11_OBJECTS = frozenset(
+    {(table, "table") for table in P11_TABLES}
+    | {(name, "index") for name, (table, _columns) in INDEXES.items() if table in P11_TABLES}
+)
 
 
 def _validate(connection, statements, *, empty: bool = False) -> None:
@@ -222,6 +300,19 @@ def validate(connection, *, empty: bool = False) -> None:
     _validate(connection, DDL, empty=empty)
 
 
+def validate_v99(connection) -> None:
+    _validate(connection, V99_DDL)
+
+
+def validate_staged_v100(connection) -> None:
+    """Accept an exact future layout only while every P11 table is still empty."""
+    from xti.adapters.schema import SchemaError
+    _validate(connection, DDL)
+    for table in P11_TABLES:
+        if connection.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone():
+            raise SchemaError("Eski şemada P11 dark web kayıtları boş olmalı.")
+
+
 def validate_v93(connection) -> None:
     _validate(connection, V93_DDL)
 
@@ -235,26 +326,30 @@ def migrate_xposedornot(connection) -> None:
         validate(connection)
         return
     except SchemaError:
-        validate_v93(connection)
+        try:
+            validate_v99(connection)
+            return
+        except SchemaError:
+            validate_v93(connection)
 
-    table_statements = [statement for statement in DDL if statement.startswith("CREATE TABLE ")]
+    table_statements = [statement for statement in V99_DDL if statement.startswith("CREATE TABLE ")]
     old_sequences = dict(connection.execute(
         "SELECT name,seq FROM sqlite_sequence WHERE name IN ("
-        + ",".join("?" for _ in DEFINITIONS) + ")",
-        tuple(DEFINITIONS),
+        + ",".join("?" for _ in V99_DEFINITIONS) + ")",
+        tuple(V99_DEFINITIONS),
     ))
-    for table in DEFINITIONS:
-        columns = ["sequence", *(name for name, _declaration in DEFINITIONS[table])]
+    for table in V99_DEFINITIONS:
+        columns = ["sequence", *(name for name, _declaration in V99_DEFINITIONS[table])]
         names = ",".join(columns)
         connection.execute(
             f"CREATE TEMP TABLE xti_xon_{table} AS SELECT {names} FROM {table} ORDER BY sequence"
         )
-    for table in reversed(tuple(DEFINITIONS)):
+    for table in reversed(tuple(V99_DEFINITIONS)):
         connection.execute("DROP TABLE " + table)
-    for statement in DDL:
+    for statement in V99_DDL:
         connection.execute(statement)
-    for table in DEFINITIONS:
-        columns = ["sequence", *(name for name, _declaration in DEFINITIONS[table])]
+    for table in V99_DEFINITIONS:
+        columns = ["sequence", *(name for name, _declaration in V99_DEFINITIONS[table])]
         names = ",".join(columns)
         connection.execute(
             f"INSERT INTO {table} ({names}) SELECT {names} FROM xti_xon_{table} "
@@ -274,8 +369,59 @@ def migrate_xposedornot(connection) -> None:
                     "INSERT INTO sqlite_sequence(name,seq) VALUES (?,?)", (table, preserved),
                 )
         connection.execute("DROP TABLE temp.xti_xon_" + table)
-    if len(table_statements) != len(DEFINITIONS):
+    if len(table_statements) != len(V99_DEFINITIONS):
         raise SchemaError("XposedOrNot geçiş tablosu sayısı beklenen biçimde değil.")
+    validate_v99(connection)
+
+
+def migrate_v100(connection) -> None:
+    """Add P11 history and widen P05 finding constraints without losing row identity."""
+    from xti.adapters.schema import SchemaError
+    if not connection.in_transaction:
+        raise SchemaError("P11 dark web geçişi transaction gerektirir.")
+    try:
+        validate(connection)
+        return
+    except SchemaError:
+        validate_v99(connection)
+
+    old_sequences = dict(connection.execute(
+        "SELECT name,seq FROM sqlite_sequence WHERE name IN ("
+        + ",".join("?" for _ in V99_DEFINITIONS) + ")",
+        tuple(V99_DEFINITIONS),
+    ))
+    for table in V99_DEFINITIONS:
+        columns = ["sequence", *(name for name, _declaration in V99_DEFINITIONS[table])]
+        names = ",".join(columns)
+        connection.execute(
+            f"CREATE TEMP TABLE xti_p11_{table} AS "
+            f"SELECT {names} FROM {table} ORDER BY sequence"
+        )
+    for table in reversed(tuple(V99_DEFINITIONS)):
+        connection.execute("DROP TABLE " + table)
+    for statement in DDL:
+        connection.execute(statement)
+    for table in V99_DEFINITIONS:
+        columns = ["sequence", *(name for name, _declaration in V99_DEFINITIONS[table])]
+        names = ",".join(columns)
+        connection.execute(
+            f"INSERT INTO {table} ({names}) SELECT {names} FROM xti_p11_{table} "
+            "ORDER BY sequence"
+        )
+        if table in old_sequences:
+            current = connection.execute(
+                "SELECT seq FROM sqlite_sequence WHERE name=?", (table,),
+            ).fetchone()
+            preserved = max(old_sequences[table], current[0] if current else 0)
+            if current:
+                connection.execute(
+                    "UPDATE sqlite_sequence SET seq=? WHERE name=?", (preserved, table),
+                )
+            else:
+                connection.execute(
+                    "INSERT INTO sqlite_sequence(name,seq) VALUES (?,?)", (table, preserved),
+                )
+        connection.execute("DROP TABLE temp.xti_p11_" + table)
     validate(connection)
 
 

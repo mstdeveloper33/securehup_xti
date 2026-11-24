@@ -1,22 +1,22 @@
 # XTI özellik kataloğu
 
-**Güncel sürüm:** 0.192.0 · **Çekirdek şema:** 99 · **Son güncelleme:**
-23 Kasım 2026.
+**Güncel sürüm:** 0.193.0 · **Çekirdek şema:** 100 · **Son güncelleme:**
+24 Kasım 2026.
 
 Bu dosya platformda bugün gerçekten kullanılabilen bütün kullanıcı
 yeteneklerinin sade envanteridir; planlanan bir özellik kodu, testi ve gerekli
 canlı kabulü tamamlanmadan “aktif” bölümüne yazılmaz.
 
-Bu sürüm için katalog, terminaldeki **71 ana komut ailesi** ve **644 uç komut**
+Bu sürüm için katalog, terminaldeki **71 ana komut ailesi** ve **651 uç komut**
 ile karşılaştırılmıştır; bir satır aynı amaca hizmet eden listeleme, ayrıntı,
 geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleştirebilir.
 
 | Güncel bölüm | Özellik sayısı |
 |---|---:|
-| Aktif ve kullanılabilir | 391 |
-| Kodu hazır, gereksinim bekliyor | 77 |
+| Aktif ve kullanılabilir | 401 |
+| Kodu hazır, gereksinim bekliyor | 78 |
 | Beklemede, ertelenmiş veya kapsam dışı | 63 |
-| Toplam izlenen özellik/durum | 531 |
+| Toplam izlenen özellik/durum | 542 |
 
 ## Katalog nasıl güncellenecek?
 
@@ -62,7 +62,7 @@ geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleş
 | Kaynak durumlarını ayırma | Hiç çalıştırılmamış, başarılı boş, kısmi, başarısız ve eski başarılı sonuçlar birbirinden farklı gösterilir. |
 | Kaynak bekleme ve kota koruması | Sağlayıcı bekleme süreleri ve oran sınırı kayıtlı tutulur, erken veya gizli tekrar istekleri engellenir. |
 | Pasif kaynak çalışma geçmişi | Son crt.sh/urlscan sorguları ve kayıtlı sağlayıcı beklemeleri `sources history` ile ağsız okunabilir. |
-| Tek sürümlü kaynak manifesti kataloğu | Mevcut 53 connector amaç, erişim, maliyet, kapsam ve sürüm bilgisiyle tek çevrimdışı katalogda listelenir; `sources` aynı sözleşmenin `sources catalog` kısayoludur. |
+| Tek sürümlü kaynak manifesti kataloğu | Mevcut 55 connector amaç, erişim, maliyet, kapsam ve sürüm bilgisiyle tek çevrimdışı katalogda listelenir; `sources` aynı sözleşmenin `sources catalog` kısayoludur. |
 | Kaynak hazırlık durumu | Teknik olarak aktif, açık gereksinim bekleyen ve kullanıcı kararıyla kapalı kaynaklar birbirine karıştırılmadan filtrelenebilir. |
 | Kaynak veri hakkı görünümü | Ticari kullanım, saklama, müşteriye gösterme ve yeniden dağıtım kararı her kaynakta ayrı görülebilir. |
 | Dil ve bölge kaynak filtresi | Manifestler BCP47 dil ve ISO/global bölge alanlarıyla filtrelenebilir; alanın varlığı canlı kapsam iddiası değildir. |
@@ -262,6 +262,13 @@ geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleş
 | Kuruluşa özel pseudonym anahtarı | Aynı hesabın kuruluş içinde takip edilmesini sağlayan ayrı gizli HMAC anahtarı üretilebilir. |
 | Zararsız parola maruziyet kontrolü | Parola yerelde Keccak-512 ile işlenip yalnız 10 karakterlik önek gönderilerek tek seferlik maruziyet sayısı alınabilir. |
 | Eski HIBP credential geçmişini okuma | Önceki şemalarda saklanan HIBP provider kayıtları yeniden sorgulanmadan ve adı değiştirilmeden okunabilir. |
+| Anahtarsız toplu domain maruziyeti | Lunar/Webz.io üzerinden kuruluşa bağlı kesin domainin son 12 aylık employee/client ve breach/infostealer sayı/tarihleri bireysel credential alınmadan yenilenebilir. |
+| Lunar hazırlık ve hata ayrımı | Hazırlanan rapor, başarılı sıfır, yetkisiz, kota, kaynak hatası ve korunan son başarılı snapshot birbirine karıştırılmaz. |
+| P11 kaynak çalışma geçmişi | Lunar ve AIL kaynak turları durum, kapsam, sayı, zaman, hata ve hash zinciriyle sayfalı okunabilir. |
+| P11 kaynak kayıt ayrıntısı | Güncel toplu maruziyet veya yeraltı iddiası kaydı kaynak, gövde özeti, aktiflik ve ilk/son görülme bilgisiyle açılabilir. |
+| AIL zarfı yazmasız önizleme | Güvenilen işletici AIL 7.x metadata zarfını kapsam, alan, boyut, hash ve firma eşleşmesi bakımından kayıt oluşturmadan doğrulayabilir. |
+| AIL zarfı atomik içe alma | Önizleme SHA-256 değeri aynı kalan en fazla 1.000 minimize AIL kaydı idempotent olarak firma alanına alınabilir. |
+| P11 kaynak turu kurtarma | Yarım kalan Lunar veya AIL turu yeni ağ çağrısı ya da veri kaybı olmadan `interrupted` durumuna kapatılabilir. |
 
 ## G. IOC, CTI, ATT&CK ve kaynaklı araştırma
 
@@ -518,6 +525,7 @@ izin, araç, doğrulanmış envanter veya işletim sistemi sağlanmadan canlı s
 | Tavily grup zamanlaması ve devam | Linux zamanlayıcısı veya açık monitor ile anahtar, bütçe ve belirsiz isteği tekrarlamayan kalıcı grup çalışması gerekir. |
 | Bright Data LinkedIn kanıtı | Kullanıcının Bright Data hesabı, API anahtarı ve ücretli dataset erişimi gerekir. |
 | XposedOrNot domain ihlal araması | XposedOrNot API anahtarı ile hesapta doğrulanmış kuruluşa ait domain gerekir. |
+| AIL canlı yeraltı kaynağı | Ayrı ve sertleştirilmiş AIL 7.x kurulumu, seçilmiş yasal forum/pazar/Tor kaynağı, metadata connector'ü ve gerçek tracker olayıyla canlı kabul gerekir. |
 | Telegram kanal izlemesi | Telegram API bilgisi, kullanıcı oturumu ve açıkça seçilmiş erişilebilir kamu kanalı gerekir. |
 | Discord kanal izlemesi | Bot token'ı, seçilmiş sunucu/kanal ve mesaj geçmişi ile içerik izinleri gerekir. |
 | IRC canlı kanal izlemesi | Seçilmiş IRC sunucusu/kanalı ve motor çalışırken açık bağlantı gerekir. |
@@ -650,7 +658,7 @@ veya kullanıcı kararlarında görünür tutuldukları için burada ayrıca lis
 | Otomatik çok dilli çeviri | Özgün metni ve çeviri sürümünü güvenli koruyan çeviri katmanı henüz yoktur. |
 | AI ile yanlış alarm azaltma | İnsan geri bildirimi saklanır ancak model otomatik öğrenip alarm kararını değiştirmez. |
 | AI açıklanabilirlik katmanı | Gelecek model çıktıları için kaynak ve gerekçe zorunluluğu planlıdır ancak model kullanılmamaktadır. |
-| Genel Tor/forum/pazar crawler | Kaynak, yasal kapsam, izolasyon ve saklama hakkı seçilmeden geniş dark web crawler eklenmeyecektir. |
+| Geniş genel Tor/forum/pazar crawler | AIL için güvenli metadata bağlantısı hazırdır; fakat kaynak, yasal kapsam, izolasyon ve saklama hakkı seçilmeden geniş/kendiliğinden crawler üretimde açılmayacaktır. |
 | Stealer-log sağlayıcısı | Credential kaynağı, veri minimizasyonu, bütçe ve yasal amaç seçilmediği için yoktur. |
 | Bütün sosyal medya gönderilerini tarama | Platform API erişimleri ve ticari koşullar olmadan genel sosyal akış izleme yoktur. |
 | Bütün interneti tarama | Motor seçilmiş kaynak ve yetkili hedeflerle sınırlıdır, küresel internet crawler değildir. |

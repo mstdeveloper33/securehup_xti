@@ -15,20 +15,27 @@ from xti.domain.mentions import mention_time, mention_uuid
 
 POLICY = "darkweb-monitoring-v1"
 PREFIX = "darkweb."
-ACTIVE_SOURCES = ("ransomlook", "threatcluster", "xposedornot_domain")
+ACTIVE_SOURCES = (
+    "ail_tracker", "lunar_domain", "ransomlook", "threatcluster",
+    "xposedornot_domain",
+)
 LEGACY_SOURCES = ("hibp_public", "hibp_domain")
 SOURCES = ACTIVE_SOURCES + LEGACY_SOURCES
-KINDS = ("ransomware_claim", "breach_notice", "credential_exposure")
+KINDS = (
+    "ransomware_claim", "breach_notice", "credential_exposure",
+    "domain_exposure", "underground_mention",
+)
 DECISIONS = ("relevant", "unrelated", "uncertain", "confirmed_incident", "resolved")
 PRIORITIES = ("low", "medium", "high", "critical")
 READS = tuple(PREFIX + name for name in (
     "capabilities", "profiles", "profile.show", "plan", "runs", "run.show",
     "findings", "finding.show", "evidence.show", "reviews", "changes",
-    "credential.runs", "credential.run.show", "report",
+    "credential.runs", "credential.run.show", "source.runs", "source.run.show",
+    "source.records", "source.record.show", "ail.preview", "report",
 ))
 WRITES = tuple(PREFIX + name for name in (
     "profile.add", "profile.update", "run", "review", "recover",
-    "credential.refresh",
+    "credential.refresh", "lunar.refresh", "ail.import",
 ))
 PROFILE_FIELDS = {
     "name", "organization_id", "aliases", "sources", "include_suppliers",
@@ -98,7 +105,10 @@ def profile_definition(value: object, *, allow_legacy: bool = False) -> dict:
 
 def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
     name = operation.removeprefix(PREFIX)
-    pages = {"profiles", "runs", "findings", "reviews", "changes", "credential.runs"}
+    pages = {
+        "profiles", "runs", "findings", "reviews", "changes", "credential.runs",
+        "source.runs", "source.records",
+    }
     allowed: set[str] = set()
     required: set[str] = set()
     if name in ("profile.add", "profile.update"):
@@ -119,11 +129,27 @@ def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
         allowed = required = {"identifier", "idempotency_key"}
     elif name == "credential.refresh":
         allowed = required = {"identifier", "domain", "idempotency_key"}
+    elif name == "lunar.refresh":
+        allowed = required = {
+            "identifier", "domain", "expected_revision", "idempotency_key",
+        }
+    elif name == "ail.import":
+        allowed = required = {
+            "identifier", "expected_revision", "expected_content_sha256",
+            "batch", "idempotency_key",
+        }
+    elif name == "ail.preview":
+        allowed = required = {"identifier", "batch"}
     elif name in ("profile.show", "plan", "run.show", "finding.show",
-                  "evidence.show", "credential.run.show"):
+                  "evidence.show", "credential.run.show", "source.run.show",
+                  "source.record.show"):
         allowed = required = {"identifier"}
     elif name in pages:
         allowed = {"after", "limit", "profile_id"}
+        if name in ("source.runs", "source.records"):
+            allowed |= {"provider"}
+        if name == "source.records":
+            allowed |= {"record_kind"}
         if name == "findings":
             allowed |= {"kind", "decision", "priority", "target_kind"}
         if name == "reviews":
@@ -157,6 +183,27 @@ def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
     if name in pages:
         result["after"] = integer(result.get("after", 0), 0, 2**63 - 1)
         result["limit"] = integer(result.get("limit", 20), 1, 100)
+    if name == "source.runs" and "provider" in result:
+        from xti.domain.darkweb_source_intake import SOURCE_PROVIDERS
+        if result["provider"] not in SOURCE_PROVIDERS:
+            raise ValidationError("Dark web kaynak sağlayıcısı bilinmiyor.")
+    if name == "source.records" and "provider" in result:
+        from xti.domain.darkweb_source_intake import SOURCE_PROVIDERS
+        if result["provider"] not in SOURCE_PROVIDERS:
+            raise ValidationError("Dark web kaynak sağlayıcısı bilinmiyor.")
+    if name == "source.records" and "record_kind" in result:
+        from xti.domain.darkweb_source_intake import SOURCE_RECORD_KINDS
+        if result["record_kind"] not in SOURCE_RECORD_KINDS:
+            raise ValidationError("Dark web kaynak kayıt türü bilinmiyor.")
+    if "expected_content_sha256" in result and not re.fullmatch(
+        "[0-9a-f]{64}", str(result["expected_content_sha256"]),
+    ):
+        raise ValidationError("Dark web içe alma içerik özeti geçersiz.")
+    if name == "ail.import":
+        if not isinstance(result["batch"], dict):
+            raise ValidationError("AIL içe alma zarfı nesne olmalı.")
+        if len(canonical(result["batch"]).encode("ascii")) > 2 * 1024 * 1024:
+            raise ValidationError("AIL içe alma zarfı 2 MiB sınırını aşıyor.")
     if "kind" in result and result["kind"] not in KINDS:
         raise ValidationError("Dark web bulgu türü bilinmiyor.")
     if "decision" in result and result["decision"] not in DECISIONS:
@@ -353,7 +400,9 @@ def validate_snapshot(snapshot: object) -> dict:
     }
     for source in sources:
         if (set(source) != source_fields or source["key"] not in SOURCES
-                or source["latest_status"] not in ("not_checked", "complete", "failed", "interrupted")
+                or source["latest_status"] not in (
+                    "not_checked", "pending", "complete", "failed", "interrupted",
+                )
                 or type(source["successful_snapshot_available"]) is not bool
                 or not isinstance(source["records"], list)):
             raise DarkwebError("invalid_snapshot", "Dark web kaynak snapshot'ı geçersiz.")
@@ -384,9 +433,24 @@ def validate_snapshot(snapshot: object) -> dict:
                 required = {"id", "title", "domain", "breach_date", "added_at",
                             "modified_at", "verified", "fabricated", "sensitive",
                             "data_classes", "state_sha256"}
-            else:
+            elif source["key"] in ("hibp_domain", "xposedornot_domain"):
                 required = {"id", "organization_id", "title", "identity_hmac",
                             "masked_account", "domain", "breaches", "state_sha256"}
+            elif source["key"] == "lunar_domain":
+                required = {
+                    "id", "organization_id", "title", "domain", "period_from",
+                    "period_to", "total_events", "infostealer_events",
+                    "data_breach_events", "employee_events", "client_events",
+                    "first_seen", "last_seen", "state_sha256",
+                }
+            elif source["key"] == "ail_tracker":
+                required = {
+                    "id", "organization_id", "title", "domain", "match_kind",
+                    "match_value", "claim_type", "object_type", "object_subtype",
+                    "network", "observed_at", "evidence_sha256", "state_sha256",
+                }
+            else:
+                raise DarkwebError("invalid_snapshot", "Dark web kaynak kayıt türü bilinmiyor.")
             if set(record) != required:
                 raise DarkwebError("invalid_snapshot", "Dark web kaynak kayıt alanları geçersiz.")
             text(record["title"], 500, 1)
@@ -399,6 +463,25 @@ def validate_snapshot(snapshot: object) -> dict:
                         or not isinstance(record["breaches"], list)
                         or record["breaches"] != sorted(set(record["breaches"]), key=folded)):
                     raise DarkwebError("invalid_snapshot", "Maskeli credential kaynak kaydı geçersiz.")
+            if source["key"] in ("lunar_domain", "ail_tracker"):
+                if record["organization_id"] != definition["organization_id"]:
+                    raise DarkwebError("invalid_snapshot", "Kaynak kaydı kuruluş kapsamıyla uyuşmuyor.")
+            if source["key"] == "lunar_domain":
+                counts = [record[key] for key in (
+                    "total_events", "infostealer_events", "data_breach_events",
+                    "employee_events", "client_events",
+                )]
+                if any(type(value) is not int or value < 0 for value in counts):
+                    raise DarkwebError("invalid_snapshot", "Lunar toplu kaynak sayısı geçersiz.")
+            if source["key"] == "ail_tracker":
+                from xti.domain.darkweb_source_intake import (
+                    AIL_CLAIM_TYPES, AIL_MATCH_KINDS, AIL_NETWORKS,
+                )
+                if (record["match_kind"] not in AIL_MATCH_KINDS
+                        or record["claim_type"] not in AIL_CLAIM_TYPES
+                        or record["network"] not in AIL_NETWORKS
+                        or not re.fullmatch("[0-9a-f]{64}", record["evidence_sha256"])):
+                    raise DarkwebError("invalid_snapshot", "AIL kaynak kaydı geçersiz.")
             record_count += 1
             if record_count > 100_000:
                 raise DarkwebError("invalid_snapshot", "Dark web kaynak kaydı güvenli sınırı aşıyor.")
@@ -428,6 +511,19 @@ def analyse(snapshot: dict) -> dict:
                 domain_match = bool(record_domain and record_domain in domains)
                 if source["key"] in ("hibp_domain", "xposedornot_domain"):
                     domain_match = record.get("organization_id") == definition["organization_id"] and record_domain in domains
+                elif source["key"] == "lunar_domain":
+                    domain_match = (
+                        record.get("organization_id") == definition["organization_id"]
+                        and record_domain in domains
+                    )
+                elif source["key"] == "ail_tracker":
+                    scoped = record.get("organization_id") == definition["organization_id"]
+                    if record.get("match_kind") == "domain":
+                        domain_match = scoped and record.get("match_value") in domains
+                        name_match = False
+                    else:
+                        name_match = scoped and cosmetic_name_key(record.get("match_value", "")) in names
+                        domain_match = False
                 if not (name_match or domain_match):
                     continue
                 matches.append((target, name_match, domain_match))
@@ -446,10 +542,31 @@ def analyse(snapshot: dict) -> dict:
                     evidence = {key: record.get(key) for key in (
                         "title", "domain", "breach_date", "added_at", "modified_at",
                         "verified", "fabricated", "sensitive", "data_classes")}
-                else:
+                elif source["key"] in ("hibp_domain", "xposedornot_domain"):
                     kind, priority = "credential_exposure", "high"
                     evidence = {"masked_account": record["masked_account"],
                                 "domain": record["domain"], "breaches": record["breaches"]}
+                elif source["key"] == "lunar_domain":
+                    if record["total_events"] == 0:
+                        continue
+                    kind = "domain_exposure"
+                    priority = "high" if (
+                        record["employee_events"] or record["infostealer_events"]
+                    ) else "medium"
+                    evidence = {key: record[key] for key in (
+                        "domain", "period_from", "period_to", "total_events",
+                        "infostealer_events", "data_breach_events", "employee_events",
+                        "client_events", "first_seen", "last_seen",
+                    )}
+                else:
+                    kind = "underground_mention"
+                    priority = "high" if record["claim_type"] in {
+                        "credential_listing", "data_leak", "access_sale",
+                    } else "medium"
+                    evidence = {key: record[key] for key in (
+                        "match_kind", "match_value", "claim_type", "object_type",
+                        "object_subtype", "network", "observed_at", "evidence_sha256",
+                    )}
                 if target["kind"] == "supplier" and target["criticality"] in ("high", "critical"):
                     priority = "critical" if priority == "high" and target["criticality"] == "critical" else "high"
                 item = _candidate(kind, target, source, record,

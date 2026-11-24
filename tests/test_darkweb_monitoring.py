@@ -17,6 +17,7 @@ from xti.adapters.darkweb_monitoring_schema import (
     DEFINITIONS as DARKWEB_DEFINITIONS,
     PREVIOUS_CASE_DDL,
     V93_DDL,
+    V99_DEFINITIONS,
 )
 from xti.adapters.xposedornot_credentials import XposedOrNotCredentialStore
 from xti.adapters.xposedornot_domain_exposure import (
@@ -657,8 +658,8 @@ class DarkwebMigrationTests(unittest.TestCase):
             with closing(sqlite3.connect(path)) as connection, connection:
                 from tests.case_evidence_v94_fixture import case_evidence_layout_v94
                 case_evidence_layout_v94(connection)
-                for table in DARKWEB_DEFINITIONS:
-                    columns = ["sequence", *(name for name, _ in DARKWEB_DEFINITIONS[table])]
+                for table in V99_DEFINITIONS:
+                    columns = ["sequence", *(name for name, _ in V99_DEFINITIONS[table])]
                     names = ",".join(columns)
                     connection.execute(
                         f"CREATE TEMP TABLE old_{table} AS SELECT {names} FROM {table} ORDER BY sequence"
@@ -667,8 +668,8 @@ class DarkwebMigrationTests(unittest.TestCase):
                     connection.execute("DROP TABLE " + table)
                 for statement in V93_DDL:
                     connection.execute(statement)
-                for table in DARKWEB_DEFINITIONS:
-                    columns = ["sequence", *(name for name, _ in DARKWEB_DEFINITIONS[table])]
+                for table in V99_DEFINITIONS:
+                    columns = ["sequence", *(name for name, _ in V99_DEFINITIONS[table])]
                     names = ",".join(columns)
                     connection.execute(
                         f"INSERT INTO {table} ({names}) SELECT {names} FROM old_{table} "

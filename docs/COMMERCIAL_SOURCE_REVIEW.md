@@ -1,5 +1,18 @@
 # Ticari kaynak ve bileşen kararları
 
+**24 Kasım 2026 — P11 yeraltı/credential kaynak eklemesi:** Katalog 55
+kaynağa çıktı. Lunar/Webz.io Domain Exposure, resmî belgede ücretsiz,
+anahtarsız ve domain düzeyinde toplu maruziyet görünümü olarak tanımlanır;
+XTI yalnız rapor dönemi ve toplu sayaçları saklar. `securehup.com` canlı
+isteği başarılı sıfır sonuçla tamamlandı. AIL Framework v7.1 ayrı AGPL-3.0
+yazılım olarak değerlendirildi; XTI'ya gömülmez, kurulmaz veya bu teslimle
+dağıtılmaz. XTI yalnız işletici tarafından hazırlanmış küçültülmüş ve hash'li
+zarfı kabul eder. AIL yazılım lisansı, taradığı forum/pazar içeriğinin erişim,
+saklama veya müşteriye gösterim hakkını sağlamaz. Bu nedenle Lunar teknik
+olarak aktif, AIL connector'ü gerçek yalıtılmış kurulum, izinli kaynak ve
+canlı kabul bekleyen koşullu kaynaktır. [N-056](../NOTES.md),
+[teslim](roadmap/P11_DELIVERY.md).
+
 **23 Kasım 2026 — P12 telemetri eklemesi:** Katalog 53 kaynağa çıktı.
 `telemetry:xti-sensor-v1` dış veri sağlayıcısı kullanmayan yerel sözleşmedir.
 Cowrie ve CAPEv2 ayrı süreç/altyapı olarak değerlendirilir; XTI bunları
@@ -95,6 +108,7 @@ sözleşmesi birlikte kontrol edilir.
 
 | Kaynak / mevcut kullanım | Saklama | Müşteriye gösterme / kullanım | Yeniden dağıtım ve karar |
 | --- | --- | --- | --- |
+| **Lunar/Webz.io Domain Exposure** — domain için son 12 aylık toplu stealer/ihlal görünümü | Yalnız rapor dönemi ve çalışan/müşteri, infostealer/veri ihlali, toplam olay sayaçları tutulur. Bireysel credential, PII veya ham yanıt saklanmaz. | Başarılı boş sonuç yalnız seçilen kaynak/dönemde eşleşme olmadığını gösterir; “sızıntı yok” hükmü değildir. Kaynak ve alım zamanı gösterilir. | **Mevcut küçültülmüş kapsamla teknik olarak seçildi; ticari açılışta koşullar yeniden doğrulanır.** Ham API/veri yeniden dağıtılmaz. Resmî belge hizmeti ücretsiz, hesapsız ve anahtarsız tanımlar; tanımlı kota olmaması kesintisiz/sınırsız hizmet garantisi değildir. [Açıklama](https://docs.webz.io/docs/webz/dea-introduction), [API](https://docs.webz.io/docs/webz/dea-api-reference). |
 | **Tavily Search** — firma/tedarikçi içerikleri, sosyal aday bağlantıları | Resmî yardım metni çıktı, metadata ve özetlerin kalıcı saklanmasına, yedeklenmesine izin veriyor. Yayıncı metninin hakkı ayrı. Firma alanları ayrı tutulur. | Müşteri uygulamaları, ücretli SaaS ve raporlar açıkça destekleniyor. API anahtarı yalnız sunucuda; kaynak URL'si ve alım zamanı korunur. | **Koşullarıyla seçildi.** API'nin kendisi yeniden satılmaz. Firmalar arası ortak sonuç havuzu bu karara dahil değil; sağlayıcı plan teyidi gerekir. [Kullanım](https://help.tavily.com/articles/5880393096-permitted-use-customer-applications), [saklama](https://help.tavily.com/articles/1612400809-storing-caching-retaining-output), [ana şartlar](https://www.tavily.com/terms). |
 | **Bluesky public AppView** — firma/tedarikçi genel gönderi eşleşmeleri | Teknik profil yalnız genel metin, bağlantı, zaman ve hash'lenmiş kimlik saklar; medya/profil/DM/ham yanıt yoktur. Saklama süresi ve alıntı kapsamı ticari ürün için ayrıca onaylanmadı. | Kişisel teknik kullanım ve canlı erişim doğrulandı. Müşteriye gösterim, kullanıcı içeriği ve ilgili mevzuat/koşullar bakımından ürün/hukuk incelemesi bekler. | **Ticari profilde inceleme bekliyor; yeniden dağıtım kapalı.** [Koşullar](https://bsky.social/about/support/tos), [API](https://docs.bsky.app/docs/api/app-bsky-feed-search-posts), [P10 sınırı](roadmap/P10_DELIVERY.md). |
 | **urlscan Search** — mevcut tarama arşivindeki URL/IP bağlamı | Kişisel kabulde saklama çalışır; müşteriye hizmette saklama/rapor hakları onaylanmış sayılmaz. | Sağlayıcı FAQ'sı ticari ürüne katılan veri için önceden iletişim istiyor. SOC içi araştırma izni ürün entegrasyonuna genellenmez. | **İzin bekliyor — ticari profilde kapalı.** Yalnız arama; yeni tarama gönderimi yok. N-001. [FAQ](https://docs.urlscan.io/pages/faq), [koşullar](https://urlscan.io/terms/). |
@@ -133,6 +147,7 @@ sitelerin/verilerin hakları üstteki tablodan ayrıca değerlendirilir.
 
 | Bileşen / sabit sürüm | Kendi sunucumuzdaki kullanım | Dağıtım / korunan yükümlülük |
 | --- | --- | --- |
+| AIL Framework v7.1 / `4b94304bcd4d3d08b9e0c0772be4773e6bbbd350` | AGPL-3.0 lisanslı ayrı ve yalıtılmış yeraltı veri analiz sistemi adayıdır. XTI yalnız `xti-ail-v1` küçültülmüş zarfını içe alır; AIL'i kurmaz, çalıştırmaz veya Tor'a bağlanmaz. Bu sürümde gerçek AIL canlı kabulü yapılmadı. | XTI ile paketlenmez veya dağıtılmaz. Gerçek kurulum/hizmet sunumu AGPL yükümlülükleri bakımından ayrıca değerlendirilir. Kaynak forum/pazar içeriğinin hakkı yazılım lisansından ayrıdır; yalnız izinli kaynak listesiyle açılır. [Sürüm](https://github.com/ail-project/ail-framework/releases/tag/v7.1), [lisans](https://github.com/ail-project/ail-framework/blob/v7.1/LICENSE), [proje](https://www.ail-project.org/). |
 | Cowrie / ayrı güncel kurulum | Kök BSD lisans koşullarıyla ayrı honeypot sunucusunda değerlendirilir; XTI yalnız seçilmiş JSONL olaylarını normalize eder. Bu sürümde kurulum veya canlı işletim yapılmadı. | XTI ile paketlenmiyor. Dağıtım biçimi, lisans bildirimleri ve müşteri telemetrisinin veri hakkı üretimden önce ayrıca onaylanır. [Lisans](https://github.com/cowrie/cowrie/blob/main/LICENSE.rst), [çıktı sözleşmesi](https://docs.cowrie.org/en/stable/OUTPUT.html). |
 | CAPEv2 / ayrı güncel kurulum | Kök GPLv3 lisanslı ayrı sandbox olarak değerlendirilir; XTI yalnız tamamlanmış raporun izinli özetini alır ve malware çalıştırmaz. Bu sürümde canlı CAPE kurulmadı. | XTI ile paketlenmiyor veya dağıtılmıyor. İmaj/kod dağıtımı, GPL yükümlülüğü, örnek/veri hakkı ve güvenli işletim ayrı inceleme gerektirir. [Lisans](https://github.com/kevoreilly/CAPEv2/blob/master/LICENSE), [sonuçlar](https://capev2.readthedocs.io/en/latest/usage/results.html). |
 | Sherlock 0.16.2 / `a38ba54f…` | MIT; telif/lisans korunarak **seçildi**. | [Sabit lisans](https://github.com/sherlock-project/sherlock/blob/a38ba54fda799cd786a2ab67a50143e1a63169e6/LICENSE). MIT bildirimi kopyalarla korunur. |

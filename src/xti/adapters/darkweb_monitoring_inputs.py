@@ -44,6 +44,16 @@ XPOSEDORNOT_LICENSE = (
     "XposedOrNot terms apply; personal/low-volume free use, commercial product use "
     "requires the applicable provider plan and terms review"
 )
+LUNAR_DOMAIN_NAME = "Lunar/Webz.io aggregate domain exposure"
+LUNAR_DOMAIN_URL = "https://api.lunarcyber.com/domain-exposure"
+LUNAR_DOMAIN_LICENSE = (
+    "Webz.io Domain Exposure API terms: free public aggregate use; abusive traffic may be blocked"
+)
+AIL_TRACKER_NAME = "AIL Framework selected tracker intake"
+AIL_TRACKER_URL = "https://www.ail-project.org/"
+AIL_TRACKER_LICENSE = (
+    "AIL Framework AGPL-3.0; XTI stores only minimized connector metadata and no AIL source code"
+)
 
 
 def _latest_complete(runs):
@@ -159,6 +169,65 @@ def _credential_source(connection, organization_id: str) -> dict:
     }
 
 
+def _managed_source(connection, organization_id: str, provider: str) -> dict:
+    metadata = {
+        "lunar_domain": (LUNAR_DOMAIN_NAME, LUNAR_DOMAIN_URL, LUNAR_DOMAIN_LICENSE),
+        "ail_tracker": (AIL_TRACKER_NAME, AIL_TRACKER_URL, AIL_TRACKER_LICENSE),
+    }
+    name, url, license_ = metadata[provider]
+    latest_row = connection.execute(
+        "SELECT id FROM darkweb_source_runs WHERE organization_id=? AND provider=? "
+        "ORDER BY sequence DESC LIMIT 1", (organization_id, provider),
+    ).fetchone()
+    complete_row = connection.execute(
+        "SELECT id FROM darkweb_source_runs WHERE organization_id=? AND provider=? "
+        "AND status='complete' ORDER BY sequence DESC LIMIT 1", (organization_id, provider),
+    ).fetchone()
+    from xti.adapters.sqlite_darkweb_monitoring import source_record_in, source_run_in
+    latest = source_run_in(connection, latest_row[0]) if latest_row else None
+    complete = source_run_in(connection, complete_row[0]) if complete_row else None
+    records = []
+    if complete is not None:
+        rows = connection.execute(
+            "SELECT id FROM darkweb_source_records "
+            "WHERE organization_id=? AND provider=? AND active=1 "
+            "ORDER BY external_key LIMIT 100001", (organization_id, provider),
+        ).fetchall()
+        if len(rows) > 100_000:
+            raise DarkwebError("scope_too_large", "Dark web kaynak kaydı 100.000 sınırını aşıyor.")
+        for row in rows:
+            stored = source_record_in(connection, row[0])
+            body = stored["body"]
+            if provider == "lunar_domain":
+                records.append({
+                    "id": stored["id"], "organization_id": organization_id,
+                    "title": stored["title"], "domain": stored["target_domain"],
+                    **{key: body[key] for key in (
+                        "period_from", "period_to", "total_events", "infostealer_events",
+                        "data_breach_events", "employee_events", "client_events",
+                        "first_seen", "last_seen",
+                    )}, "state_sha256": stored["state_sha256"],
+                })
+            else:
+                records.append({
+                    "id": stored["id"], "organization_id": organization_id,
+                    "title": stored["title"], "domain": stored["target_domain"],
+                    **{key: body[key] for key in (
+                        "match_kind", "match_value", "claim_type", "object_type",
+                        "object_subtype", "network", "observed_at", "evidence_sha256",
+                    )}, "state_sha256": stored["state_sha256"],
+                })
+    return {
+        "key": provider, "name": name, "url": url, "license": license_,
+        "run_id": complete["id"] if complete else None,
+        "fetched_at": complete["fetched_at"] if complete else None,
+        "latest_status": latest["status"] if latest else "not_checked",
+        "latest_attempt_at": latest["finished_at"] if latest else None,
+        "successful_snapshot_available": complete is not None,
+        "records": records,
+    }
+
+
 class SQLiteDarkwebInputs:
     def __init__(self, path: Path) -> None:
         self.storage = SQLiteAssetRepository(path)
@@ -233,6 +302,9 @@ class SQLiteDarkwebInputs:
                 })
             if "xposedornot_domain" in selected:
                 sources.append(_credential_source(connection, scope.organization.id))
+            for provider in ("lunar_domain", "ail_tracker"):
+                if provider in selected:
+                    sources.append(_managed_source(connection, scope.organization.id, provider))
             count = sum(len(source["records"]) for source in sources)
             if count > MAX_SOURCE_RECORDS:
                 raise DarkwebError("scope_too_large", "Dark web kaynak kapsamı 100.000 kaydı aşıyor.")

@@ -3,6 +3,7 @@
 from contextlib import nullcontext
 import getpass
 import json
+from pathlib import Path
 import time
 from uuid import uuid4
 
@@ -23,7 +24,8 @@ CLI = {name.replace(".", "-"): PREFIX + name for name in (
     "capabilities", "profiles", "profile.add", "profile.update", "profile.show", "plan",
     "run", "runs", "run.show", "findings", "finding.show", "evidence.show", "review",
     "reviews", "changes", "credential.refresh", "credential.runs", "credential.run.show",
-    "report", "recover",
+    "source.runs", "source.run.show", "source.records", "source.record.show",
+    "lunar.refresh", "ail.preview", "ail.import", "report", "recover",
 )}
 
 
@@ -32,12 +34,13 @@ def make_darkweb_service(database, *, config_directory=None):
     from xti.adapters.xposedornot_credentials import XposedOrNotCredentialStore
     from xti.adapters.xposedornot_domain_exposure import XposedOrNotDomainExposureSource
     from xti.adapters.xposedornot_passwords import XposedOrNotPasswordSource
+    from xti.adapters.lunar_domain_exposure import LunarDomainExposureSource
     from xti.adapters.sqlite_darkweb_monitoring import SQLiteDarkwebRepository
     from xti.application.darkweb_monitoring import DarkwebService
     return DarkwebService(
         SQLiteDarkwebRepository(database), SQLiteDarkwebInputs(database),
         XposedOrNotDomainExposureSource(), XposedOrNotCredentialStore(config_directory),
-        XposedOrNotPasswordSource(),
+        XposedOrNotPasswordSource(), LunarDomainExposureSource(),
     )
 
 
@@ -81,11 +84,27 @@ def register_darkweb_parser(commands) -> None:
             parser.add_argument(
                 "domain", help="Kuruluşa açıkça bağlı ve XposedOrNot'ta doğrulanmış domain."
             )
-        if command in ("profiles", "runs", "findings", "reviews", "changes", "credential-runs"):
+        if command == "lunar-refresh":
+            parser.add_argument("identifier", help="Dark web profil kimliği.")
+            parser.add_argument("domain", help="Kuruluşa açıkça bağlı kesin domain.")
+            parser.add_argument("--expected-revision", type=int)
+        if command in ("ail-preview", "ail-import"):
+            parser.add_argument("identifier", help="AIL kaynağı seçilmiş dark web profil kimliği.")
+            parser.add_argument("source", type=Path, help="xti-ail-v1 JSON zarfı dosyasının yolu.")
+            if command == "ail-import":
+                parser.add_argument("--expected-revision", type=int)
+                parser.add_argument("--expected-content-sha256", required=True)
+        if command in ("profiles", "runs", "findings", "reviews", "changes", "credential-runs",
+                       "source-runs", "source-records"):
             parser.add_argument("--after", type=int, default=0)
             parser.add_argument("--limit", type=int, default=20)
             if command != "profiles":
                 parser.add_argument("--profile-id")
+            if command in ("source-runs", "source-records"):
+                parser.add_argument("--provider", choices=("lunar_domain", "ail_tracker"))
+            if command == "source-records":
+                parser.add_argument("--kind", dest="record_kind",
+                                    choices=("domain_exposure", "underground_mention"))
         if command == "findings":
             parser.add_argument("--kind", choices=KINDS)
             parser.add_argument("--decision", choices=DECISIONS)
@@ -159,6 +178,24 @@ def darkweb_lines(data: dict) -> list[str]:
         return [f"Credential kaynak turu: {data['id']} | {data['status']} | {data['domain']}",
                 f"  Maskeli hesap: {data['account_count']} | yeni {data['added_count']} | değişen {data['updated_count']} | kaldırılan {data['removed_count']}",
                 "  Ham alias, parola, token veya cookie saklanmaz ve çıktıya verilmez."]
+    if data.get("ready_to_import") is True:
+        return [
+            f"AIL zarfı doğrulandı: {data['record_count']} kayıt",
+            "İçerik SHA-256: " + data["content_sha256"],
+            "Ham içerik veya kaynak adresi saklanmayacak.",
+        ]
+    if (data.get("provider") in ("lunar_domain", "ail_tracker")
+            and "record_count" in data and "id" in data):
+        return [
+            f"Kaynak turu: {data['id']} | {data['provider']} | {data['status']}",
+            f"Kayıt {data['record_count']} | yeni {data['added_count']} | değişen {data['updated_count']} | kaldırılan {data['removed_count']}",
+            "  Ham credential, kaynak sayfa gövdesi ve Tor adresi saklanmaz.",
+        ]
+    if data.get("record_kind") in ("domain_exposure", "underground_mention"):
+        return [
+            f"{data['id']} | {data['record_kind']} | {safe_text(data['title'])}",
+            f"Kaynak: {data['provider']} | etkin: {data['active']}",
+        ]
     if "finding_counts" in data:
         return ["Dark web raporu: " + safe_text(data["profile"]["definition"]["name"]),
                 "Bulgular: " + safe_text(json.dumps(data["finding_counts"], ensure_ascii=False)),
@@ -221,13 +258,18 @@ def execute_darkweb(database, args):
     operation = args.darkweb_operation
     keys = PROFILE_FIELDS | {"identifier", "domain", "after", "limit", "profile_id", "run_id",
         "kind", "decision", "priority", "target_kind", "evidence_id", "expected_revision",
-        "expected_observation_revision", "enabled", "force", "reason", "idempotency_key"}
+        "expected_observation_revision", "enabled", "force", "reason", "idempotency_key",
+        "expected_content_sha256", "provider", "record_kind"}
     values = {key: getattr(args, key) for key in keys if getattr(args, key, None) is not None}
+    if operation in (PREFIX + "ail.preview", PREFIX + "ail.import"):
+        from xti.adapters.ail_intake_file import read_ail_envelope
+        values["batch"] = read_ail_envelope(args.source)
     if operation in WRITES:
         values.setdefault("idempotency_key", "cli:" + str(uuid4()))
     lock = LocalExecutionLock(database).acquire() if operation in WRITES else nullcontext()
     with lock:
-        if operation in (PREFIX + "profile.update", PREFIX + "run", PREFIX + "review") and "expected_revision" not in values:
+        if operation in (PREFIX + "profile.update", PREFIX + "run", PREFIX + "review",
+                         PREFIX + "lunar.refresh", PREFIX + "ail.import") and "expected_revision" not in values:
             record = service.execute(PREFIX + ("finding.show" if operation == PREFIX + "review" else "profile.show"),
                                      identifier=values["identifier"])
             values["expected_revision"] = record["review_revision"] if operation == PREFIX + "review" else record["revision"]

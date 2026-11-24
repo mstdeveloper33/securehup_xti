@@ -3,6 +3,36 @@
 Bugün kullanılabilen, özel gereksinim bekleyen ve henüz teslim edilmemiş
 bütün yeteneklerin sade listesi [özellik kataloğundadır](FEATURE_CATALOG.md).
 
+**24 Kasım 2026 — 0.193.0, P11 / A02-A07-A10-A13-C06-C07-E01-E03-I03-I04-J01-J03:**
+P11, anahtarsız Lunar/Webz.io toplu domain maruziyetini ve ayrı AIL 7.x
+tracker sisteminden gelen içeriksiz `xti-ail-v1` zarfını mevcut P05 dark-web
+inceleme yaşam döngüsüne bağladı. Lunar yalnız son 12 aylık toplu
+employee/client ve breach/infostealer sayı/tarihlerini saklar. AIL tarafında
+yalnız hash bağlı nesne/kanıt, tür, ağ sınıfı, zaman, kesin kuruluş eşleşmesi
+ve iddia türü kabul edilir; ham sayfa, Tor/I2P adresi, credential, kullanıcı,
+cookie, oturum veya dosya saklanmaz.
+
+Kaynak turu, kayıt ve değişiklik geçmişi hash zincirli, sayfalı, idempotent ve
+firma kapsamlıdır. Pending/başarısız deneme önceki başarılı snapshot'ı silmez;
+yarım tur açık recovery ile kapanır. Mevcut bulgu, insan kararı, inbox, vaka,
+kuruluş JSON'u, Engine ve Platform yeniden kullanılır. Şema99→100 yedekli ve
+atomik geçer; eski profil kimliği/sequence değerleri korunur. Katalog 55
+kaynağa çıktı: 33 aktif, 15 koşullu, 7 kapalı.
+
+Hedefli 49 test 24,432 saniyede hatasız geçti. İki firma/1.000'er AIL kayıt kabulünde
+değişmeyen ikinci tur çoğaltma yapmadı, üçüncü tur yalnız bir kaydı
+güncelledi; son kapasite tekrarı7,913 sn, en yavaş içe alma0,677075 sn,
+analiz0,484509 sn, tepe RSS67,12 MiB ve ağ0 ölçüldü. Güncel hızlı repo
+kapısındaki2.354 ve tam kapıdaki3.699 test hatasız geçti; macOS'ta yalnız
+Linux çalışma zamanı isteyen dört test beklendiği gibi atlandı.
+`securehup.com` gerçek Lunar kabulü 2025-11-01–2026-10-31
+penceresinde sıfır toplu olayla tamamlandı; bu güvenlik kanıtı değildir.
+Gerçek AIL kurulumu, seçilmiş yasal kaynak ve canlı tracker olayı açık dış
+gereksinimdir; gerçek Linux kurulum/yükseltme ve CI kabulü push sonrasına
+aittir. [Kullanım](DARKWEB_MONITORING.md),
+[teslim](roadmap/P11_DELIVERY.md),
+[karar](decisions/0198-minimized-underground-source-intake.md).
+
 **23 Kasım 2026 — 0.192.0, P08/P12 / H05-H07-I03-J01-J03:** P12 normalize
 telemetrisi P08'in kuruluş kapsamlı saklama yaşam döngüsüne eklendi.
 `telemetry_records` artık süre/parti politikası, yazmasız token planı, tek

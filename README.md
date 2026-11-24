@@ -1,5 +1,19 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+**0.193.0 — P11 yeraltı ve credential kaynak genişletme:** Anahtarsız
+Lunar/Webz.io sorgusu, kuruluşa bağlı domain için son 12 aylık toplu
+employee/client ve breach/infostealer maruziyetini bireysel credential veya
+PII saklamadan gösterir. Ayrı işletilen AIL 7.x sistemi için ham sayfa,
+Tor/I2P adresi, credential, kullanıcı veya oturum kabul etmeyen hash bağlı
+`xti-ail-v1` önizleme/içe alma sözleşmesi eklendi. Her iki kaynak mevcut
+dark-web bulgu, insan incelemesi, inbox, vaka ve firma JSON yaşam döngüsünü
+kullanır; otomatik incident kararı vermez. Lunar canlı doğrulandı. AIL motor
+bağlantısı hazırdır; gerçek AIL kurulumu, yasal kaynak seçimi ve canlı olay
+kabulü hâlâ dış gereksinimdir.
+[Kullanım](docs/DARKWEB_MONITORING.md),
+[teslim kanıtı](docs/roadmap/P11_DELIVERY.md),
+[mimari karar](docs/decisions/0198-minimized-underground-source-intake.md).
+
 **0.192.0 — P12 telemetri saklama, hold ve geri yükleme:** P08'in kuruluş
 bazlı saklama motoru artık hem birleşik izleme çalışmaları hem de P12 sensör/
 sandbox telemetri kayıtları için çalışır. Eski büyük telemetri gövdeleri
@@ -226,7 +240,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Çalışma sürümü:** 0.192.0 · **Tarih:** 23 Kasım 2026 · **Çekirdek şema:** 99 · **İş kuyruğu:** 4 · **Kaynak işi:** 12.
+**Çalışma sürümü:** 0.193.0 · **Tarih:** 24 Kasım 2026 · **Çekirdek şema:** 100 · **İş kuyruğu:** 4 · **Kaynak işi:** 12.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;

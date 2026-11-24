@@ -13,7 +13,7 @@ belge arşivi kendi mevcut yaşam döngüsünü korur.
 
 ## Güvenli başlangıç
 
-Mevcut veri alanını önce şema 99'a yükselt:
+Mevcut veri alanını önce güncel şema 100'e yükselt:
 
 ```sh
 ./xti migrate
@@ -21,8 +21,10 @@ Mevcut veri alanını önce şema 99'a yükselt:
 ./xti retention catalog
 ```
 
-`migrate`, eski veri alanını değiştirmeden önce kurtarma yedeği üretir. Şema
-98→99 geçişi mevcut P08 politika, hold, arşiv ve audit kimliklerini korur.
+`migrate`, eski veri alanını değiştirmeden önce kurtarma yedeği üretir. P12
+saklama modeli şema98→99 geçişinde mevcut P08 politika, hold, arşiv ve audit
+kimliklerini korur; P11 şema99→100 geçişi bu verileri değiştirmeden yalnız
+dark-web kaynak tablolarını boş başlatır.
 Politika oluşturmak için kuruluş UUID'si gerekir:
 
 ```sh

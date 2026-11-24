@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
-Son güncelleme: **23 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.192.0 / çekirdek 99 / iş kuyruğu 4 / kaynak işi 12**.
+Son güncelleme: **24 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
+Güncel çalışma: **0.193.0 / çekirdek 100 / iş kuyruğu 4 / kaynak işi 12**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -47,6 +47,62 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   yaşam döngüsünde tamamlanır.
 
 ## Açık ve takip edilen notlar
+
+### N-056 — P11 yeraltı ve toplu credential maruziyet kaynakları
+
+- **Durum:** P11 teknik motoru tamamlandı. Anahtarsız Lunar/Webz.io Domain
+  Exposure kaynağı gerçek `securehup.com` isteğiyle canlı doğrulandı. AIL
+  Framework için güvenli ve küçültülmüş içe alma sözleşmesi hazırdır; gerçek
+  ayrı AIL kurulumu, izinli kaynak seçimi ve canlı olay kabulü beklenmektedir.
+  **Tarih:** 24 Kasım 2026.
+- **Lunar kapsamı:** Resmî Domain Exposure API son on iki aylık stealer ve
+  veri ihlali sinyallerini domain düzeyinde yalnız toplam sayılarla sunar.
+  Hesap, anahtar veya token istemez. XTI yalnız rapor dönemi, çalışan/müşteri,
+  infostealer/veri ihlali ve toplam olay sayılarını saklar; e-posta, kullanıcı
+  adı, parola, oturum veya ham sağlayıcı yanıtı saklamaz. Ücretsiz erişim
+  sınırsız hizmet taahhüdü değildir; kötüye kullanım engellenebilir.
+- **Canlı kabul:** `securehup.com` için 24 Kasım 2026 çalışması `complete`
+  oldu; dönem `2025-11-01`–`2026-10-31`, bütün sayaçlar sıfırdı. Bu, o kaynak
+  ve dönem için başarılı boş sonuçtur; kuruluşun hiç sızıntısı olmadığına
+  veya başka kaynakların da boş olduğuna kanıt değildir.
+- **AIL kapsamı:** Ayrı AIL Framework v7.1 için incelenen upstream commit
+  `4b94304bcd4d3d08b9e0c0772be4773e6bbbd350`, kök lisans AGPL-3.0'dır.
+  XTI AIL'i kurmaz, çalıştırmaz, Tor'a bağlanmaz ve kodunu kopyalamaz.
+  İşletici tarafından üretilen `xti-ail-v1` zarfından yalnız hash'li nesne ve
+  kanıt kimliği, tür/alt tür, ağ sınıfı, gözlem zamanı, eşleşme tür/değeri ve
+  iddia türü alınır. Ham forum/pazar içeriği, onion adresi, credential,
+  kullanıcı kimliği ve indirilebilir dosya kabul edilmez.
+- **Yaşam döngüsü:** Lunar yenilemesi ve AIL içe alımı firma alanında kaynak
+  run'ı, normalize kayıt, değişiklik, P05 bulgusu, insan incelemesi, inbox,
+  vaka, engine/platform JSON ve son başarılı snapshot'ı koruyan kurtarma
+  zincirine bağlıdır. Aynı giriş tekrarı yeni kayıt üretmez; değişiklik yeni
+  revision üretir. Kaynak hatası eski başarılı sonucu silmez.
+- **Kapasite ve test:** İki ayrı firma alanında firma başına 1.000 AIL kaydı,
+  değişmeyen tekrar ve tek kayıt değişimi işlendi; her firma için kayıt ve
+  bulgular onar sayfada eksiksiz okundu. Son tekrarda toplam süre 7,913
+  saniye, en yavaş içe alma 0,677075 saniye, en yavaş analiz 0,484509
+  saniye, tepe RSS 67,12 MiB ve ağ isteği sıfırdı. P11 ve yakın
+  dark-web/platform/kaynak yönetişimi paketinde 49 test geçti. Güncel hızlı
+  repo kapısı 2.354 test / 2.048,506 saniye, tam repo kapısı 3.699 test /
+  3.317,377 saniye ile hatasız tamamlandı; macOS'ta yalnız Linux çalışma
+  zamanı isteyen dört test beklendiği gibi atlandı.
+- **Ticari sınır:** Lunar teknik erişimi ücretsiz ve anahtarsızdır; mevcut
+  XTI profili yalnız toplu sayıları saklar ve ham sağlayıcı verisini yeniden
+  dağıtmaz. Müşteriye sunulan kullanım biçimi ve gelecekteki sağlayıcı koşulu
+  üretim açılışında yeniden gözden geçirilir. AIL yazılım lisansı, taranan
+  forum/pazar içeriğinin erişim, saklama veya müşteriye gösterim hakkını
+  sağlamaz. Gerçek AIL kurulumu için hukukça kullanılabilir kaynak listesi,
+  veri işleme/saklama kararı, ağ yalıtımı ve canlı kabul gerekir.
+- **Kapatma koşulu:** Yetkili ve yalıtılmış gerçek AIL kurulumundan seçilmiş
+  izinli bir kaynakla canlı olay; başarısızlık/yeniden başlatma kanıtı;
+  ticari veri kararı ve push sonrası Linux kurulum/yükseltme kabulü.
+- **Dayanak:** [P11 teslimi](docs/roadmap/P11_DELIVERY.md),
+  [ADR0198](docs/decisions/0198-minimized-underground-source-intake.md),
+  [Lunar/Webz.io açıklaması](https://docs.webz.io/docs/webz/dea-introduction),
+  [API sözleşmesi](https://docs.webz.io/docs/webz/dea-api-reference),
+  [AIL](https://www.ail-project.org/),
+  [AIL v7.1](https://github.com/ail-project/ail-framework/releases/tag/v7.1),
+  [AIL lisansı](https://github.com/ail-project/ail-framework/blob/v7.1/LICENSE).
 
 ### N-055 — P12 sensör/sandbox telemetrisi ve canlı kabul sınırı
 
@@ -344,9 +400,10 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   firma izolasyonu, kurtarma ve kapasite kabulü tamamlandı. Kullanıcı kararıyla
   yeni credential-domain kaynağı XposedOrNot'tur; HIBP verified-domain yeni
   çalışmalarda devre dışıdır. Canlı XposedOrNot domain kabulü API anahtarı ve
-  sağlayıcı hesabında doğrulanmış domain, genel forum/pazar kapsamı ise
-  seçilmiş sağlayıcı bekliyor; A02/A10'un bütünü bu nedenle kapanmadı.
-  **Tarih:** 22 Kasım 2026.
+  sağlayıcı hesabında doğrulanmış domain bekliyor. Genel forum/pazar için P11
+  küçültülmüş AIL içe alma motorunu teslim etti; gerçek ayrı AIL kurulumu ve
+  izinli canlı kaynak henüz beklediğinden A02/A10'un bütünü kapanmadı.
+  **Tarih:** 24 Kasım 2026.
 - RansomLook kamu API verisi atıflı kullanım için seçildi; upstream yazılım
   kodu vendored edilmeyecek. ThreatCluster mevcut kişisel/açık akışta kalır;
   satılan üründe saklama/gösterme/dağıtım yazılı anlaşma olmadan varsayılan
@@ -364,9 +421,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   önek ve sağlayıcının karakter bileşimi alanı saklanmaz veya sonuçta gösterilmez.
   Bu önek sıfır bilgi değildir; boş sonuç da parolanın güvenli olduğunu kanıtlamaz.
   Özellik açık terminal işlemi olarak çalışır, zamanlanmaz ve geçmiş oluşturmaz.
-- Genel Tor/forum/pazar crawler ve stealer-log kaynağı seçilmedi. Kaynak
-  erişim hakkı, izolasyon, veri minimizasyonu, saklama/gösterme koşulu, bütçe
-  ve canlı kabul olmadan A02/A10 bütünü tamamlandı sayılmayacak.
+- XTI içine genel Tor/forum/pazar crawler eklenmedi. P11, ayrı AIL Framework
+  kurulumundan yalnız küçültülmüş `xti-ail-v1` zarfını kabul eden motoru
+  tamamladı; kaynak erişim hakkı, izolasyon, veri minimizasyonu,
+  saklama/gösterme koşulu ve gerçek canlı kabul olmadan A02/A10 bütünü
+  tamamlandı sayılmayacak. Ayrıntı N-056'dadır.
 - Resmî XposedOrNot API belgeleri domain izlemenin doğrulanmış domain ve API
   anahtarı gerektirdiğini; parola uç noktasının10 karakterlik Keccak öneki
   kullandığını belirtir. Ücretsiz kişisel/düşük hacim ile müşteriye sunulan
@@ -394,8 +453,8 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Linux isteyen4 kontrol beklendiği gibi atlandı. Bu sayı0.184.0 tabanının
   tarihî sonucudur;0.185.0 için bu turda tam kapı değil, hedefli paket,
   hızlı çevrimdışı kapı ve kapasite kabulü çalıştırılmıştır. Bu
-  sonuç Linux CI, canlı XposedOrNot domain veya seçilmemiş forum/pazar kaynağı kabulü
-  değildir.
+  sonuç Linux CI, canlı XposedOrNot domain veya gerçek AIL/forum/pazar
+  kaynağı kabulü değildir.
 
 ### N-047 — P04 CTI çıkarımı, kaynak güveni ve ATT&CK kullanım sınırı
 

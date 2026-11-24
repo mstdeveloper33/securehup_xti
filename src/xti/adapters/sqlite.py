@@ -30,6 +30,7 @@ from xti.adapters.cti_analysis_schema import create as create_cti_analysis_schem
 from xti.adapters.darkweb_monitoring_schema import (
     create as create_darkweb_monitoring_schema,
     migrate_xposedornot as migrate_darkweb_xposedornot_schema,
+    migrate_v100 as migrate_darkweb_p11_schema,
 )
 from xti.adapters.actionability_schema import create as create_actionability_schema
 from xti.adapters.unified_monitoring_schema import create as create_unified_monitoring_schema
@@ -1213,6 +1214,8 @@ class SQLiteAssetRepository:
                     create_telemetry_schema(connection)
                 if version < 99:
                     migrate_data_retention_v99(connection)
+                if version < 100:
+                    migrate_darkweb_p11_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

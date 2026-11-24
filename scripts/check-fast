@@ -33,6 +33,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/check-test-shar
     tests/test_actionability_migration.py \
     tests/test_ioc_bulk.py \
     tests/test_darkweb_monitoring.py \
+    tests/test_darkweb_p11.py \
     tests/test_darkweb_platform.py \
     tests/test_cti_analysis.py \
     tests/test_cti_analysis_platform.py \

@@ -1,5 +1,27 @@
 # Üçüncü Taraf Bildirimleri
 
+## P11 Lunar veri kaynağı ve AIL Framework
+
+0.193.0 yeni üçüncü taraf Python paketi veya vendored kod eklemez.
+Lunar/Webz.io Domain Exposure yalnız resmî HTTPS veri kaynağı olarak toplu
+domain sayaçları için çağrılır; sağlayıcı kodu veya ham veri bu depoda
+dağıtılmaz. [Resmî açıklama](https://docs.webz.io/docs/webz/dea-introduction)
+ve [API sözleşmesi](https://docs.webz.io/docs/webz/dea-api-reference).
+
+AIL Framework v7.1 ayrı sistem adayıdır ve bu dağıtıma dahil değildir.
+İncelenen upstream commit:
+`4b94304bcd4d3d08b9e0c0772be4773e6bbbd350`.
+
+Lisans: AGPL-3.0
+
+[Özgün lisans](https://github.com/ail-project/ail-framework/blob/v7.1/LICENSE) ·
+[sürüm](https://github.com/ail-project/ail-framework/releases/tag/v7.1) ·
+[proje](https://www.ail-project.org/)
+
+XTI AIL kodunu kopyalamaz, kurmaz veya çalıştırmaz; yalnız küçültülmüş
+`xti-ail-v1` kanıt zarfını içe alabilir. Bu yazılım lisansı AIL ile erişilen
+üçüncü taraf içeriğin lisansı değildir.
+
 **21 Kasım 2026 — P03 / 0.182.0:** ImageHash4.3.2 (BSD-2-Clause),
 Pillow13.0.0 (MIT-CMU/HPND bildirimi), Playwright1.65.2 (Apache-2.0),
 google-play-scraper1.2.7 (MIT). Görsel hesaplamalar SciPy1.16.3 (BSD-3-Clause),

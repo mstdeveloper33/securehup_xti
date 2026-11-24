@@ -1,5 +1,15 @@
 # Çok firmalı platform motoru
 
+0.193.0 P11 mevcut `darkweb.*` sözleşmesine kaynak çalışma/kayıt okumaları,
+`darkweb.ail.preview`, `darkweb.lunar.refresh` ve `darkweb.ail.import`
+işlemlerini ekler. Lunar yenilemesi seçilmiş kuruluş domaini için açık ağ
+operasyonudur. AIL önizleme/içe alma ağsızdır ve yalnız küçültülmüş
+`xti-ail-v1` kayıtlarını kabul eder; AIL veya Tor çalıştırmaz. Bütün yazmalar
+güncel workspace, tekrar anahtarı ve kaynak kapsamını doğrular. Genel platform
+isteği 65.536 baytla sınırlı olduğundan daha büyük, en çok 2 MiB güvenilen AIL
+zarfı yalnız işletici CLI dosya yolundan alınır.
+[P11 işlemleri](DARKWEB_MONITORING.md#firma-platformu-ve-engine).
+
 0.192.0 mevcut `retention.*` yazma sözleşmesini değiştirmeden P12
 `telemetry_records` ailesini ekler. Politika ve hold isteklerinde aile açıkça
 seçilir; plan, apply, restore ve recovery aynı workspace/revision/token/
@@ -205,7 +215,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama 0.192.0 · protokol `xti-platform` v1 · çekirdek şema 99 · kuyruk 4.**
+**Uygulama 0.193.0 · protokol `xti-platform` v1 · çekirdek şema 100 · kuyruk 4.**
 
 0.164.0 firma kapsamlı `company.review` ve `investigation` okuma/yazma
 işlemleri ekler. Kimlik/rapor önerisi ve kararları mevcut workspace kimliği,

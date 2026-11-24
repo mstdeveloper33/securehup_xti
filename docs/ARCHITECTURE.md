@@ -1,5 +1,19 @@
 # XTI Motorunun Mimarisi
 
+0.193.0 P11: `darkweb_source_intake` saf alan kuralları Lunar toplu
+maruziyetini ve `xti-ail-v1` zarfını depolama, terminal, HTTP ve AIL'den
+bağımsız doğrular. `LunarDomainExposureSource` sabit HTTPS ucunu bounded,
+yönlendirmesiz ve proxy'siz kullanır; ayrıntılı yanıtı yalnız toplu
+sayı/tarihlere indirger. AIL ayrı sistemdir: yerel no-follow dosya adaptörü
+yalnız hash ve sınırlı metadata zarfını okur; XTI Tor'a bağlanmaz veya AIL
+çalıştırmaz. `DarkwebService` iki kaynağı mevcut P05 profile/analiz/review/
+inbox/vaka yaşam döngüsüne bağlar. Şema100 kaynak turu, güncel kayıt ve
+değişiklik zincirini ayrı tutar; pending/failed son başarılı snapshot'ı
+silmez, idempotent tekrar ağ/yazma yapmaz ve recovery running turu
+`interrupted` kapatır. Engine salt okur; platform workspace çitli yazma
+kullanır. [Karar](decisions/0198-minimized-underground-source-intake.md),
+[teslim](roadmap/P11_DELIVERY.md).
+
 0.192.0 P08/P12 saklama genişlemesi: `data_retention` tek politika, plan,
 reserve/apply, restore, idempotency ve hash-zincirli audit yaşam döngüsünü
 `unified_monitoring_runs` yanında `telemetry_records` için de kullanır.
@@ -1002,6 +1016,10 @@ Terminal değişikliği alan adı kurallarını değiştirmeyi gerektirmez. Depo
 
 ## Veri ve güvenilirlik
 
+- Şema 100: şema 99'a P11 dark-web kaynak çalışma, normalize güncel kayıt ve
+  hash-zincirli değişiklik tablolarını ekler. Eski P05 profil/bulgu/inceleme,
+  P08/P12 saklama ve bütün diğer kayıtlar aynen korunur; yeni tablolar boş
+  başlar ve eski kanıttan Lunar/AIL sonucu türetilmez.
 - Veritabanı açık init/restore veya alan adı verilen scan/watch/monitor start başlangıcında oluşturulur. Listeleme/tanılama eksik veritabanı yaratmaz; import veya adres verilmemiş arama eksik veritabanında başlamaz.
 - Şema 17: şema 16'ya ek olarak CISA KEV kaynak çalışmalarını, güncel/geçmiş katalog kayıtlarını ve eklemeli değişiklik olaylarını tutar. Şema 16'nın bütün kayıtları migration sırasında korunur; KEV tabloları boş başlar.
 - Şema 18: şema 17'ye FIRST EPSS güncel puan kataloğunu ekler. Eski kayıtlar ve KEV geçmişi korunur; EPSS tablosu boş başlar ve geçmiş veriden puan türetilmez.
