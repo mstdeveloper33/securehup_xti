@@ -103,6 +103,7 @@ def old_code(base):
 
 
 def migration(base):
+    from xti.adapters.sqlite import SQLiteAssetRepository
     from xti.adapters.sqlite_engine_jobs import SQLiteEngineJobRepository
     previous = old_code(base)
     golden = previous(SEED)
@@ -124,19 +125,27 @@ def migration(base):
     from xti.application.research import ResearchService
     core=base/'legacy-core'
     original_core=core.read_bytes()
+    core_change=SQLiteAssetRepository(core).migrate()
+    require(core_change['changed'] and core_change['from_version'] == 88,
+            'Legacy core migration did not start from the reviewed producer schema')
+    require(Path(core_change['backup']).read_bytes() == original_core,
+            'Legacy core migration backup differs from the producer database')
+    migrated_core=core.read_bytes()
     history=make_history_service(core)
     for identifier, expected in zip(golden['review_ids'],golden['reviews']):
         require(history.show(identifier,view='items',limit=100)==expected, 'Old frozen review changed')
         require(expected['evaluation']['policy_version']=='research-priority-v9','Wrong old review policy')
     ResearchService(SQLiteResearchRepository(core)).conflicts(indicator_type='domain',value='example.com')
-    require(core.read_bytes()==original_core,'Read-only conflict evaluation mutated old core')
+    require(core.read_bytes()==migrated_core,'Read-only conflict evaluation mutated migrated core')
     (base/'before-queue').write_bytes(Path(change['backup']).read_bytes())
     (base/'before-queue').chmod(0o600)
     rollback = previous(ROLLBACK)
     require(rollback['records'] == golden['records'], 'Old-code rollback result differs')
     return dict(from_schema=3,to_schema=4,original_jobs=len(before['engine_jobs']),original_events=len(before['engine_job_events']),
                 original_rows_and_rowids_preserved=True,retry_and_results_preserved=True,
-                old_code_rollback=True,old_v9_frozen_reviews_preserved=len(golden['reviews']),producer_commit=PREVIOUS)
+                old_code_rollback=True,old_v9_frozen_reviews_preserved=len(golden['reviews']),
+                core_from_schema=core_change['from_version'],core_to_schema=core_change['to_version'],
+                core_backup_preserved=True,producer_commit=PREVIOUS)
 
 
 def capacity(base, count):

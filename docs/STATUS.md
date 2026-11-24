@@ -3,6 +3,17 @@
 Bugün kullanılabilen, özel gereksinim bekleyen ve henüz teslim edilmemiş
 bütün yeteneklerin sade listesi [özellik kataloğundadır](FEATURE_CATALOG.md).
 
+**24 Kasım 2026 — 0.193.1, Linux kabul sertleştirmesi:** `0.193.0` push'u
+Linux kurulum ve platform izolasyonundan geçti; üç eski workflow'daki iki
+kök sorun ayrıca görünür oldu. Job-history betiği şema88 core yedeğini
+güncel okuyucuyla doğrudan açıyordu; artık yedekli 88→100 geçişi ile eski
+incelemeleri koruduğunu doğrular. CI Chromium kontrolü gerçek sayfa yerine
+yalnız sabit `xti-offline.invalid` fixture'ını Playwright'ın sandbox kapalı
+test modunda işler; normal kullanımda sandbox zorunludur ve bu CI modu başka
+URL'leri reddeder. Yerelde iki firma/50.001'er iş kabulü ile 182 ilgili ve
+111 marka regresyon testi geçti. Ubuntu yeniden kabulü push sonrasında
+beklenmektedir.
+
 **24 Kasım 2026 — 0.193.0, P11 / A02-A07-A10-A13-C06-C07-E01-E03-I03-I04-J01-J03:**
 P11, anahtarsız Lunar/Webz.io toplu domain maruziyetini ve ayrı AIL 7.x
 tracker sisteminden gelen içeriksiz `xti-ail-v1` zarfını mevcut P05 dark-web

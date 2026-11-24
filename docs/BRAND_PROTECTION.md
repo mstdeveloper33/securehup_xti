@@ -23,6 +23,13 @@ tekrarla. XTI yerel kurulumda kendiliğinden `sudo` çalıştırmaz.
 Kesilmiş tarayıcı kurulumunda `./scripts/setup-protection --recover`
 eski dizini geri getirir; başarısız aday dosyalarını silmez.
 
+Normal kurulum ve gerçek sayfa görüntüleme Chromium süreç sandbox'ını zorunlu
+tutar. GitHub Actions'taki tek kullanımlık kabul VM'sinde yalnız sabit
+`https://xti-offline.invalid/` fixture'ı için açıkça işaretlenen
+`trusted_ci_fixture` modu kullanılır; bu mod gerçek URL veya kaynak haritasını
+reddeder. Playwright da sandbox kapalı çalıştırmayı yalnız güvenilen test
+içeriği için uygun görür; kamu sayfası taraması bu CI istisnasıyla yapılmaz.
+
 Mevcut veri için önce `./xti migrate` gerekir. Şema90→91 açık ve
 yedeklidir. Normal yedek/geri yükleme PNG kanıtlarını da içerir; mevcut
 bir veritabanının üzerine geri yükleme yapılmaz.

@@ -97,6 +97,9 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertIn("GITHUB_STEP_SUMMARY", workflow)
         self.assertIn("tests/test_setup_brand.py", workflow)
         self.assertIn("tests/test_brand_runtime.py", workflow)
+        self.assertIn("XTI_BROWSER_SANDBOX_MODE: trusted_ci_fixture", workflow)
+        protection = (PROJECT_ROOT / ".github/workflows/brand-protection.yml").read_text(encoding="utf-8")
+        self.assertIn("XTI_BROWSER_SANDBOX_MODE: trusted_ci_fixture", protection)
 
     def test_release_requires_the_complete_suite(self) -> None:
         workflow = (PROJECT_ROOT / ".github/workflows/full-check.yml").read_text(

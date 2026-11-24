@@ -27,6 +27,13 @@ resim olarak rasterleştirilir; XML harici varlık çözücü eklenmez. Son PNG
 Pillow ile piksel/boyut sınırından geçer; ImageHashpHash/dHash/colorhash ve
 SHA256 oluşturulur. Boş görseller yüksek benzerlik kararı vermez.
 
+Gerçek sayfa görüntüleme ve normal kurulumda Chromium süreç sandbox'ı
+zorunludur. GitHub'ın tek kullanımlık kabul VM'sinde Playwright'ın sandbox
+kapalı varsayılanı yalnız sabit `xti-offline.invalid` smoke fixture'ı için
+etkinleştirilebilir; uygulama kodu bu modda başka URL veya kaynak haritasını
+reddeder. Böylece CI kurulumu sınanırken kamu/hasmane içerik sandbox'sız
+işlenmez.
+
 Resmî sayfadan alınan her görsel marka logosu sayılmaz. Açıkça verilen
 logo URL'leri önceliklidir; aksi halde site ikonu, marka adıyla etiketli
 görsel veya genel logo dosya adı referans alınır. İş ortağı/ürün görselleri

@@ -1,5 +1,11 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+**0.193.1 — Linux kabul sertleştirmesi:** Eski job-history kabulü artık
+şema88 core verisini yedekli biçimde güncel şemaya geçirerek donmuş
+incelemeleri doğrular. Chromium sandbox gerçek sayfalarda zorunlu kalır;
+yalnız GitHub'ın tek kullanımlık VM'sindeki sabit çevrimdışı smoke fixture'ı
+için dar bir CI istisnası vardır ve bu istisna başka URL'leri reddeder.
+
 **0.193.0 — P11 yeraltı ve credential kaynak genişletme:** Anahtarsız
 Lunar/Webz.io sorgusu, kuruluşa bağlı domain için son 12 aylık toplu
 employee/client ve breach/infostealer maruziyetini bireysel credential veya

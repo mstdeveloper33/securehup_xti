@@ -1,5 +1,18 @@
 # Değişiklik Kaydı
 
+## 0.193.1 — 24 Kasım 2026
+
+- Job-history kabulü, eski şema88 core verisini güncel okuyucuyla açmadan önce
+  yedekli 88→100 geçişini yapar; yedeğin üretici verisiyle aynı olduğunu ve
+  donmuş incelemelerin değişmediğini doğrular.
+- Chromium sandbox normal kurulumda ve gerçek sayfa görüntülemede zorunlu
+  kalır. GitHub'ın tek kullanımlık VM'sinde yalnız sabit çevrimdışı smoke
+  fixture'ı için `trusted_ci_fixture` modu eklendi; başka URL ve kaynak
+  haritaları bu modda reddedilir.
+- İki firma/50.001'er geçmiş iş kabulü yerelde geçti; 182 job-history/CI ve
+  111 marka koruma regresyon testi hatasız tamamlandı. Ubuntu Actions yeniden
+  kabulü bu yama gönderildikten sonra ayrıca kaydedilecektir.
+
 ## 0.193.0 — 24 Kasım 2026
 
 - Anahtarsız Lunar/Webz.io Domain Exposure kaynağı kesin kuruluş domaini

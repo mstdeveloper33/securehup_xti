@@ -48,9 +48,12 @@ def browser_status(directory=None,*,verify_hash=False):
 
 
 def smoke(directory=None):
-    from xti.adapters.brand_protection_process import run_worker
+    from xti.adapters.brand_protection_process import browser_sandbox_mode,run_worker
     url='https://xti-offline.invalid/'
     html=b'<html><title>XTI offline</title><body><h1>Brand fixture</h1><img src="https://127.0.0.1/private"><script>fetch("https://blocked.invalid/")</script></body></html>'
     result=run_worker({'mode':'render','url':url,'resources':{url:{'body':base64.b64encode(html).decode(),'content_type':'text/html'}}},30,browser_path=directory)
-    if result.get('status')!='complete' or result.get('network_requests')!=0 or result.get('blocked_resources',0)<1:raise ValueError('Offline Chromium check failed; inspect host browser libraries/sandbox support')
+    if (result.get('status')!='complete' or result.get('network_requests')!=0 or
+            result.get('blocked_resources',0)<1 or
+            result.get('browser_sandbox_mode')!=browser_sandbox_mode()):
+        raise ValueError('Offline Chromium check failed; inspect host browser libraries/sandbox support')
     return {k:v for k,v in result.items() if k!='png'}

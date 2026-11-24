@@ -494,6 +494,13 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   makbuzu ve gerçek ağsız görüntüleme testi vardır.
 - Temiz geçici kopyada normal `./setup` macOS/arm64/Python3.13.3 üzerinde
   tamamlandı (`/tmp/xti-p03-clean-install.log`). Bu Linux kabulü değildir.
+- `0.193.0` Ubuntu Actions denemesinde Playwright'ın zorunlu Chromium süreç
+  sandbox'ı GitHub'ın tek kullanımlık runner'ında başlamadı. `0.193.1`, normal
+  ve gerçek sayfa kullanımındaki sandbox zorunluluğunu değiştirmeden yalnız
+  sabit `xti-offline.invalid` smoke fixture'ı için `trusted_ci_fixture`
+  istisnasını ekler; başka URL ve kaynak haritası kod seviyesinde reddedilir.
+  Bu istisna kamu sayfası tarama kabulü değildir; Ubuntu yeniden kabul sonucu
+  push sonrasında bu nota eklenecektir.
 - Google parser importu upstream TLS varsayılanını değiştiriyor. XTI bu
   kitaplığı yalnız ağsız ayrı süreçte kullanır; motor HTTPS/TLS doğrulaması
   korunur. Google/Apple gerçek arama ve kimlikle tekrar okuma testleri

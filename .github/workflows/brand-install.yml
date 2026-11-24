@@ -98,6 +98,10 @@ jobs:
     name: brand-install (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Full setup renders only the fixed offline smoke fixture in this
+      # disposable job. Normal installations keep Chromium sandbox mandatory.
+      XTI_BROWSER_SANDBOX_MODE: trusted_ci_fixture
     strategy:
       fail-fast: false
       matrix:

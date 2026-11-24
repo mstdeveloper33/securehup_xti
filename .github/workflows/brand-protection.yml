@@ -24,6 +24,10 @@ jobs:
   offline-and-browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    env:
+      # This disposable VM renders only the fixed xti-offline.invalid smoke
+      # fixture. Production and public-page rendering still require sandbox.
+      XTI_BROWSER_SANDBOX_MODE: trusted_ci_fixture
     strategy:
       fail-fast: false
       matrix:

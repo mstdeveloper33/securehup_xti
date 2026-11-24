@@ -5,6 +5,11 @@ import json
 import os
 import ssl
 import sys
+from xti.adapters.brand_protection_process import (
+    SANDBOX_REQUIRED,
+    SANDBOX_TRUSTED_CI_FIXTURE,
+    browser_sandbox_mode,
+)
 
 
 def parse_google(values):
@@ -27,11 +32,16 @@ def parse_google(values):
 def render(values):
     from playwright.sync_api import sync_playwright
     resources=values['resources']
+    sandbox_mode=browser_sandbox_mode()
+    if sandbox_mode==SANDBOX_TRUSTED_CI_FIXTURE:
+        fixture='https://xti-offline.invalid/'
+        if values.get('url')!=fixture or set(resources)!={fixture}:
+            raise ValueError('Sandbox-free CI mode accepts only the fixed offline fixture')
     if len(resources)>40:raise ValueError('resource budget')
     if sum(len(v['body']) for v in resources.values())>16*1024*1024:raise ValueError('resource bytes')
     blocked=[]
     with sync_playwright() as p:
-        browser=p.chromium.launch(headless=True,chromium_sandbox=True,
+        browser=p.chromium.launch(headless=True,chromium_sandbox=sandbox_mode==SANDBOX_REQUIRED,
             args=['--disable-background-networking','--disable-component-update','--disable-sync','--disable-breakpad',
                   '--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND'],
             proxy={'server':'http://127.0.0.1:9','bypass':''})
@@ -55,7 +65,7 @@ def render(values):
         context.close();browser.close()
     if len(data)>3*1024*1024:raise ValueError('screenshot size')
     return {'status':'complete','png':base64.b64encode(data).decode(),'blocked_resources':len(blocked),'title':title,
-            'network_requests':0,'render_mode':'static_no_javascript'}
+            'network_requests':0,'render_mode':'static_no_javascript','browser_sandbox_mode':sandbox_mode}
 
 
 def main():
