@@ -65,8 +65,8 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertIn("run: ./scripts/check-fast", workflow)
         self.assertNotIn("run: ./scripts/check\n", workflow)
         self.assertNotIn("setup-brand --check", workflow)
-        self.assertIn('shard: [1, 2]', workflow)
-        self.assertIn('XTI_CHECK_SHARD: ${{ matrix.shard }}/2', workflow)
+        self.assertIn('shard: [1, 2, 3]', workflow)
+        self.assertIn('XTI_CHECK_SHARD: ${{ matrix.shard }}/3', workflow)
         self.assertIn('fail-fast: false', workflow)
 
     def test_fast_gate_shards_preserve_the_complete_existing_module_list(self):
@@ -74,14 +74,18 @@ class CiConfigurationTests(unittest.TestCase):
         runner = importlib.util.module_from_spec(spec); spec.loader.exec_module(runner)
         modules = re.findall(r'tests/[a-z0-9_]+\.py', (PROJECT_ROOT / 'scripts/check-fast').read_text())
         self.assertGreater(len(modules), 20)
-        first = runner.select_modules(modules, '1/2')
-        second = runner.select_modules(modules, '2/2')
-        self.assertFalse(set(first) & set(second))
-        self.assertEqual(sorted(first + second), sorted(modules))
+        parts = [runner.select_modules(modules, f'{index}/3') for index in range(1, 4)]
+        self.assertEqual(sum(len(part) for part in parts), len(modules))
+        self.assertEqual(len(set().union(*(set(part) for part in parts))), len(modules))
+        self.assertEqual(sorted(path for part in parts for path in part), sorted(modules))
+        legacy_parts = [runner.select_modules(modules, f'{index}/2') for index in range(1, 3)]
+        self.assertEqual(sorted(path for part in legacy_parts for path in part), sorted(modules))
         self.assertEqual(runner.select_modules(modules, None), modules)
-        for shard in ('0/2', '3/2', '1/0', 'all'):
+        for shard in ('0/3', '4/3', '1/0', '1/1', '1/17', 'all'):
             with self.subTest(shard=shard), self.assertRaises(ValueError):
                 runner.select_modules(modules, shard)
+        with self.assertRaisesRegex(ValueError, 'empty'):
+            runner.select_modules(['only.py', 'second.py'], '3/3')
         with self.assertRaises(ValueError): runner.select_modules(modules + modules[:1], None)
         with self.assertRaises(ValueError): runner.select_modules([], None)
 

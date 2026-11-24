@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     timeout-minutes: 25
     steps:
       - name: Check out repository
@@ -43,6 +43,6 @@ jobs:
           python -m pip --isolated install --disable-pip-version-check --no-input --index-url https://pypi.org/simple --no-build-isolation --require-hashes -r requirements/channels.txt
       - name: Run fast offline checks
         env:
-          XTI_CHECK_SHARD: ${{ matrix.shard }}/2
+          XTI_CHECK_SHARD: ${{ matrix.shard }}/3
         run: ./scripts/check-fast
 

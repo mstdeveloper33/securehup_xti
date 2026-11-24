@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Run the existing fast-gate module list intact or in two disjoint CI shards."""
+"""Run the existing fast-gate module list intact or in disjoint CI shards."""
 import argparse
 import os
 from pathlib import Path
+import re
 import sys
 import unittest
 
@@ -14,9 +15,13 @@ def select_modules(modules, shard):
         raise ValueError('The check module list must be nonempty and contain no duplicates.')
     if not shard:
         return modules
-    if shard not in ('1/2', '2/2'):
-        raise ValueError('XTI_CHECK_SHARD must be 1/2 or 2/2; omit it for the complete fast gate.')
-    selected = modules[int(shard[0]) - 1::2]
+    match = re.fullmatch(r'([1-9][0-9]*)/([1-9][0-9]*)', shard)
+    if match is None:
+        raise ValueError('XTI_CHECK_SHARD must be INDEX/TOTAL; omit it for the complete fast gate.')
+    index, total = (int(value) for value in match.groups())
+    if total < 2 or total > 16 or index > total:
+        raise ValueError('XTI_CHECK_SHARD must select one of 2 through 16 valid shards.')
+    selected = modules[index - 1::total]
     if not selected:
         raise ValueError('The selected check shard is empty.')
     return selected
