@@ -1,7 +1,35 @@
 # XTI — Güncel Uygulama Durumu
 
 Bugün kullanılabilen, özel gereksinim bekleyen ve henüz teslim edilmemiş
-bütün yeteneklerin sade listesi [özellik kataloğundadır](FEATURE_CATALOG.md).
+bütün yeteneklerin sade listesi [özellik kataloğundadır](../FEATURE_CATALOG.md).
+
+**25 Kasım 2026 — 0.194.0, anahtarsız ekip teslim kapısı (yerel kabul):**
+N-057 için kök `./handoff` eklendi. Araç, repo/katalog/sabit bileşen durumunu
+ve seçilen veri alanını değişiklik yapmadan denetler; init, örnek kayıt,
+55 kaynak manifesti, yedek, boş hedefe geri dönüş ve tekrar okuma kabulünü
+özel geçici alanda yürütür. Tam yerel profil Maigret, Sherlock, Betterleaks,
+haber/PDF/kanal paketleri ile çevrimdışı marka capability kontrolünü geçti.
+Mevcut `.xti-data` eski şemada olduğu için önce doğru biçimde veri değiştirmeden
+`blocked_requirement / ./xti migrate` verdi. Açık kullanıcı onayıyla alınan
+doğrulanmış geçiş yedeğinden sonra şema64→100 taşındı; ana dosya ve yedek
+bütünlükten geçti, veri/yedek klasörleri `0700` yapıldı ve tam handoff `PASS`
+verdi. Yedek boş geçici alana aynı SHA-256 ile geri yüklendi, yeniden şema100'e
+taşındı ve `ready / integrity=ok` olarak açıldı. Tavily ve diğer dış hesapların
+eksikliği çekirdek hatası sayılmadı.
+Repo teslim paketi yeni şema, ağ kaynağı veya
+Engine/Platform işlemi yoktur. Hızlı kapı **2.366 test / 2.026,504 saniye**,
+tam kapı **3.711 test / 3.041,750 saniye** ile hatasız geçti; her iki turda
+yalnız gerçek Linux çalışma zamanı isteyen dört test macOS'ta beklendiği gibi
+atlandı. Tavily eksik/yapılandırılmış durum ayrımı ve tek kredilik canlı
+SecureHup araması da izole güncel şemada geçti; 5 kayıt saklanıp ağsız tekrar
+okundu. Aynı canlı kabul kalıcı `.xti-data` alanında ikinci bir tek kredilik
+istek, 5 kalıcı kayıt ve süreç sonrası tekrar okumayla doğrulandı. Sohbette
+paylaşılmış kabul anahtarının üretim öncesi yenilenmesi ve
+temiz desteklenen Linux klonu N-057 kapanışı için açıktır.
+[Ekip rehberi](TEAM_HANDOFF.md),
+[teslim kartı](roadmap/TEAM_HANDOFF_DELIVERY.md),
+[karar](decisions/0199-secret-safe-team-handoff.md),
+[Tavily kanıtı](TAVILY_LIVE_ACCEPTANCE.md).
 
 **24 Kasım 2026 — 0.193.1, Linux kabul sertleştirmesi:** `0.193.0` push'u
 Linux kurulum ve platform izolasyonundan geçti; üç eski workflow'daki iki

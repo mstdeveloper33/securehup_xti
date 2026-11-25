@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
-Son güncelleme: **24 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.193.0 / çekirdek 100 / iş kuyruğu 4 / kaynak işi 12**.
+Son güncelleme: **25 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
+Güncel çalışma: **0.194.0 / çekirdek 100 / iş kuyruğu 4 / kaynak işi 12**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -39,7 +39,7 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   genişleten kod, o veri ailesinin güvenlik, izolasyon, provenance, kurtarma ve
   kapasite kabulü tamamlanmadan “bitti” sayılmaz.
 - Kullanıcıya sunulan her yeni özellik aynı değişiklikte
-  `docs/FEATURE_CATALOG.md` içine eklenir; anahtar/hesap/izin bekleyen veya
+  `FEATURE_CATALOG.md` içine eklenir; anahtar/hesap/izin bekleyen veya
   ertelenen yetenek aktif özelliklerle aynı listede gösterilmez.
 - Yeni paket kodundan önce aynı davranışın terminal, engine/platform,
   uygulama servisi, veri modeli, adaptör ve testlerde bulunup bulunmadığı
@@ -47,6 +47,62 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   yaşam döngüsünde tamamlanır.
 
 ## Açık ve takip edilen notlar
+
+### N-057 — Anahtarsız temel kurulum ve ekip teslim kabulü
+
+- **Durum:** Yerel teknik akış, hızlı/tam repo kapıları ve gerçek Tavily
+  kabulü geçti; temiz Linux ve paylaşılan geçici anahtarın rotasyonu bekliyor.
+  `./handoff` tam
+  profilde sabit araçları, bağımlılıkları, geçici
+  kurulum–yazma–yedek–geri dönüş zincirini ve seçilen veri alanını salt-okunur
+  `doctor` ile ayırarak doğrular. Yerel `.xti-data` önce eski şemada veri
+  değiştirilmeden `blocked_requirement / ./xti migrate` sonucu üretti; açık
+  onaydan sonra geçiş yedeği korunarak şema64→100 taşındı. Ana veritabanı ve
+  şema64 yedeği bütünlükten geçti, klasör izinleri `0700` oldu, depolama yerel
+  kurtarma durumu `ready` ve tam handoff sonucu `PASS` oldu. Yedek boş geçici
+  alana aynı SHA-256 ile geri yüklendi, tekrar şema100'e taşındı ve
+  `ready / integrity=ok` olarak açıldı; tatbikat kopyası kalıcı veri değildir.
+  `./scripts/check-fast` 2.366 testi 2.026,504 saniyede,
+  `./scripts/check` 3.711 testi 3.041,750 saniyede hatasız tamamladı; her iki
+  turda gerçek Linux çalışma zamanı isteyen dört test macOS'ta beklendiği gibi
+  atlandı. Tavily'nin eksik durumundan sonra özel `0600` anahtar dosyasıyla
+  yapılandırılmış durum da doğrulandı; izole güncel şemada SecureHup için tek
+  canlı istek 1 kredi ve 5 kayıtla `complete` oldu. Yedekli geçişten sonra
+  kalıcı `.xti-data` alanındaki ikinci canlı istek de 1 kredi, 5 kayıt ve
+  süreç sonrası kalıcı tekrar okumayla tamamlandı. Anahtar sohbet içinde
+  paylaşıldığı için üretim öncesi yenilenmesi hâlâ zorunludur. Değer hiçbir
+  nota veya repo dosyasına alınmadı. **Tarih:** 25 Kasım 2026.
+- **Korunacak karar:** Normal kurulum bir Tavily, Bright Data,
+  XposedOrNot, GitHub/GitLab veya kanal hesabına bağlı olmayacak. Eksik isteğe
+  bağlı gereksinim kurulumu ya da anahtarsız özellikleri bozmayacak; yalnız
+  etkilenen özellik `gereksinim_bekliyor` durumunda, tek çözüm adımı ve
+  etkilenmeyen kapsamla gösterilecek.
+- **Önceden bildirim:** Yeni paket başında kullanıcıdan gerçekten gereken
+  hesap, API anahtarı, yetkili hedef, işletim sistemi aracı veya ayrı altyapı
+  kısa bir listede açıklanacak. Anahtar gerekmeyen geliştirme için kullanıcıdan
+  hesap açması istenmeyecek; ücretli çağrı ve aktif tarama kendiliğinden
+  başlatılmayacak.
+- **Gizli bilgiler:** Sırlar repoya, veritabanına, yedeğe, komut argümanına,
+  kabul raporuna veya sohbete konmayacak; desteklenen `configure` komutlarının
+  özel izinli dosyaları kullanılacak. Sohbette paylaşılmış eski anahtarlar canlı
+  teslim anahtarı sayılmayacak ve sağlayıcıda döndürülmeden kullanılmayacak.
+- **Teslim hedefi:** Temiz ve desteklenen Linux ortamında klonlama, normal
+  `./setup`, `doctor`, anahtarsız temel kabul, seçilmiş özellik gereksinim
+  planı, eski veri için yedekli `migrate`, hızlı test, yedek/geri dönüş ve
+  makinece okunabilir sonuç tek ekip rehberinde doğrulanacak. Sonuçlar en az
+  `pass`, `blocked_requirement`, `not_implemented` ve `fail` sınıflarını
+  birbirine karıştırmadan gösterecek.
+- **Kapanış koşulu:** Sıfırdan klonlanan desteklenen Linux ortamında anahtarsız
+  kurulum/kabul başarılı olmalı; isteğe bağlı en az bir anahtarlı kaynak eksik
+  ve yapılandırılmış durumlarıyla doğrulanmalı; yükseltme ve kurtarma yolu
+  geçmeli; belgeler aynı sürümü göstermeli ve ekip üyesinin uygulayacağı kısa
+  teslim rehberi yayımlanmalıdır. Tam test tamamlanmadan tam kabul iddia
+  edilmez.
+- **Dayanak:** `./setup --help`, `docs/GETTING_STARTED.md`,
+  `./handoff --help`, `REQUIREMENTS.md`, `docs/TEAM_HANDOFF.md`,
+  `FEATURE_CATALOG.md`, `docs/MENTIONS.md`, `docs/BRIGHTDATA_SOCIAL.md`,
+  `docs/CODE_EXPOSURE.md`, `docs/DARKWEB_MONITORING.md` ve
+  `docs/NMAP_MANAGED.md`; [Tavily canlı kabulü](docs/TAVILY_LIVE_ACCEPTANCE.md).
 
 ### N-056 — P11 yeraltı ve toplu credential maruziyet kaynakları
 

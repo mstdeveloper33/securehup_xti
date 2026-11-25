@@ -1,7 +1,7 @@
 # XTI özellik kataloğu
 
-**Güncel sürüm:** 0.193.0 · **Çekirdek şema:** 100 · **Son güncelleme:**
-24 Kasım 2026.
+**Güncel sürüm:** 0.194.0 · **Çekirdek şema:** 100 · **Son güncelleme:**
+25 Kasım 2026.
 
 Bu dosya platformda bugün gerçekten kullanılabilen bütün kullanıcı
 yeteneklerinin sade envanteridir; planlanan bir özellik kodu, testi ve gerekli
@@ -13,10 +13,10 @@ geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleş
 
 | Güncel bölüm | Özellik sayısı |
 |---|---:|
-| Aktif ve kullanılabilir | 401 |
+| Aktif ve kullanılabilir | 402 |
 | Kodu hazır, gereksinim bekliyor | 78 |
 | Beklemede, ertelenmiş veya kapsam dışı | 63 |
-| Toplam izlenen özellik/durum | 542 |
+| Toplam izlenen özellik/durum | 543 |
 
 ## Katalog nasıl güncellenecek?
 
@@ -39,6 +39,7 @@ geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleş
 | Özellik adı | Tek cümlelik açıklama |
 |---|---|
 | Yönetilen proje kurulumu | `./setup` gerekli Python ortamını ve sabitlenmiş normal bağımlılıkları kontrollü biçimde kurar. |
+| Anahtarsız ekip teslim kontrolü | `./handoff` seçilen alanı değiştirmeden denetler, geçici alanda kurulum–yazma–yedek–geri dönüş kabulü yapar ve isteğe bağlı hesapları temel hatalardan ayrı gösterir. |
 | Yerel kayıt alanı oluşturma | `init` seçilen klasörde motorun kullanacağı özel izinli SQLite kayıt alanını oluşturur. |
 | Sistem sağlık kontrolü | `doctor` sürüm, şema, dosya izinleri ve temel kayıt alanı sorunlarını değişiklik yapmadan gösterir. |
 | Birleşik çalışma durumu | `status` kaynak güncelliğini, bekleyen işleri, bildirimleri ve dikkat isteyen durumları tek görünümde toplar. |

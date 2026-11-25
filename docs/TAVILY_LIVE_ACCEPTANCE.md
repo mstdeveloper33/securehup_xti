@@ -1,5 +1,45 @@
 # Tavily — SecureHup canlı kullanım kabulü
 
+## 25 Kasım 2026 — 0.194.0 ekip teslim anahtarı kabulü
+
+Kullanıcının açık onayıyla Tavily anahtarı komut argümanına, repoya veya
+veritabanına konmadan `./xti mentions configure` gizli terminal girişiyle
+`~/.config/xti/tavily.key` dosyasına kaydedildi. Dosya `0600` izinlidir;
+değeri hiçbir durum, handoff veya kabul çıktısında gösterilmedi. `./handoff`
+Tavily gereksinimini `PASS` olarak gördü.
+
+İlk kabul, mevcut eski şemalı `.xti-data` değiştirilmeden güncel şemalı ayrı
+geçici alanda yapıldı. `SecureHup` ve `securehup.com` için `general`,
+`max_results=5` kapsamındaki tek sağlayıcı isteği **1 kredi** bildirdi ve
+çalışma `complete` oldu. Beş kayıt saklandı ve ağsız `mentions list` ile
+tekrar okundu.
+
+Ardından kullanıcının açık onayıyla kalıcı `.xti-data` için yedekli geçiş
+yapıldı. Şema 64'ten 100'e çıktı; geçiş öncesi yedek
+`.xti-data/backups/xti.pre-v100-29e753fb28aa4f609a3e66db050f54e0.db`
+olarak korundu. Ana veritabanı ve yedek ayrı ayrı SQLite bütünlük kontrolünden
+`ok` aldı; `doctor` güncel alanı `ready` gösterdi. Veri ve yedek klasörleri
+`0700`, veritabanı ve yedek dosyaları `0600` yapıldı. Yedek ayrıca boş geçici
+alana aynı SHA-256 ile geri yüklendi, yeniden şema100'e taşındı ve ikinci
+`doctor` kontrolünde `ready / integrity=ok` verdi.
+
+Kalıcı alanda aynı kapsamla yapılan ikinci canlı istek de **1 kredi**,
+`complete` ve 5 yeni kayıt sonucu verdi. Kayıtlar süreç bittikten sonra
+`mentions list` ile kalıcı veritabanından yeniden okundu. Her iki kabulde
+görülen içerik türleri şunlardır:
+
+- Tavily SecureHup şirket profili
+- SecureHup ana sitesi
+- SecureHup MSSP çözüm sayfası
+- Türkiye Innovation Week konulu SecureHup LinkedIn paylaşımı
+- SSRF konulu SecureHup LinkedIn paylaşımı
+
+Bu bağlantılar firma içeriği adaylarıdır; tehdit, ihlal veya hesap sahipliği
+hükmü değildir. Anahtar sohbet içinde paylaşılmış geçici kabul anahtarıdır;
+üretim veya ekip tesliminde kullanılmadan önce sağlayıcı panelinden
+yenilenmeli ve yeni değer yalnız gizli `mentions configure` girişine
+kaydedilmelidir. Bu kabul temiz Linux klon kurulumunun yerine geçmez.
+
 19 Kasım 2026 · 0.170.1 · macOS arm64 / Python 3.13.3.
 Çekirdek 80 ve kuyruk 3 değişmedi. Başlangıç commit'i `262bfc4`;
 çalışan kaynak ve sürüm değişikliğinin diff SHA-256 değeri:

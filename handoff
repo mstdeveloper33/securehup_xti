@@ -1,0 +1,5 @@
+#!/bin/sh
+# Offline team-delivery readiness and disposable core acceptance.
+set -eu
+XTI_PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/handoff.py" "$@"

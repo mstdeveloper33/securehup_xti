@@ -1,6 +1,6 @@
 # XTI hızlı başlangıç
 
-**Sürüm 0.193.0 · çekirdek şema 100.** `./setup` normal çalışma ortamını ve
+**Sürüm 0.194.0 · çekirdek şema 100.** `./setup` normal çalışma ortamını ve
 sabitlenmiş bağımlılıkları kurar; `./xti migrate` eski veriyi değiştirmeden
 önce yedekleyerek güncel şemaya geçirir. P11 Lunar entegrasyonu yeni paket
 veya anahtar istemez. AIL bu kurulumun parçası değildir; yalnız ayrı ve
@@ -31,6 +31,7 @@ proje içindeki `.venv` ortamında tutulur. İsteğe bağlı theHarvester ayrı
 git clone https://github.com/mstdeveloper33/securehup_xti.git
 cd securehup_xti
 ./setup
+./handoff
 ```
 
 `./setup`, sağlıklı mevcut ortamı tekrar indirmez. Kurulum gerektiğinde
@@ -44,9 +45,18 @@ kendiliğinden taşımaz. Eski sürüm uyarısı görürsen önce:
 
 ```sh
 ./xti migrate
+./handoff
 ```
 
 Komut, değişiklikten önce doğrulanmış bir kurtarma yedeği alır.
+`./handoff` canlı kaynak veya aktif tarama başlatmadan normal araçları,
+geçici kurulum/yedek/geri dönüş zincirini ve isteğe bağlı dış gereksinimleri
+ayrı gösterir. `PASS`, `GEREKSİNİM BEKLİYOR`, `UYGULANMADI` ve `FAIL`
+anlamlarıyla makinece okunabilir rapor kullanımı
+[ekip teslim rehberindedir](TEAM_HANDOFF.md). Tavily ve diğer dış hesaplar
+temel kurulum için zorunlu değildir; gerekenler
+[tek gereksinim tablosunda](../REQUIREMENTS.md) bulunur.
+
 0.193.0 P11 kaynak çalışma/kayıt geçmişini şema 100 ile ekler; mevcut dark-web,
 retention, telemetri ve diğer kayıtlar korunur, yeni tablolar boş başlar.
 0.166.0 rapor günlüğünü şema 77 ile ekler; mevcut haber/IOC/karar kayıtları

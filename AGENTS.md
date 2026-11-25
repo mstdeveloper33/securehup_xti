@@ -1,7 +1,7 @@
 # XTI development rules
 
 - Read `docs/STATUS.md` for implemented scope and `docs/ARCHITECTURE.md` for boundaries.
-- Read `docs/FEATURE_CATALOG.md` for the complete current user-facing capability inventory; update its active, requirement-bound or waiting section in the same change whenever behavior or availability changes.
+- Read `FEATURE_CATALOG.md` for the complete current user-facing capability inventory; update its active, requirement-bound or waiting section in the same change whenever behavior or availability changes.
 - Read `NOTES.md` for pending checks, source terms, costs and preserved user decisions before relevant work.
 - Update `NOTES.md` in the same change when these facts change. Keep stable note IDs, dates and evidence; move resolved notes to the closed section instead of deleting them. Never mark a pending check complete without its result.
 - The roadmap describes future work. Do not report a planned feature as implemented.
@@ -19,5 +19,5 @@
 - Keep secrets, runtime databases and collected evidence out of source control.
 - Add dependencies only for a concrete need; document architectural decisions in `docs/decisions/`.
 - Update the usage and current status when behavior changes. Explain user-facing changes in plain Turkish.
-- Do not finish a feature delivery until its plain one-sentence catalog entry and any external prerequisite are reflected in `docs/FEATURE_CATALOG.md`.
+- Do not finish a feature delivery until its plain one-sentence catalog entry and any external prerequisite are reflected in `FEATURE_CATALOG.md`.
 

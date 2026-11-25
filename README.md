@@ -1,5 +1,17 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+**0.194.0 — Anahtarsız ekip teslim kapısı:** Yeni `./handoff`, mevcut çalışma
+alanını değiştirmeden şema/bütünlük durumunu okur; kullanıcı verisinden ayrı
+geçici alanda kurulum, örnek kayıt, kaynak manifesti, yedek, boş alana geri
+dönüş ve tekrar okuma zincirini doğrular. Normal `full` profil sabitlenmiş
+araçları da denetler. Tavily, Bright Data, GitHub/GitLab, XposedOrNot, kanal
+hesabı, yetkili Nmap hedefi ve AIL/Cowrie/CAPE altyapısı temel kurulumu
+bozmaz; ayrı `GEREKSİNİM BEKLİYOR` sonucunda görünür. Kontrol canlı kaynak
+sorgusu, ücretli çağrı veya aktif tarama yapmaz ve secret değerlerini rapora
+yazmaz. [Gereksinimler](REQUIREMENTS.md),
+[ekip teslimi](docs/TEAM_HANDOFF.md),
+[mimari karar](docs/decisions/0199-secret-safe-team-handoff.md).
+
 **0.193.1 — Linux kabul sertleştirmesi:** Eski job-history kabulü artık
 şema88 core verisini yedekli biçimde güncel şemaya geçirerek donmuş
 incelemeleri doğrular. Chromium sandbox gerçek sayfalarda zorunlu kalır;
@@ -246,7 +258,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Çalışma sürümü:** 0.193.0 · **Tarih:** 24 Kasım 2026 · **Çekirdek şema:** 100 · **İş kuyruğu:** 4 · **Kaynak işi:** 12.
+**Çalışma sürümü:** 0.194.0 · **Tarih:** 25 Kasım 2026 · **Çekirdek şema:** 100 · **İş kuyruğu:** 4 · **Kaynak işi:** 12.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;
@@ -259,7 +271,7 @@ kayıtlıdır; planlanan yetenekler mevcut sürüme dahil sayılmaz.
 Kullanım koşulları, maliyetler, ertelenen doğrulamalar ve korunacak kararlar
 [NOTES.md](NOTES.md) içinde takip edilir; durumları değiştikçe güncellenir.
 Bugün kullanılabilen bütün yetenekler ile anahtar, hesap, izin veya ürün
-kararı bekleyenler [tek özellik kataloğunda](docs/FEATURE_CATALOG.md) ayrı
+kararı bekleyenler [tek özellik kataloğunda](FEATURE_CATALOG.md) ayrı
 listelenir.
 
 0.168.0 sekiz maddelik motor paketini ekler: otomatik sürümlü rapor,
@@ -493,14 +505,21 @@ ve haber ayrıştırıcısını proje içindeki `.venv` ortamına kurar:
 git clone https://github.com/mstdeveloper33/securehup_xti.git
 cd securehup_xti
 ./setup
+./handoff
 ./xti assets add example.com
 ./xti scan example.com --typos
 ```
 
+`./handoff`, mevcut veri alanını sessizce değiştirmeden teslim durumunu ve
+isteğe bağlı gereksinimleri gösterir. Eski şema için `./xti migrate` önerirse
+komut önce doğrulanmış yedek alır; ardından `./handoff` yeniden çalıştırılır.
+Tavily veya başka ücretli bir anahtar temel kabul için gerekmez.
+
 Sonraki kullanımlarda proje klasöründe doğrudan `./xti` komutunu çalıştır.
 Yerel veriler `.xti-data` altında kalır ve GitHub'a gönderilmez. Ayrıntılı ama
 kısa kurulum ve güncelleme rehberi için
-[XTI hızlı başlangıç belgesine](docs/GETTING_STARTED.md) bak.
+[XTI hızlı başlangıç belgesine](docs/GETTING_STARTED.md), repoyu bir ekip
+üyesine teslim etmek için [ekip rehberine](docs/TEAM_HANDOFF.md) bak.
 
 ## Nereden başlayacağım?
 

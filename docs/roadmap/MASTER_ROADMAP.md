@@ -1,9 +1,14 @@
 # XTI — Ana geliştirme ve özellik tamamlama planı
 
-**Tarih:** 24 Kasım 2026 · **Plan:** 1 · **Başlangıç motoru:** 0.179.0 · **P01 çalışması:** 0.180.0 · **P02 çalışması:** 0.181.0 · **P03 çalışması:** 0.182.0 · **P04 çalışması:** 0.183.0 · **P05 çalışması:** 0.185.0 · **P06 çalışması:** 0.186.0 · **P07 çalışması:** 0.187.0 · **P08 çalışması:** 0.188.0/0.192.0 · **P09 çalışması:** 0.189.0 · **P10 çalışması:** 0.190.0 · **P11 çalışması:** 0.193.0 · **P12 çalışması:** 0.191.0/0.192.0.
+**Tarih:** 25 Kasım 2026 · **Plan:** 1 · **Başlangıç motoru:** 0.179.0 · **P01 çalışması:** 0.180.0 · **P02 çalışması:** 0.181.0 · **P03 çalışması:** 0.182.0 · **P04 çalışması:** 0.183.0 · **P05 çalışması:** 0.185.0 · **P06 çalışması:** 0.186.0 · **P07 çalışması:** 0.187.0 · **P08 çalışması:** 0.188.0/0.192.0 · **P09 çalışması:** 0.189.0 · **P10 çalışması:** 0.190.0 · **P11 çalışması:** 0.193.0 · **P12 çalışması:** 0.191.0/0.192.0 · **Ekip teslim kapısı:** 0.194.0.
 
 Bu belge yeni çalışmalar için tek ana plandır. Kullanıcının A–K listesindeki
 **76 gereksinimin tamamını** kaydeder; hiçbir satır sessizce kaldırılmaz.
+0.194.0/N-057 yeni bir A–K özelliği veya ikinci plan değildir: mevcut
+gereksinimlerin anahtarsız kurulumu, dış bağımlılık ayrımı ve ekip kabulü için
+yatay teslim kapısıdır. Yerel teknik akış hazırdır; temiz Linux, tam repo kapısı
+ve isteğe bağlı gerçek hesap durumu geçmeden N-057 kapanmaz.
+[Teslim kartı](TEAM_HANDOFF_DELIVERY.md).
 İlk planlama sonrasında P01/A03 uygulamasına başlandı. Yeni kod/paste
 akışı ve Betterleaks entegrasyonu [teslim kaydında](P01_DELIVERY.md)
 izlenir; dış erişim gerektiren kaynaklar ve Linux kabulü hâlâ açıktır.

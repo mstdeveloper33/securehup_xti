@@ -1,5 +1,16 @@
 # XTI Motorunun Mimarisi
 
+0.194.0 ekip teslim kapısı: kök `handoff` adaptörü mevcut `setup`, CLI JSON,
+bileşen kataloğu ve P09 kaynak manifestlerini orkestre eder; alan kuralı,
+veritabanı tablosu, dış kaynak adaptörü veya Engine/Platform işlemi eklemez.
+Seçilen veri alanı yalnız `doctor` ile okunur. Yazma–yedek–restore smoke akışı
+özel geçici alandadır; alt süreç ortamından desteklenen secret değişkenleri ve
+kullanıcı config dizini çıkarılır. İsteğe bağlı hesaplar zorunlu teslim
+hatalarından ayrılır. İç içe exclusive installer denetimi yerine kayıtlı
+bileşen durumu, tam paket sürümü ve çevrimdışı capability sonucu kullanılır.
+[Karar](decisions/0199-secret-safe-team-handoff.md),
+[ekip kullanımı](TEAM_HANDOFF.md).
+
 0.193.0 P11: `darkweb_source_intake` saf alan kuralları Lunar toplu
 maruziyetini ve `xti-ail-v1` zarfını depolama, terminal, HTTP ve AIL'den
 bağımsız doğrular. `LunarDomainExposureSource` sabit HTTPS ucunu bounded,

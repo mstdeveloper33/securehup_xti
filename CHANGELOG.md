@@ -1,5 +1,32 @@
 # Değişiklik Kaydı
 
+## 0.194.0 — 25 Kasım 2026
+
+- `./handoff`, repo/katalog/araç durumunu ve seçilen çalışma alanını
+  değiştirmeden denetler; yazma, yedek ve geri dönüş kabulünü özel geçici
+  alanda yapar.
+- Tavily, Bright Data, GitHub/GitLab, XposedOrNot, kanal hesabı, yetkili Nmap
+  kapsamı ve AIL/Cowrie/CAPE altyapısı temel kabulden ayrıldı; eksikleri yalnız
+  ilgili özelliği `blocked_requirement` durumuna getirir.
+- Normal `full` profil sabit Maigret, Sherlock, Betterleaks, haber, PDF ve kanal
+  paketleri ile çevrimdışı marka capability yüzeyini doğrular; bilinçli hafif
+  kurulum için `core` profili korunur.
+- Sürümlü JSON raporu yeni ve özel izinli dosyaya yazılır; secret değeri,
+  müşteri kanıtı veya canlı kaynak sonucu taşımaz ve mevcut dosyayı ezmez.
+- `REQUIREMENTS.md`, ekip teslim rehberi, N-057 takip notu, teslim kartı ve
+  ADR0199 eklendi. Veritabanı şeması ve dış Engine/Platform sözleşmesi değişmedi.
+- Hızlı kapı 2.366, tam kapı 3.711 testi hatasız tamamladı; macOS'ta yalnız
+  gerçek Linux çalışma zamanı isteyen dört test beklendiği gibi atlandı.
+- Tavily eksik/yapılandırılmış ayrımı ve izole SecureHup canlı araması geçti:
+  tek istek 1 kredi bildirdi, 5 kayıt saklanıp ağsız tekrar okundu; kabul
+  anahtarının üretim öncesi yenilenmesi açık bırakıldı.
+- Yerel kullanıcı alanı açık onayla yedekli şema64→100 geçişinden geçti;
+  geçiş yedeği ve güncel veritabanı bütünlükten geçti, klasörler `0700` oldu,
+  tam handoff `PASS` verdi. Yedek boş alana aynı SHA-256 ile geri yüklenip
+  yeniden şema100'e taşındı ve `ready / integrity=ok` açıldı. Kalıcı alandaki
+  ikinci Tavily isteği de 1 kredi ve 5 saklanan/yeniden okunan kayıtla
+  tamamlandı.
+
 ## 0.193.1 — 24 Kasım 2026
 
 - Job-history kabulü, eski şema88 core verisini güncel okuyucuyla açmadan önce

@@ -7,6 +7,7 @@ cd "$XTI_PROJECT_DIR"
 
 sh -n \
     setup \
+    handoff \
     xti \
     scripts/check \
     scripts/check-fast \
@@ -18,6 +19,7 @@ sh -n \
     scripts/verify-brand
 
 "$XTI_PROJECT_DIR/scripts/python" -m compileall -q src
+"$XTI_PROJECT_DIR/scripts/python" -m py_compile scripts/handoff.py
 exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/check-test-shard.py" -v \
     tests/test_telemetry.py \
     tests/test_telemetry_contract.py \
@@ -130,6 +132,7 @@ exec "$XTI_PROJECT_DIR/scripts/python" "$XTI_PROJECT_DIR/scripts/check-test-shar
     tests/test_mention_group_monitor.py \
     tests/test_linux_upgrade_acceptance.py \
     tests/test_setup.py \
+    tests/test_handoff.py \
     tests/test_setup_nmap.py \
     tests/test_news_installation.py \
     tests/test_rss_atom_news.py \

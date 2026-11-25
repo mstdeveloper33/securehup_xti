@@ -48,5 +48,6 @@ fi
 printf 'İlk domainini ekle: ./xti assets add example.com\n'
 printf 'Aramayı başlat:      ./xti scan example.com --typos\n'
 printf 'İsteğe bağlı Nmap:   ./scripts/setup-nmap\n'
+printf 'Ekip teslim kontrolü: ./handoff\n'
 printf 'Yardımı aç:          ./xti --help\n'
 
