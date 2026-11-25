@@ -2,6 +2,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -77,5 +78,9 @@ class ProtectionInstallTests(unittest.TestCase):
         from xti.adapters.brand_protection_worker import render
         environment={'XTI_BROWSER_SANDBOX_MODE':SANDBOX_TRUSTED_CI_FIXTURE,
                      'GITHUB_ACTIONS':'true'}
-        with patch.dict(os.environ,environment,clear=True),self.assertRaisesRegex(ValueError,'fixed offline fixture'):
+        # This validation is a pre-browser security boundary: it must work in
+        # the core-only installation where the optional Playwright package is
+        # deliberately absent.
+        unavailable={'playwright':None,'playwright.sync_api':None}
+        with patch.dict(os.environ,environment,clear=True),patch.dict(sys.modules,unavailable),self.assertRaisesRegex(ValueError,'fixed offline fixture'):
             render({'url':'https://public.example/','resources':{}})

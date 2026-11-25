@@ -30,7 +30,6 @@ def parse_google(values):
 
 
 def render(values):
-    from playwright.sync_api import sync_playwright
     resources=values['resources']
     sandbox_mode=browser_sandbox_mode()
     if sandbox_mode==SANDBOX_TRUSTED_CI_FIXTURE:
@@ -39,6 +38,10 @@ def render(values):
             raise ValueError('Sandbox-free CI mode accepts only the fixed offline fixture')
     if len(resources)>40:raise ValueError('resource budget')
     if sum(len(v['body']) for v in resources.values())>16*1024*1024:raise ValueError('resource bytes')
+    # Reject an invalid or over-budget request before importing the optional
+    # browser runtime.  The security boundary must not depend on Playwright
+    # being installed, and malformed input must never start browser setup.
+    from playwright.sync_api import sync_playwright
     blocked=[]
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True,chromium_sandbox=sandbox_mode==SANDBOX_REQUIRED,
