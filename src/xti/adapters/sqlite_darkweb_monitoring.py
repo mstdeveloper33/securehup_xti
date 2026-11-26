@@ -477,8 +477,9 @@ class SQLiteDarkwebRepository:
             if profile["binding_state"] == "source_retired":
                 raise DarkwebError(
                     "source_retired",
-                    "Profil devre dışı bırakılmış HIBP kaynağı içeriyor; "
-                    "kaynakları XposedOrNot veya diğer etkin kaynaklarla güncelleyin.",
+                    "Profil devre dışı bırakılmış HIBP veya XposedOrNot kaynağı içeriyor; "
+                    "geçmiş kayıtlar okunabilir ancak yeni çalışma için profili etkin "
+                    "kaynaklarla güncelleyin.",
                 )
             return {"profile": profile, "definition": profile["definition"],
                     "organization": profile["organization"], "network_access": False,
@@ -832,29 +833,17 @@ class SQLiteDarkwebRepository:
                 )
 
     def credential_plan(self, identifier: str, domain: str) -> dict:
-        with self.connection() as connection:
-            profile = profile_in(connection, identifier)
-            if profile["binding_state"] != "ready":
-                raise DarkwebError("scope_changed", "Credential profili veya kuruluş kapsamı hazır değil.")
-            if "xposedornot_domain" not in profile["definition"]["sources"]:
-                raise DarkwebError(
-                    "source_disabled",
-                    "Profilde XposedOrNot verified-domain kaynağı seçili değil.",
-                )
-            scope = read_organization_scope(connection, profile["organization_id"])
-            domains = sorted(target.value for target in scope.effective_targets if target.kind == "domain")
-            if domain not in domains:
-                raise DarkwebError(
-                    "scope_mismatch",
-                    "Credential sorgusu yalnız kuruluşun etkin, açıkça bağlı domaininde çalışabilir.",
-                )
-            return {"profile": profile, "organization": profile["organization"],
-                    "domain": domain, "provider": "xposedornot_domain",
-                    "source_url": XPOSEDORNOT_DOMAIN_URL,
-                    "network_access": True, "requires_verified_domain": True,
-                    "raw_alias_persistence": False}
+        raise DarkwebError(
+            "source_retired",
+            "XposedOrNot yeni sorgular için kapalıdır; geçmiş credential kayıtları "
+            "credential-runs ve credential-run-show ile okunabilir.",
+        )
 
     def reserve_credentials(self, plan: dict, request_key: str, at: str) -> tuple[dict, bool]:
+        raise DarkwebError("source_retired", "XposedOrNot yeni credential turu oluşturamaz.")
+
+        # Historical implementation is intentionally left below for schema/audit
+        # archaeology; no supported service path can reach it after retirement.
         mention_time(at)
         request = {"operation": PREFIX + "credential.refresh", "profile_id": plan["profile"]["id"],
                    "profile_revision": plan["profile"]["revision"], "domain": plan["domain"],
@@ -928,6 +917,10 @@ class SQLiteDarkwebRepository:
         return sorted(prepared, key=lambda item: item["identity_hmac"])
 
     def finish_credentials(self, run_id: str, response: dict, records: list[dict], at: str) -> dict:
+        raise DarkwebError("source_retired", "XposedOrNot yeni credential turu tamamlayamaz.")
+
+        # Historical implementation is intentionally unreachable; it documents
+        # how already stored chain records were produced and verified.
         mention_time(at)
         with self.connection(write=True) as connection:
             run = credential_run_in(connection, run_id)
@@ -1058,6 +1051,12 @@ class SQLiteDarkwebRepository:
             return credential_run_in(connection, run_id)
 
     def fail_credentials(self, run_id: str, code: str, message: str, at: str) -> dict:
+        raise DarkwebError(
+            "source_retired",
+            "XposedOrNot yeni credential turu kapatamaz; eski yarım kayıt için darkweb recover kullanın.",
+        )
+
+        # Historical implementation remains unreachable for audit compatibility.
         mention_time(at)
         code = str(code)[:80]
         message = " ".join(str(message).split())[:500]
@@ -1388,9 +1387,8 @@ class SQLiteDarkwebRepository:
                 {"id": "threatcluster", "class": "public_ransomware_claims", "network_in_run": False,
                  "commercial_default": False, "written_provider_permission_required": True},
                 {"id": "xposedornot_domain", "class": "verified_domain_credential_exposure",
-                 "network_in_run": True, "api_key_and_verified_domain_required": True,
-                 "free_personal_low_volume": True,
-                 "commercial_terms_review_required": True,
+                 "status": "retired_read_only", "network_in_run": False,
+                 "new_collection_enabled": False,
                  "raw_alias_persistence": False},
                 {"id": "lunar_domain", "class": "aggregate_domain_exposure",
                  "network_in_run": True, "api_key_required": False,
@@ -1412,6 +1410,8 @@ class SQLiteDarkwebRepository:
                        "ail_records_per_import": 1_000},
             "password_check": {
                 "provider": "xposedornot_passwords",
+                "status": "retired",
+                "new_collection_enabled": False,
                 "persistence": False,
                 "plaintext_transmitted": False,
                 "full_hash_transmitted": False,
@@ -1421,7 +1421,7 @@ class SQLiteDarkwebRepository:
             "automatic_incident": False,
             "notes": [
                 "Public source claims are review candidates, not verified breaches.",
-                "XposedOrNot verified-domain addresses are pseudonymized in memory before storage.",
+                "Historical XposedOrNot evidence remains readable; new domain and password requests are disabled.",
                 "No password, token, cookie, raw email alias or leak-site content is stored.",
                 "Lunar stores only aggregate counts and dates, never individual credentials.",
                 "AIL import stores no source address or raw page body and remains a source claim.",
@@ -1450,8 +1450,8 @@ class SQLiteDarkwebRepository:
                         "credential_source": {
                             "provider": "xposedornot_domain",
                             "selected": "xposedornot_domain" in profile["definition"]["sources"],
-                            "network_access_only_on_explicit_refresh": True,
-                            "verified_domain_required": True,
+                            "status": "retired_read_only",
+                            "new_network_access": False,
                         }, "automatic_incident": False}
             if name == "run.show":
                 return public_run(run_in(connection, values["identifier"]))

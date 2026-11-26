@@ -94,6 +94,29 @@ class ActionabilityCliTests(unittest.TestCase):
         self.assertEqual(approved["request"]["state"], "approved")
         self.assertEqual(len(self.cli("action", "takedown-list")["records"]), 1)
 
+    def test_abuse_contact_plan_watch_and_offline_capabilities_commands(self):
+        capabilities = self.cli("action", "contact-capabilities")
+        self.assertFalse(capabilities["automatic_submission"])
+        self.assertTrue(capabilities["sources"]["domain_rdap"]["selected"])
+        plan = self.cli(
+            "action", "contact-plan", self.case.id, self.evidence.id,
+            "--subject-kind", "domain", "--subject", "example-login.test",
+            "--interval-seconds", "3600", "--exclude-whois",
+        )
+        self.assertEqual(plan["sources"], ["domain_rdap", "security_txt"])
+        watch = self.cli(
+            "action", "contact-watch-add", self.case.id, self.evidence.id,
+            "--subject-kind", "domain", "--subject", "example-login.test",
+            "--interval-seconds", "3600", "--exclude-whois",
+            "--actor", "analyst@example.test",
+            "--reason", "CLI abuse iletişim izlemesi kabul için kaydediliyor.",
+            "--idempotency-key", "cli:contact:watch",
+        )
+        shown = self.cli("action", "contact-watch-show", watch["id"])
+        listed = self.cli("action", "contact-watches", "--case-id", self.case.id)
+        self.assertEqual(shown["subject_value"], "example-login.test")
+        self.assertEqual(listed["total_count"], 1)
+
     def test_ioc_bulk_preview_import_and_export_public_commands(self):
         source = self.root / "indicators.json"
         observed_at = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()

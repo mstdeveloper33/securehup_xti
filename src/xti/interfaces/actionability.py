@@ -34,12 +34,14 @@ def register_actionability_parser(commands) -> None:
     verify.add_argument("destination", type=Path)
     create = actions.add_parser("takedown-create", help="Etkin vaka kanıtından gönderilmeyen takedown taslağı oluştur.")
     create.add_argument("case_id"); create.add_argument("evidence_link_id")
-    create.add_argument("--target-kind", required=True, choices=(
+    create.add_argument("--target-kind", choices=(
         "domain_hosting", "registrar", "social_platform", "app_store",
         "code_host", "search_engine",
     ))
-    create.add_argument("--target", required=True)
-    create.add_argument("--recipient", required=True)
+    create.add_argument("--target")
+    routing = create.add_mutually_exclusive_group(required=True)
+    routing.add_argument("--recipient")
+    routing.add_argument("--contact-candidate-id")
     create.add_argument("--requested-action", required=True)
     create.add_argument("--grounds", required=True)
     create.add_argument("--actor", required=True)
@@ -65,10 +67,27 @@ def register_actionability_parser(commands) -> None:
         item.add_argument("request_id"); item.add_argument("--expected-revision", type=int, required=True)
         item.add_argument("--actor", required=True); item.add_argument("--reason", required=True)
         item.add_argument("--external-reference", required=reference)
+    from xti.interfaces.abuse_contacts import register_abuse_contact_parsers
+    register_abuse_contact_parsers(actions)
 
 
-def _service(database: Path) -> ActionabilityService:
-    return ActionabilityService(SQLiteActionabilityRepository(database))
+class _ActionabilityBoundary:
+    def __init__(self, database: Path) -> None:
+        self.legacy = ActionabilityService(SQLiteActionabilityRepository(database))
+        from xti.interfaces.abuse_contacts import make_abuse_contact_service
+        self.contacts = make_abuse_contact_service(database)
+
+    def execute(self, operation: str, **options):
+        if operation.startswith("action.contact."):
+            return self.contacts.execute(operation, **options)
+        return self.legacy.execute(operation, **options)
+
+    def __getattr__(self, name):
+        return getattr(self.legacy, name)
+
+
+def _service(database: Path) -> _ActionabilityBoundary:
+    return _ActionabilityBoundary(database)
 
 
 def _runbook_lines(data: dict, *, plan: bool) -> list[str]:
@@ -103,12 +122,19 @@ def _takedown_lines(data: dict) -> list[str]:
 
 
 def execute_actionability(database: Path, args) -> tuple[dict, list[str]]:
+    if getattr(args, "contact_operation", None) is not None:
+        from xti.interfaces.abuse_contacts import execute_abuse_contacts
+        return execute_abuse_contacts(database, args)
     if args.action_action == "capabilities":
         data = {
             "contract_version": 1,
             "case_package": {"html": True, "technical_json": True, "csv": True, "offline_pdf": True},
             "runbook": {"versioned": True, "idempotent_apply": True},
-            "takedown": {"human_approval_required": True, "automatic_submission": False},
+            "takedown": {"human_approval_required": True, "automatic_submission": False,
+                         "reviewed_abuse_contact_binding": True},
+            "abuse_contact_discovery": {"domain_rdap": True, "ip_rdap": True,
+                                         "security_txt_auxiliary": True,
+                                         "whois_fallback_optional": True},
             "bulk_ioc": {"preview": True, "atomic_import": True, "formats": ["csv", "json", "stix"]},
             "external_connectors": False,
         }
@@ -117,6 +143,7 @@ def execute_actionability(database: Path, args) -> tuple[dict, list[str]]:
             "Kanıt paketi: HTML + teknik JSON + CSV; doğrulanmış yerel araçla isteğe bağlı PDF.",
             "Runbook: sürümlü plan ve tekrar güvenli görev uygulaması.",
             "Takedown: insan onaylı kayıt; otomatik dış gönderim yok.",
+            "Abuse iletişimi: RDAP ana kaynak, security.txt yardımcı, WHOIS isteğe bağlı fallback; aday ayrıca onaylanır.",
             "Toplu IOC: kesin CSV/JSON/STIX önizleme, atomik import ve yeni dosyaya export.",
             "Harici SIEM/SOAR/ticket bağlantıları kullanıcı kararıyla bu pakete dahil edilmedi.",
         ]
@@ -152,6 +179,7 @@ def execute_actionability(database: Path, args) -> tuple[dict, list[str]]:
         details = service.takedown_create(
             args.case_id, args.evidence_link_id, target_kind=args.target_kind,
             target_value=args.target, recipient=args.recipient,
+            contact_candidate_id=args.contact_candidate_id,
             requested_action=args.requested_action, grounds=args.grounds,
             idempotency_key=args.idempotency_key, actor=args.actor,
         )

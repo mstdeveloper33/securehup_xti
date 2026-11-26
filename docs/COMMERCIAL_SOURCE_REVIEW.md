@@ -1,5 +1,28 @@
 # Ticari kaynak ve bileşen kararları
 
+**26 Kasım 2026 — XposedOrNot yeni kullanımının kapatılması:** Verified-domain
+ve parola kaynakları teknik katalogda tarihî provider kimlikleri olarak
+korunur fakat `disabled` durumundadır. Yeni profil, anahtar, domain yenilemesi,
+parola sorgusu, canlı/ticari kabul veya müşteri gösterimi yoktur. Önceki
+maskeli kanıtı kaynak kimliğini değiştirmeden okumak veri saklama ve denetim
+amacıyla sürer. Bu karar XposedOrNot için açık ticari incelemeyi kapatır;
+yeniden kullanım ancak yeni bir ürün kararı, güncel şart incelemesi ve canlı
+kabul paketiyle açılabilir. [ADR0201](decisions/0201-retire-xposedornot-new-use.md),
+[N-059](../NOTES.md#n-059--xposedornot-yeni-kullanımının-kapatılması-ve-tarihî-kayıt-koruması).
+
+**25 Kasım 2026 — P06 abuse iletişim kaynağı eklemesi:** Katalog 59 kaynağa
+çıktı. `action:domain-rdap`, `action:ip-rdap` ve `action:security-txt`
+anahtarsız teknik kaynak; `action:whois-fallback` yerel araç gerektiren
+koşullu kaynaktır. XTI yalnız açık abuse rolü/alanından küçültülmüş iletişim
+rotası, kaynak başvurusu, zaman ve bütünlük makbuzu saklar; registrant verisi
+ve ham yanıt saklamaz. Bu minimizasyon teknik kapsamdır, müşteriye ticari
+gösterim hakkı değildir. Registrar/RIR RDAP, hedef `security.txt` içeriği ve
+WHOIS verisinin güncel saklama, gösterme ve ücretli hizmette kullanım koşulu
+kaynak/ülke bazında hukuk incelemesi bekler. İnceleme tamamlanana kadar
+ticari haklar `review_required`, yeniden dağıtım kapalıdır. XTI otomatik
+başvuru göndermez. [N-058](../NOTES.md),
+[teslim](roadmap/P06_ABUSE_CONTACT_DELIVERY.md).
+
 **24 Kasım 2026 — P11 yeraltı/credential kaynak eklemesi:** Katalog 55
 kaynağa çıktı. Lunar/Webz.io Domain Exposure, resmî belgede ücretsiz,
 anahtarsız ve domain düzeyinde toplu maruziyet görünümü olarak tanımlanır;
@@ -45,7 +68,8 @@ kabulü yerine geçmez. Yeni provider kendi güncel koşulu incelenmeden mevcut
 bir kaynağın kararını devralamaz. [P09 kullanımı](SOURCE_GOVERNANCE.md),
 [N-052](../NOTES.md#n-052--p09-kaynak-manifesti-ve-canlı-kabul-sınırı).
 
-**22 Kasım 2026 — P05 ek kapsam:** RansomLook'un atıflı kamu iddiaları,
+**22 Kasım 2026 — P05 tarihî ek kapsam (XposedOrNot kısmı 26 Kasım
+2026'da ADR0201 ile yürürlükten kaldırıldı):** RansomLook'un atıflı kamu iddiaları,
 ThreatCluster'ın yazılı ticari izin sınırı, tarihî HIBP kamu kataloğu ve
 XposedOrNot domain/parola uçları ayrı veri sınıflarıdır. P05 hiçbirini
 doğrulanmış incident, aktif hesap veya geçerli credential hükmüne dönüştürmez.
@@ -54,7 +78,7 @@ domaini ve güncel hesap/hizmet koşulu gerektirir; ham alias saklanmaz. Parola
 kontrolü yalnız açık kullanıcı işlemiyle, yerelde hashlenerek ve kalıcı geçmiş
 oluşturmadan çalışır. Zararsız bilinen `test` girdisiyle parola uç noktası
 canlı doğrulandı; gerçek kullanıcı sırrı kullanılmadı. Canlı domain kabulü
-henüz yapılmadı. HIBP verified-domain
+bu tarihî sürümde yapılmadı; artık bir teslim gereksinimi değildir. HIBP verified-domain
 yeni çalışmalarda seçilmemiştir; eski şema93 kayıtları yalnız okunur. Genel
 forum/pazar/Tor ve stealer-log kaynağı bu karara dahil değildir.
 [N-048](../NOTES.md#n-048--p05-dark-web-ve-credential-kaynaksaklama-sınırı).
@@ -121,8 +145,8 @@ sözleşmesi birlikte kontrol edilir.
 | **MISP warninglists** — yalnız cloudflare, rfc1918, rfc3849, rfc6761 | Sabit commit ve README hash'i tekrar doğrulandı; genel CC0, kaynak özel istisnaları ayrı. Seçili dört liste kapsamı korunur. | Liste bağlamı ve özgün kaynak gösterilir; otomatik güvenli kararı yok. | **Koşullarıyla seçildi.** Yeni listenin hakkı bu karardan türetilmez. [İncelenen commit](https://github.com/MISP/misp-warninglists/blob/40e2b570fda2e5443a2d6fa1d1db16c37ab0a956/README.md#license), [motor sınırları](WARNINGLISTS.md). |
 | **HIBP kamu ihlal kataloğu** | Yalnız herkese açık olay metaverisi; CC BY 4.0 ve hizmet koşullarıyla kayıt. Parola/hesap/stealer verisi değil. | Tarihî `notices` modülü ve mevcut kayıtlar kendi kaynak kimliğiyle korunur; yeni P05 credential profili bunu kullanmaz. | **Mevcut tarihî özellik; P05 yeni varsayılanı değil.** HIBP'nin yerine geçen ihlal arama hizmeti/veritabanı satılmaz; ücretli hesap uçları dahil değildir. [API lisansı](https://haveibeenpwned.com/API/v3#License), [şartlar](https://haveibeenpwned.com/termsofuse). |
 | **HIBP verified-domain API** — eski P05 seçimi | Şema93'te oluşmuş kayıtlar kaynak kimliği değiştirilmeden okunur. Yeni anahtar, profil veya ağ çağrısı oluşturulmaz. | Eski kanıt denetlenebilir kalır; XposedOrNot verisiymiş gibi yeniden etiketlenmez. | **Yeni çalışmalarda seçilmedi / devre dışı.** Kullanıcı kararı ADR0190 ile kaydedildi. [ADR0190](decisions/0190-xposedornot-credential-source.md). |
-| **XposedOrNot verified-domain API** — kuruluşa ait maskeli credential maruziyeti | Yalnız sağlayıcı hesabında doğrulanmış ve XTI kuruluşuna tam bağlı domain sorgulanır. Ham alias bellekte maskelenir; firma alanında yalnız maskeli görünüm, kuruluş anahtarlı HMAC kimliği ve ihlal adları saklanır. | Sonuç kaynaklı maruziyet metaverisidir; güncel hesap/parola geçerliliği veya doğrulanmış incident değildir. API ve pseudonym anahtarları yalnız özel sunucu config alanındadır. | **Teknik olarak seçildi; canlı ve ticari kabul bekliyor.** Kişisel/düşük hacimli ücretsiz kullanım müşteriye sunulan ürün hakkı sayılmaz; güncel ticari plan/şartlar üretim öncesi doğrulanır. [Resmî API](https://github.com/XposedOrNot/XposedOrNot-API), [P05 sınırı](DARKWEB_MONITORING.md), [ADR0190](decisions/0190-xposedornot-credential-source.md). |
-| **XposedOrNot parola API** — açık, tek seferlik maruziyet kontrolü | Parola yerelde legacy Keccak-512 ile özetlenir; yalnız ilk10 hex karakter gönderilir. Parola, tam hash, önek ve sağlayıcının karakter bileşimi alanı saklanmaz; kontrol geçmişi oluşturulmaz. | Yalnız terminalde açık kullanıcı işlemi. Eşleşme parolanın corpus'ta görüldüğünü; boş sonuç güvenli olduğunu kanıtlamaz. Önek sıfır bilgi değildir. | **Teknik olarak seçildi; ticari şart teyidi açık.** Toplu, zamanlanmış veya arka planda parola taraması yapılmaz. [Resmî API](https://github.com/XposedOrNot/XposedOrNot-API), [resmî Go istemcisi](https://github.com/XposedOrNot/XposedOrNot-Go), [ADR0190](decisions/0190-xposedornot-credential-source.md). |
+| **XposedOrNot verified-domain API** — tarihî maskeli credential kanıtı | Eski maskeli kayıtlar provider kimliği, HMAC kimliği ve bütünlük zinciri değiştirilmeden salt okunur korunur. Yeni anahtar, profil, ağ çağrısı veya kayıt yoktur. | Yalnız eski kanıt denetimi; yeni müşteri taraması veya gösterimi sunulmaz. Önceki secret dosyası yükseltmede otomatik silinmez, işletici sağlayıcıda iptal eder. | **Devre dışı / tarihî okuma.** Canlı ve ticari kabul artık açık gereksinim değildir. [ADR0201](decisions/0201-retire-xposedornot-new-use.md), [P05 sınırı](DARKWEB_MONITORING.md). |
+| **XposedOrNot parola API** — emekli tek seferlik kontrol | Yeni parola, hash veya önek işlenmez; önceki komut ve üretim adaptörü kaldırılmıştır. | Müşteri ve işletici akışına sunulmaz; kalıcı parola geçmişi zaten oluşturulmamıştır. | **Devre dışı.** Yeniden kullanım yeni ürün kararı ve güvenlik/ticari kabul gerektirir. [ADR0201](decisions/0201-retire-xposedornot-new-use.md). |
 | **RansomLook** — açık ransomware gönderi metaverisi | About sayfası API/website/dataset içeriği için CC BY 4.0 bildiriyor; atıf/lisans/tarih korunur. | İddia olarak gösterilir, doğrulanmış ihlal denmez. Yalnız mevcut başlık/grup/keşif zamanı kapsamı. | **Koşullarıyla seçildi.** Çalınmış dosya, torrent, kişi/kimlik bilgileri ve yeni veri kümeleri bu karara dahil değil. [Lisans](https://www.ransomlook.io/about#usage-of-the-api-and-license), [API](https://www.ransomlook.io/doc/). |
 | **ThreatCluster** — mevcut açık ransomware feed | Kamu feed'i atıfla paylaşılabilir. Anahtarlı API ayrı iç kullanım koşuluna sahip. | Genel şartlar satılan platforma gömmek için Business/MSSP anlaşması da istiyor; açık feed dağıtım izninin müşteri platformuna uygulanması net değil. | **İzin bekliyor — ticari profilde kapalı.** CC BY 4.0 periyodik dataset izni mevcut canlı feed'e otomatik taşınmaz. [Koşullar](https://threatcluster.io/terms), [ayrı dataset açıklaması](https://threatcluster.io/datasets). |
 | **crt.sh** — CT sertifika araması | Güncel teknik erişim kanıtlandı; sağlayıcı hizmeti için açık ticari saklama/yeniden gösterim izni bu incelemede bulunamadı. | Sertifikaların kamuya açık oluşu crt.sh hizmeti için sözleşme sayılmaz. | **İzin bekliyor — ticari profilde kapalı.** [Hizmet](https://crt.sh/), [20 Kasım teknik kanıtı](SOURCE_EVIDENCE_2026_11_20.md). N-039. |

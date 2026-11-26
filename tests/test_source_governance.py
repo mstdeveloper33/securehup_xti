@@ -29,8 +29,8 @@ class SourceGovernanceServiceTests(unittest.TestCase):
     def test_catalog_is_complete_deterministic_and_explicit_about_gates(self):
         result = self.service.validate()
         self.assertTrue(result["valid"])
-        self.assertEqual(result["source_count"], 55)
-        self.assertEqual(sum(result["integration_states"].values()), 55)
+        self.assertEqual(result["source_count"], 59)
+        self.assertEqual(sum(result["integration_states"].values()), 59)
         self.assertEqual(result["required_provenance_fields"], list(PROVENANCE_FIELDS))
         identifiers = [item.identifier for item in self.service.manifests]
         self.assertEqual(identifiers, sorted(identifiers))
@@ -41,10 +41,13 @@ class SourceGovernanceServiceTests(unittest.TestCase):
         self.assertEqual(by_id["brand:brightdata-linkedin"].integration_state, "conditional")
         self.assertEqual(by_id["brand:brightdata-linkedin"].cost_model, "paid")
         self.assertTrue(by_id["brand:brightdata-linkedin"].prerequisites)
-        self.assertEqual(by_id["credential:xposedornot-domain"].credential_mode, "required")
+        self.assertEqual(by_id["credential:xposedornot-domain"].integration_state, "disabled")
+        self.assertEqual(by_id["credential:xposedornot-domain"].credential_mode, "none")
+        self.assertEqual(by_id["credential:xposedornot-domain"].commercial_use, "disabled")
         self.assertEqual(by_id["content:bluesky-public-search"].integration_state, "active")
         self.assertEqual(by_id["content:bluesky-public-search"].retention_policy, "review_required")
         self.assertEqual(by_id["credential:xposedornot-password"].retention_policy, "not_enabled")
+        self.assertEqual(by_id["credential:xposedornot-password"].integration_state, "disabled")
         self.assertEqual(by_id["credential:lunar-domain-exposure"].integration_state, "active")
         self.assertEqual(by_id["credential:lunar-domain-exposure"].cost_model, "free")
         self.assertEqual(by_id["darkweb:ail-framework"].integration_state, "conditional")
@@ -57,6 +60,11 @@ class SourceGovernanceServiceTests(unittest.TestCase):
         self.assertEqual(by_id["telemetry:cowrie-jsonl"].integration_state, "conditional")
         self.assertEqual(by_id["telemetry:cape-report-v1"].integration_state, "conditional")
         self.assertEqual(by_id["telemetry:cape-report-v1"].target_contact, "none")
+        self.assertEqual(by_id["action:domain-rdap"].integration_state, "active")
+        self.assertEqual(by_id["action:domain-rdap"].retention_policy, "metadata_only")
+        self.assertEqual(by_id["action:security-txt"].failure_policy, "preserve_last_success")
+        self.assertEqual(by_id["action:whois-fallback"].integration_state, "conditional")
+        self.assertTrue(by_id["action:whois-fallback"].prerequisites)
 
     def test_every_source_has_normalization_provenance_rights_and_operating_policy(self):
         for item in self.service.manifests:
@@ -200,7 +208,7 @@ class SourceGovernanceInterfaceTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(len(catalog["data"]["sources"]), 2)
         code, detail = self.invoke_cli("show", "credential:xposedornot-domain")
-        self.assertEqual((code, detail["data"]["integration_state"]), (0, "conditional"))
+        self.assertEqual((code, detail["data"]["integration_state"]), (0, "disabled"))
         code, validation = self.invoke_cli("validate")
         self.assertEqual((code, validation["data"]["valid"]), (0, True))
         self.assertFalse(self.data.exists())

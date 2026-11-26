@@ -1,13 +1,12 @@
 # Kaynak güncelleme işleri
 
-22 Kasım 2026 · 0.185.0 · çekirdek şema 94 · iş kuyruğu şeması 4.
+22 Kasım 2026 · 0.185.0; 26 Kasım 2026 · 0.195.1 bakım kararı · iş kuyruğu şeması 4.
 
 Güncel kaynak işi modeli12, tek kaynaklı ve ağsız `darkweb-monitor` adımını
 ekler. Profil kimliği/sürümü ile dondurulmuş kapsam SHA256 değeri kabulde ve
-worker'da yeniden doğrulanır. Dış HTTP tavanı ve gerçek deneme sıfırdır;
-XposedOrNot verified-domain çağrısı bu genel işin içine gizlenmez ve yalnız
-açık `darkweb.credential.refresh` işleminde yapılır. Parola kontrolü de kaynak
-işi değildir; yalnız açık, gizli terminal girişiyle çalışır. Tamamlanan çekirdek tur
+worker'da yeniden doğrulanır. Dış HTTP tavanı ve gerçek deneme sıfırdır.
+XposedOrNot yeni kullanımda emeklidir; kaynak işi, CLI veya Platform üzerinden
+domain/parola çağrısı yoktur. Tamamlanan çekirdek tur
 makbuzu kuyruk kesintisinde yeniden kullanılır; belirsiz `running` tur
 otomatik tekrarlanmaz. Eski modeller1–11 kendi saklı biçimleriyle okunur.
 [Kullanım](DARKWEB_MONITORING.md#ortak-kuyrukla-düzenli-analiz).

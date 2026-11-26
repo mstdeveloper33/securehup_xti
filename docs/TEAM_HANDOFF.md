@@ -1,6 +1,6 @@
 # XTI ekip teslim rehberi
 
-**Sürüm 0.194.0 · çekirdek şema 100.** Bu rehber, yeni ekip üyesinin repoyu
+**Sürüm 0.195.1 · çekirdek şema 101.** Bu rehber, yeni ekip üyesinin repoyu
 klonlayıp hangi bölümlerin çalıştığını tek akışta doğrulaması içindir. Dış API
 anahtarlarını peşinen istemez.
 
@@ -18,13 +18,21 @@ cd securehup_xti
 gereksinimleri gösterir. `./setup` normal araçları kurup yeni veri alanını
 hazırlar. Son komut şunları birlikte doğrular:
 
-- repo, Python, özellik kataloğu ve 55 kaynak manifesti;
+- repo, Python, özellik kataloğu ve 59 kaynak manifesti;
 - sabitlenmiş Maigret, Sherlock, Betterleaks, haber, PDF ve kanal paketleri;
 - seçilen veri alanının şeması ve bütünlüğü;
 - kullanıcı verisinden ayrı geçici alanda kurulum, örnek kayıt, yedek, boş
   alana geri dönüş ve geri dönen kaydı okuma;
 - yerel marka koruma araçları;
 - isteğe bağlı hesap, yetki ve dış altyapıların ayrı durumu.
+
+RDAP ve `security.txt` abuse iletişim kaynakları anahtarsızdır. Yerel WHOIS
+yalnız RDAP iletişim vermediğinde kullanılan isteğe bağlı fallback'tir;
+`./xti action contact-capabilities` kurulum durumunu gösterir ve eksik olması
+temel teslimi bozmaz.
+
+XposedOrNot yeni kullanımda kapalıdır. Handoff bu kaynak için anahtar aramaz;
+eski maskeli kayıtların okunması yeni ağ erişimi gerektirmez.
 
 Teslim kontrolü canlı kaynak sorgusu, ücretli çağrı, Nmap taraması veya dış
 sisteme yazma yapmaz. Geçici kabul alanı işlem bitince silinir. Seçilen
@@ -112,5 +120,5 @@ Bir sürüm ancak aşağıdakiler kanıtlandığında ekip teslimine hazır deni
 6. `FEATURE_CATALOG.md`, `NOTES.md`, `docs/STATUS.md` ve bu rehber aynı sürümü
    anlatır.
 
-Mevcut 0.194.0 yerel kabul sonucu [durum kaydında](STATUS.md), açık kapılar
+Mevcut 0.195.0 yerel kabul sonucu [durum kaydında](STATUS.md), açık kapılar
 ise [N-057 notunda](../NOTES.md) tutulur.

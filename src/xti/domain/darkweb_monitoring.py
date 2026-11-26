@@ -17,9 +17,8 @@ POLICY = "darkweb-monitoring-v1"
 PREFIX = "darkweb."
 ACTIVE_SOURCES = (
     "ail_tracker", "lunar_domain", "ransomlook", "threatcluster",
-    "xposedornot_domain",
 )
-LEGACY_SOURCES = ("hibp_public", "hibp_domain")
+LEGACY_SOURCES = ("hibp_public", "hibp_domain", "xposedornot_domain")
 SOURCES = ACTIVE_SOURCES + LEGACY_SOURCES
 KINDS = (
     "ransomware_claim", "breach_notice", "credential_exposure",
@@ -35,7 +34,7 @@ READS = tuple(PREFIX + name for name in (
 ))
 WRITES = tuple(PREFIX + name for name in (
     "profile.add", "profile.update", "run", "review", "recover",
-    "credential.refresh", "lunar.refresh", "ail.import",
+    "lunar.refresh", "ail.import",
 ))
 PROFILE_FIELDS = {
     "name", "organization_id", "aliases", "sources", "include_suppliers",
@@ -72,8 +71,8 @@ def profile_definition(value: object, *, allow_legacy: bool = False) -> dict:
         raise ValidationError("Dark web profilinde bilinmeyen kaynak var.")
     if not allow_legacy and set(sources) & set(LEGACY_SOURCES):
         raise ValidationError(
-            "HIBP kaynakları yeni profillerde devre dışıdır; "
-            "xposedornot_domain veya diğer etkin kaynakları seçin."
+            "HIBP ve XposedOrNot kaynakları yeni profillerde devre dışıdır; "
+            "ransomlook, lunar_domain, ail_tracker veya izinli diğer etkin kaynakları seçin."
         )
     usage_mode = value.get("usage_mode", "personal")
     if usage_mode not in ("personal", "commercial"):
@@ -127,8 +126,6 @@ def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
         required = allowed.copy()
     elif name == "recover":
         allowed = required = {"identifier", "idempotency_key"}
-    elif name == "credential.refresh":
-        allowed = required = {"identifier", "domain", "idempotency_key"}
     elif name == "lunar.refresh":
         allowed = required = {
             "identifier", "domain", "expected_revision", "idempotency_key",

@@ -97,7 +97,8 @@ gerekir; örnek dosya yalnız biçim kabulü içindir.
 - Gerçek AIL tracker olayıyla connector → zarf → XTI canlı kabulü.
 - AIL AGPL dağıtım biçimi ile kaynağın saklama/müşteriye gösterim koşulunun
   ticari üretim öncesi onayı.
-- XposedOrNot verified-domain canlı kabulü için anahtar ve doğrulanmış domain.
+- XposedOrNot yeni kullanımda 0.195.1/ADR0201 ile kapatıldı; P11 için anahtar,
+  doğrulanmış domain veya canlı kabul gereksinimi değildir.
 - Push sonrası gerçek Linux kurulum/yükseltme ve Linux CI kabulü.
 
 Bu gereksinimler tamamlanmadan “bütün dark web taranıyor”, “AIL canlı

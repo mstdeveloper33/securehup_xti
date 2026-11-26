@@ -1,5 +1,25 @@
 # Üçüncü Taraf Yazılım ve Veri Bildirimi
 
+**26 Kasım 2026 — P05 / 0.195.1:** XposedOrNot verified-domain ve parola
+entegrasyonları yeni kullanımda devre dışıdır. Üretim composition'ı SDK,
+ağ, secret veya parola adaptörü kurmaz; kurulum ve handoff API anahtarı
+istemez. Önceki sürümlerin parser/adaptör kaynakları, şema geçişi ve tarihî
+kanıt kabulünü sürdürebilmek için repoda kalır fakat desteklenen bir canlı
+kaynak yüzeyi değildir. Eski maskeli kayıtlar provider kimliği değiştirilmeden
+salt okunur korunur. Bu karar yeni bir üçüncü taraf bağımlılığı eklemez.
+[ADR0201](docs/decisions/0201-retire-xposedornot-new-use.md).
+
+**25 Kasım 2026 — P06 / 0.195.0:** Abuse iletişim uzantısı yeni Python SDK,
+vendored kod veya ücretli API eklemez. IANA RDAP bootstrap ile seçilen
+registrar/RIR RDAP hizmetleri ve hedefin RFC 9116 `security.txt` dosyası
+standart kütüphane HTTPS adaptörüyle pasif okunur. İsteğe bağlı WHOIS yalnız
+işletim sistemindeki ayrı `whois` executable'ını argv/no-shell sınırında
+çalıştırır; XTI bu aracı dağıtmaz. Erişilebilir kamu verisi veya araç lisansı,
+verinin ticari saklama ve müşteriye gösterim hakkı sayılmaz; karar
+[ticari kaynak incelemesinde](docs/COMMERCIAL_SOURCE_REVIEW.md) açıktır.
+[IANA RDAP bootstrap](https://www.iana.org/assignments/rdap-dns/rdap-dns.xhtml),
+[RFC 9116](https://www.rfc-editor.org/rfc/rfc9116.html).
+
 **24 Kasım 2026 — P11 / 0.193.0:** Lunar/Webz.io Domain Exposure bir veri
 hizmetidir; XTI yeni SDK veya sağlayıcı kodu almaz, standart kütüphane HTTPS
 adaptörüyle yalnız toplu domain sayaçlarını okur. Resmî belge hizmeti son on
@@ -74,7 +94,8 @@ dosyasının içeriği ve gerçek portal başvurusunun hukuki yetkisi yazılım
 lisansından ayrıdır. [Karar](docs/decisions/0191-human-approved-actionability.md),
 [kullanım](docs/ACTIONABILITY.md).
 
-**22 Kasım 2026 — P05 / 0.185.0:** Yeni üçüncü taraf Python paketi veya
+**22 Kasım 2026 — P05 / 0.185.0 tarihî kayıt (yeni kullanım 0.195.1'de
+ADR0201 ile kapatıldı):** Yeni üçüncü taraf Python paketi veya
 vendored crawler eklenmedi. Mevcut RansomLook, ThreatCluster ve tarihî HIBP
 snapshot'ları kendi kaynak kimlikleriyle okunur. Yeni credential-domain ve
 parola maruziyet kaynağı XposedOrNot'tur. Sabit uç noktalar için stdlib HTTPS

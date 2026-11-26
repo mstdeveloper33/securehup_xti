@@ -1,10 +1,32 @@
 # XTI — Dijital Risk ve Tehdit İstihbaratı Motoru
 
+**0.195.1 — XposedOrNot yeni kullanımı kapatıldı:** Müşteri platformunun
+sağlayıcı hesabı, API anahtarı ve domain doğrulamasına bağımlı olmaması için
+XposedOrNot yeni profil, yapılandırma, domain yenileme ve parola sorgusu
+yollarından çıkarıldı. Üretim composition'ı bu ağ adaptörlerini kurmaz;
+Platform sözleşmesi ve `./handoff` artık XposedOrNot işlemi veya anahtarı
+göstermez. Eski maskeli credential kayıtları, kararlar, vaka bağları ve
+bütünlük zinciri silinmeden salt okunur kalır; şema101 değişmez.
+[Kullanım](docs/DARKWEB_MONITORING.md),
+[karar](docs/decisions/0201-retire-xposedornot-new-use.md).
+
+**0.195.0 — İncelenmiş abuse iletişim rotası:** Etkin vaka kanıtındaki kesin
+domain veya genel IP için resmî RDAP, yardımcı `security.txt` ve RDAP boşsa
+isteğe bağlı yerel WHOIS iletişim adayları bulunabilir. Kaynak makbuzu,
+aday/değişiklik geçmişi, insan kararı, zamanlı yenileme ve recovery kalıcıdır;
+kaynak hatası son başarılı kanıtı silmez. Yalnız güncel insan onaylı aday aynı
+vaka/kanıt takedown taslağına bağlanır ve onay/başvuru kaydından önce yeniden
+doğrulanır. Ham RDAP/WHOIS gövdesi veya registrant bilgisi saklanmaz ve motor
+otomatik e-posta/portal/takedown göndermez.
+[Kullanım](docs/ABUSE_CONTACTS.md),
+[teslim kanıtı](docs/roadmap/P06_ABUSE_CONTACT_DELIVERY.md),
+[mimari karar](docs/decisions/0200-reviewed-abuse-contact-routing.md).
+
 **0.194.0 — Anahtarsız ekip teslim kapısı:** Yeni `./handoff`, mevcut çalışma
 alanını değiştirmeden şema/bütünlük durumunu okur; kullanıcı verisinden ayrı
 geçici alanda kurulum, örnek kayıt, kaynak manifesti, yedek, boş alana geri
 dönüş ve tekrar okuma zincirini doğrular. Normal `full` profil sabitlenmiş
-araçları da denetler. Tavily, Bright Data, GitHub/GitLab, XposedOrNot, kanal
+araçları da denetler. Tavily, Bright Data, GitHub/GitLab, kanal
 hesabı, yetkili Nmap hedefi ve AIL/Cowrie/CAPE altyapısı temel kurulumu
 bozmaz; ayrı `GEREKSİNİM BEKLİYOR` sonucunda görünür. Kontrol canlı kaynak
 sorgusu, ücretli çağrı veya aktif tarama yapmaz ve secret değerlerini rapora
@@ -126,9 +148,11 @@ teslim yapmaz. Haricî SIEM/SOAR/ticket bağlayıcıları kullanıcı kararıyla
 bu pakete dahil edilmemiştir. Yeni ücretli API veya paket yoktur; isteğe
 bağlı PDF mevcut sabit Playwright/Chromium ile ağsız üretilir.
 [Kullanım ve komutlar](docs/ACTIONABILITY.md),
-[teslim ve kapasite kanıtı](docs/roadmap/P06_DELIVERY.md).
+[teslim ve kapasite kanıtı](docs/roadmap/P06_DELIVERY.md),
+[0.195.0 iletişim ek teslimi](docs/roadmap/P06_ABUSE_CONTACT_DELIVERY.md).
 
-**0.185.0 — P05 XposedOrNot credential kaynağı:** Saklı RansomLook ve
+**0.185.0 — P05 tarihî XposedOrNot credential kaynağı (yeni kullanım
+0.195.1'de kapatıldı):** Saklı RansomLook ve
 ThreatCluster kanıtlarını kuruluş/tedarikçi kapsamında analiz eder; yalnız
 XposedOrNot'ta doğrulanmış kesin kuruluş domaini için alınan hesap aliaslarını
 bellekte maskeler ve HMAC kimliğiyle saklar. Açık parola kontrolü yalnız
@@ -258,7 +282,7 @@ alır. PDF için ücretsiz pypdf 7.1.1 normal kuruluma eklendi. Güncelleme:
 `git pull --ff-only`, `./xti migrate`, ardından `./setup`.
 [Kullanım ve sınırlar](docs/PUBLISHER_REVIEW_RETENTION.md).
 
-**Çalışma sürümü:** 0.194.0 · **Tarih:** 25 Kasım 2026 · **Çekirdek şema:** 100 · **İş kuyruğu:** 4 · **Kaynak işi:** 12.
+**Çalışma sürümü:** 0.195.0 · **Tarih:** 25 Kasım 2026 · **Çekirdek şema:** 101 · **İş kuyruğu:** 4 · **Kaynak işi:** 12.
 
 **Ürün hedefi:** Kendi platformumuzun kapalı kaynak XTI motoru.
 İlk ticari kullanım yalnız kendi sunucularımızda hizmet olarak planlanır;

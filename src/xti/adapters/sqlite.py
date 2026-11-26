@@ -33,6 +33,7 @@ from xti.adapters.darkweb_monitoring_schema import (
     migrate_v100 as migrate_darkweb_p11_schema,
 )
 from xti.adapters.actionability_schema import create as create_actionability_schema
+from xti.adapters.abuse_contact_schema import create as create_abuse_contact_schema
 from xti.adapters.unified_monitoring_schema import create as create_unified_monitoring_schema
 from xti.adapters.data_retention_schema import (
     create as create_data_retention_schema,
@@ -281,6 +282,7 @@ class SQLiteAssetRepository:
                 create_cti_analysis_schema(connection)
                 create_darkweb_monitoring_schema(connection)
                 create_actionability_schema(connection)
+                create_abuse_contact_schema(connection)
                 create_unified_monitoring_schema(connection)
                 create_data_retention_schema(connection)
                 create_telemetry_schema(connection)
@@ -554,6 +556,35 @@ class SQLiteAssetRepository:
             open_action_takedowns = connection.execute(
                 "SELECT COUNT(*) FROM action_takedowns "
                 "WHERE state IN ('draft','approved','submitted','acknowledged')"
+            ).fetchone()[0]
+            action_contact_watches = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_watches"
+            ).fetchone()[0]
+            active_action_contact_watches = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_watches WHERE enabled=1"
+            ).fetchone()[0]
+            action_contact_runs = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_runs"
+            ).fetchone()[0]
+            running_action_contact_runs = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_runs WHERE status='running'"
+            ).fetchone()[0]
+            action_contact_candidates = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_candidates"
+            ).fetchone()[0]
+            active_action_contact_candidates = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_candidates WHERE active=1"
+            ).fetchone()[0]
+            approved_action_contact_candidates = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_candidates c "
+                "JOIN action_contact_reviews r ON r.candidate_id=c.id "
+                "AND r.revision=c.review_revision "
+                "WHERE c.active=1 AND r.decision='approved' "
+                "AND r.observation_revision=c.observation_revision "
+                "AND r.evidence_sha256=c.evidence_sha256"
+            ).fetchone()[0]
+            action_contact_takedown_links = connection.execute(
+                "SELECT COUNT(*) FROM action_contact_takedown_links"
             ).fetchone()[0]
             action_ioc_import_runs = connection.execute(
                 "SELECT COUNT(*) FROM action_ioc_import_runs"
@@ -882,6 +913,14 @@ class SQLiteAssetRepository:
             "action_runbook_count": action_runbooks,
             "action_takedown_count": action_takedowns,
             "open_action_takedown_count": open_action_takedowns,
+            "action_contact_watch_count": action_contact_watches,
+            "active_action_contact_watch_count": active_action_contact_watches,
+            "action_contact_run_count": action_contact_runs,
+            "running_action_contact_run_count": running_action_contact_runs,
+            "action_contact_candidate_count": action_contact_candidates,
+            "active_action_contact_candidate_count": active_action_contact_candidates,
+            "approved_action_contact_candidate_count": approved_action_contact_candidates,
+            "action_contact_takedown_link_count": action_contact_takedown_links,
             "action_ioc_import_run_count": action_ioc_import_runs,
             "monitoring_policy_count": monitoring_policies,
             "active_monitoring_policy_count": active_monitoring_policies,
@@ -1216,6 +1255,8 @@ class SQLiteAssetRepository:
                     migrate_data_retention_v99(connection)
                 if version < 100:
                     migrate_darkweb_p11_schema(connection)
+                if version < 101:
+                    create_abuse_contact_schema(connection)
                 connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 self._validate_schema(connection)
                 self._check_integrity(connection)

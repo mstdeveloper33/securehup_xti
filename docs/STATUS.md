@@ -3,6 +3,46 @@
 Bugün kullanılabilen, özel gereksinim bekleyen ve henüz teslim edilmemiş
 bütün yeteneklerin sade listesi [özellik kataloğundadır](../FEATURE_CATALOG.md).
 
+**26 Kasım 2026 — 0.195.1, P05 XposedOrNot yeni kullanımının kapatılması:**
+Çok-firmalı müşteri ürününde ortak sağlayıcı hesabı veya müşteri başına ayrı
+XposedOrNot hesabı/domain doğrulaması istenmemesi kararlaştırıldı. Yeni profil
+seçimi, configure/status/identity, credential refresh, parola kontrolü ve
+Platform `darkweb.credential.refresh` işlemi kaldırıldı; üretim composition'ı
+XposedOrNot ağ/secret/parola adaptörlerini kurmaz ve handoff anahtar aramaz.
+Eski `xposedornot_domain` profilleri `source_retired` görünür; maskeli çalışma,
+karar, vaka ve bütünlük geçmişi `credential-runs/run-show` üzerinden salt
+okunur korunur. Yarım tarihî tur açık recovery ile kesilmiş duruma getirilebilir.
+Kaynak kataloğu 59 manifestte 35 aktif, 15 koşullu ve 9 kapalıdır. Şema101,
+mevcut kayıtlar ve backup biçimi değişmedi; otomatik secret silme yapılmadı.
+[Karar](decisions/0201-retire-xposedornot-new-use.md),
+[kullanım](DARKWEB_MONITORING.md).
+
+**25 Kasım 2026 — 0.195.0, incelenmiş abuse iletişim rotası (yerel hedefli
+kabul):** P06/G01 uzantısı vaka kanıtındaki kesin domain veya genel IP için
+IANA bootstrap bağlı resmî RDAP, yardımcı `security.txt` ve RDAP boşsa
+isteğe bağlı yerel WHOIS kaynaklarını ekledi. Ham yanıt/registrant saklanmaz;
+kaynak durumu, küçültülmüş provenance, aday/değişiklik ve insan karar geçmişi
+şema101'de ayrıdır. Kaynak hatası son başarılı adayı silmez; aday değişirse
+eski karar bayatlar. Yalnız aynı vaka/kanıta ait etkin ve güncel `approved`
+aday takedown taslağına bağlanabilir ve approve/submit öncesinde yeniden
+doğrulanır; motor dış başvuru göndermez. Engine okumaları ağsız, firma
+yazmaları workspace/revision/idempotency çitlidir; yalnız açık contact refresh
+ağ kullanır. Şema100→101 yedekli geçiş, backup/restore, iki firma izolasyonu,
+parser/adaptör sınırları, recovery ve 250 değişmeyen turda tek aday/50'lik
+sayfalama hedefli testlerde geçti. Canlı pasif kabulte `securehup.com` domain
+RDAP iki aday, `1.1.1.1` IP RDAP bir aday ve `www.apple.com` security.txt bir
+aday üretti. SecureHup'ın göreli `Canonical` alanı RFC 9116'ya uymadığı için
+doğru biçimde reddedildi; istek/bayt/son URL/hash hata makbuzunda korundu.
+26 Kasım 2026 yerel macOS/Python 3.13 kabulünde hızlı kapı **2.385 test /
+2.777,756 saniye**, tam kapı **3.730 test / 3.533,545 saniye** ile sıfır
+hatayla geçti; iki turda da yalnız gerçek Linux çalışma zamanı isteyen dört
+test beklendiği gibi atlandı. Koşullu WHOIS fallback canlı yolu, temiz Linux
+kabulü ve ticari kaynak koşulları açık olduğundan paket bunlar olmadan genel
+üretim kabulü sayılmaz.
+[Kullanım](ABUSE_CONTACTS.md),
+[teslim kartı](roadmap/P06_ABUSE_CONTACT_DELIVERY.md),
+[karar](decisions/0200-reviewed-abuse-contact-routing.md).
+
 **25 Kasım 2026 — 0.194.0, anahtarsız ekip teslim kapısı (yerel kabul):**
 N-057 için kök `./handoff` eklendi. Araç, repo/katalog/sabit bileşen durumunu
 ve seçilen veri alanını değişiklik yapmadan denetler; init, örnek kayıt,
@@ -289,7 +329,8 @@ geniş STIX/TAXII, e-posta/SMS ve LLM ertelemeleri korunur.
 [Kullanım](ACTIONABILITY.md), [teslim](roadmap/P06_DELIVERY.md),
 [karar](decisions/0191-human-approved-actionability.md).
 
-**22 Kasım 2026 — 0.185.0, P05 / A02-A10-C07 ve destekleyen
+**22 Kasım 2026 — 0.185.0 tarihî davranış (XposedOrNot yeni kullanımı
+0.195.1/ADR0201 ile kapatıldı), P05 / A02-A10-C07 ve destekleyen
 A07-A12-A13-C06-E01-E03-I03-I04-J01-J02-J03:** Seçilmiş saklı RansomLook ve
 ThreatCluster kayıtları kuruluş/tedarikçi kapsamında analiz edilir.
 XposedOrNot verified-domain adaptörü yalnız kuruluşa bağlı kesin domaini
@@ -327,15 +368,16 @@ hata/başarısızlık yok, macOS'ta Linux'a özgü4 beklenen atlama var. Bu tari
 taban sonucu0.185.0 tam regresyonu değildir; bu turda tam kapı yeniden
 çalıştırılmamıştır.
 
-Canlı XposedOrNot domain kabulü API anahtarı ve sağlayıcı hesabında
-doğrulanmış domain bekler. Genel forum,
+Canlı XposedOrNot domain kabulü bu tarihî sürümde tamamlanmadı ve artık açık
+bir gereksinim değildir. Genel forum,
 pazar, Tor crawler ve stealer-log sağlayıcısı seçilmedi; bu nedenle A02/A10
 bütünü tamamlanmış veya bütün dark web kapsanmış sayılmaz. ThreatCluster
 yazılı izin olmadan ticari profilde kapalıdır. Push/Linux CI kullanıcı
 kararıyla sonraya bırakılmıştır. [Kullanım](DARKWEB_MONITORING.md),
 [ölçümler](roadmap/P05_DELIVERY.md),
 [kararlar](decisions/0189-darkweb-and-credential-evidence.md) ve
-[kaynak değişikliği](decisions/0190-xposedornot-credential-source.md).
+[tarihî kaynak kararı](decisions/0190-xposedornot-credential-source.md) ve
+[güncel emeklilik kararı](decisions/0201-retire-xposedornot-new-use.md).
 
 **21 Kasım 2026 — 0.183.0, P04 / B02-B05-B08-C02-C03-C05-D04-D05-E01-E03-J01-J03:**
 Saklı kaynaklı CTI/IOC, kuruluş domainleri ve yerel MITRE ATT&CK kataloğu

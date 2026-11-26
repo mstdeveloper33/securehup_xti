@@ -29,7 +29,7 @@ from xti.application.darkweb_monitoring import DarkwebService
 from xti.domain.darkweb_monitoring import DarkwebError, PREFIX
 from xti.domain.darkweb_source_intake import lunar_record
 from xti.domain.organizations import normalize_organization_target
-from tests.test_darkweb_monitoring import AT, CredentialSource, Secrets
+from tests.test_darkweb_monitoring import AT
 
 
 class Response(BytesIO):
@@ -184,7 +184,7 @@ class P11StorageTests(unittest.TestCase):
         self.lunar = FakeLunar()
         self.repository = SQLiteDarkwebRepository(self.path)
         self.service = DarkwebService(
-            self.repository, SQLiteDarkwebInputs(self.path), CredentialSource(), Secrets(),
+            self.repository, SQLiteDarkwebInputs(self.path),
             domain_exposure_source=self.lunar, now=lambda: AT,
         )
         self.profile = self.service.execute(

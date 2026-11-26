@@ -1,5 +1,24 @@
 # Çok firmalı platform motoru
 
+0.195.1, `darkweb.credential.refresh` işlemini ve onu ağ işlemi olarak ilan
+eden manifest alanını kaldırır. Yeni XposedOrNot profili veya parola yolu
+Platform v1'de yoktur. Eski `darkweb.credential.runs` ve
+`darkweb.credential.run.show` okumaları veri/provenance uyumluluğu için kalır;
+başka firma izolasyonu ve ağsız Engine davranışı değişmez.
+[Karar](decisions/0201-retire-xposedornot-new-use.md).
+
+0.195.0 `action.contact.*` okuma ve yazma sözleşmesini ekler. Okumalar
+engine ile aynı ağsız servisi kullanır. Watch add/update/disable, refresh,
+review ve recover yazmaları güncel `expected_workspace_id`, ilgili revision
+ve idempotency anahtarını ister; başka firma kayıtları `not_found` olur.
+Yalnız `action.contact.refresh` açık ağ operasyonudur ve pasif RDAP,
+`security.txt`, gerektiğinde yerel WHOIS kaynaklarını çalıştırır. Ham kaynak
+gövdesi veya registrant verisi platform yanıtına girmez. Güncel insan onaylı
+aday `action.takedown.create` içinde `contact_candidate_id` olarak
+bağlanabilir ve approve/submit öncesinde yeniden doğrulanır. Scheduler, RBAC,
+kullanıcı kimliği ve dış başvuru yine tüketici backend sorumluluğundadır;
+motor otomatik gönderim yapmaz. [Tam sözleşme](ABUSE_CONTACTS.md#engine-ve-firma-platformu).
+
 0.193.0 P11 mevcut `darkweb.*` sözleşmesine kaynak çalışma/kayıt okumaları,
 `darkweb.ail.preview`, `darkweb.lunar.refresh` ve `darkweb.ail.import`
 işlemlerini ekler. Lunar yenilemesi seçilmiş kuruluş domaini için açık ağ
@@ -69,7 +88,7 @@ için JSON sözleşmesine açık değildir; güvenilen operatör CLI'sı veya
 tüketici platformun kendi güvenli dosya katmanı kullanır. Haricî
 bağlayıcılar bu sürümde yoktur. [P06 kullanımı](ACTIONABILITY.md).
 
-0.185.0 `darkweb.*` salt-okunur/yazma işlemlerini ve XposedOrNot
+0.185.0 tarihî olarak `darkweb.*` salt-okunur/yazma işlemlerini ve XposedOrNot
 verified-domain kaynağını içerir. Profil ve bulgu
 yazmaları güncel workspace kimliği, sürüm ve tekrar anahtarıyla çitlenir;
 başka firma kimlikleri `not_found` verir. `darkweb.credential.refresh`
@@ -83,6 +102,8 @@ sınırında gizli girişle çalışır. Kaynak işi12 eski1–11'i okur; çekir
 yedekli geçiş, kuyruk4 ve dış JSONv1 korunur. HIBP verified-domain yeni
 platform çalışmalarında seçilemez; şema93 geçmişi salt okunurdur.
 [İşlemler ve örnekler](DARKWEB_MONITORING.md#firma-platformu-ve-engine).
+Bu paragraftaki yeni XposedOrNot yolları 0.195.1/ADR0201 ile kaldırılmıştır;
+yalnız eski kayıt okumaları geçerlidir.
 
 0.183.0 `cti.analysis.*` ağsız okumalarını ve firma çitli yazmalarını ekler.
 Profil, kaynak güveni, eşikler ve bütçeler sürümlüdür; run/review/recover
@@ -215,7 +236,7 @@ kimlikleri kanıtlarda kalır; kart ayrı kalıcı risk kaydı değildir.
 [Provenans ve durum alanları](RESEARCH.md#tedarikçi-izleme-ve-inceleme-bağlamı).
 
 
-**Uygulama 0.193.0 · protokol `xti-platform` v1 · çekirdek şema 100 · kuyruk 4.**
+**Uygulama 0.195.0 · protokol `xti-platform` v1 · çekirdek şema 101 · kuyruk 4.**
 
 0.164.0 firma kapsamlı `company.review` ve `investigation` okuma/yazma
 işlemleri ekler. Kimlik/rapor önerisi ve kararları mevcut workspace kimliği,

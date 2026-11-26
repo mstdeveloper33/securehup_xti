@@ -32,9 +32,9 @@ cd securehup_xti
 |---|---|---|
 | Tavily firma içeriği araması | Tavily hesabı ve API anahtarı | `./xti mentions configure` |
 | Bright Data LinkedIn ek kanıtı | Hesap, anahtar, uygun dataset erişimi ve ticari kullanım kararı | `./xti brand brightdata configure` |
+| İsteğe bağlı WHOIS abuse fallback | RDAP açık abuse iletişimi vermediğinde yerel `whois` aracı ve ilgili kayıt servisinin kullanım koşulu kararı | `./xti action contact-capabilities` |
 | GitHub hesaplı kod araması | İzinleri sınırlandırılmış GitHub token'ı | `./xti code configure github` |
 | GitLab hesaplı kod araması | İzinleri sınırlandırılmış GitLab token'ı | `./xti code configure gitlab` |
-| XposedOrNot domain maruziyeti | API anahtarı ve sağlayıcı hesabında doğrulanmış kuruluş domaini | `./xti darkweb xposedornot-configure` |
 | Telegram kanal izlemesi | Telegram API bilgileri, kullanıcı oturumu ve seçilmiş kamu kanalı | `./xti content configure`, ardından `./xti content telegram-login` |
 | Discord kanal izlemesi | Bot token'ı ile erişim izni verilmiş sunucu/kanal | `./xti content configure` |
 | Yönetilen Nmap | Nmap kurulumu ve yazılı olarak yetkilendirilmiş kesin hedef/port/trafik kapsamı | `./scripts/setup-nmap`, ardından `./xti surface nmap readiness` |
@@ -47,6 +47,10 @@ devam eder. Bütün kaynakların ayrıntılı ve güncel durumu:
 ```sh
 ./handoff --plan --details
 ```
+
+XposedOrNot domain/parola entegrasyonu yeni kullanımda kapalıdır; hesap,
+anahtar veya domain doğrulaması hazırlamayın. Eski maskeli kayıtlar varsa
+yalnız okunur korunur.
 
 ## Sır güvenliği
 

@@ -36,6 +36,7 @@ from xti.adapters.sqlite_case_evidence import SQLiteCaseEvidenceSourceRepository
 from xti.adapters.sqlite_cases import SQLiteCaseRepository
 from xti.adapters.sqlite_darkweb_monitoring import (
     SQLiteDarkwebRepository,
+    _credential_chain,
     case_snapshot,
     company_in,
 )
@@ -49,6 +50,7 @@ from xti.domain.darkweb_monitoring import (
     DarkwebError,
     PREFIX,
     analyse,
+    canonical,
     digest,
     profile_definition,
     sanitize_credential_accounts,
@@ -172,7 +174,7 @@ class Response(BytesIO):
 
 class DarkwebRuleTests(unittest.TestCase):
     def test_legacy_hibp_sources_cannot_be_added_to_new_profiles(self):
-        for source in ("hibp_public", "hibp_domain"):
+        for source in ("hibp_public", "hibp_domain", "xposedornot_domain"):
             with self.subTest(source=source), self.assertRaisesRegex(
                 ValidationError, "yeni profillerde devre dışıdır",
             ):
@@ -391,19 +393,48 @@ class DarkwebStorageTests(unittest.TestCase):
             reason="Explicit P05 domain", recorded_at=AT,
         )
         self.inputs = FrozenInputs()
-        self.credential_source = CredentialSource()
         self.service = DarkwebService(
-            SQLiteDarkwebRepository(self.path), self.inputs,
-            self.credential_source, Secrets(), now=lambda: AT,
+            SQLiteDarkwebRepository(self.path), self.inputs, now=lambda: AT,
         )
 
-    def profile(self, *, credential=False):
+    def profile(self):
         return self.service.execute(
             PREFIX + "profile.add", name="Example dark web",
             organization_id=self.organization.id,
-            sources=["ransomlook", "xposedornot_domain"] if credential else ["ransomlook"],
-            interval_seconds=900, idempotency_key="profile-credential" if credential else "profile",
+            sources=["ransomlook"], interval_seconds=900, idempotency_key="profile",
         )
+
+    def historical_credential_run(self):
+        profile = self.profile()
+        retired = profile_definition({
+            **profile["definition"], "sources": ["xposedornot_domain"],
+        }, allow_legacy=True)
+        run_id = "50000000-0000-4000-8000-000000000099"
+        with self.storage._connection() as connection, connection:
+            connection.execute(
+                "UPDATE darkweb_profiles SET definition_json=?,definition_sha256=? WHERE id=?",
+                (canonical(retired), digest(retired), profile["id"]),
+            )
+            connection.execute(
+                "INSERT INTO darkweb_credential_runs "
+                "(id,profile_id,organization_id,domain,provider,request_key,request_sha256,"
+                "source_url,status,content_sha256,snapshot_sha256,account_count,added_count,"
+                "updated_count,unchanged_count,removed_count,error_code,error,started_at,"
+                "finished_at,fetched_at,chain_sha256) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (run_id, profile["id"], self.organization.id, "example.com",
+                 "xposedornot_domain", "historical-xon", digest({"historical": True}),
+                 XON_DOMAIN_BASE, "failed", None, None, 0, 0, 0, 0, 0,
+                 "source_retired", "Tarihî XposedOrNot turu.", AT, AT, None, "0" * 64),
+            )
+            cursor = connection.execute(
+                "SELECT * FROM darkweb_credential_runs WHERE id=?", (run_id,),
+            )
+            row = dict(zip((item[0] for item in cursor.description), cursor.fetchone()))
+            connection.execute(
+                "UPDATE darkweb_credential_runs SET chain_sha256=? WHERE id=?",
+                (_credential_chain(None, row, []), run_id),
+            )
+        return profile, run_id
 
     def run_profile(self, profile, key, *, force=True):
         return self.service.execute(
@@ -461,68 +492,31 @@ class DarkwebStorageTests(unittest.TestCase):
         self.assertEqual(linked.evidence.evidence_type, "darkweb_monitoring")
         self.assertIn('"automatic_verdict":false', linked.evidence.snapshot_json)
 
-    def test_credential_refresh_never_persists_raw_alias_or_secret_and_replay_is_free(self):
-        profile = self.profile(credential=True)
-        run = self.service.execute(
-            PREFIX + "credential.refresh", identifier=profile["id"],
-            domain="example.com", idempotency_key="credential-one",
-        )
-        self.assertEqual((run["status"], run["account_count"], self.credential_source.calls),
-                         ("complete", 1, 1))
-        replay = self.service.execute(
-            PREFIX + "credential.refresh", identifier=profile["id"],
-            domain="example.com", idempotency_key="credential-one",
-        )
-        self.assertTrue(replay["replayed"])
-        self.assertEqual(self.credential_source.calls, 1)
-        database = self.path.read_bytes()
-        self.assertNotIn(b"alice.private", database)
-        self.assertNotIn(("a" * 32).encode(), database)
-        self.assertIn(b"a******e@example.com", database)
-
-    def test_password_cli_uses_hidden_input_and_persists_nothing(self):
-        before = self.path.read_bytes()
-        result = {
-            "provider": "xposedornot_passwords", "checked_at": AT,
-            "exposed": True, "exposure_count": 7, "wordlist": False,
-            "stored": False, "plaintext_transmitted": False,
-            "full_hash_transmitted": False, "prefix_characters_transmitted": 10,
-            "limitations": ["prefix disclosure", "Bulunmaması güvenliği kanıtlamaz."],
-        }
-        output, error = StringIO(), StringIO()
-        with patch("getpass.getpass", return_value="private-cli-password"), patch(
-            "xti.adapters.xposedornot_passwords.XposedOrNotPasswordSource.check_password",
-            return_value=result,
-        ) as checked, redirect_stdout(output), redirect_stderr(error):
-            code = main([
-                "--data-dir", str(self.root), "--json", "darkweb", "password-check",
-            ])
-        self.assertEqual((code, error.getvalue()), (0, ""))
-        checked.assert_called_once_with("private-cli-password")
-        rendered = output.getvalue()
-        self.assertNotIn("private-cli-password", rendered)
-        self.assertEqual(json.loads(rendered)["data"]["exposure_count"], 7)
-        self.assertEqual(self.path.read_bytes(), before)
-
-    def test_source_failure_is_safe_recoverable_and_does_not_replace_prior_snapshot(self):
-        profile = self.profile(credential=True)
-        complete = self.service.execute(
-            PREFIX + "credential.refresh", identifier=profile["id"],
-            domain="example.com", idempotency_key="success",
-        )
-        self.credential_source.error = XposedOrNotDomainError(
-            "domain_not_verified", "Domain doğrulanmadı; private-provider-detail gösterilmez.",
-        )
-        with self.assertRaises(DarkwebError) as caught:
+    def test_retired_xposedornot_history_is_readable_but_new_paths_are_absent(self):
+        profile, run_id = self.historical_credential_run()
+        shown_profile = self.service.execute(PREFIX + "profile.show", identifier=profile["id"])
+        self.assertEqual(shown_profile["binding_state"], "source_retired")
+        shown = self.service.execute(PREFIX + "credential.run.show", identifier=run_id)
+        self.assertEqual((shown["provider"], shown["status"]), ("xposedornot_domain", "failed"))
+        page = self.service.execute(PREFIX + "credential.runs", profile_id=profile["id"])
+        self.assertEqual([item["id"] for item in page["items"]], [run_id])
+        with self.assertRaisesRegex(ValidationError, "işlemi bilinmiyor"):
             self.service.execute(
                 PREFIX + "credential.refresh", identifier=profile["id"],
-                domain="example.com", idempotency_key="failed",
+                domain="example.com", idempotency_key="must-not-run",
             )
-        self.assertEqual(caught.exception.code, "domain_not_verified")
-        runs = self.service.execute(PREFIX + "credential.runs", profile_id=profile["id"])["items"]
-        self.assertEqual([row["status"] for row in runs], ["complete", "failed"])
-        self.assertEqual(runs[0]["id"], complete["id"])
-        self.assertNotIn(b"private-provider-detail", self.path.read_bytes())
+        before = self.path.read_bytes()
+        for command in ("credential-refresh", "password-check", "xposedornot-configure",
+                        "xposedornot-status", "xposedornot-identity-create"):
+            output, error = StringIO(), StringIO()
+            with redirect_stdout(output), redirect_stderr(error):
+                self.assertEqual(main([
+                    "--data-dir", str(self.root), "--json", "darkweb", command,
+                ]), 2)
+            self.assertEqual(output.getvalue(), "")
+            self.assertIn("validation_error", error.getvalue())
+            self.assertIn("invalid choice", error.getvalue())
+        self.assertEqual(self.path.read_bytes(), before)
 
     def test_explicit_recovery_closes_interrupted_analysis_without_losing_prior_evidence(self):
         profile = self.profile()
@@ -544,17 +538,13 @@ class DarkwebStorageTests(unittest.TestCase):
         self.assertEqual(findings["items"][0]["last_run_id"], complete["id"])
 
     def test_credential_chain_detects_run_and_change_tampering(self):
-        profile = self.profile(credential=True)
-        run = self.service.execute(
-            PREFIX + "credential.refresh", identifier=profile["id"],
-            domain="example.com", idempotency_key="chain",
-        )
+        _profile, run_id = self.historical_credential_run()
         with self.storage._connection() as connection, connection:
             connection.execute(
-                "UPDATE darkweb_credential_runs SET account_count=2 WHERE id=?", (run["id"],),
+                "UPDATE darkweb_credential_runs SET account_count=2 WHERE id=?", (run_id,),
             )
         with self.assertRaisesRegex(StorageError, "bütünlük zinciri"):
-            self.service.execute(PREFIX + "credential.run.show", identifier=run["id"])
+            self.service.execute(PREFIX + "credential.run.show", identifier=run_id)
 
     def test_durable_source_job_freezes_scope_and_uses_zero_http_requests(self):
         profile = self.profile()

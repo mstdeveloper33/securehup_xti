@@ -1,5 +1,14 @@
 # Üçüncü Taraf Bildirimleri
 
+## P06 abuse iletişim kaynakları
+
+0.195.0 yeni üçüncü taraf Python paketi veya vendored kod eklemez. Domain/IP
+RDAP ve RFC 9116 `security.txt` genel veri kaynaklarıdır. Yerel WHOIS isteğe
+bağlı işletim sistemi aracıdır ve bu repo içinde dağıtılmaz. Kaynak hizmeti
+ve veri kullanım koşulları XTI kod lisansından ayrıdır; ham yanıt repo veya
+pakete alınmaz. [Teknik sınırlar](docs/ABUSE_CONTACTS.md),
+[ticari karar](docs/COMMERCIAL_SOURCE_REVIEW.md).
+
 ## P11 Lunar veri kaynağı ve AIL Framework
 
 0.193.0 yeni üçüncü taraf Python paketi veya vendored kod eklemez.

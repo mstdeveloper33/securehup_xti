@@ -1,5 +1,31 @@
 # XTI Motorunun Mimarisi
 
+0.195.1 P05 XposedOrNot emekliliği: saf profil kuralı `xposedornot_domain`
+kaynağını tarihî kaynak sınıfına taşır; yeni profile veya yazma sözleşmesine
+giremez. `DarkwebService` ve üretim composition'ı credential domain, secret ve
+parola portlarına artık bağımlı değildir. CLI ve Platform ağ işlemi kaldırılmış,
+Engine/terminal tarihî `credential.runs` ile `credential.run.show` okumaları
+korunmuştur. SQLite şema101 değişmez; provider kimliği, maskeli kanıt, karar,
+vaka ve hash zinciri yeniden yazılmaz. Repository'nin tarihî ayrıştırma ve
+recovery yolu veri uyumluluğu içindir, yeni toplama yeteneği değildir.
+[Karar](decisions/0201-retire-xposedornot-new-use.md).
+
+0.195.0 P06 abuse iletişim uzantısı: saf `abuse_contacts` kuralları hedef,
+RDAP/security.txt/WHOIS ayrıştırma, aday kimliği, kaynak sonucu ve insan kararını
+SQLite, terminal, HTTP ve alt süreçten bağımsız tutar. `AbuseContactService`
+küçük repository/source portlarını orkestre eder. Dış adaptör IANA bootstrap
+ile seçilen resmî RDAP servisini ve aynı-host `security.txt` adresini genel
+IP'ye sabitlenmiş, proxy'siz, bounded HTTPS ile okur; isteğe bağlı WHOIS
+yalnız RDAP adayı yoksa argv/no-shell olarak çalışır. Ham yanıt ve registrant
+verisi repository sınırına geçmez. Şema101 watch, değişmez watch olayı,
+çalışma, kaynak makbuzu, aday/değişiklik, insan incelemesi ve takedown bağını
+ayırır. Başarısız kaynak eski başarılı adayı silmez; gözlem değişikliği kararı
+bayatlatır. Engine okumaları ağsızdır; platform yazmaları workspace/revision/
+idempotency çitlidir ve yalnız `action.contact.refresh` ağ kullanır. Takedown
+create/approve/submit güncel onaylı aday bağını aynı vaka kanıtında yeniden
+doğrular; dış başvuru göndermez. [Kullanım](ABUSE_CONTACTS.md),
+[karar](decisions/0200-reviewed-abuse-contact-routing.md).
+
 0.194.0 ekip teslim kapısı: kök `handoff` adaptörü mevcut `setup`, CLI JSON,
 bileşen kataloğu ve P09 kaynak manifestlerini orkestre eder; alan kuralı,
 veritabanı tablosu, dış kaynak adaptörü veya Engine/Platform işlemi eklemez.
@@ -138,7 +164,8 @@ workspace çiti ve local execution lock taşır. Dosya yolu işlemleri JSON
 yüzeyine açılmaz. Takedown yalnız insan kararını kaydeder, göndermez.
 [Kullanım](ACTIONABILITY.md), [karar](decisions/0191-human-approved-actionability.md).
 
-0.185.0 P05: `DarkwebService`, salt-okunur dondurulmuş kaynak girdi portunu,
+0.185.0 P05 tarihî mimarisi (XposedOrNot yeni kullanımı 0.195.1/ADR0201 ile
+kapatıldı): `DarkwebService`, salt-okunur dondurulmuş kaynak girdi portunu,
 maskeli XposedOrNot verified-domain portunu ve SQLite yaşam döngüsünü tek
 uygulama sınırında birleştirir. Kamu ransomware kayıtları ile credential
 maruziyeti farklı kaynak sınıflarıdır; hiçbiri otomatik incident hükmü değildir.
@@ -154,6 +181,7 @@ ortak kuyrukta çalıştırır; canlı XposedOrNot çağrısı yalnız açık
 `credential.refresh` yazmasıdır. Engine salt okunur/ağsızdır; platform yazmaları
 güncel workspace çiti ve tekrar anahtarı ister. [ADR0189](decisions/0189-darkweb-and-credential-evidence.md),
 [ADR0190](decisions/0190-xposedornot-credential-source.md),
+[ADR0201](decisions/0201-retire-xposedornot-new-use.md),
 [kullanım](DARKWEB_MONITORING.md), [kabul](roadmap/P05_DELIVERY.md).
 
 0.183.0 P04: `CtiAnalysisService`, SQLite depo ve ağsız dondurulmuş girdi

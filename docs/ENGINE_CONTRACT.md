@@ -1,5 +1,16 @@
 # Engine okuma sözleşmesi v1
 
+0.195.0 `action.contact.capabilities/plan/watches/watch.show/watch.events/due`,
+`action.contact.runs/run.show`, `action.contact.candidates`,
+`action.contact.candidate.show/events` ve `action.contact.reviews` salt
+okunur işlemlerini ekler.
+Bu okumalar yalnız seçilmiş yerel/firma veri alanındaki watch, küçültülmüş
+kaynak makbuzu, aday ve insan kararlarını sayfalı döndürür; RDAP,
+`security.txt` veya WHOIS çağrısı başlatmaz. İletişim değeri otomatik olarak
+doğru ya da resmî sayılmaz; `usable_for_takedown` ancak etkin aday üzerindeki
+güncel insan `approved` kararıyla true olur. Yazmalar firma platformu veya
+güvenilen operatör terminalindedir. [Tam sözleşme](ABUSE_CONTACTS.md#engine-ve-firma-platformu).
+
 0.193.0 P11 `darkweb.source.runs`, `darkweb.source.run.show`,
 `darkweb.source.records`, `darkweb.source.record.show` ve
 `darkweb.ail.preview` salt-okunur işlemlerini ekler. Okumalar yalnız seçilmiş

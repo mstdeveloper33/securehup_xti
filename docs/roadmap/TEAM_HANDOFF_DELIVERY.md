@@ -14,7 +14,8 @@ yatay teslim kapısıdır.
 - Geçici alanda init, kayıt, manifest, yedek, boş geri dönüş ve tekrar okuma.
 - Yönetilen araç, sabit paket ve marka capability doğrulaması.
 - Secret değeri göstermeyen Tavily, Bright Data, GitHub, GitLab ve
-  XposedOrNot yapılandırma durumu.
+  XposedOrNot yeni kullanımda kapalıdır ve teslim gereksinimi değildir; eski
+  maskeli kayıtlar yalnız okunur korunur.
 - Nmap yetkisi, kanal hesapları ve AIL/Cowrie/CAPE dış altyapısını ayrı
   gereksinim olarak gösterme.
 - Sürümlü JSON raporu, yeni dosya/`0600`/üzerine yazmama koruması.

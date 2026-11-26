@@ -1,22 +1,22 @@
 # XTI özellik kataloğu
 
-**Güncel sürüm:** 0.194.0 · **Çekirdek şema:** 100 · **Son güncelleme:**
-25 Kasım 2026.
+**Güncel sürüm:** 0.195.1 · **Çekirdek şema:** 101 · **Son güncelleme:**
+26 Kasım 2026.
 
 Bu dosya platformda bugün gerçekten kullanılabilen bütün kullanıcı
 yeteneklerinin sade envanteridir; planlanan bir özellik kodu, testi ve gerekli
 canlı kabulü tamamlanmadan “aktif” bölümüne yazılmaz.
 
-Bu sürüm için katalog, terminaldeki **71 ana komut ailesi** ve **651 uç komut**
+Bu sürüm için katalog, terminaldeki **71 ana komut ailesi** ve **665 uç komut**
 ile karşılaştırılmıştır; bir satır aynı amaca hizmet eden listeleme, ayrıntı,
 geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleştirebilir.
 
 | Güncel bölüm | Özellik sayısı |
 |---|---:|
-| Aktif ve kullanılabilir | 402 |
+| Aktif ve kullanılabilir | 412 |
 | Kodu hazır, gereksinim bekliyor | 78 |
-| Beklemede, ertelenmiş veya kapsam dışı | 63 |
-| Toplam izlenen özellik/durum | 543 |
+| Beklemede, ertelenmiş veya kapsam dışı | 64 |
+| Toplam izlenen özellik/durum | 554 |
 
 ## Katalog nasıl güncellenecek?
 
@@ -63,7 +63,7 @@ geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleş
 | Kaynak durumlarını ayırma | Hiç çalıştırılmamış, başarılı boş, kısmi, başarısız ve eski başarılı sonuçlar birbirinden farklı gösterilir. |
 | Kaynak bekleme ve kota koruması | Sağlayıcı bekleme süreleri ve oran sınırı kayıtlı tutulur, erken veya gizli tekrar istekleri engellenir. |
 | Pasif kaynak çalışma geçmişi | Son crt.sh/urlscan sorguları ve kayıtlı sağlayıcı beklemeleri `sources history` ile ağsız okunabilir. |
-| Tek sürümlü kaynak manifesti kataloğu | Mevcut 55 connector amaç, erişim, maliyet, kapsam ve sürüm bilgisiyle tek çevrimdışı katalogda listelenir; `sources` aynı sözleşmenin `sources catalog` kısayoludur. |
+| Tek sürümlü kaynak manifesti kataloğu | Mevcut 59 connector amaç, erişim, maliyet, kapsam ve sürüm bilgisiyle tek çevrimdışı katalogda listelenir; `sources` aynı sözleşmenin `sources catalog` kısayoludur. |
 | Kaynak hazırlık durumu | Teknik olarak aktif, açık gereksinim bekleyen ve kullanıcı kararıyla kapalı kaynaklar birbirine karıştırılmadan filtrelenebilir. |
 | Kaynak veri hakkı görünümü | Ticari kullanım, saklama, müşteriye gösterme ve yeniden dağıtım kararı her kaynakta ayrı görülebilir. |
 | Dil ve bölge kaynak filtresi | Manifestler BCP47 dil ve ISO/global bölge alanlarıyla filtrelenebilir; alanın varlığı canlı kapsam iddiası değildir. |
@@ -405,6 +405,16 @@ geçmiş ve güncelleme komutlarını tek anlaşılır özellik altında birleş
 | Takedown alındı kaydı | Sağlayıcının başvuruyu aldığını bildiren referans zaman çizelgesine eklenebilir. |
 | Takedown sonuç kaydı | Başvuru çözüldü, reddedildi veya iptal edildi olarak insan kanıtıyla kapatılabilir. |
 | Takedown olay geçmişi | Taslak, onay, başvuru ve sonuç adımlarının tamamı değiştirilemez olay zincirinde gösterilir. |
+| Abuse iletişim keşif planı | Etkin vaka kanıtındaki kesin domain veya genel IP için hangi pasif iletişim kaynaklarının kullanılacağı ağ isteği yapmadan görülebilir. |
+| Kanıta bağlı iletişim izlemesi | Abuse iletişim araması yalnız aynı vaka içindeki etkin ve donmuş domain/IP kanıtına bağlanarak sürümlü kaydedilebilir. |
+| Domain RDAP abuse iletişimi | IANA bootstrap ile seçilen resmî RDAP servisindeki yalnız açık `abuse` rolü e-posta, HTTPS bağlantısı veya telefonu kaynak kanıtıyla adaylaştırılır. |
+| IP RDAP ağ abuse iletişimi | Genel IP'nin resmî RIR RDAP kaydındaki yalnız açık `abuse` rolü iletişimleri ağ kapsamı doğrulanarak adaylaştırılır. |
+| Yardımcı security.txt iletişimi | Domainin standart `/.well-known/security.txt` kaydındaki geçerli iletişim kanalları düşük güvenli yardımcı aday olarak tutulur. |
+| İletişim kaynak ve çalışma geçmişi | Her kaynağın tamamlandı, boş, atlandı, gereksinim eksik veya başarısız sonucu ile istek sayısı ve küçültülmüş makbuzu geçmişte saklanır. |
+| İletişim adayı yaşam döngüsü | Aynı iletişim çoğaltılmaz; eklenme, değişme, kaldırılma, yeniden görünme ve kaynak kanıtı ayrı olay geçmişinde izlenir. |
+| İletişim insan incelemesi | Aday approved, rejected veya uncertain kararıyla gerekçeli incelenir ve kaynak kanıtı değişirse eski onay otomatik olarak bayat sayılır. |
+| Zamanlı iletişim yenileme ve kurtarma | Zamanı gelen izlemeler listelenebilir, sınırlı terminal monitörüyle yenilenebilir ve yarım kalan tur yeni ağ isteği olmadan kapatılabilir. |
+| İncelenmiş iletişimi takedown'a bağlama | Yalnız güncel insan onaylı aday taslağa bağlanabilir; onay ve dış başvuru kaydı öncesinde bağ yeniden doğrulanır ve motor hiçbir şeyi otomatik göndermez. |
 
 ## K. İzleme, alarm, bildirim ve iş kuyrukları
 
@@ -525,7 +535,6 @@ izin, araç, doğrulanmış envanter veya işletim sistemi sağlanmadan canlı s
 | Tavily izleme grupları | Başarılı arama geçmişi için anahtar, günlük bütçe ve seçilmiş kuruluş/tedarikçi hedefleri gerekir. |
 | Tavily grup zamanlaması ve devam | Linux zamanlayıcısı veya açık monitor ile anahtar, bütçe ve belirsiz isteği tekrarlamayan kalıcı grup çalışması gerekir. |
 | Bright Data LinkedIn kanıtı | Kullanıcının Bright Data hesabı, API anahtarı ve ücretli dataset erişimi gerekir. |
-| XposedOrNot domain ihlal araması | XposedOrNot API anahtarı ile hesapta doğrulanmış kuruluşa ait domain gerekir. |
 | AIL canlı yeraltı kaynağı | Ayrı ve sertleştirilmiş AIL 7.x kurulumu, seçilmiş yasal forum/pazar/Tor kaynağı, metadata connector'ü ve gerçek tracker olayıyla canlı kabul gerekir. |
 | Telegram kanal izlemesi | Telegram API bilgisi, kullanıcı oturumu ve açıkça seçilmiş erişilebilir kamu kanalı gerekir. |
 | Discord kanal izlemesi | Bot token'ı, seçilmiş sunucu/kanal ve mesaj geçmişi ile içerik izinleri gerekir. |
@@ -542,6 +551,7 @@ izin, araç, doğrulanmış envanter veya işletim sistemi sağlanmadan canlı s
 
 | Özellik adı | Beklenen gereksinim |
 |---|---|
+| İsteğe bağlı WHOIS abuse fallback | RDAP açık abuse iletişimi vermediğinde düşük güvenli fallback için Linux/macOS üzerinde yerel `whois` komutu ve ticari kullanım koşulu kararı gerekir. |
 | theHarvester arşiv keşfi | Sabitlenmiş theHarvester kurulumu ile erişilebilir Common Crawl veya Wayback kaynağı gerekir. |
 | Yönetilen Nmap TCP Connect | Nmap 7.x kurulumu, kullanıcıya ait kesin genel IP/CIDR ve açık izinli port kapsamı gerekir. |
 | Nmap SYN taraması | Kesin yetkili hedefe ek olarak raw-socket çalıştırabilecek root/capability yetkisi gerekir. |
@@ -681,7 +691,8 @@ veya kullanıcı kararlarında görünür tutuldukları için burada ayrıca lis
 | Çoklu para birimi ve faturalama | Ticari abonelik, fatura ve para birimi motor kapsamı dışında platform işidir. |
 | White-label MSSP yönetimi | Firma izolasyonu vardır ancak marka özelleştirmesi ve MSSP müşteri yönetim ekranı yoktur. |
 | Firecrawl entegrasyonu | Firecrawl değerlendirilmiş ancak kullanıcı kararıyla şimdilik platforma bağlanmamıştır. |
-| HIBP verified-domain sorgusu | Yeni credential çalışmalarında HIBP kapalıdır ve seçilen kaynak XposedOrNot'tur. |
+| XposedOrNot domain ve parola entegrasyonu | Yeni profil, API anahtarı, domain yenilemesi ve parola sorgusu 26 Kasım 2026 kullanıcı kararıyla kapatılmış; yalnız eski maskeli credential kayıtları, kararları ve bütünlük geçmişi salt okunur korunmuştur. |
+| HIBP verified-domain sorgusu | Yeni credential çalışmalarında HIBP kapalıdır; eski şema93 kayıtları kaynak kimliği değiştirilmeden salt okunur korunur. |
 | Genel Exploit-DB entegrasyonu | Exploit-DB kaynağı mevcut aktif zafiyet kapsamına eklenmemiştir. |
 
 ---

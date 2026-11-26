@@ -16,8 +16,9 @@ class ActionabilityRepository(Protocol):
 
     def runbook_show(self, runbook_id: str) -> RunbookApplication: ...
 
-    def create_takedown(self, case_id: str, evidence_link_id: str, *, target_kind: str,
-                        target_value: str, recipient: str, requested_action: str,
+    def create_takedown(self, case_id: str, evidence_link_id: str, *, target_kind: str | None,
+                        target_value: str | None, recipient: str | None,
+                        contact_candidate_id: str | None, requested_action: str,
                         grounds: str, idempotency_key: str, actor: str,
                         recorded_at: str) -> TakedownDetails: ...
 

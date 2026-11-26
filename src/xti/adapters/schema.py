@@ -27,7 +27,7 @@ from xti.adapters import enrichment_schema
 from xti.adapters import research_history_schema
 from xti.adapters import investigation_schema
 from xti.adapters import report_schema, evidence_schema, document_storage_schema, relationship_notification_schema, social_discovery_schema
-from xti.adapters import code_exposure_schema, content_monitoring_schema, brand_protection_schema, cti_analysis_schema, darkweb_monitoring_schema, actionability_schema, unified_monitoring_schema, data_retention_schema, telemetry_schema
+from xti.adapters import code_exposure_schema, content_monitoring_schema, brand_protection_schema, cti_analysis_schema, darkweb_monitoring_schema, actionability_schema, abuse_contact_schema, unified_monitoring_schema, data_retention_schema, telemetry_schema
 from xti.adapters import social_enrichment_schema, social_tracking_schema, group_schema, group_operations_schema, group_projection_schema
 from xti.adapters.collection_public_notice_schema import (
     COLLECTION_HISTORY_V60_DDL,
@@ -54,7 +54,8 @@ from xti.adapters.collection_social_schema import (
 # 98 adds normalized sensor/sandbox telemetry and frozen telemetry case evidence.
 # 99 extends P08 holds and lossless archives to normalized telemetry records.
 # 100 adds minimized P11 underground-source history and aggregate domain exposure.
-SCHEMA_VERSION = 100
+# 101 adds reviewed abuse-contact discovery and immutable takedown bindings.
+SCHEMA_VERSION = 101
 NMAP_MANAGEMENT_DDL = nmap_management_schema_metadata.NMAP_MANAGEMENT_DDL
 
 ATTACK_CATALOG_DDL = ('CREATE TABLE attack_catalog_runs (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT NOT NULL UNIQUE, version TEXT NOT NULL, source_url TEXT NOT NULL, content_sha256 TEXT NOT NULL, source_object_count INTEGER NOT NULL CHECK (source_object_count BETWEEN 1 AND 30000), fetched_at TEXT NOT NULL, recorded_at TEXT NOT NULL, entity_count INTEGER NOT NULL CHECK (entity_count >= 0), relationship_count INTEGER NOT NULL CHECK (relationship_count >= 0), phase_count INTEGER NOT NULL CHECK (phase_count >= 0), added_count INTEGER NOT NULL CHECK (added_count >= 0), updated_count INTEGER NOT NULL CHECK (updated_count >= 0), reactivated_count INTEGER NOT NULL CHECK (reactivated_count >= 0), revoked_count INTEGER NOT NULL CHECK (revoked_count >= 0), unchanged_count INTEGER NOT NULL CHECK (unchanged_count >= 0), chain_sha256 TEXT NOT NULL)', 'CREATE TABLE attack_catalog_entities (stix_id TEXT PRIMARY KEY NOT NULL, external_id TEXT NOT NULL UNIQUE, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_relationships (stix_id TEXT PRIMARY KEY NOT NULL, source_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, target_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, relationship_type TEXT NOT NULL, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT)', 'CREATE TABLE attack_catalog_phases (id TEXT PRIMARY KEY NOT NULL, technique_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, tactic_stix_id TEXT NOT NULL REFERENCES attack_catalog_entities(stix_id) ON DELETE RESTRICT, record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, active INTEGER NOT NULL CHECK (active IN (0,1)), first_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, last_run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, UNIQUE(technique_stix_id,tactic_stix_id))', "CREATE TABLE attack_catalog_changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, run_id TEXT NOT NULL REFERENCES attack_catalog_runs(id) ON DELETE RESTRICT, record_kind TEXT NOT NULL CHECK (record_kind IN ('entity','relationship','phase')), record_key TEXT NOT NULL, action TEXT NOT NULL CHECK (action IN ('added','updated','reactivated','revoked')), record_json TEXT NOT NULL, state_sha256 TEXT NOT NULL, UNIQUE(run_id,record_kind,record_key))", 'CREATE INDEX attack_catalog_entities_active_external ON attack_catalog_entities(active,external_id)', 'CREATE INDEX attack_catalog_relationships_source ON attack_catalog_relationships(source_stix_id,active)', 'CREATE INDEX attack_catalog_relationships_target ON attack_catalog_relationships(target_stix_id,active)', 'CREATE INDEX attack_catalog_changes_record_sequence ON attack_catalog_changes(record_kind,record_key,sequence)', 'CREATE INDEX attack_catalog_changes_run_sequence ON attack_catalog_changes(run_id,sequence)')
@@ -1438,6 +1439,7 @@ TABLES = {
     **cti_analysis_schema.TABLES,
     **darkweb_monitoring_schema.TABLES,
     **actionability_schema.TABLES,
+    **abuse_contact_schema.TABLES,
     **unified_monitoring_schema.TABLES,
     **data_retention_schema.TABLES,
     **telemetry_schema.TABLES,
@@ -2344,6 +2346,7 @@ UNIQUE_KEYS = {
     **cti_analysis_schema.UNIQUE_KEYS,
     **darkweb_monitoring_schema.UNIQUE_KEYS,
     **actionability_schema.UNIQUE_KEYS,
+    **abuse_contact_schema.UNIQUE_KEYS,
     **unified_monitoring_schema.UNIQUE_KEYS,
     **data_retention_schema.UNIQUE_KEYS,
     **telemetry_schema.UNIQUE_KEYS,
@@ -2548,6 +2551,7 @@ INDEXES = {
     **cti_analysis_schema.INDEXES,
     **darkweb_monitoring_schema.INDEXES,
     **actionability_schema.INDEXES,
+    **abuse_contact_schema.INDEXES,
     **unified_monitoring_schema.INDEXES,
     **data_retention_schema.INDEXES,
     **telemetry_schema.INDEXES,
@@ -2868,6 +2872,7 @@ FOREIGN_KEYS = {
     **cti_analysis_schema.FOREIGN_KEYS,
     **darkweb_monitoring_schema.FOREIGN_KEYS,
     **actionability_schema.FOREIGN_KEYS,
+    **abuse_contact_schema.FOREIGN_KEYS,
     **unified_monitoring_schema.FOREIGN_KEYS,
     **data_retention_schema.FOREIGN_KEYS,
     **telemetry_schema.FOREIGN_KEYS,
@@ -3448,7 +3453,11 @@ VERSION_TABLES = {
     98: frozenset(TABLES),
     99: frozenset(TABLES),
     100: frozenset(TABLES),
+    101: frozenset(TABLES),
 }
+
+for _legacy_version in range(1, 101):
+    VERSION_TABLES[_legacy_version] -= abuse_contact_schema.TABLES.keys()
 
 for _legacy_version in range(1, 100):
     VERSION_TABLES[_legacy_version] -= {
@@ -4417,6 +4426,15 @@ def validate_schema(connection: sqlite3.Connection, *, allow_legacy: bool = Fals
         objects -= action_objects
     if version >= 95:
         actionability_schema.validate(connection)
+    contact_objects = {
+        (statement.split()[2], statement.split()[1].lower())
+        for statement in abuse_contact_schema.DDL
+    }
+    if version < 101 and objects.intersection(contact_objects):
+        abuse_contact_schema.validate(connection, empty=True)
+        objects -= contact_objects
+    if version >= 101:
+        abuse_contact_schema.validate(connection)
     monitoring_objects = {
         (statement.split()[2], statement.split()[1].lower())
         for statement in unified_monitoring_schema.DDL

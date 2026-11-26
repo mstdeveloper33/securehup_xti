@@ -27,7 +27,7 @@ from typing import NamedTuple
 
 PROJECT = Path(__file__).resolve().parents[1]
 BASELINE = "9cdf32c7981b87532952ec2c6b8a3fb5bb142ba8"
-MAX_REVIEWED_SCHEMA = 100
+MAX_REVIEWED_SCHEMA = 101
 OUTPUT_LIMIT = 8 * 1024 * 1024
 
 
@@ -315,7 +315,7 @@ def _preserved_group_guard_upgrade(name, expected, actual):
 
 
 def _preserved_case_upgrade(expected, actual, *, before_schema, after_schema):
-    """Permit reviewed case CHECK extensions through schema100; preserve every row/rowid."""
+    """Permit reviewed case CHECK extensions through schema101; preserve every row/rowid."""
     if (actual is None or expected[1] != actual[1]
             or not 63 <= before_schema < after_schema <= MAX_REVIEWED_SCHEMA):
         return False

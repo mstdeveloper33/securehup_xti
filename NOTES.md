@@ -1,7 +1,7 @@
 # XTI — Unutulmaması gereken notlar
 
-Son güncelleme: **25 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
-Güncel çalışma: **0.194.0 / çekirdek 100 / iş kuyruğu 4 / kaynak işi 12**.
+Son güncelleme: **26 Kasım 2026**. Başlangıç kaydı: **0.154.0 / şema 74**.
+Güncel çalışma: **0.195.1 / çekirdek 101 / iş kuyruğu 4 / kaynak işi 12**.
 
 Konuşmalarda geçen kullanım koşulları, maliyetler, bekleyen doğrulamalar ve
 korunacak kararlar burada tutulur. İlk kayıtlar mevcut repo belgelerinden
@@ -48,6 +48,79 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 
 ## Açık ve takip edilen notlar
 
+### N-059 — XposedOrNot yeni kullanımının kapatılması ve tarihî kayıt koruması
+
+- **Durum:** Sürekli korunacak ürün ve veri kararı. **Tarih:** 26 Kasım 2026.
+- **Karar:** XposedOrNot verified-domain ve parola önek yolları yeni müşteri
+  kullanımından çıkarıldı. Yeni profil, API anahtarı, pseudonym anahtarı,
+  domain yenilemesi, parola kontrolü ve Platform ağ işlemi sunulmaz.
+- **Gerekçe:** Tek sağlayıcı hesabını müşteriler arasında ortak güven sınırı
+  yapmak veya her müşteriden ayrı hesap/domain doğrulaması istemek çok-firmalı
+  müşteri ürünü için doğru değildir. Tekil web kontrolü XTI'nın sürekli
+  izleme değerini tek başına artırmaz.
+- **Veri koruması:** Eski maskeli credential kayıtları, kaynak adı, karar,
+  vaka bağı ve hash zinciri silinmez ya da başka kaynakmış gibi etiketlenmez;
+  yalnız okunur. Eski yarım tur yalnız açık `darkweb recover` ile kapatılır.
+- **Secret sınırı:** Önceden oluşturulmuş config dosyaları otomatik silinmez.
+  İşletici kullanılmayan sağlayıcı anahtarını iptal eder; gerekiyorsa güvenli
+  yedekten sonra secret yönetimiyle kaldırır. Handoff artık anahtar aramaz.
+- **Yeniden açma:** Eski adaptör dosyalarının repoda tarihî uyumluluk için
+  bulunması canlı özellik değildir. Yeniden etkinleştirme; tenant başına
+  yetki/secret, sözleşme, veri minimizasyonu, canlı kabul, kapasite ve yeni ADR
+  gerektirir.
+- **Dayanak:** [ADR0201](docs/decisions/0201-retire-xposedornot-new-use.md),
+  [P05 kullanımı](docs/DARKWEB_MONITORING.md).
+
+### N-058 — İncelenmiş abuse iletişim rotası ve ticari kaynak koşulları
+
+- **Durum:** Teknik yaşam döngüsü ve ana pasif kaynakların canlı kabulü hazır;
+  koşullu WHOIS fallback canlı yolu, temiz Linux tam kabulü ve ticari kaynak
+  koşulu kararı açık. **Tarih:**
+  25 Kasım 2026.
+- **Uygulanan kapsam:** Etkin vaka kanıtına bağlı domain/IP watch; IANA
+  bootstrap üzerinden domain ve IP RDAP; düşük güvenli `security.txt`;
+  RDAP iletişim vermediğinde isteğe bağlı yerel WHOIS; küçültülmüş provenance;
+  aday/değişiklik/karar geçmişi; due/monitor/recovery; firma JSON yüzeyi ve
+  güncel insan onaylı adayın takedown taslağına yeniden doğrulanan bağı.
+- **Korunacak karar:** RDAP kaydında yalnız açık `abuse` rolü alınır;
+  registrant/kişi alanları, ham RDAP/WHOIS/security.txt gövdeleri saklanmaz.
+  Kaynak hatası son başarılı adayı silmez. `security.txt` ve WHOIS tek başına
+  doğru takedown rotası hükmü değildir. Kanıt değişirse eski onay bayat olur.
+- **Dış aksiyon sınırı:** Motor e-posta, portal başvurusu veya otomatik
+  takedown göndermez. `submitted`, insanın dışarıda yaptığı başvurunun yalnız
+  referans kaydıdır. AbuseIPDB ve SOAR/OpenCTI bağlayıcısı seçilmemiştir.
+- **Yerel araç:** WHOIS normal kurulum için zorunlu değildir; yoksa kaynak
+  `requirement_missing` olur ve RDAP/security.txt çalışmaya devam eder. Kurulu
+  olsa bile yalnız sıkı abuse alanları, argv/no-shell, 15 saniye ve 1 MiB
+  sınırıyla kullanılacaktır.
+- **Ticari inceleme:** IANA bootstrap, ilgili registrar/RIR RDAP, hedefin
+  `security.txt` içeriği ve WHOIS verisinin saklama, müşteriye gösterme ve
+  hizmet içinde kullanma koşulları kaynak/ülke bazında hukuk ve ürün
+  sahiplerince kararlaştırılmalıdır. Teknik `active` durumu bu hakkın verilmiş
+  olduğu anlamına gelmez; ticari gösterim `review_required` kalır.
+- **Mevcut kanıt:** Saf parser, bounded adapter, kalıcılık, karar/takedown
+  bayatlama, workspace izolasyonu, migration/restore ve 250 değişmeyen tur
+  kapasite testleri geçti; kapasite turu 31,240 saniye sürdü ve tek aday
+  korundu. Canlı pasif kabulte `securehup.com` domain RDAP iki aday ve
+  `1.1.1.1` IP RDAP bir aday üretti; `www.apple.com` security.txt tek adayla
+  tamamlandı. SecureHup dosyasındaki göreli `Canonical` RFC 9116 URI kuralına
+  uymadığı için güvenli biçimde reddedildi; ikinci tur hata makbuzu bir istek,
+  156 bayt, son URL ve yalnız içerik SHA-256'sını korudu. Yerel `/usr/bin/whois`
+  mevcuttur fakat RDAP iletişim verdiği için ürün akışı onu doğru biçimde
+  çalıştırmadı. Fixture canlı kaynak kabulü sayılmadı. 26 Kasım 2026'da
+  yerel macOS/Python 3.13 kabulünde `./scripts/check-fast` **2.385 testi
+  2.777,756 saniyede**, `./scripts/check` ise **3.730 testi 3.533,545
+  saniyede** sıfır hatayla tamamladı; iki kapıda da yalnız gerçek Linux
+  çalışma zamanı isteyen dört test beklendiği gibi atlandı. Bu sonuç temiz
+  Linux kabulünün yerine geçmez.
+- **Kapanış kanıtı:** Koşullu WHOIS fallback'in RDAP'ın boş olduğu gerçek ve
+  izinli bir hedefte canlı yolu; temiz Linux hızlı/tam kapı; ayrıca ticari
+  kullanım kararlarının tarihli kaydı gerekir. Bunlardan biri eksikse not
+  kapatılmaz.
+- **Dayanak:** [Kullanım](docs/ABUSE_CONTACTS.md),
+  [teslim kartı](docs/roadmap/P06_ABUSE_CONTACT_DELIVERY.md),
+  [ADR0200](docs/decisions/0200-reviewed-abuse-contact-routing.md).
+
 ### N-057 — Anahtarsız temel kurulum ve ekip teslim kabulü
 
 - **Durum:** Yerel teknik akış, hızlı/tam repo kapıları ve gerçek Tavily
@@ -73,7 +146,7 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   paylaşıldığı için üretim öncesi yenilenmesi hâlâ zorunludur. Değer hiçbir
   nota veya repo dosyasına alınmadı. **Tarih:** 25 Kasım 2026.
 - **Korunacak karar:** Normal kurulum bir Tavily, Bright Data,
-  XposedOrNot, GitHub/GitLab veya kanal hesabına bağlı olmayacak. Eksik isteğe
+  GitHub/GitLab veya kanal hesabına bağlı olmayacak. Eksik isteğe
   bağlı gereksinim kurulumu ya da anahtarsız özellikleri bozmayacak; yalnız
   etkilenen özellik `gereksinim_bekliyor` durumunda, tek çözüm adımı ve
   etkilenmeyen kapsamla gösterilecek.
@@ -453,30 +526,31 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 ### N-048 — P05 dark web ve credential kaynak/saklama sınırı
 
 - **Durum:** P05'in seçilmiş kaynaklar için motor uygulaması, yerel kabulü,
-  firma izolasyonu, kurtarma ve kapasite kabulü tamamlandı. Kullanıcı kararıyla
-  yeni credential-domain kaynağı XposedOrNot'tur; HIBP verified-domain yeni
-  çalışmalarda devre dışıdır. Canlı XposedOrNot domain kabulü API anahtarı ve
-  sağlayıcı hesabında doğrulanmış domain bekliyor. Genel forum/pazar için P11
+  firma izolasyonu, kurtarma ve kapasite kabulü tamamlandı. 26 Kasım 2026
+  kullanıcı kararıyla hem HIBP hem XposedOrNot yeni credential-domain
+  çalışmalarında devre dışıdır; iki kaynağın da tarihî provider kayıtları
+  salt okunur korunur. Ayrıntılı yürürlükten kaldırma kararı N-059'dadır.
+  Genel forum/pazar için P11
   küçültülmüş AIL içe alma motorunu teslim etti; gerçek ayrı AIL kurulumu ve
   izinli canlı kaynak henüz beklediğinden A02/A10'un bütünü kapanmadı.
-  **Tarih:** 24 Kasım 2026.
+  **Güncelleme:** 26 Kasım 2026.
 - RansomLook kamu API verisi atıflı kullanım için seçildi; upstream yazılım
   kodu vendored edilmeyecek. ThreatCluster mevcut kişisel/açık akışta kalır;
   satılan üründe saklama/gösterme/dağıtım yazılı anlaşma olmadan varsayılan
   ticari profile açılmayacak. Tarihî HIBP public catalog credential sonucu
   değildir ve yeni P05 profilinin varsayılan kaynağı değildir.
-- XposedOrNot `/v1/domain-breaches/` isteği API anahtarı ve sağlayıcı hesabında
+- **Tarihî 0.185.0 tasarımı:** XposedOrNot `/v1/domain-breaches/` isteği API anahtarı ve sağlayıcı hesabında
   önceden doğrulanmış domain ister. Sağlayıcı aynı yanıtta birden fazla domain
   döndürse bile adaptör yalnız istenen kesin kuruluş domainini kabul eder. Ham
   alias yalnız bellekte işlenir; SQLite/JSON/terminal/git içinde yalnız maskeli
   hesap, kuruluş anahtarlı HMAC kimliği, domain ve ihlal adları bulunur.
   Parola/token/cookie alınmaz veya denenmez. API/pseudonym anahtarları DB ve
   backup dışında özel dosyadır.
-- XposedOrNot parola kontrolünde parola yerelde legacy Keccak-512 ile özetlenir
+- **Tarihî 0.185.0 tasarımı:** XposedOrNot parola kontrolünde parola yerelde legacy Keccak-512 ile özetlenir
   ve yalnız ilk10 hexadecimal karakter gönderilir. Parola, tam hash, gönderilen
   önek ve sağlayıcının karakter bileşimi alanı saklanmaz veya sonuçta gösterilmez.
   Bu önek sıfır bilgi değildir; boş sonuç da parolanın güvenli olduğunu kanıtlamaz.
-  Özellik açık terminal işlemi olarak çalışır, zamanlanmaz ve geçmiş oluşturmaz.
+  Bu yol artık terminalde sunulmaz; ayrıntı yalnız eski kanıt biçimini açıklar.
 - XTI içine genel Tor/forum/pazar crawler eklenmedi. P11, ayrı AIL Framework
   kurulumundan yalnız küçültülmüş `xti-ail-v1` zarfını kabul eden motoru
   tamamladı; kaynak erişim hakkı, izolasyon, veri minimizasyonu,
@@ -485,10 +559,11 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
 - Resmî XposedOrNot API belgeleri domain izlemenin doğrulanmış domain ve API
   anahtarı gerektirdiğini; parola uç noktasının10 karakterlik Keccak öneki
   kullandığını belirtir. Ücretsiz kişisel/düşük hacim ile müşteriye sunulan
-  ticari ürün hakkı aynı sayılmaz; ticari kullanım öncesinde güncel plan ve
-  şartlar yeniden doğrulanır. [P05 kartı](docs/roadmap/P05_DELIVERY.md),
+  ticari ürün hakkı aynı sayılmaz. Bu bağımlılık N-059 ile yeni kullanımdan
+  kaldırılmıştır. [P05 kartı](docs/roadmap/P05_DELIVERY.md),
   [ADR0189](docs/decisions/0189-darkweb-and-credential-evidence.md),
-  [ADR0190](docs/decisions/0190-xposedornot-credential-source.md).
+  [tarihî ADR0190](docs/decisions/0190-xposedornot-credential-source.md),
+  [güncel ADR0201](docs/decisions/0201-retire-xposedornot-new-use.md).
 - Şema94/kaynak işi12; terminal, engine/firma JSON, kuruluş içeriği, inbox,
   vaka, ağsız kuyruk, kesinti kurtarma ve yedek/restore kabulü geçti. İki
   firmada ayrı ayrı10.000 bulgu ve30 değişmeyen tur yeni kanıt/değişiklik/
@@ -509,8 +584,8 @@ o belgelerdeki önemli koşul ve takip maddelerinin ortak hatırlatma yeridir.
   Linux isteyen4 kontrol beklendiği gibi atlandı. Bu sayı0.184.0 tabanının
   tarihî sonucudur;0.185.0 için bu turda tam kapı değil, hedefli paket,
   hızlı çevrimdışı kapı ve kapasite kabulü çalıştırılmıştır. Bu
-  sonuç Linux CI, canlı XposedOrNot domain veya gerçek AIL/forum/pazar
-  kaynağı kabulü değildir.
+  sonuç Linux CI veya gerçek AIL/forum/pazar kaynağı kabulü değildir. Canlı
+  XposedOrNot domain kabulü artık açık gereksinim değil, kapatılmış yoldur.
 
 ### N-047 — P04 CTI çıkarımı, kaynak güveni ve ATT&CK kullanım sınırı
 

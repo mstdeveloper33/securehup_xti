@@ -11,15 +11,20 @@ from xti.domain.actionability import (
 from xti.domain.assets import ValidationError
 from xti.domain.cases import normalize_case_evidence_link_id, normalize_case_id
 from xti.domain.cti_knowledge import normalize_knowledge_id
+from xti.domain.abuse_contact_contract import (
+    OPERATIONS as CONTACT_OPERATIONS, READS as CONTACT_READS,
+    WRITES as CONTACT_WRITES, parameters as contact_parameters,
+)
+from xti.domain.abuse_contacts import normalize_candidate_id
 
 
 READS = (
     "action.capabilities", "action.runbook.plan", "action.runbook.show",
     "action.takedown.list", "action.takedown.show",
-)
+) + CONTACT_READS
 WRITES = (
     "action.runbook.apply", "action.takedown.create", "action.takedown.transition",
-)
+) + CONTACT_WRITES
 OPERATIONS = READS + WRITES
 
 
@@ -36,6 +41,8 @@ def _integer(value: object, low: int, high: int) -> int:
 
 
 def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
+    if operation in CONTACT_OPERATIONS:
+        return contact_parameters(operation, value, scoped=scoped)
     if operation not in OPERATIONS or not isinstance(value, dict):
         raise ValidationError("Aksiyon işlemi veya seçenek nesnesi geçersiz.")
     allowed: set[str] = set()
@@ -51,9 +58,13 @@ def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
     elif operation == "action.takedown.show":
         allowed = required = {"request_id"}
     elif operation == "action.takedown.create":
-        allowed = required = {
-            "case_id", "evidence_link_id", "target_kind", "target_value",
-            "recipient", "requested_action", "grounds", "idempotency_key", "actor",
+        allowed = {
+            "case_id", "evidence_link_id", "target_kind", "target_value", "recipient",
+            "contact_candidate_id", "requested_action", "grounds", "idempotency_key", "actor",
+        }
+        required = {
+            "case_id", "evidence_link_id", "requested_action", "grounds",
+            "idempotency_key", "actor",
         }
     elif operation == "action.takedown.transition":
         allowed = {"request_id", "action", "expected_revision", "actor", "reason", "external_reference"}
@@ -67,6 +78,7 @@ def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
     if "runbook_id" in result: result["runbook_id"] = normalize_runbook_id(result["runbook_id"])
     if "request_id" in result: result["request_id"] = normalize_takedown_id(result["request_id"])
     if "evidence_link_id" in result: result["evidence_link_id"] = normalize_case_evidence_link_id(result["evidence_link_id"])
+    if "contact_candidate_id" in result: result["contact_candidate_id"] = normalize_candidate_id(result["contact_candidate_id"])
     if "expected_workspace_id" in result: result["expected_workspace_id"] = normalize_knowledge_id(result["expected_workspace_id"])
     if "expected_plan_sha256" in result: result["expected_plan_sha256"] = _sha(result["expected_plan_sha256"])
     if "idempotency_key" in result: result["idempotency_key"] = normalize_key(result["idempotency_key"])
@@ -78,6 +90,17 @@ def parameters(operation: str, value: object, *, scoped: bool = False) -> dict:
     if "recipient" in result: result["recipient"] = normalize_recipient(result["recipient"])
     if "requested_action" in result: result["requested_action"] = normalize_requested_action(result["requested_action"])
     if "external_reference" in result: result["external_reference"] = normalize_external_reference(result["external_reference"])
+    if operation == "action.takedown.create":
+        manual = {"target_kind", "target_value", "recipient"}
+        supplied = manual.intersection(result)
+        if "contact_candidate_id" in result:
+            if supplied:
+                raise ValidationError("İletişim adaylı takedown ham hedef veya alıcı kabul etmez.")
+            result.update({"target_kind": None, "target_value": None, "recipient": None})
+        elif supplied != manual:
+            raise ValidationError("Manuel takedown hedef türü, hedef ve alıcıyı birlikte gerektirir.")
+        else:
+            result["contact_candidate_id"] = None
     if operation == "action.takedown.list":
         result["offset"] = _integer(result.get("offset", 0), 0, 1_000_000)
         result["limit"] = _integer(result.get("limit", 50), 1, 500)

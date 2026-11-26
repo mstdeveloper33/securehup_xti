@@ -1,10 +1,9 @@
 # Kaynak ve feed yönetişimi
 
 P09, XTI'daki kaynakların ne yaptığını ve hangi koşulda kullanılabileceğini
-tek yerde gösterir. Örneğin kullanıcı `XposedOrNot` kaynağını açtığında motor;
-bu kaynağın doğrulanmış domain ve anahtar istediğini, ücret/ticari koşulunun
-ayrıca kararlaştırılacağını, yalnız maskeli credential maruziyeti ürettiğini
-ve bunun doğrulanmış ihlal hükmü olmadığını aynı kayıtta açıklar.
+tek yerde gösterir. Örneğin XposedOrNot manifestleri artık `disabled` görünür;
+yeni ağ kullanımı olmadığını, yalnız eski maskeli kayıtların korunabileceğini
+ve bunun güncel ihlal hükmü olmadığını aynı kayıtta açıklar.
 
 Bu paket yeni bir feed satın almaz, internete istek göndermez ve mevcut
 kaynak verilerini ortak bir tabloya taşımaz. Kaynakların **kontrol düzlemini**
@@ -26,6 +25,10 @@ adaptörlerinde kalır.
 ./xti sources show telemetry:cape-report-v1
 ./xti sources show credential:lunar-domain-exposure
 ./xti sources show darkweb:ail-framework
+./xti sources show action:domain-rdap
+./xti sources show action:ip-rdap
+./xti sources show action:security-txt
+./xti sources show action:whois-fallback
 ./xti sources validate
 ```
 
@@ -83,7 +86,7 @@ bir connector “çalışıyor” sayılmaz; kendi özellik geçmişine yönlend
 | `conditional` | Kod vardır fakat hesap, anahtar, araç, ticari karar veya yetkili hedef gibi açık bir gereksinim bekler. |
 | `disabled` | Kaynak bilinçli ürün kararıyla yeni kullanımda kapalıdır; eski verinin korunması ayrı olabilir. |
 
-0.193.0 kataloğu 55 manifest içerir: 33 aktif, 15 koşullu ve 7 kapalı.
+0.195.1 kataloğu 59 manifest içerir: 35 aktif, 15 koşullu ve 9 kapalı.
 Kapalı yedi kaynak, kullanıcı kararıyla aktif yeni geliştirme dışında tutulan
 zafiyet kaynaklarıdır. Bu sınıflandırma kaynakların internette o an erişilebilir
 olduğunu veya ticari kullanıma hukuk tarafından onaylandığını söylemez.
@@ -94,6 +97,12 @@ saklama ve müşteriye gösterimi `review_required` kalır.
 `telemetry:cowrie-jsonl` ile `telemetry:cape-report-v1` adaptörleri hazırdır
 ancak gerçek ayrı altyapı ve canlı kaynak kabulü beklediği için koşulludur;
 kontrollü parser fixture'ı canlı kaynak sağlığı sayılmaz.
+`action:domain-rdap`, `action:ip-rdap` ve `action:security-txt` anahtarsız
+teknik kaynak olarak aktiftir; ticari saklama ve müşteriye gösterim hakları
+`review_required` kalır. `action:whois-fallback` yerel araç ve ayrı kullanım
+koşulu kararı istediği için koşulludur; RDAP açık abuse iletişimi verdiğinde
+çalıştırılmaz. Bu dört kaynak ham yanıt saklamaz ve hiçbir takedown başvurusu
+göndermez.
 `credential:lunar-domain-exposure` anahtarsız resmî API ile canlı
 doğrulanmış aktiftir; yalnız domain düzeyinde toplu sayılar taşır ve başarılı
 sıfır sonuç güvenlik hükmü değildir. `darkweb:ail-framework` için XTI içe alma

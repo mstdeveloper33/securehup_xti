@@ -1,6 +1,6 @@
 # XTI — Ana geliştirme ve özellik tamamlama planı
 
-**Tarih:** 25 Kasım 2026 · **Plan:** 1 · **Başlangıç motoru:** 0.179.0 · **P01 çalışması:** 0.180.0 · **P02 çalışması:** 0.181.0 · **P03 çalışması:** 0.182.0 · **P04 çalışması:** 0.183.0 · **P05 çalışması:** 0.185.0 · **P06 çalışması:** 0.186.0 · **P07 çalışması:** 0.187.0 · **P08 çalışması:** 0.188.0/0.192.0 · **P09 çalışması:** 0.189.0 · **P10 çalışması:** 0.190.0 · **P11 çalışması:** 0.193.0 · **P12 çalışması:** 0.191.0/0.192.0 · **Ekip teslim kapısı:** 0.194.0.
+**Tarih:** 26 Kasım 2026 · **Plan:** 1 · **Başlangıç motoru:** 0.179.0 · **P01 çalışması:** 0.180.0 · **P02 çalışması:** 0.181.0 · **P03 çalışması:** 0.182.0 · **P04 çalışması:** 0.183.0 · **P05 çalışması:** 0.185.0 · **P05 bakım çalışması:** 0.185.0/0.195.1 · **P06 çalışması:** 0.186.0/0.195.0 · **P07 çalışması:** 0.187.0 · **P08 çalışması:** 0.188.0/0.192.0 · **P09 çalışması:** 0.189.0 · **P10 çalışması:** 0.190.0 · **P11 çalışması:** 0.193.0 · **P12 çalışması:** 0.191.0/0.192.0 · **Ekip teslim kapısı:** 0.194.0.
 
 Bu belge yeni çalışmalar için tek ana plandır. Kullanıcının A–K listesindeki
 **76 gereksinimin tamamını** kaydeder; hiçbir satır sessizce kaldırılmaz.
@@ -25,13 +25,12 @@ vaka, firma JSON'u ve ağsız kuyruk olarak uygulandı. Yerel kapasite kabulü
 ve3.577 testlik tam regresyon geçti. Push sonraya bırakıldığı için gerçek
 Linux CI/release kaydı açık.
 [P04 kapsam ve kabul kartı](P04_DELIVERY.md).
-P05'in seçilmiş kaynak motoru uygulandı: saklı kamu iddiaları ile yalnız
-doğrulanmış kuruluş domainine ait XposedOrNot sonuçları kaynaklı, maskeli,
-insan incelemeli ve firma-izole yaşam döngüsünde birleşir. Açık parola kontrolü
-kalıcı secret/hash bırakmadan yerel önek kullanır. HIBP verified-domain yeni
-çalışmalarda kapalı, şema93 geçmişinde salt okunurdur. XposedOrNot canlı domain
-kabulü API anahtarı/doğrulanmış domain; genel forum/pazar kapsamı seçilmiş
-sağlayıcı beklediğinden A02/A10 bütünü tamamlandı sayılmaz.
+P05'in seçilmiş kaynak motoru uygulandı. 0.195.1 bakım kararıyla HIBP ve
+XposedOrNot yeni credential çalışmalarında kapatıldı; yeni profil, domain
+yenilemesi, parola sorgusu veya müşteri anahtarı yoktur. İki provider'ın eski
+maskeli kayıtları kaynak kimliğiyle salt okunur korunur. Ransomware, Lunar ve
+AIL akışları bu karardan etkilenmez. Genel forum/pazar kapsamı seçilmiş canlı
+kaynak beklediğinden A02/A10 bütünü tamamlandı sayılmaz.
 [P05 kapsam ve kabul kartı](P05_DELIVERY.md).
 P06'nın kullanıcı tarafından seçilen yerel motor kapsamı uygulandı:
 sürümlü vaka runbook'u, doğrulanabilir kanıt/yönetici paketi, insan
@@ -39,6 +38,12 @@ onaylı ve otomatik gönderimsiz takedown yaşam döngüsü ile atomik
 CSV/JSON/STIX IOC alışverişi. Kullanıcı P06 listesindeki haricî
 SIEM/SOAR/ticket bağlayıcı maddesini kapsamdan çıkardı. Tam repo ve gerçek
 Linux CI kabulü açıktır. [P06 kapsam ve kabul kartı](P06_DELIVERY.md).
+0.195.0, G01'i tekrar yazmadan P06 takedown akışındaki gerçek boşluğu
+tamamlar: vaka kanıtındaki domain/IP için RDAP, yardımcı `security.txt` ve
+isteğe bağlı WHOIS iletişim adayı; provenance, insan incelemesi, değişince
+bayat karar, periyodik yenileme/recovery ve güncel adayın taslağa bağlanması.
+Otomatik gönderim yine yoktur. Ticari kaynak koşulları ve canlı Linux kabulü
+açıktır. [Ek teslim kartı](P06_ABUSE_CONTACT_DELIVERY.md).
 P07'nin birleşik yerel motor kapsamı uygulandı: altı hedef türü ve 12 saklı
 kayıt ailesi tek kuruluş politikasında; sessiz baseline, sürümlü eşik/
 öncelik, açıklanabilir fark, inbox, insan kararı, vaka, firma JSON'u,
@@ -57,8 +62,8 @@ audit'i, güvenilir platform actor/RBAC ve mevzuat uygunluğu tamamlandı
 sayılmaz. İki firmalı kapasite ve 2.303 testlik hızlı kapı geçti; tam repo ve
 3.644 testlik tam repo kapısı hatasız geçti. Push sonrası gerçek Linux kabulü
 açıktır. [P08 kapsam ve kabul kartı](P08_DELIVERY.md).
-P09 kaynak/feed kontrol düzlemi 49 connector ile uygulandı; P10–P12
-eklemeleriyle güncel katalog 55 kaynağa çıktı. Erişim,
+P09 kaynak/feed kontrol düzlemi 49 connector ile uygulandı; P10–P12 ve P06
+abuse iletişim eklemeleriyle güncel katalog 59 kaynağa çıktı. Erişim,
 maliyet, secret, dil/bölge, ortak kayıt türü, provenance, kota/tekrar/hata,
 veri hakkı ve sağlık sözleşmesiyle tek manifest kataloğunda görünürdür.
 Terminal, engine ve firma platformu aynı ağsız okuma servisini kullanır.
@@ -185,11 +190,11 @@ soyut bir özellik kopyası yazılmaz; dış gereksinim açık tutulur.
 | 2 | **P02 — Firma ve tedarikçi içerik/kanal izlemesi** | Desteklenen haber, blog, forum ve kanallarda firmayla ilgili yeni/değişmiş içeriği bul, doğru firmayla ilişkilendir ve bildir. | Akışın yerel kabulü ve RSS/Atom canlı kabulü tamam. Hesap/kanal gerektiren Telegram/Discord/IRC canlı kabulü, Linux ve ticari kaynak kararları açık. [Teslim kartı](P02_DELIVERY.md). |
 | 3 | **P03 — Marka taklidi kanıtı** | Sahte domain/sayfa, logo, sosyal profil, VIP ve uygulama adaylarını özgün markayla karşılaştır; meşru bayi/parodi ayrımını incelemeye sun. | Akış, macOS temiz kurulum, gerçek eski üreticiden geçiş/geri dönüş ve birikimli kapasite kabulü uygulandı. SecureHup son canlı sonuç kısmi:13 aday/24 PNG. VIP modeli kontrollü kabul edildi; gerçek kişi kullanıcı seçimiyle izlenmedi. Linux, kaynak erişim eksikleri ve ticari kararlar açık. [Teslim kartı](P03_DELIVERY.md). |
 | 4 | **P04 — CTI analiz derinliği** | Aynı varlığın farklı adlarını ayır/birleştirme adayı yap; rapordan kanıtlı ilişki/TTP/etiket öner; kampanya değişimini ve firma önceliğini göster. | LLM gerektirmeyen motor akışı uygulandı; yerel davranış/geçiş/firma/kuyruk/yedek, iki firma20.000 aday kapasite kabulü ve3.577 testlik tam regresyon geçti. Push sonrası gerçek Linux CI/release kabulü açık. Geniş STIX/TAXII ve credential doğrulama dahil değil. [Teslim kartı](P04_DELIVERY.md). |
-| 5 | **P05 — Dark web ve credential kapsamı** | Seçilen yeraltı/veri sağlayıcılarında firma ve tedarikçi iddialarını kaynaklarıyla izle; credential eşleşmesini maskeli ve kapsamlı göster. | Seçilmiş kaynak motoru, yerel/geçiş/firma/kuyruk/kurtarma/yedek ve iki firma20.000 bulgu kapasite kabulü uygulandı. XposedOrNot odaklı25 test,2.261 testlik hızlı çevrimdışı kapı, güncel kapasite ve zararsız parola uç noktası kabulü geçti.0.184.0 tabanının son tam regresyonu3.596 testte hatasızdır;0.185.0 tam kapısı bu turda yeniden çalıştırılmadı. XposedOrNot canlı domain kabulü API anahtarı/doğrulanmış domain; forum/pazar kapsamı seçilmiş sağlayıcı bekliyor. Kamu ransomware akışı bütün dark web kabulü değildir. [Teslim kartı](P05_DELIVERY.md). |
-| 6 | **P06 — Aksiyon ve paylaşım** | Kanıtlı rapor, vaka prosedürü, insan onaylı takedown ve toplu IOC alışverişi. | Seçilen yerel motor kapsamı uygulandı: G01/G03/G04/G05 ve G02 desteği. Tam repo/Linux kabulü açık. LLM, geniş STIX/TAXII, e-posta/SMS ertelendi; SIEM/SOAR/ticket bağlayıcıları kullanıcı kararıyla kapsam dışı. [Teslim](P06_DELIVERY.md). |
+| 5 | **P05 — Dark web ve credential kapsamı** | Seçilen yeraltı/veri sağlayıcılarında firma ve tedarikçi iddialarını kaynaklarıyla izle; credential eşleşmesini maskeli ve kapsamlı göster. | Seçilmiş kaynak motoru, yerel/geçiş/firma/kuyruk/kurtarma/yedek ve iki firma20.000 bulgu kapasite kabulü uygulandı. 0.195.1'de XposedOrNot yeni kullanım yolları çok-firmalı ürün kararıyla kapatıldı; eski maskeli kanıt salt okunur korunur. Lunar toplu maruziyeti ve AIL metadata bağlantısı devam eder. Forum/pazar kapsamı seçilmiş canlı kaynak bekliyor; kamu ransomware akışı bütün dark web kabulü değildir. [Teslim kartı](P05_DELIVERY.md), [karar](../decisions/0201-retire-xposedornot-new-use.md). |
+| 6 | **P06 — Aksiyon ve paylaşım** | Kanıtlı rapor, vaka prosedürü, insan onaylı takedown ve toplu IOC alışverişi. | G01/G03/G04/G05 ve G02 desteği uygulandı; 0.195.0 vaka kanıtına bağlı, insan incelemeli abuse iletişim rotasını ekledi. Tam repo/Linux ve ticari kaynak kabulü açık. LLM, geniş STIX/TAXII, e-posta/SMS ertelendi; SIEM/SOAR/ticket bağlayıcıları kullanıcı kararıyla kapsam dışı. [Ana teslim](P06_DELIVERY.md), [iletişim ek teslimi](P06_ABUSE_CONTACT_DELIVERY.md). |
 | 7 | **P07 — Birleşik izleme ve alarm politikası** | Domain, marka, IP, kelime, kişi ve tedarikçiyi saklı kanıtta ortak politika, sessiz başlangıç, fark, alarm, inceleme ve vaka zincirinde izle. | Yerel motor, firma JSON'u, recovery ve kapasite kabulü tamam; haricî bildirim ve gerçek scheduler platform/işletimde açık. [Teslim](P07_DELIVERY.md). |
 | 8 | **P08 — Saklama, hold ve audit temeli** | Eski büyük izleme gövdelerini kuruluş politikasıyla kayıpsız arşivle, hold/vaka kanıtını koru ve mutasyon zincirini denetle. | P07 izleme ve P12 telemetri gövdeleri tamam; diğer aileler, okuma audit'i, haricî soğuk depo ve mevzuat kararı açık. [Teslim](P08_DELIVERY.md). |
-| 9 | **P09 — Kaynak ve feed yönetişimi** | Her connector'ü erişim, maliyet, dil/bölge, kanıt, kota, hata ve ticari veri kararıyla tek sürümlü katalogda yönet. | 49 manifest, terminal/engine/platform ve 10.000 kayıt kapasite kabulü uygulandı. Canlı kaynakların kendi kabulleri ve hukuk/ticari kararları ayrı açık. [Teslim](P09_DELIVERY.md). |
+| 9 | **P09 — Kaynak ve feed yönetişimi** | Her connector'ü erişim, maliyet, dil/bölge, kanıt, kota, hata ve ticari veri kararıyla tek sürümlü katalogda yönet. | Temel 49 manifest ve 10.000 kayıt kapasite kabulü uygulandı; sonraki seçilmiş kaynaklarla güncel katalog 59 manifesttir. Canlı kaynakların kendi kabulleri ve hukuk/ticari kararları ayrı açık. [Teslim](P09_DELIVERY.md). |
 | 10 | **P10 — Mevcut içerik kaynaklarındaki gerçek kapsam boşlukları** | `news`, `mentions` ve firma/tedarikçi içerik yaşam döngüsünü yeniden yazmadan yalnız seçilmiş yeni sosyal gönderi, forum veya kanal kaynağını mevcut akışa bağla. | **Teknik teslim tamam:** Bluesky genel gönderi araması mevcut P02 akışına bağlandı; SecureHup boş sonuç ve pozitif gerçek yanıt kabulü geçti. Ticari saklama/gösterim kararı açık. [Teslim](P10_DELIVERY.md). |
 | 11 | **P11 — Yeraltı ve credential kaynak genişletme** | Yasal ve seçilmiş forum/pazar/Tor veya stealer-log sağlayıcısını mevcut maskeli dark-web yaşam döngüsüne bağla. | Teknik motor teslim edildi: Lunar toplu domain maruziyeti canlı doğrulandı; AIL 7.x için ham içeriksiz/hash bağlı zarf, geçmiş, inceleme, firma JSON'u, recovery ve şema100 tamamlandı. Hedefli 49 test ile 2.354 hızlı/3.699 tam repo kapısı geçti. Gerçek AIL kurulumu, seçilmiş yasal yeraltı kaynağı ve canlı tracker olayı açık olduğundan A02/A10'un geniş dış kaynak kapsamı kısmi kalır. [Teslim kartı](P11_DELIVERY.md). |
 | 12 | **P12 — Sensör ve malware telemetrisi** | Honeypot/sinkhole ve sandbox sonuçlarını sensör görülmesi, örnek davranışı ve kaynaklı kanıt olarak al. | **Teknik motor teslimi tamamlandı:** güvenli XTI/Cowrie/CAPE normalizasyonu, sürümlü kanıt, inceleme, izleme, vaka, Engine/Platform, şema99, kayıpsız retention/hold/restore ve 5.000 kayıt/firma kabulü hazır. Cowrie/CAPE kurulmadı; gerçek işletim/canlı kabul, ticari veri kararı ve Linux kabulü açık. |
@@ -351,10 +356,10 @@ uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 | A04 | Telegram/Discord/IRC kanal izlemesi | P02 adaptörleri, erişim profilleri, mesaj penceresi/geçmiş cursor ve kontrollü testler var. Telegram/Discord/IRC için hesap/kanal canlı kabulü açık; bütün satır tamamlandı sayılmaz. | P02 |
 | A05 | Honeypot ve sinkhole ham telemetrisi | Kısmi: P12, `xti-sensor-v1` ve güvenli Cowrie JSONL sonucunu ham parola/komut saklamadan kuruluş kapsamlı sürümlü kanıta alır; arama, insan incelemesi, P07 alarmı ve vaka akışı hazırdır. Gerçek sensör/sinkhole ağı işletimi, güvenli aktarım ve canlı kabul tamamlanmadı. | P12 teknik motor tamam; SP/OP canlı altyapı açık |
 | A06 | Malware sandbox ve örnek analizi | Kısmi: P12, ayrı CAPE ortamında tamamlanmış `report.json` içindeki izinli hash, davranış özeti ve ağ IOC'sini alır; XTI örnek, PCAP, bellek veya ham rapor saklamaz ve malware çalıştırmaz. Gerçek yalıtılmış CAPE işletimi ve canlı rapor kabulü açık. | P12 teknik motor tamam; SP/OP canlı sandbox açık |
-| A07 | Ticari/üçüncü taraf feed ve normalizasyon | Kısmi: P09 kontrol düzlemi P10–P12 eklemeleriyle 55 connector'ü tip, dil/bölge, erişim, hak, kota, retry/hata ve zorunlu provenance manifestinde standartlaştırır. Lunar aktif/anahtarsız, AIL koşullu/yereldir. Veri tabloları fiziksel olarak birleşmez; her yeni feed'in canlı toplama, saklama, inceleme ve müşteri gösterim kabulü ayrıca gerekir. | P09 temel; P10/P11/P12 yeni kaynaklar; P13–P15 ertelenmiş sırada |
+| A07 | Ticari/üçüncü taraf feed ve normalizasyon | Kısmi: P09 kontrol düzlemi sonraki eklemelerle 59 connector'ü tip, dil/bölge, erişim, hak, kota, retry/hata ve zorunlu provenance manifestinde standartlaştırır. Lunar ile üç pasif abuse kaynağı aktif/anahtarsız; AIL ve WHOIS fallback koşulludur. Veri tabloları fiziksel olarak birleşmez; her yeni feed'in canlı toplama, saklama, inceleme ve müşteri gösterim kabulü ayrıca gerekir. | P09 temel; P06/P10/P11/P12 yeni kaynaklar; P13–P15 ertelenmiş sırada |
 | A08 | Phishing kit, sahte domain, typosquat | Kısmi: domain/isim/metin/logo/statik sayfa karşılaştırması, form/ortak şablon ipucu ve inceleme/izleme kanıtı var. Kit indirme/çalıştırma ve aktör atfı yok; benzerlik taklit hükmü değil. | P03 |
 | A09 | Sahte mobil uygulama / mağaza taraması | Seçili Apple/Google bölge araması, kimlikle yeniden kontrol, yayıncı farkı, değişmez kanıt ve insan incelemesi uygulandı/canlı denendi. Bütün mağaza kapsamı veya otomatik sahte hükmü yok; ticari koşullar/Linux açık. | P03 |
-| A10 | Credential leak toplama | Kısmi: P05 XposedOrNot verified-domain sonucunu maskeli alır ve açık parola kontrolü geçmiş oluşturmaz. P11 Lunar, bireysel credential/PII almadan son 12 aylık employee/client ve breach/infostealer toplu sayılarını canlı sağlar; AIL zarfı `credential_listing` iddiasını içeriksiz taşıyabilir. XposedOrNot canlı domain kabulü, gerçek AIL kaynağı ve ham stealer-log sağlayıcısı açık; credential denenmez. | P05 + P11 teknik motor; OP canlı kaynaklar açık |
+| A10 | Credential leak toplama | Kısmi: P05'in tarihî HIBP/XposedOrNot maskeli kayıtları salt okunur korunur fakat 0.195.1'den itibaren bu kaynaklarda yeni domain veya parola sorgusu yoktur. P11 Lunar bireysel credential/PII almadan son 12 aylık employee/client ve breach/infostealer toplu sayılarını canlı sağlar; AIL zarfı `credential_listing` iddiasını içeriksiz taşıyabilir. Gerçek AIL kaynağı ve seçilmiş ham-verisiz stealer-log sağlayıcısı açık; credential denenmez. | P05 tarihî okuma + P11 teknik motor; OP canlı kaynaklar açık |
 | A11 | Sosyal mühendislik, itibar, yönetici taklidi | Kısmi: firma içeriği, marka/kişi kimliği, sosyal karşılaştırma, bayi/parodi/ilgili-belirsiz incelemesi ve tekrar izleme var. SecureHup sosyal erişimi kısmi; gerçek VIP canlı kabulü yapılmadı. Geniş itibar sınıflaması tamam değil. | P02, P03 |
 | A12 | Tedarikçi/üçüncü taraf ihlal haberleri | Mevcut kaynaklarla sınırlı; P02 seçili yayın/kanalları, P10 Bluesky genel metin gönderilerini açık tedarikçi kimliği, inceleme, değişiklik, vaka ve ortak rapora bağlar. Kaynak iddiası doğrulanmış ihlal değildir. | P02, P05, P10 |
 | A13 | RU/ZH/AR/TR/PT dahil çok dilli toplama | P02 Unicode/alternatif isim, P09–P12 zorunlu dil/bölge manifesti ve Bluesky `lang` filtresi vardır; TR/RU/ZH/AR/PT için40 etiketli eşleşme örneği bulunur. P11 AIL zarfı çok dilli kaynak metaverisini kaybetmez, fakat bu dillerde gerçek yeraltı kaynağı/corpus canlı kabulü yoktur; çeviri ayrıdır. | P09/P10 temel; P11 teknik zarf; OP canlı kaynaklar; P15 çeviri |
@@ -424,7 +429,7 @@ uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 
 | ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
 |---|---|---|---|
-| G01 | Phishing/app/sosyal takedown servisi | P06 yerel motor kapsamı tamamlandı: uygun vaka kanıtından taslak, katı insan onayı, dış başvuru referansı ve sonuç olay zinciri. Otomatik gönderim bilinçli olarak yoktur; gerçek portal/hukuk yetkisi işletme sorumluluğudur. | P03 + P06 tamamlanan motor kapsamı |
+| G01 | Phishing/app/sosyal takedown servisi | P06 yerel motor kapsamı; uygun vaka kanıtından taslak, katı insan onayı, dış başvuru referansı ve sonuç olay zincirine ek olarak domain/IP RDAP, yardımcı security.txt, koşullu WHOIS, aday/provenance/inceleme ve güncel iletişimin taslağa bağını sağlar. Otomatik gönderim bilinçli olarak yoktur; gerçek portal/hukuk yetkisi işletme sorumluluğudur. | P03 + P06/0.195.0 tamamlanan motor kapsamı; ticari kaynak/Linux kabulü açık |
 | G02 | Case/incident management | Motor vaka/görev/kanıt/geçmişi P06 runbook, paket ve takedown ile kullanılır. Ekip atama/SLA/rol UI'si tüketici platformda kalır. | Motor desteği tamam; PL açık |
 | G03 | Playbook/runbook önerileri | P06'da kanıt türüne uygun sürümlü, deterministik plan; plan SHA çiti; atomik/idempotent vaka görevi ve uygulama makbuzu tamamlandı. | P06 tamamlanan motor kapsamı |
 | G04 | PDF yönetici + CSV/JSON/STIX rapor | P06'da aynı donmuş vakadan teknik JSON, yönetici HTML, kanıt CSV, isteğe bağlı ağsız PDF ve hash manifesti; IOC için CSV/JSON/STIX tamamlandı. Geniş STIX/TAXII ayrı ertelenmiştir. | P06 tamamlanan motor kapsamı |
@@ -448,17 +453,17 @@ uygulanır. Mevcut yetenekler korunacak; yeniden sıfırdan yazılmayacaktır.
 |---|---|---|---|
 | I01 | Çok dilli UI | Yok. Platform i18n; motor kararlı durum kodu ve çevirilebilir kullanıcı metni sözleşmesi sağlar. | PL; ilgili motor paketi |
 | I02 | Veri yerleşimi | Ürün politikası yok. Saklama bölgesi ile dış kaynağa/modelle veri aktarımı ayrı kontrol edilmeli. | OP, PL |
-| I03 | GDPR/KVKK/CCPA veri işleme ayarları | P08 amaç/dayanak, kuruluş saklama süresi, explicit hold, yedek ve kapalı otomatik silme sağlar. P11 Lunar'da bireysel PII almaz; AIL'de ham içerik/adres/credential kabul etmez. Erişim/aktarımı, veri sahibi talepleri, bölge ve hukuk onayı platform/işletimde açık; uygunluk iddiası yok. | P08/P11 teknik destek; OP, PL ve hukuk onayı açık |
-| I04 | Bölgesel/dil bazlı feed seçimi | P09–P12 bütün55 connector'de zorunlu dil/bölge alanı ve katalog filtresi sağlar; Bluesky seçilmiş dili gerçek aramaya aktarır, AIL `mul/global` olarak gerçek kaynak dili iddia etmez. Bölgesel kaynak paketleri/canlı kapsam tamamlanmadı;40 çok dilli eşleştirme örneği kaynak erişimi değildir. | P09 kontrol düzlemi; P10 sosyal; P11 yeraltı teknik sınırı; P12 yerel telemetri; OP canlı kaynaklar |
+| I03 | GDPR/KVKK/CCPA veri işleme ayarları | P08 amaç/dayanak, kuruluş saklama süresi, explicit hold, yedek ve kapalı otomatik silme sağlar. P11 Lunar bireysel PII almaz; AIL ham içerik/adres/credential kabul etmez. P06 abuse iletişimi yalnız açık rol ve küçültülmüş rota/provenance saklar; registrant ve ham RDAP/WHOIS gövdesini almaz. Erişim/aktarımı, veri sahibi talepleri, bölge ve hukuk onayı platform/işletimde açık; uygunluk iddiası yok. | P06/P08/P11 teknik destek; OP, PL ve hukuk onayı açık |
+| I04 | Bölgesel/dil bazlı feed seçimi | Güncel 59 connector'de zorunlu dil/bölge alanı ve katalog filtresi vardır; Bluesky seçilmiş dili gerçek aramaya aktarır, AIL `mul/global` olarak gerçek kaynak dili iddia etmez. Bölgesel kaynak paketleri/canlı kapsam tamamlanmadı; 40 çok dilli eşleştirme örneği kaynak erişimi değildir. | P09 kontrol düzlemi; P10 sosyal; P11 yeraltı teknik sınırı; P12 yerel telemetri; OP canlı kaynaklar |
 | I05 | Para birimi/fatura formatı | Yok; motor işi değil. Platformun ticari işletim sorumluluğu. | PL |
 
 ### J — Güven ve doğrulanabilirlik (4)
 
 | ID | Kullanıcının gereksinimi | Başlangıç durumu ve açık parça | Yol |
 |---|---|---|---|
-| J01 | Bulgu kaynağına izlenebilirlik | Mevcut kaynak izi korunur. P08 arşiv binding/hash ve restore'u; P09 bütün connector manifestlerinde provenance alanlarını tanımlar. P10 Bluesky; P11 Lunar kaynak/zaman/snapshot özeti ile AIL sürüm/commit/object/evidence hash'i ve hash-zincirli tur geçmişiyle yükümlülüğü doğruladı. | P08–P11 doğrulandı; tüm paketlerde sürekli |
+| J01 | Bulgu kaynağına izlenebilirlik | Mevcut kaynak izi korunur. P08 arşiv binding/hash ve restore'u; P09 bütün connector manifestlerinde provenance alanlarını tanımlar. P10 Bluesky ve P11 yeraltı kanıtlarına ek olarak P06 abuse iletişimi kaynak başvurusu, zaman, rol/alan kanıtı, istek/bayt sayısı ve hash bağlı çalışma/aday geçmişi taşır. | P06/P08–P11 doğrulandı; tüm paketlerde sürekli |
 | J02 | XAI / skor ve alarmın nedenini açıklama | P04 her adayda kural, sinyal, özgün kaynak/alinti, skor bileşeni, sınırlama ve otomatik-hüküm-yok bilgisini verir. Gelecek AI çıktısı aynı kanıt yükümlülüğüne tabidir. | P04 kurallı açıklama tamam; AI ayrı |
-| J03 | İnsan onayı/etiketleme | P04 kanıt ve gözlem sürümüne bağlı karar, değişince yeniden inceleme, değişmez geçmiş, inbox ve vaka kopyasını ekledi. P11 toplu maruziyet ve yeraltı iddiasını aynı yaşama bağladı; otomatik incident yoktur. | P04/P11 ve mevcut paketlerde var; tüm paketler |
+| J03 | İnsan onayı/etiketleme | P04 kanıt ve gözlem sürümüne bağlı karar, değişince yeniden inceleme, değişmez geçmiş, inbox ve vaka kopyasını ekledi. P11 yeraltı iddiası ile P06 abuse iletişim adayı aynı ilkeyi kullanır; adres değişirse karar bayatlar ve otomatik incident/takedown yoktur. | P04/P06/P11 ve mevcut paketlerde var; tüm paketler |
 | J04 | Faydalı/faydasız geri bildirim → iyileştirme | P04 kaynak bazında kabul/ret/belirsiz sonuçlarını gösterir fakat reliability'yi sessizce değiştirmez. Denetimli kalite ölçümü/model güncellemesi ayrı ve hâlâ eksiktir. | P04 görünürlük tamam; AI/OP öğrenme ayrı |
 
 ### K — Gelişmiş modüller (6)

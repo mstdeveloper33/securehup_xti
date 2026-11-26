@@ -30,10 +30,10 @@ class HandoffTests(unittest.TestCase):
             counts["total"],
         )
         sources = HANDOFF.source_requirements()
-        self.assertEqual(sources["count"], 55)
-        self.assertEqual(sources["active"], 33)
+        self.assertEqual(sources["count"], 59)
+        self.assertEqual(sources["active"], 35)
         self.assertEqual(sources["blocked_requirement"], 15)
-        self.assertEqual(sources["not_implemented"], 7)
+        self.assertEqual(sources["not_implemented"], 9)
 
     def test_plan_still_fails_closed_for_required_repository_errors(self) -> None:
         required_failure = HANDOFF._check(

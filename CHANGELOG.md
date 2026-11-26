@@ -1,5 +1,49 @@
 # Değişiklik Kaydı
 
+## 0.195.1 — 26 Kasım 2026
+
+- Kullanıcı kararıyla XposedOrNot verified-domain ve parola önek entegrasyonunun
+  yeni kullanımı kapatıldı; müşteri hesabı/anahtarı/domain doğrulaması artık
+  XTI kurulumu veya tenant akışı değildir.
+- Yeni profiller `xposedornot_domain` seçemez. Configure/status/identity,
+  credential refresh ve parola kontrol terminal komutları ile Platform
+  `darkweb.credential.refresh` işlemi kaldırıldı.
+- Üretim composition'ı XposedOrNot ağ, secret ve parola adaptörlerini artık
+  kurmaz; `./handoff` XposedOrNot anahtarı aramaz.
+- Eski profil, maskeli credential turu, karar, vaka ve hash zinciri salt okunur
+  korunur; yarım tarihî tur açık `darkweb recover` ile kapatılabilir.
+- İki kaynak manifesti `disabled`/tarihî duruma taşındı; 59 manifest artık
+  35 aktif, 15 koşullu ve 9 kapalıdır.
+- Şema101 ve kayıt verisi değişmedi; otomatik secret silme veya veri dönüşümü
+  yapılmadı. ADR0201 geri dönüş/yeniden etkinleştirme şartlarını kaydeder.
+
+## 0.195.0 — 25 Kasım 2026
+
+- P06/G01 takedown yaşam döngüsüne etkin vaka kanıtındaki kesin domain veya
+  genel IP için incelenmiş abuse iletişim rotası eklendi.
+- IANA bootstrap üzerinden resmî domain/IP RDAP, yardımcı ve düşük güvenli
+  `security.txt`, RDAP açık iletişim vermediğinde isteğe bağlı yerel WHOIS
+  fallback kaynakları bounded ve proxy'siz adaptör arkasında çalışır.
+- Yalnız açık RDAP `abuse` rolü ve sıkı WHOIS abuse alanları kabul edilir;
+  registrant/kişi verisi ile ham kaynak gövdeleri kalıcı katmana girmez.
+- Sürümlü watch, çalışma/kaynak makbuzu, aday/değişiklik, insan incelemesi,
+  due/monitor/recovery ve sayfalı geçmiş şema101'e eklendi; kaynak hatası son
+  başarılı adayı silmez ve gözlem değişikliği eski kararı bayatlatır.
+- Güncel insan onaylı aday aynı vaka/kanıt takedown taslağına bağlanabilir;
+  create, approve ve submit bağın güncelliğini doğrular. Motor dış başvuru,
+  e-posta veya portal işlemi göndermez.
+- Salt okunur `action.contact.*` engine işlemleri ve workspace/revision/
+  idempotency çitli firma platformu yazmaları eklendi; yalnız refresh ağ
+  operasyonudur.
+- Kaynak kataloğu 59 manifeste çıktı. WHOIS fallback koşulludur; üç pasif
+  kaynak teknik olarak aktif fakat ticari gösterim hakları inceleme bekler.
+- Şema100→101 açık yedekli migration, restore, firma izolasyonu, recovery,
+  takedown stale-binding ve 250 değişmeyen yenilemede tek aday kapasite
+  kabulü eklendi. Yeni Python paketi veya ücretli API yoktur.
+- Yerel macOS/Python 3.13 hızlı kapısı 2.385, tam repo kapısı 3.730 testi
+  sıfır hatayla tamamladı; iki turda yalnız Linux çalışma zamanı isteyen dört
+  test atlandı ve temiz Linux kabulü açık bırakıldı.
+
 ## 0.194.0 — 25 Kasım 2026
 
 - `./handoff`, repo/katalog/araç durumunu ve seçilen çalışma alanını

@@ -1,7 +1,8 @@
 # ADR0190 — XposedOrNot credential kaynağı ve parola gizlilik sınırı
 
 **Tarih:** 22 Kasım 2026
-**Durum:** Kabul edildi; P05 için ADR0189'un HIBP verified-domain seçimini değiştirir.
+**Durum:** 26 Kasım 2026 tarihinde [ADR0201](0201-retire-xposedornot-new-use.md)
+ile yeni kullanım için yürürlükten kaldırıldı; yalnız tarihî tasarım kaydıdır.
 
 ## Karar
 

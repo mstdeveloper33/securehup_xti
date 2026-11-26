@@ -21,6 +21,7 @@ from xti.domain.actionability import (
 )
 from xti.domain.assets import ValidationError
 from xti.domain.cases import CaseDetails, normalize_case_id, normalize_case_task_title
+from xti.domain.abuse_contacts import normalize_candidate_id
 
 
 _EVIDENCE_COLUMNS = (
@@ -395,7 +396,74 @@ class SQLiteActionabilityRepository:
             previous_snapshot_sha256 = event.snapshot_sha256
         if payload["request"] != cls._request_payload(record):
             raise StorageError("Takedown güncel durumu olay zinciriyle uyuşmuyor.")
-        return TakedownDetails(record, events, draft)
+        binding_row = connection.execute(
+            "SELECT id,takedown_id,candidate_id,candidate_evidence_sha256,review_revision,recorded_at "
+            "FROM action_contact_takedown_links WHERE takedown_id=?", (request_id,),
+        ).fetchone()
+        binding = None
+        if binding_row is not None:
+            binding = {
+                "id": _uuid(binding_row[0]), "takedown_id": _uuid(binding_row[1]),
+                "candidate_id": normalize_candidate_id(binding_row[2]),
+                "candidate_evidence_sha256": _sha(binding_row[3]),
+                "review_revision": binding_row[4], "recorded_at": _time(binding_row[5]),
+            }
+            draft_binding = draft.get("contact_binding")
+            if (
+                not isinstance(draft_binding, dict)
+                or draft_binding.get("candidate_id") != binding["candidate_id"]
+                or draft_binding.get("candidate_evidence_sha256") != binding["candidate_evidence_sha256"]
+                or draft_binding.get("review_revision") != binding["review_revision"]
+            ):
+                raise StorageError("Takedown iletişim adayı bağı taslakla uyuşmuyor.")
+        elif draft.get("contact_binding") is not None:
+            raise StorageError("Takedown iletişim adayı bağı bulunamadı.")
+        return TakedownDetails(record, events, draft, binding)
+
+    @staticmethod
+    def _approved_contact(connection, candidate_id: str, case_id: str,
+                          evidence_link_id: str) -> tuple[str, str, str, dict]:
+        candidate_id = normalize_candidate_id(candidate_id)
+        row = connection.execute(
+            "SELECT c.id,c.watch_id,c.contact_value,c.routing_kind,c.source_key,"
+            "c.source_reference,c.confidence,c.active,c.observation_revision,"
+            "c.review_revision,c.evidence_sha256,w.case_id,w.evidence_link_id,"
+            "w.subject_kind,w.subject_value "
+            "FROM action_contact_candidates c JOIN action_contact_watches w ON w.id=c.watch_id "
+            "WHERE c.id=?", (candidate_id,),
+        ).fetchone()
+        if row is None:
+            raise ValidationError("Takedown için seçilen abuse iletişim adayı bulunamadı.")
+        if row[11] != case_id or row[12] != evidence_link_id:
+            raise ValidationError("Abuse iletişim adayı bu vaka kanıtına ait değil.")
+        if not row[7]:
+            raise ValidationError("Pasif abuse iletişim adayı takedown alıcısı olamaz.")
+        review = connection.execute(
+            "SELECT revision,observation_revision,decision,actor,reason,evidence_sha256,recorded_at "
+            "FROM action_contact_reviews WHERE candidate_id=? ORDER BY revision DESC LIMIT 1",
+            (candidate_id,),
+        ).fetchone()
+        if (
+            review is None or review[0] != row[9] or review[1] != row[8]
+            or review[2] != "approved" or review[5] != row[10]
+        ):
+            raise ValidationError(
+                "Abuse iletişim adayı güncel kanıt üzerinde approved insan kararı taşımıyor."
+            )
+        binding = {
+            "kind": "reviewed_abuse_contact", "version": 1,
+            "candidate_id": candidate_id, "watch_id": _uuid(row[1]),
+            "candidate_evidence_sha256": _sha(row[10]),
+            "observation_revision": row[8], "review_revision": review[0],
+            "source_key": row[4], "source_reference": row[5],
+            "confidence": row[6], "approved_by": review[3],
+            "approved_at": _time(review[6]),
+            "limitations": [
+                "Kaynak iletişim adresi sağlar; ihlal veya hukuki yetki hükmü vermez.",
+                "Adres değişirse bu insan kararı ve takedown taslağı yeniden hazırlanmalıdır.",
+            ],
+        }
+        return row[3], row[14], row[2], binding
 
     @classmethod
     def _insert_event(
@@ -434,16 +502,21 @@ class SQLiteActionabilityRepository:
         )
 
     def create_takedown(
-        self, case_id: str, evidence_link_id: str, *, target_kind: str,
-        target_value: str, recipient: str, requested_action: str,
+        self, case_id: str, evidence_link_id: str, *, target_kind: str | None,
+        target_value: str | None, recipient: str | None, requested_action: str,
         grounds: str, idempotency_key: str, actor: str,
-        recorded_at: str,
+        recorded_at: str, contact_candidate_id: str | None = None,
     ) -> TakedownDetails:
         case_id, evidence_link_id = normalize_case_id(case_id), _uuid(evidence_link_id)
         idempotency_key, actor = normalize_key(idempotency_key), normalize_actor(actor)
-        target_kind = normalize_target_kind(target_kind)
-        target_value = normalize_target(target_value)
-        recipient = normalize_recipient(recipient)
+        if contact_candidate_id is None:
+            target_kind = normalize_target_kind(target_kind)
+            target_value = normalize_target(target_value)
+            recipient = normalize_recipient(recipient)
+        else:
+            contact_candidate_id = normalize_candidate_id(contact_candidate_id)
+            if any(value is not None for value in (target_kind, target_value, recipient)):
+                raise ValidationError("İletişim adaylı takedown ham hedef veya alıcı kabul etmez.")
         requested_action = normalize_requested_action(requested_action)
         grounds = normalize_reason(grounds)
         recorded_at = _time(recorded_at)
@@ -456,17 +529,23 @@ class SQLiteActionabilityRepository:
                 ).fetchone()
                 if replay is not None:
                     result = self._details(connection, replay[0])
-                    expected = (
-                        case_id, evidence_link_id, target_kind, target_value,
-                        recipient, requested_action, grounds,
+                    base_matches = (
+                        result.request.case_id == case_id
+                        and result.request.evidence_link_id == evidence_link_id
+                        and result.request.requested_action == requested_action
+                        and result.request.grounds == grounds
                     )
-                    observed = (
-                        result.request.case_id, result.request.evidence_link_id,
-                        result.request.target_kind, result.request.target_value,
-                        result.request.recipient, result.request.requested_action,
-                        result.request.grounds,
-                    )
-                    if observed != expected:
+                    if contact_candidate_id is None:
+                        route_matches = (
+                            result.request.target_kind, result.request.target_value,
+                            result.request.recipient,
+                        ) == (target_kind, target_value, recipient) and result.contact_binding is None
+                    else:
+                        route_matches = bool(
+                            result.contact_binding
+                            and result.contact_binding["candidate_id"] == contact_candidate_id
+                        )
+                    if not base_matches or not route_matches:
                         raise ValidationError(
                             "Takedown tekrar anahtarı farklı bir taslak için daha önce kullanılmış."
                         )
@@ -486,10 +565,16 @@ class SQLiteActionabilityRepository:
                 if evidence_row is None:
                     raise ValidationError("Takedown için vaka kanıtı bulunamadı.")
                 evidence = SQLiteCaseRepository._evidence(evidence_row)
+                binding = None
+                if contact_candidate_id is not None:
+                    target_kind, target_value, recipient, binding = self._approved_contact(
+                        connection, contact_candidate_id, case_id, evidence_link_id,
+                    )
                 draft, draft_sha = takedown_draft(
                     case_id, evidence, target_kind=target_kind,
                     target_value=target_value, recipient=recipient,
                     requested_action=requested_action, grounds=grounds,
+                    contact_binding=binding,
                 )
                 draft_json, _ = canonical(draft)
                 request_id = str(uuid4())
@@ -510,6 +595,15 @@ class SQLiteActionabilityRepository:
                     (request_id,),
                 ).fetchone()
                 record = self._takedown(record_row)
+                if binding is not None:
+                    connection.execute(
+                        "INSERT INTO action_contact_takedown_links "
+                        "(id,takedown_id,candidate_id,candidate_evidence_sha256,review_revision,recorded_at) "
+                        "VALUES (?,?,?,?,?,?)",
+                        (str(uuid4()), request_id, binding["candidate_id"],
+                         binding["candidate_evidence_sha256"], binding["review_revision"],
+                         recorded_at),
+                    )
                 self._insert_event(
                     connection, record, action="draft", actor=actor,
                     reason=draft["grounds"], external_reference=None,
@@ -551,7 +645,7 @@ class SQLiteActionabilityRepository:
                         raise ValidationError(
                             "Kapalı vakada takedown onayı veya gönderim kaydı yapılamaz."
                         )
-                if action == "approve":
+                if action in {"approve", "submit"}:
                     evidence_row = connection.execute(
                         f"SELECT {_EVIDENCE_COLUMNS} FROM case_evidence WHERE id=?",
                         (current.evidence_link_id,),
@@ -566,6 +660,22 @@ class SQLiteActionabilityRepository:
                         raise ValidationError(
                             "Takedown kanıtı artık etkin veya güncel değil; yeni taslak hazırlayın."
                         )
+                    link = connection.execute(
+                        "SELECT candidate_id,candidate_evidence_sha256,review_revision "
+                        "FROM action_contact_takedown_links WHERE takedown_id=?", (request_id,),
+                    ).fetchone()
+                    if link is not None:
+                        _kind, _target, _recipient, binding = self._approved_contact(
+                            connection, link[0], current.case_id, current.evidence_link_id,
+                        )
+                        if (
+                            binding["candidate_evidence_sha256"] != link[1]
+                            or binding["review_revision"] != link[2]
+                            or current.recipient != _recipient
+                        ):
+                            raise ValidationError(
+                                "Takedown abuse iletişim adayı değişti; yeni taslak hazırlayın."
+                            )
                 state = next_takedown_state(current.state, action)
                 revision = current.revision + 1
                 approved_by = actor if action == "approve" else current.approved_by

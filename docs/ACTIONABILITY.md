@@ -1,18 +1,22 @@
 # İnsan onaylı aksiyon, vaka paketi ve toplu IOC işlemleri
 
-XTI 0.186.0, kanıtı dışarıya kendiliğinden göndermeden savunma işini
-hazırlar ve izlenebilir kılar. Bu kapsam dört parçadır:
+XTI 0.186.0 kanıtı dışarıya kendiliğinden göndermeden savunma işini
+hazırlar ve izlenebilir kılar; 0.195.0 bu yaşam döngüsüne kanıta bağlı,
+insan incelemeli abuse iletişim keşfini ekler. Güncel kapsam beş parçadır:
 
 1. Vakanın o andaki tam görünümünden bütünlüğü doğrulanabilir kanıt paketi.
 2. Kanıt türlerine göre sürümlü runbook planı ve atomik vaka görevleri.
 3. İnsan onayı olmadan ilerlemeyen takedown kayıt ve sonuç yaşam döngüsü.
 4. CSV, JSON ve güvenli STIX 2.1 alt kümesiyle toplu IOC önizleme,
    içe alma ve dışa aktarma.
+5. Domain/IP RDAP, yardımcı `security.txt` ve isteğe bağlı WHOIS ile abuse
+   iletişim adayını bulma, inceleme ve güncel adayı taslağa bağlama.
 
 Haricî SIEM, SOAR, Jira/ServiceNow veya otomatik sağlayıcı başvurusu bu
-pakete dahil değildir. Motor ağ çağrısı yapmaz; gerçek takedown başvurusu
-yetkili insan tarafından sağlayıcı portalında yapılır ve yalnız dış başvuru
-referansı XTI'ya kaydedilir.
+pakete dahil değildir. Yalnız açık `action contact-refresh` iletişim
+kaynaklarına pasif ağ çağrısı yapar; takedown işlemlerinin hiçbiri ağ çağrısı
+yapmaz. Gerçek başvuru yetkili insan tarafından sağlayıcı portalında yapılır
+ve yalnız dış başvuru referansı XTI'ya kaydedilir.
 
 ## Kurulum ve veri geçişi
 
@@ -23,14 +27,14 @@ Yeni kurulumda:
 ./xti init
 ```
 
-0.185.0/şema94 veri alanında önce kurtarma yedeği üreten açık geçiş gerekir:
+Eski veri alanında önce kurtarma yedeği üreten açık geçiş gerekir:
 
 ```sh
 ./xti migrate
 ```
 
-Geçiş şema 95'e ulaşır. Eski vaka, IOC ve kaynak kanıtları korunur; P06
-tabloları yalnız yeni kayıtlar için eklenir.
+Güncel geçiş şema 101'e ulaşır. Eski vaka, IOC, kaynak ve P06 kayıtları
+korunur; abuse iletişim tabloları yalnız yeni kayıtlar için eklenir.
 
 ## Runbook
 
@@ -137,6 +141,27 @@ kanıtın hâlâ etkin ve aynı özetle güncel olması yeniden doğrulanır. On
 `submit`, referanssız gönderim kaydı ve geçersiz durum sırası reddedilir.
 `list` ve `show` bozuk olay zincirini sessizce göstermez.
 
+### Adresi otomatik bulup insan onayıyla bağlama
+
+Vaka kanıtındaki domain veya genel IP için önce iletişim izlemesi oluşturulup
+yenilenir. RDAP açık abuse rolü ana kanıttır; `security.txt` yardımcıdır ve
+yerel WHOIS yalnız RDAP boşsa isteğe bağlı fallback'tir. Aday insan tarafından
+onaylandıktan sonra manuel `--recipient` yerine şu bağ kullanılabilir:
+
+```sh
+./xti action takedown-create VAKA_KIMLIGI KANIT_BAGI_KIMLIGI \
+  --contact-candidate-id ADAY_KIMLIGI \
+  --requested-action "Kötüye kullanım incelemesine alınsın." \
+  --grounds "Kaynaklı iletişim adayı ve vaka kanıtı insan tarafından doğrulandı." \
+  --actor analyst@example.test \
+  --idempotency-key vaka-123-contact-1
+```
+
+Aday başka vakaya/kanıta aitse, etkin değilse, onaysızsa veya kaynak kanıtı
+değiştiği için kararı bayatsa taslak oluşmaz. Aynı bağ hem
+`takedown-approve` hem de `takedown-submit` öncesinde yeniden doğrulanır.
+Tam kullanım ve kaynak sınırları [abuse iletişim rehberindedir](ABUSE_CONTACTS.md).
+
 ## Toplu IOC
 
 Desteklenen türler: domain, IPv4, IPv6, URL, MD5, SHA-1 ve SHA-256.
@@ -180,6 +205,11 @@ Salt okunur engine ve firma kapsamlı platform işlemleri:
 - `action.runbook.plan`, `action.runbook.show`, `action.runbook.apply`
 - `action.takedown.list`, `action.takedown.show`
 - `action.takedown.create`, `action.takedown.transition`
+- `action.contact.capabilities`, `action.contact.plan`
+- `action.contact.watches`, `action.contact.watch.show/events`, `action.contact.due`
+- `action.contact.runs`, `action.contact.run.show`
+- `action.contact.candidates`, `action.contact.candidate.show/events`, `action.contact.reviews`
+- `action.contact.watch.add/update/disable`, `action.contact.refresh/review/recover`
 
 Firma yazmaları `expected_workspace_id` çiti ister. Dosya yolu alan
 `package-create`, IOC import ve export işlemleri keyfî sunucu dosyası
@@ -195,7 +225,10 @@ PYTHONPYCACHEPREFIX=/tmp/xti-pyc ./scripts/python \
   scripts/check-test-shard.py -v \
   tests/test_actionability.py tests/test_actionability_cli.py \
   tests/test_actionability_contract.py tests/test_actionability_migration.py \
-  tests/test_ioc_bulk.py
+  tests/test_ioc_bulk.py tests/test_abuse_contacts_domain.py \
+  tests/test_abuse_contact_sources.py tests/test_abuse_contacts.py \
+  tests/test_abuse_contact_contract.py tests/test_abuse_contact_migration.py \
+  tests/test_abuse_contact_capacity.py
 ```
 
 Birikimli, ağsız kabul:
@@ -205,5 +238,6 @@ PYTHONPYCACHEPREFIX=/tmp/xti-pyc ./scripts/python \
   scripts/check-actionability-delivery.py
 ```
 
-Ayrıntılı sonuç ve açık ortam doğrulamaları
-[P06 teslim kartında](roadmap/P06_DELIVERY.md) tutulur.
+Ayrıntılı sonuç ve açık ortam doğrulamaları [P06 teslim kartında](roadmap/P06_DELIVERY.md)
+ve [abuse iletişim ek teslim kartında](roadmap/P06_ABUSE_CONTACT_DELIVERY.md)
+tutulur.

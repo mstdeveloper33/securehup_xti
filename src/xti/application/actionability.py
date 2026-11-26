@@ -77,10 +77,18 @@ class ActionabilityService:
             return {
                 "contract_version": 1,
                 "runbook": {"template": "xti-defensive-response", "version": 1, "idempotent_apply": True},
-                "takedown": {"human_approval_required": True, "automatic_submission": False},
+                "takedown": {
+                    "human_approval_required": True, "automatic_submission": False,
+                    "reviewed_abuse_contact_binding": True,
+                },
+                "abuse_contact_discovery": {
+                    "domain_rdap": True, "ip_rdap": True,
+                    "security_txt_auxiliary": True, "whois_fallback_optional": True,
+                    "raw_response_persisted": False,
+                },
                 "case_package": {"terminal_artifact": True, "platform_file_path_input": False},
                 "bulk_ioc": {"terminal_file_artifact": True, "platform_file_path_input": False},
-                "external_connectors": False,
+                "external_connectors": {"automatic_submission": False, "abuse_contact_sources": True},
             }
         if operation == "action.runbook.plan":
             return asdict(self.runbook_plan(**options))

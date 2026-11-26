@@ -281,9 +281,13 @@ def repository_checks() -> list[Check]:
         "REQUIREMENTS.md", "CHANGELOG.md",
         "docs/GETTING_STARTED.md", "docs/ARCHITECTURE.md", "docs/STATUS.md",
         "docs/TEAM_HANDOFF.md",
+        "docs/ABUSE_CONTACTS.md",
         "docs/decisions/0199-secret-safe-team-handoff.md",
+        "docs/decisions/0200-reviewed-abuse-contact-routing.md",
+        "docs/decisions/0201-retire-xposedornot-new-use.md",
         "docs/roadmap/MASTER_ROADMAP.md",
         "docs/roadmap/TEAM_HANDOFF_DELIVERY.md",
+        "docs/roadmap/P06_ABUSE_CONTACT_DELIVERY.md",
     )
     missing = [name for name in expected if not (PROJECT / name).is_file()]
     checks = [_check(
@@ -306,9 +310,9 @@ def repository_checks() -> list[Check]:
         "NOTES.md": f"Güncel çalışma: **{__version__} /",
         "docs/GETTING_STARTED.md": f"**Sürüm {__version__} ·",
         "docs/STATUS.md": f"— {__version__},",
-        "docs/ARCHITECTURE.md": f"{__version__} ekip teslim kapısı:",
+        "docs/ARCHITECTURE.md": f"{__version__} P05 XposedOrNot emekliliği:",
         "docs/TEAM_HANDOFF.md": f"**Sürüm {__version__} ·",
-        "docs/roadmap/MASTER_ROADMAP.md": f"**Ekip teslim kapısı:** {__version__}",
+        "docs/roadmap/MASTER_ROADMAP.md": f"**P05 bakım çalışması:** 0.185.0/{__version__}",
     }
     stale = []
     for name, marker in version_markers.items():
@@ -321,7 +325,7 @@ def repository_checks() -> list[Check]:
     checks.append(_check(
         "documentation.version", "Teslim belgelerinin sürüm tutarlılığı",
         "pass" if not stale else "fail", required=True,
-        detail=(f"Sekiz teslim belgesi XTI {__version__} sürümünü gösteriyor."
+        detail=(f"Güncel teslim belgeleri XTI {__version__} sürümünü gösteriyor."
                 if not stale else "Sürüm işareti eksik belgeler: " + ", ".join(stale)),
         action=None if not stale else "Teslim belgelerindeki güncel sürüm başlıklarını eşitle.",
     ))
@@ -357,7 +361,6 @@ def optional_configuration_checks() -> list[Check]:
     from xti.adapters.brightdata_credentials import load_key as load_brightdata
     from xti.adapters.code_credentials import load_key as load_code_key
     from xti.adapters.tavily_search import load_tavily_api_key
-    from xti.adapters.xposedornot_credentials import load_api_key as load_xposedornot
 
     return [
         _secret_check(
@@ -375,10 +378,6 @@ def optional_configuration_checks() -> list[Check]:
         _secret_check(
             "optional.gitlab", "GitLab hesaplı kod araması",
             lambda: load_code_key("gitlab"), "./xti code configure gitlab",
-        ),
-        _secret_check(
-            "optional.xposedornot", "XposedOrNot doğrulanmış domain sorgusu",
-            load_xposedornot, "./xti darkweb xposedornot-configure",
         ),
         _check(
             "optional.channels", "Telegram/Discord kanal bağlantıları",

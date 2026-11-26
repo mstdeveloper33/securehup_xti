@@ -209,6 +209,7 @@ class TakedownDetails:
     request: TakedownRequest
     events: tuple[TakedownEvent, ...]
     draft: dict
+    contact_binding: dict | None = None
 
 
 def _step(code: str, title: str, rationale: str, *evidence_types: str) -> RunbookStep:
@@ -363,6 +364,7 @@ def runbook_payload(plan: RunbookPlan) -> dict:
 def takedown_draft(
     case_id: str, evidence: CaseEvidence, *, target_kind: str, target_value: str,
     recipient: str, requested_action: str, grounds: str,
+    contact_binding: dict | None = None,
 ) -> tuple[dict, str]:
     case_id = normalize_case_id(case_id)
     if not evidence.active or evidence.case_id != case_id:
@@ -370,7 +372,7 @@ def takedown_draft(
     if evidence.evidence_type not in TAKEDOWN_ELIGIBLE_EVIDENCE:
         raise ValidationError("Bu kanıt türü takedown başvurusu için uygun değil.")
     payload = {
-        "kind": "human_approved_takedown_draft", "version": 1,
+        "kind": "human_approved_takedown_draft", "version": 2 if contact_binding else 1,
         "case_id": case_id, "evidence_link_id": evidence.id,
         "evidence_type": evidence.evidence_type,
         "evidence_id": evidence.evidence_id,
@@ -389,6 +391,8 @@ def takedown_draft(
             "Başvuru öncesi kanıt, yetki, marka hakkı ve alıcı insan tarafından doğrulanmalıdır.",
         ],
     }
+    if contact_binding is not None:
+        payload["contact_binding"] = contact_binding
     _encoded, digest = canonical(payload)
     return payload, digest
 

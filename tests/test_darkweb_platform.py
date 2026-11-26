@@ -16,7 +16,7 @@ from xti.application.darkweb_monitoring import DarkwebService
 from xti.domain.organizations import normalize_organization_target
 from xti.domain.darkweb_source_intake import lunar_record
 from xti.interfaces.cli import main
-from tests.test_darkweb_monitoring import AT, CredentialSource, FrozenInputs, Secrets
+from tests.test_darkweb_monitoring import AT, FrozenInputs
 
 
 class PlatformLunar:
@@ -40,13 +40,12 @@ class DarkwebPlatformTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve() / "platform"
         self.inputs = FrozenInputs()
-        self.credential_source = CredentialSource()
         self.lunar = PlatformLunar()
 
         def make(database, **unused):
             return DarkwebService(
                 SQLiteDarkwebRepository(database), self.inputs,
-                self.credential_source, Secrets(), domain_exposure_source=self.lunar,
+                domain_exposure_source=self.lunar,
                 now=lambda: AT,
             )
 
@@ -90,7 +89,7 @@ class DarkwebPlatformTests(unittest.TestCase):
     def profile(self):
         code, response = self.invoke("darkweb.profile.add", {
             "name": "Platform dark web", "organization_id": self.organization.id,
-            "sources": ["ransomlook", "xposedornot_domain"], "interval_seconds": 900,
+            "sources": ["ransomlook"], "interval_seconds": 900,
             "idempotency_key": "profile", "expected_workspace_id": self.alpha.workspace_id,
         })
         self.assertEqual(code, 0, response)
@@ -101,7 +100,8 @@ class DarkwebPlatformTests(unittest.TestCase):
         self.assertEqual(code, 0, described)
         self.assertIn("darkweb.capabilities", described["data"]["operations"])
         self.assertIn("darkweb.profile.add", described["data"]["operations"])
-        self.assertIn("darkweb.credential.refresh", described["data"]["request_network_operations"])
+        self.assertNotIn("darkweb.credential.refresh", described["data"]["operations"])
+        self.assertNotIn("darkweb.credential.refresh", described["data"]["request_network_operations"])
         self.assertIn("darkweb.lunar.refresh", described["data"]["request_network_operations"])
         self.assertEqual(described["data"]["source_jobs"]["execution_version"], 12)
         self.assertIn("darkweb-monitor", described["data"]["source_jobs"]["sources"])
@@ -111,13 +111,13 @@ class DarkwebPlatformTests(unittest.TestCase):
         )
         self.assertNotEqual(code, 0)
         self.assertEqual(hidden["error"]["code"], "not_found")
-        code, fenced = self.invoke("darkweb.credential.refresh", {
-            "identifier": profile["id"], "domain": "example.com", "idempotency_key": "wrong",
+        code, fenced = self.invoke("darkweb.lunar.refresh", {
+            "identifier": profile["id"], "domain": "example.com", "expected_revision": 1,
+            "idempotency_key": "wrong",
             "expected_workspace_id": "00000000-0000-0000-0000-000000000000",
         })
         self.assertNotEqual(code, 0)
         self.assertEqual(fenced["error"]["code"], "scope_mismatch")
-        self.assertEqual(self.credential_source.calls, 0)
 
     def test_platform_p11_preview_import_refresh_and_tenant_isolation(self):
         code, response = self.invoke("darkweb.profile.add", {
@@ -159,18 +159,21 @@ class DarkwebPlatformTests(unittest.TestCase):
         self.assertNotEqual(code, 0)
         self.assertEqual(hidden["error"]["code"], "not_found")
 
-    def test_platform_credential_refresh_returns_only_masked_evidence(self):
-        profile = self.profile()
+    def test_platform_rejects_retired_xposedornot_profile_and_operation(self):
+        code, response = self.invoke("darkweb.profile.add", {
+            "name": "Retired source", "organization_id": self.organization.id,
+            "sources": ["xposedornot_domain"], "interval_seconds": 900,
+            "idempotency_key": "retired-profile",
+            "expected_workspace_id": self.alpha.workspace_id,
+        })
+        self.assertNotEqual(code, 0)
+        self.assertEqual(response["error"]["code"], "invalid_parameters")
         code, response = self.invoke("darkweb.credential.refresh", {
-            "identifier": profile["id"], "domain": "example.com",
+            "identifier": "30000000-0000-4000-8000-000000000001", "domain": "example.com",
             "idempotency_key": "credential", "expected_workspace_id": self.alpha.workspace_id,
         })
-        self.assertEqual(code, 0, response)
-        self.assertEqual(response["data"]["account_count"], 1)
-        encoded = json.dumps(response)
-        self.assertNotIn("alice.private", encoded)
-        self.assertNotIn("a" * 32, encoded)
-        self.assertEqual(self.credential_source.calls, 1)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(response["error"]["code"], "unsupported_operation")
 
     def test_shared_queue_runs_stored_analysis_and_preserves_receipt(self):
         profile = self.profile()

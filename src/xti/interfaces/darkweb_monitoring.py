@@ -1,7 +1,6 @@
 """P05 terminal and company-platform composition boundary."""
 
 from contextlib import nullcontext
-import getpass
 import json
 from pathlib import Path
 import time
@@ -23,24 +22,20 @@ from xti.interfaces.text import safe_text
 CLI = {name.replace(".", "-"): PREFIX + name for name in (
     "capabilities", "profiles", "profile.add", "profile.update", "profile.show", "plan",
     "run", "runs", "run.show", "findings", "finding.show", "evidence.show", "review",
-    "reviews", "changes", "credential.refresh", "credential.runs", "credential.run.show",
+    "reviews", "changes", "credential.runs", "credential.run.show",
     "source.runs", "source.run.show", "source.records", "source.record.show",
     "lunar.refresh", "ail.preview", "ail.import", "report", "recover",
 )}
 
 
-def make_darkweb_service(database, *, config_directory=None):
+def make_darkweb_service(database):
     from xti.adapters.darkweb_monitoring_inputs import SQLiteDarkwebInputs
-    from xti.adapters.xposedornot_credentials import XposedOrNotCredentialStore
-    from xti.adapters.xposedornot_domain_exposure import XposedOrNotDomainExposureSource
-    from xti.adapters.xposedornot_passwords import XposedOrNotPasswordSource
     from xti.adapters.lunar_domain_exposure import LunarDomainExposureSource
     from xti.adapters.sqlite_darkweb_monitoring import SQLiteDarkwebRepository
     from xti.application.darkweb_monitoring import DarkwebService
     return DarkwebService(
         SQLiteDarkwebRepository(database), SQLiteDarkwebInputs(database),
-        XposedOrNotDomainExposureSource(), XposedOrNotCredentialStore(config_directory),
-        XposedOrNotPasswordSource(), LunarDomainExposureSource(),
+        LunarDomainExposureSource(),
     )
 
 
@@ -79,11 +74,6 @@ def register_darkweb_parser(commands) -> None:
             parser.add_argument("--observation-revision", dest="expected_observation_revision", type=int)
             parser.add_argument("--decision", required=True, choices=DECISIONS)
             parser.add_argument("--reason", required=True)
-        if command == "credential-refresh":
-            parser.add_argument("identifier", help="Dark web profil kimliği.")
-            parser.add_argument(
-                "domain", help="Kuruluşa açıkça bağlı ve XposedOrNot'ta doğrulanmış domain."
-            )
         if command == "lunar-refresh":
             parser.add_argument("identifier", help="Dark web profil kimliği.")
             parser.add_argument("domain", help="Kuruluşa açıkça bağlı kesin domain.")
@@ -115,28 +105,6 @@ def register_darkweb_parser(commands) -> None:
             parser.add_argument("--run-id")
         if operation in WRITES:
             parser.add_argument("--idempotency-key")
-    status = actions.add_parser(
-        "xposedornot-status",
-        help="Anahtarı göstermeden XposedOrNot yapılandırma durumunu göster.",
-    )
-    status.add_argument("organization_id")
-    status.set_defaults(darkweb_config_action="status")
-    configure = actions.add_parser(
-        "xposedornot-configure",
-        help="XposedOrNot anahtarını gizli terminal girişinden güvenle kaydet.",
-    )
-    configure.set_defaults(darkweb_config_action="configure")
-    identity = actions.add_parser(
-        "xposedornot-identity-create",
-        help="Kuruluş için ayrı pseudonym anahtarı oluştur.",
-    )
-    identity.add_argument("organization_id")
-    identity.set_defaults(darkweb_config_action="identity-create")
-    password = actions.add_parser(
-        "password-check",
-        help="Parolayı göstermeden yerelde hashleyip XposedOrNot maruziyetini kontrol et.",
-    )
-    password.set_defaults(darkweb_password_check=True)
     monitor = actions.add_parser("monitor", help="Bir dark web profilini sınırlı döngüde çalıştır.")
     monitor.add_argument("identifier")
     monitor.add_argument("--cycles", type=int, default=1)
@@ -201,45 +169,14 @@ def darkweb_lines(data: dict) -> list[str]:
                 "Bulgular: " + safe_text(json.dumps(data["finding_counts"], ensure_ascii=False)),
                 "İnceleme bekleyen: " + str(data["pending_review_count"]),
                 "Otomatik incident: hayır"]
-    if set(data) >= {"api_key", "identity_key", "ready"}:
-        return ["XposedOrNot API anahtarı: " + data["api_key"],
-                "Kuruluş pseudonym anahtarı: " + data["identity_key"],
-                "Canlı verified-domain sorgusuna hazır: " + str(data["ready"])]
-    if data.get("provider") == "xposedornot_passwords":
-        state = "maruziyet bulundu" if data["exposed"] else "bu veri kümesinde bulunmadı"
-        return [
-            "Parola sonucu: " + state,
-            "Görülme sayısı: " + str(data["exposure_count"]),
-            "Parola/tam hash saklandı: hayır | gönderilen: yalnız 10 karakterlik hash öneki",
-            "Not: Bulunmaması parolanın güvenli olduğunu kanıtlamaz.",
-        ]
     if "decision" in data:
         return [f"İnceleme: {data['id']} | {data['decision']}", safe_text(data["reason"])]
     return [safe_text(json.dumps(data, ensure_ascii=False))]
 
 
 def execute_darkweb(database, args):
-    from xti.adapters.xposedornot_credentials import XposedOrNotCredentialStore
     from xti.adapters.worker_lock import LocalExecutionLock
-    if hasattr(args, "darkweb_config_action"):
-        store = XposedOrNotCredentialStore()
-        if args.darkweb_config_action == "status":
-            result = store.readiness(args.organization_id)
-        elif args.darkweb_config_action == "configure":
-            value = getpass.getpass("XposedOrNot API anahtarı (gösterilmez): ")
-            store.save_api_key(value)
-            result = {"configured": True, "secret_displayed": False}
-        else:
-            store.create_identity_key(args.organization_id)
-            result = {"organization_id": args.organization_id, "identity_key_created": True,
-                      "secret_displayed": False}
-        return result, darkweb_lines(result)
     service = make_darkweb_service(database)
-    if getattr(args, "darkweb_password_check", False):
-        password = getpass.getpass("Kontrol edilecek parola (gösterilmez ve saklanmaz): ")
-        result = service.check_password(password)
-        password = None
-        return result, darkweb_lines(result)
     if getattr(args, "darkweb_monitor", False):
         integer(args.cycles, 1, 100)
         runs = []

@@ -1,10 +1,9 @@
-# Dark web, ransomware iddiası ve maskeli credential izlemesi
+# Dark web, ransomware iddiası ve toplu domain maruziyeti
 
-XTI 0.193.0 seçilmiş kaynaklardaki kuruluş/tedarikçi kayıtlarını tek bir
+XTI 0.195.1 seçilmiş kaynaklardaki kuruluş/tedarikçi kayıtlarını tek bir
 kanıt ve inceleme akışında gösterir. Bu özellik genel Tor tarayıcısı değildir.
-Bir ransomware ilanı veya maskeli XposedOrNot eşleşmesi
-**kaynak iddiasıdır**; otomatik olarak doğrulanmış ihlal, aktif hesap ya da
-geçerli parola anlamına gelmez.
+Bir ransomware ilanı, toplu Lunar sonucu veya AIL metadata eşleşmesi
+**kaynak iddiasıdır**; otomatik olarak doğrulanmış ihlal anlamına gelmez.
 
 ## Desteklenen kaynaklar
 
@@ -12,15 +11,15 @@ geçerli parola anlamına gelmez.
 |---|---|---|---|
 | RansomLook | Önceden saklanmış kamu ransomware iddiası | Mevcut `ransomware refresh` akışında | Seçili; atıf ve veri koşulları korunur |
 | ThreatCluster | Önceden saklanmış kamu ransomware iddiası | Mevcut `ransomware refresh` akışında | Kişisel/açık profil; yazılı izin olmadan ticari profilde kapalı |
-| XposedOrNot verified-domain | Maskeli e-posta ve ihlal adları | Yalnız açık `credential-refresh` çağrısında | Kod kabulü var; canlı domain kabulü API anahtarı ve sağlayıcıda doğrulanmış domain bekliyor |
-| XposedOrNot password corpus | Parolanın görülme sayısı | Yalnız açık `password-check` çağrısında | Parola yerelde hashlenir; sonuç kalıcı değildir |
+| XposedOrNot verified-domain | Yalnız geçmiş maskeli kayıtlar | Yeni ağ kullanımı yok | 26 Kasım 2026 kararıyla kapalı; eski provider/kanıt salt okunur |
+| XposedOrNot password corpus | Yeni veri alınmaz | Ağ kullanımı yok | 26 Kasım 2026 kararıyla kapalı; müşteri akışına sunulmaz |
 | Lunar/Webz.io Domain Exposure | Son 12 aylık toplu employee/client ve breach/infostealer sayı/tarihleri | Yalnız açık `lunar-refresh` çağrısında | Anahtarsız ve canlı doğrulandı; bireysel credential/PII alınmaz |
 | AIL Framework tracker | Hash bağlı nesne, zaman, ağ/tür ve kesin firma eşleşmesi | Ayrı AIL sistemi toplar; XTI yalnız yerel normalize zarfı alır | Motor bağlantısı hazır; gerçek AIL kurulumu, yasal kaynak ve canlı olay kabulü bekliyor |
 
-Eski şema93 HIBP kayıtları veri kaybını önlemek için okunabilir. HIBP yeni
-P05 profillerinde seçilemez, varsayılan değildir ve verified-domain ağ
-adaptörü kurulmaz. Ayrı tarihî `notices` modülü bu kararla yeniden
-etiketlenmez; P05 yeni çalışmaları onu kullanmaz.
+Eski şema93 HIBP ve şema94+ XposedOrNot kayıtları veri kaybını önlemek için
+okunabilir. İki kaynak da yeni profillerde seçilemez; verified-domain ve parola
+ağ adaptörleri üretim composition'ında kurulmaz. Ayrı tarihî `notices` modülü
+bu kararla yeniden etiketlenmez.
 
 AIL yeraltı toplama sistemi olarak seçildi; fakat XTI AIL'i kurmaz, Tor'a
 bağlanmaz ve giriş/CAPTCHA aşmaz. Gerçek AIL kurulumu ile forum/pazar/Tor
@@ -50,7 +49,7 @@ profilini oluştur:
 ```sh
 ./xti ransomware refresh --source ransomlook
 ./xti darkweb profile-add --name "Örnek dark web izlemesi" \
-  --organization KURULUS_ID --source ransomlook --source xposedornot_domain
+  --organization KURULUS_ID --source ransomlook
 ./xti darkweb plan PROFIL_ID
 ./xti darkweb run PROFIL_ID
 ```
@@ -131,52 +130,32 @@ ister. Bir bulguyu vakaya dondurmak için:
   --evidence-id BULGU_ID --reason "İncelenen kaynak iddiasını dondur"
 ```
 
-## XposedOrNot verified-domain credential görünümü
+## Tarihî XposedOrNot kayıtları
 
-Bu yol yalnız XposedOrNot hesabında önceden doğrulanmış ve XTI kuruluşuna açıkça
-bağlanmış domain içindir. Anahtarları sohbete, komut argümanına veya repoya
-yazma. Terminal gizli girişi ve ayrı kuruluş pseudonym anahtarı kullanılır:
-
-```sh
-./xti darkweb xposedornot-configure
-./xti darkweb xposedornot-identity-create KURULUS_ID
-./xti darkweb xposedornot-status KURULUS_ID
-```
-
-Profilde `xposedornot_domain` seçildikten sonra canlı çağrı açıkça yapılır:
+XposedOrNot yeni müşteri kullanımına kapalıdır. Yeni profil, API anahtarı,
+kuruluş anahtarı, domain yenilemesi veya parola sorgusu oluşturulamaz. Daha
+önce alınmış maskeli credential kanıtları silinmez ve yalnız şu yollarla
+okunabilir:
 
 ```sh
-./xti darkweb credential-refresh PROFIL_ID example.com
 ./xti darkweb credential-runs --profile-id PROFIL_ID
+./xti darkweb credential-run-show TUR_ID
 ./xti darkweb report --profile-id PROFIL_ID
 ```
 
-API anahtarı ve pseudonym anahtarı kullanıcı config klasöründe 0600,
-klasörü 0700 izinle tutulur. Symlink, başka kullanıcıya ait veya grup/dünya
-yazılabilir yol reddedilir. SQLite, JSON ve terminalde ham alias, ham e-posta,
-parola, token, cookie veya session bulunmaz. Yalnız maskeli görünüm,
-kuruluşa özel HMAC kimliği, domain ve ihlal adları saklanır. Credential
-hiçbir hesapta denenmez. Pseudonym anahtarı kaybolursa eski maskeli kanıt
-okunur; yeni turda aynı kimliklerle güvenilir değişim hesabı yapılamaz.
+Eski bir profil `xposedornot_domain` içeriyorsa profil ve kanıt geçmişi
+görüntülenir fakat yeni tur `source_retired` sonucu verir. Düzenli izlemeye
+devam etmek için profili `ransomlook`, `lunar_domain` veya kurulum şartları
+tamamlanmışsa `ail_tracker` gibi etkin bir kaynakla güncelle. Kesinti anında
+`running` kalmış eski credential turu yeni ağ isteği yapılmadan `darkweb
+recover` ile `interrupted` kapatılabilir.
 
-Sağlayıcı API'si anahtara bağlı tüm doğrulanmış domainleri tek yanıtta
-döndürebilir. Adaptör yalnız komutta istenen ve kuruluş kapsamına bağlı kesin
-domainin satırlarını kabul eder; diğer domainlerin adresleri motor sınırını
-geçmez.
-
-## Parola maruziyet kontrolü
-
-```sh
-./xti darkweb password-check
-```
-
-Parola komut satırı argümanı olarak verilmez; terminalde gizli alınır.
-Legacy Keccak-512 özeti yerelde hesaplanır ve yalnız ilk 10 hexadecimal
-karakter XposedOrNot parola API'sine gönderilir. Parola, tam hash, önek ve
-sağlayıcının uzunluk/karakter bileşimi bilgisi SQLite'a, loga veya JSON
-sonucuna yazılmaz. Kontrol zamanlanmaz ve geçmiş oluşturmaz. Önek sınırlı
-bilgi sızdırdığı için özellik “sıfır bilgi” olarak sunulmaz. Sonucun boş
-olması parolanın güvenli olduğunu kanıtlamaz.
+Önceki sürümlerde oluşturulmuş XposedOrNot secret dosyaları veri kaybı veya
+hesap erişimi riski yaratmamak için yükseltme sırasında otomatik silinmez.
+İşletici sağlayıcı anahtarını sağlayıcı tarafında iptal etmeli ve artık
+gerekmeyen yerel secret dosyasını kendi secret yönetimi prosedürüyle
+kaldırmalıdır. Şema ve provider kimliği tarihî kanıtın bütünlüğü için korunur;
+eski HIBP kaydı XposedOrNot verisiymiş gibi yeniden etiketlenmez.
 
 ## Ortak kuyrukla düzenli analiz
 
@@ -198,8 +177,8 @@ sıfırdır. `./xti darkweb plan PROFIL_ID` çıktısındaki
 
 Plan, submit, durum ve sonuç ağ kullanmaz. Worker profil kimliğini, sürümünü
 ve kapsam hash'ini yeniden doğrular. Çekirdek tur tamamlandıktan sonra kuyruk
-makbuzu kesilirse açık retry aynı turu yeniden kullanır; XposedOrNot çağrısı
-bu işe otomatik eklenmez.
+makbuzu kesilirse açık retry aynı turu yeniden kullanır. Emekli XposedOrNot
+kaynağı bu işten veya başka bir üretim composition'ından çağrılamaz.
 
 ## Firma platformu ve engine
 
@@ -217,8 +196,9 @@ Salt-okunur engine v1 işlemleri:
 - `darkweb.report`
 
 Platform aynı okumaları ve firma-çitli `profile.add/update`, `run`, `review`,
-`recover`, `credential.refresh`, `lunar.refresh` ve `ail.import` yazmalarını
-destekler. `lunar.refresh` açık ağ operasyonudur; AIL önizleme/içe alma dış
+`recover`, `lunar.refresh` ve `ail.import` yazmalarını destekler.
+`credential.refresh` 0.195.1'de sözleşmeden kaldırılmıştır. `lunar.refresh`
+açık ağ operasyonudur; AIL önizleme/içe alma dış
 ağ kullanmaz. Platform genel JSON isteği 65.536 baytla sınırlıdır; daha büyük
 ama 2 MiB altındaki güvenilen işletici zarfı yerel CLI dosya akışında alınır.
 Yazmalar güvenilen
@@ -237,7 +217,8 @@ kurallarını yeniden yazması gerekmez.
 - `retained_not_observed_in_latest_complete_run`: bulgu geçmişte görüldü,
   son başarılı turda görülmedi; otomatik silinmez.
 
-Yarım kalan analiz, credential veya P11 kaynak turu otomatik tekrar edilmez:
+Yarım kalan analiz veya P11 kaynak turu otomatik tekrar edilmez. Tarihî bir
+credential turu da yeni ağ isteği yapılmadan kesilmiş duruma alınabilir:
 
 ```sh
 ./xti darkweb recover TUR_ID
@@ -246,8 +227,9 @@ Yarım kalan analiz, credential veya P11 kaynak turu otomatik tekrar edilmez:
 Bu işlem turu `interrupted` kapatır ve önceki kanıtı korur. Firma kurulumunda
 `platform backup/restore` çekirdek ile iş kuyruğunu birlikte taşır; restore
 yeni workspace kimliği üretir ve eski kapsamlı yazma isteklerini reddeder.
-Anahtar dosyaları bilinçli olarak SQLite yedeğine dahil değildir; ayrı güvenli
-secret yedeği işletici sorumluluğundadır.
+Etkin kaynakların anahtar dosyaları bilinçli olarak SQLite yedeğine dahil
+değildir; ayrı güvenli secret yedeği işletici sorumluluğundadır. Emekli
+XposedOrNot secret'ı yedek gereksinimi değildir.
 
 ## Sınırlar ve kabul
 
@@ -269,17 +251,18 @@ secret yedeği işletici sorumluluğundadır.
   RSS70,16 MiB ve ağ isteği0 ölçüldü.
 - `securehup.com` canlı Lunar çağrısı 2025-11-01–2026-10-31 döneminde sıfır
   toplu olayla tamamlandı; bu domainin güvenli olduğunun kanıtı değildir.
-- Bu sentetik kapasite kabulü canlı XposedOrNot domaini, gerçek AIL
-  forum/pazar kapsamı, bütün internet doğruluğu veya hukuk/uyumluluk
+- Bu sentetik kapasite kabulü gerçek AIL forum/pazar kapsamı, bütün internet
+  doğruluğu veya hukuk/uyumluluk
   sertifikası değildir.
 
 Şema99→100 geçişi de önce doğrulanmış yedek alır, mevcut P05 kimlik/sequence
 değerlerini korur ve kesilirse eski veritabanını değiştirmez. Şema92→94 ve
-şema93→94 tarihî geçişleri aynı güvenlik sınırını korur. Şema93 HIBP provider kimliği değiştirilmez;
-yeni XposedOrNot kayıtları doğru provider adıyla yazılır. Eski koda dönüş,
-yükseltme öncesi yedeği yeni boş alana
+şema93→94 tarihî geçişleri aynı güvenlik sınırını korur. Şema93 HIBP ve daha
+sonraki XposedOrNot provider kimlikleri değiştirilmez; 0.195.1 yeni
+XposedOrNot kaydı üretmez. Eski koda dönüş, yükseltme öncesi yedeği yeni boş alana
 restore ederek yapılır. Tasarım kararı [ADR0189](decisions/0189-darkweb-and-credential-evidence.md),
-sağlayıcı değişikliği [ADR0190](decisions/0190-xposedornot-credential-source.md),
+tarihî sağlayıcı kararı [ADR0190](decisions/0190-xposedornot-credential-source.md),
+güncel emeklilik kararı [ADR0201](decisions/0201-retire-xposedornot-new-use.md),
 ölçüm ve açık dış bağımlılıklar [P05 teslim kartında](roadmap/P05_DELIVERY.md),
 kaynak genişlemesi [P11 teslim kartında](roadmap/P11_DELIVERY.md),
 tasarım [ADR0198](decisions/0198-minimized-underground-source-intake.md),
